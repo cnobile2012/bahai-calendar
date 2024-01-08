@@ -4,9 +4,9 @@
 coverage
 wheel
 twine
-mock
-pynose
-testfixtures
+#pynose
+#testfixtures
+pytest
 
 ipython
 

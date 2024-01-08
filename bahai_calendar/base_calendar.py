@@ -38,20 +38,39 @@ class BaseCalender:
         """
         self._time[:] = (hour, minute, second, microsecond)
 
-"""
-(defun hour (clock)
-  ;; TYPE clock-time -> hour
-  (first clock))
+    @property
+    def hour(self):
+        """
+        (defun hour (clock)
+          ;; TYPE clock-time -> hour
+          (first clock))
+        """
+        return self._time[0]
 
-(defun minute (clock)
-  ;; TYPE clock-time -> minute
-  (second clock))
+    @property
+    def minute(self):
+        """
+        (defun minute (clock)
+          ;; TYPE clock-time -> minute
+          (second clock))
+        """
+        return self._time[1]
 
-(defun seconds (clock)
-  ;; TYPE clock-time -> second
-  (third clock))
-"""
+    @property
+    def seconds(self):
+        """
+        (defun seconds (clock)
+          ;; TYPE clock-time -> second
+          (third clock))
+        """
+        return self._time[2]
 
+    @property
+    def microsecond(self):
+        """
+        Not in the original implementation
+        """
+        return self._time[3]
 
     def next_index(self, initial, to, condition):
         """

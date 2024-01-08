@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 #
-# bahai_calendar/bahai_calendar.py
+# bahai_calendar/badi_calendar.py
 #
 __docformat__ = "restructuredtext en"
 
 import math
+import datetime
 
-from .base_calendar import BaseCalender
+from bahai_calendar.base_calendar import BaseCalender
+#from bahai_calendar.gregorian_calendar import GergorianCalendar
 
 
 class BahaiCalendar(BaseCalender):
     """
-    Implementation of the Baha'i Calendar.
+    Implementation of the Baha'i (Badi) Calendar.
     """
     _AYYAM_I_HA = 0
-    _LOCATION = (35.696111, 51.423056, 0, 3.5)
+    _TEHRAN_LOCATION = (35.696111, 51.423056, 0, 3.5)
 
     #(defconstant bahai-epoch
     #  ;; TYPE fixed-date
@@ -57,7 +59,7 @@ class BahaiCalendar(BaseCalender):
         super().__init__()
         # Baha'i date: [major, cycle, year, month, day]
         self._bahai_date = []
-        self.gc = GregorianCalendar()
+        #self.gc = GregorianCalendar()
 
     def bahai_from_fixed(self, data):
         """
@@ -709,7 +711,7 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE location -> half-circle
           (first location))
         """
-        return self._LOCATION[0]
+        return self._TEHRAN_LOCATION[0]
 
     @property
     def longitude(self):
@@ -718,7 +720,7 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE location -> circle
           (second location))
         """
-        return self._LOCATION[1]
+        return self._TEHRAN_LOCATION[1]
 
     @property
     def elevation(self):
@@ -727,7 +729,7 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE location -> distance
           (third location))
         """
-        return self._LOCATION[2]
+        return self._TEHRAN_LOCATION[2]
 
     @property
     def zone(self):
@@ -736,7 +738,7 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE location -> real
           (fourth location))
         """
-        return self._LOCATION[3]
+        return self._TEHRAN_LOCATION[3]
 
     #def bahai_date(self, ):
 

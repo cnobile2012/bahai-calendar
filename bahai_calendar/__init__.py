@@ -4,7 +4,7 @@
 #
 __docformat__ = "restructuredtext en"
 
-from .bahai_calendar import BahaiCalendar
-from .gregorian_calendar import GregorianCalendar
+from bahai_calendar.badi_calendar import BahaiCalendar
+from bahai_calendar.gregorian_calendar import GregorianCalendar
 
 __all__ = ('BahaiCalendar', 'GregorianCalendar')

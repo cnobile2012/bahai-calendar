@@ -7,7 +7,7 @@ __docformat__ = "restructuredtext en"
 import math
 import datetime
 
-from .base_calendar import BaseCalender
+from bahai_calendar.base_calendar import BaseCalender
 
 
 class GregorianCalendar(BaseCalender):
@@ -49,25 +49,35 @@ class GregorianCalendar(BaseCalender):
         """
         self._date[:] = (year, month, day)
 
+    @property
+    def standard_year(self):
+        """
+        (defun standard-year (date)
+          ;; TYPE standard-date -> standard-year
+          ;; Year field of date = (year month day).
+          (first date))
+        """
+        return self._date[0]
 
-"""
-(defun standard-day (date)
-  ;; TYPE standard-date -> standard-day
-  ;; Day field of date = (year month day).
-  (third date))
+    @property
+    def standard_month(self):
+        """
+        (defun standard-month (date)
+          ;; TYPE standard-date -> standard-month
+          ;; Month field of date = (year month day).
+          (second date))
+        """
+        return self._date[1]
 
-(defun standard-year (date)
-  ;; TYPE standard-date -> standard-year
-  ;; Year field of date = (year month day).
-  (first date))
-
-(defun time-of-day (hour minute second)
-  ;; TYPE (hour minute second) -> clock-time
-  (list hour minute second))
-"""
-
-
-
+    @property
+    def standard_day(self):
+        """
+        (defun standard-day (date)
+          ;; TYPE standard-date -> standard-day
+          ;; Day field of date = (year month day).
+          (third date))
+        """
+        return self._date[2]
 
     def gregorian_year_from_fixed(self, date):
         """
