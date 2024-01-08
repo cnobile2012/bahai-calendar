@@ -28,7 +28,30 @@ class BaseCalender:
     POLY = lambda self, x, a: 0 if not a else a[0] + (x * POLY(x, a[1:]))
 
     def __init__(self):
-        pass   
+        self._time = []
+
+    def time_of_day(self, hour, minute, second, microsecond):
+        """
+        (defun time-of-day (hour minute second)
+          ;; TYPE (hour minute second) -> clock-time
+          (list hour minute second))
+        """
+        self._time[:] = (hour, minute, second, microsecond)
+
+"""
+(defun hour (clock)
+  ;; TYPE clock-time -> hour
+  (first clock))
+
+(defun minute (clock)
+  ;; TYPE clock-time -> minute
+  (second clock))
+
+(defun seconds (clock)
+  ;; TYPE clock-time -> second
+  (third clock))
+"""
+
 
     def next_index(self, initial, to, condition):
         """

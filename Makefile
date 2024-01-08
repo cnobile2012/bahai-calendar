@@ -71,6 +71,6 @@ clean	:
 	$(shell $(RM_CMD))
 
 clobber	: clean
-	#@(cd $(DOCS_DIR); make clobber)
+#	@(cd $(DOCS_DIR); make clobber)
 	@rm -rf build dist
 #	@rm -rf $(LOGS_DIR)

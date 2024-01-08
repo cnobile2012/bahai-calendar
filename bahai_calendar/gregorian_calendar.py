@@ -5,6 +5,7 @@
 __docformat__ = "restructuredtext en"
 
 import math
+import datetime
 
 from .base_calendar import BaseCalender
 
@@ -33,6 +34,40 @@ class GregorianCalendar(BaseCalender):
 
     def __init__(self):
         super().__init__()
+        self._date = []
+
+    def parse_datetime(self, dt:datetime.datetime):
+        self.gregorian_date(dt.year, dt.month, dt.day)
+        self.time_of_day(dt.hour, dt.minute, dt.second)
+
+    def gregorian_date(self, year, month, day):
+        """
+        (defun gregorian-date (year month day)
+          ;; TYPE (gregorian-year gregorian-month gregorian-day)
+          ;; TYPE -> gregorian-date
+          (list year month day))
+        """
+        self._date[:] = (year, month, day)
+
+
+"""
+(defun standard-day (date)
+  ;; TYPE standard-date -> standard-day
+  ;; Day field of date = (year month day).
+  (third date))
+
+(defun standard-year (date)
+  ;; TYPE standard-date -> standard-year
+  ;; Year field of date = (year month day).
+  (first date))
+
+(defun time-of-day (hour minute second)
+  ;; TYPE (hour minute second) -> clock-time
+  (list hour minute second))
+"""
+
+
+
 
     def gregorian_year_from_fixed(self, date):
         """
@@ -113,20 +148,3 @@ class GregorianCalendar(BaseCalender):
         """
         return 
 
-"""
-(defun standard-day (date)
-  ;; TYPE standard-date -> standard-day
-  ;; Day field of date = (year month day).
-  (third date))
-
-
-(defun standard-year (date)
-  ;; TYPE standard-date -> standard-year
-  ;; Year field of date = (year month day).
-  (first date))
-
-
-(defun time-of-day (hour minute second)
-  ;; TYPE (hour minute second) -> clock-time
-  (list hour minute second))
-"""
