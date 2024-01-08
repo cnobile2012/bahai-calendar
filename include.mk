@@ -1,0 +1,9 @@
+#
+# include.mk
+#
+
+# Baha'i Calendar version info.
+MAJORVERSION	= 0
+MINORVERSION	= 1
+PATCHLEVEL	= 0
+VERSION		= ${MAJORVERSION}.${MINORVERSION}.${PATCHLEVEL}

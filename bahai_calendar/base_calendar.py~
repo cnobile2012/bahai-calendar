@@ -1,0 +1,16 @@
+# -*- coding: utf-8 -*-
+#
+# bahai_calendar/base_calendar.py
+#
+__docformat__ = "restructuredtext en"
+
+
+class BaseCalender:
+    """
+    Basic functionality used with all calenders.
+    """
+
+    def __init__(self):
+        pass
+
+    

@@ -1,0 +1,14 @@
+# Include the bare minimum.
+-r base.txt
+
+coverage
+wheel
+twine
+mock
+pynose
+testfixtures
+
+ipython
+
+Sphinx
+sphinx_rtd_theme
