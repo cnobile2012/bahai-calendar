@@ -8,7 +8,7 @@ import math
 import datetime
 
 from bahai_calendar.base_calendar import BaseCalender
-#from bahai_calendar.gregorian_calendar import GergorianCalendar
+from bahai_calendar.gregorian_calendar import GregorianCalendar
 
 
 class BahaiCalendar(BaseCalender):
@@ -59,7 +59,7 @@ class BahaiCalendar(BaseCalender):
         super().__init__()
         # Baha'i date: [major, cycle, year, month, day]
         self._bahai_date = []
-        #self.gc = GregorianCalendar()
+        self._gc = GregorianCalendar()
 
     def bahai_from_fixed(self, data):
         """
