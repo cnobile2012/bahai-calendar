@@ -4,6 +4,8 @@
 #
 __docformat__ = "restructuredtext en"
 
+import math
+
 
 class BaseCalender:
     """
@@ -26,6 +28,21 @@ class BaseCalender:
     #      0
     #    (+ (first a) (* x (poly x (rest a))))))
     POLY = lambda self, x, a: 0 if not a else a[0] + (x * POLY(x, a[1:]))
+
+    # (defun quotient (m n)
+    #   ;; TYPE (real nonzero-real) -> integer
+    #   ;; Whole part of m/n.
+    #   (floor m n))
+    QUOTIENT = lambda self, m, n: int(math.floor(m / n))
+
+    # (defun rd (tee)
+    #  ;; TYPE moment -> moment
+    #  ;; Identity function for fixed dates/moments. If internal
+    #  ;; timekeeping is shifted, change epoch to be RD date of
+    #  ;; origin of internal count. epoch should be an integer.
+    #  (let* ((epoch 0))
+    #    (- tee epoch)))
+    # Nothing is implemented for this.
 
     def __init__(self):
         self._time = []

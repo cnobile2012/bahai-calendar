@@ -67,30 +67,29 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE fixed-date -> bahai-date
           ;; Baha’i (major cycle year month day) corresponding to fixed date.
           (let* ((g-year (gregorian-year-from-fixed date))
-                 (start ; 1844
+                 (start               ; 1844
                   (gregorian-year-from-fixed bahai-epoch))
-                 (years ; Since start of Baha’i calendar.
+                 (years               ; Since start of Baha’i calendar.
                   (- g-year start
-                     (if (<= date
-                             (fixed-from-gregorian
-                              (gregorian-date g-year march 20)))
+                     (if (<= date (fixed-from-gregorian
+                                   (gregorian-date g-year march 20)))
                          1 0)))
                   (major (1+ (quotient years 361)))
                   (cycle (1+ (quotient (mod years 361) 19)))
                   (year (1+ (mod years 19)))
-                  (days; Since start of year
+                  (days               ; Since start of year
                    (- date (fixed-from-bahai
                             (bahai-date major cycle year 1 1))))
                   (month
                    (cond ((>= date
                               (fixed-from-bahai
                                (bahai-date major cycle year 19 1)))
-                          19) ; Last month of year.
-                         ((>= date ; Intercalary days.
+                          19)         ; Last month of year.
+                         ((>= date    ; Intercalary days.
                               (fixed-from-bahai
                               (bahai-date major cycle year
                                           ayyam-i-ha 1)))
-                         ayyam-i-ha) ; Intercalary period.
+                         ayyam-i-ha)  ; Intercalary period.
                         (t (1+ (quotient days 19)))))
                  (day (- date -1
                          (fixed-from-bahai
@@ -99,9 +98,60 @@ class BahaiCalendar(BaseCalender):
         """
         g_year = self.gregorian_year_from_fixed(date)
         start = self.gregorian_year_from_fixed(bahai-epoch)
-        years = g_year - start - self.gc.fixed_from_gregorian()
+        years = g_year - start
+
+        if date <= self._gc.fixed_from_gregorian(
+            self.fixed_from_gregorian(self._gc.gregorian_date(
+                g_year, self._gc.MARCH, 20))):
+            year -= 1.0
+
+        major = self.QUOTIENT(years, 361) + 1
+        cycle = self.QUOTIENT(years % 361, 19) + 1
+        year = (years % 19) + 1
+        days = date - self.fixed_from_bahai((major, year, 1, 1))
+
+        if date >= self.fixed_from_bahai((major, cycle, year, 19, 1)):
+            month = 19
+        elif date >= self.fixed_from_bahai(
+            (major, cycle, year, self._AYYAM_I_HA, 1)):
+            month = self._AYYAM_I_HA
+        else:
+            month = self.QUOTIENT(days, 19) + 1
+
+        day = date + 1 - self.fixed_from_bahai((major, cycle, year, month, 1))
+        return self.bahai_date(major, cycle, year, month, day)
+
+    def fixed_from_bahai(self, b_date):
+        """
+        (defun fixed-from-bahai (b-date)
+          ;; TYPE bahai-date -> fixed-date
+          ;; Fixed date equivalent to the Baha’i date b-date.
+          (let* ((major (bahai-major b-date))
+                 (cycle (bahai-cycle b-date))
+                 (year (bahai-year b-date))
+                 (month (bahai-month b-date))
+                 (day (bahai-day b-date))
+                 (g-year                    ; Corresponding Gregorian year.
+                  (+ (* 361 (1- major))
+                     (* 19 (1- cycle)) year -1
+                     (gregorian-year-from-fixed bahai-epoch))))
+            (+ (fixed-from-gregorian        ; Prior years.
+                (gregorian-date g-year march 20))
+               (cond ((= month ayyam-i-ha)  ; Intercalary period.
+                      342)                  ; 18 months have elapsed.
+                     ((= month 19)          ; Last month of year.
+                      (if (gregorian-leap-year? (1+ g-year))
+                          347               ; Long ayyam-i-ha.
+                        346))               ; Ordinary ayyam-i-ha.
+                     (t (* 19 (1- month)))) ; Elapsed months.
+               day)))                       ; Days of current month.
+        """
+        major = None
+
 
         return
+
+
 
     def fixed_from_astro_bahai(self, b_date):
         """
@@ -140,8 +190,17 @@ class BahaiCalendar(BaseCalender):
         major = None
 
 
-
         return
+
+    def bahai_date(self, major, cycle, year, month, day):
+        """
+        (defun bahai-date (major cycle year month day)
+          ;; TYPE (bahai-major bahai-cycle bahai-year
+          ;; TYPE bahai-month bahai-day) -> bahai-date
+          (list major cycle year month day))
+        """
+        self._bahai_date[:] = (major, cycle, year, month, day)
+        return self._bahai_date
 
     def astro_bahai_new_year_on_or_before(self, date):
         """
@@ -740,14 +799,7 @@ class BahaiCalendar(BaseCalender):
         """
         return self._TEHRAN_LOCATION[3]
 
-    #def bahai_date(self, ):
-
 """
-(defun bahai-date (major cycle year month day)
-  ;; TYPE (bahai-major bahai-cycle bahai-year
-  ;; TYPE bahai-month bahai-day) -> bahai-date
-  (list major cycle year month day))
-
 (defun bahai-major (date)
   ;; TYPE bahai-date -> bahai-major
   (first date))

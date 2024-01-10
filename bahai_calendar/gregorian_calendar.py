@@ -14,23 +14,31 @@ class GregorianCalendar(BaseCalender):
     """
     Implementation of the Gregorian Calendar.
     """
-    GREGORIAN_EPOCH = 1
+    #(defconstant gregorian-epoch
+    #  ;; TYPE fixed-date
+    #  ;; Fixed date of start of the (proleptic) Gregorian calendar.
+    #  (rd 1))
+    GREGORIAN_EPOCH = 1  # See BaseCalender notes.
 
-    # Build out some lambdas
-    # (defun rd (tee)
-    #  ;; TYPE moment -> moment
-    #  ;; Identity function for fixed dates/moments. If internal
-    #  ;; timekeeping is shifted, change epoch to be RD date of
-    #  ;; origin of internal count. epoch should be an integer.
-    #  (let* ((epoch 0))
-    #    (- tee epoch)))
-    # Nothing is implemented for this.
-
-    # (defun quotient (m n)
-    #   ;; TYPE (real nonzero-real) -> integer
-    #   ;; Whole part of m/n.
-    #   (floor m n))
-    QUOTIENT = lambda self, m, n: int(math.floor(m / n))
+    #(defconstant march
+    #  ;; TYPE standard-month
+    #  ;; March on Julian/Gregorian calendar.
+    #  3)
+    JANUARY = 1
+    FEBRUARY = 2
+    MARCH = 3
+    APRIL = 4
+    MAY = 5
+    JUNE = 6
+    JULY = 7
+    AUGUEST = 8
+    SEPTEMBER = 9
+    OCTOBER = 10
+    NOVEMBER = 11
+    DECEMBER = 12
+    # ((MOD(year, 4) = 0) * ((MOD(year, 100) <> 0) + (MOD(year, 400) = 0)) = 1)
+    GREGORIAN_LEAP_YEAR = lambda self, year: (
+        (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
 
     def __init__(self):
         super().__init__()
@@ -48,6 +56,7 @@ class GregorianCalendar(BaseCalender):
           (list year month day))
         """
         self._date[:] = (year, month, day)
+        return self._date
 
     @property
     def standard_year(self):
@@ -79,7 +88,7 @@ class GregorianCalendar(BaseCalender):
         """
         return self._date[2]
 
-    def gregorian_year_from_fixed(self, date):
+    def gregorian_year_from_fixed(self, date:int) -> int:
         """
         (defun gregorian-year-from-fixed (date)
           ;; TYPE fixed-date -> gregorian-year
@@ -100,14 +109,11 @@ class GregorianCalendar(BaseCalender):
                   (mod d2 1461))
                  (n1             ; Years not in n400, n100, or n4.
                   (quotient d3 365))
-                 (year (+ (* 400 n400)
-                          (* 100 n100)
-                          (* 4 n4)
-                          n1)))
+                 (year (+ (* 400 n400) (* 100 n100) (* 4 n4) n1)))
             (if (or (= n100 4) (= n1 4))
                 year             ; Date is day 366 in a leap year.
-              (1+ year)))); Date is ordinal day (1+ (mod d3 365))
-                                                ; in (1+ year).
+              (1+ year))))       ; Date is ordinal day (1+ (mod d3 365))
+                                 ; in (1+ year).
         """
         d0 = date - self.GREGORIAN_EPOCH
         n400 = self.QUOTIENT(d0, 146097)
@@ -118,9 +124,9 @@ class GregorianCalendar(BaseCalender):
         d3 = d2 % 1461
         n1 = self.QUOTIENT(d3, 365)
         year = (400 * n400) + (100 * n100) + (4 * n4) + n1
-        return year if n100 == 4 or n1 == 1 else year + 1
+        return year if n100 == 4 or n1 == 4 else year + 1
 
-    def fixed_from_gregorian(self, g_date):
+    def fixed_from_gregorian(self, g_date:tuple) -> int:
         """
         (defun fixed-from-gregorian (g-date)
           ;; TYPE gregorian-date -> fixed-date
@@ -128,33 +134,49 @@ class GregorianCalendar(BaseCalender):
           (let* ((month (standard-month g-date))
                  (day (standard-day g-date))
                  (year (standard-year g-date)))
-            (+ (1- gregorian-epoch); Days before start of calendar
-               (* 365 (1- year)) ; Ordinary days since epoch
+            (+ (1- gregorian-epoch)   ; Days before start of calendar
+               (* 365 (1- year))      ; Ordinary days since epoch
                (quotient (1- year)
-                         4)      ; Julian leap days since epoch...
-               (-                ; ...minus century years since epoch...
+                         4)           ; Julian leap days since epoch...
+               (-                     ; ...minus century years since epoch...
                 (quotient (1- year) 100))
-               (quotient         ; ...plus years since epoch divisible...
-                (1- year) 400)   ; ...by 400.
-               (quotient         ; Days in prior months this year...
+               (quotient              ; ...plus years since epoch divisible...
+                (1- year) 400)        ; ...by 400.
+               (quotient              ; Days in prior months this year...
                 (- (* 367 month) 362) ; ...assuming 30-day Feb
                 12)
-               (if (<= month 2)  ; Correct for 28- or 29-day Feb
+               (if (<= month 2)       ; Correct for 28- or 29-day Feb
                    0
                  (if (gregorian-leap-year? year)
                      -1
                    -2))
-               day)))           ; Days so far this month.
+               day)))                 ; Days so far this month.
         """
-        #month = 
-        return
+        year = g_date[0]
+        month = g_date[1]
+        day = g_date[2]
+        year_1 = year - 1
+        result = (self.GREGORIAN_EPOCH - 1 + 365 * year_1 +
+                  self.QUOTIENT(year_1, 4) - self.QUOTIENT(year_1, 100) +
+                  self.QUOTIENT(year_1, 400) +
+                  self.QUOTIENT(367 * month - 362, 12))
 
-    def standard_month(self, date):
-        """
-        (defun standard-month (date)
-          ;; TYPE standard-date -> standard-month
-          ;; Month field of date = (year month day).
-          (second date))
-        """
-        return 
+        if month <= 2:
+            if self.GREGORIAN_LEAP_YEAR(year):
+                result -= 1
+            else:
+                result -= 2
 
+        return result + day
+
+    ## def gregorian_leap_year(self, g_year):
+    ##     """
+    ##     (defun gregorian-leap-year? (g-year)
+    ##       ;; TYPE gregorian-year -> boolean
+    ##       ;; True if g-year is a leap year on the Gregorian
+    ##       ;; calendar.
+    ##       (and (= (mod g-year 4) 0)
+    ##            (not (member (mod g-year 400)
+    ##                         (list 100 200 300)))))
+    ##     """
+    ##     return (g_year % 4) == 0 and ((g_year % 400) in (100, 200, 300))
