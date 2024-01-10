@@ -33,7 +33,7 @@ help	:
 .PHONY	: tar
 tar	: clobber
 	@(cd ..; tar -czvf $(PACKAGE_DIR).tar.gz --exclude=".git" \
-          --exclude="__pycache__" $(BASE_DIR))
+          --exclude="__pycache__" --exclude=".pytest_cache" $(BASE_DIR))
 
 # $ make tests
 # $ make tests TEST_PATH=tests.test_bases

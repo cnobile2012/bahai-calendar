@@ -161,7 +161,7 @@ class GregorianCalendar(BaseCalender):
                   self.QUOTIENT(year_1, 400) +
                   self.QUOTIENT(367 * month - 362, 12))
 
-        if month <= 2:
+        if month > 2:
             if self.GREGORIAN_LEAP_YEAR(year):
                 result -= 1
             else:
