@@ -169,6 +169,57 @@ class GregorianCalendar(BaseCalender):
 
         return result + day
 
+    def gregorian_new_year(self, g_year):
+        """
+        (defun gregorian-new-year (g-year)
+          ;; TYPE gregorian-year -> fixed-date
+          ;; Fixed date of January 1 in g-year.
+          (fixed-from-gregorian
+           (gregorian-date g-year january 1) )))
+        """
+        return self.fixed_from_gregorian((g_year, self.JANUARY, 1))
+
+    def fixed_from_gregorian(self, g_date):
+        """
+        (defun fixed-from-gregorian (g-date)
+          ;; TYPE gregorian-date -> fixed-date
+          ;; Fixed date equivalent to the Gregorian date g-date.
+          (let* ((month (standard-month g-date))
+                 (day (standard-day g-date))
+                 (year (standard-year g-date)))
+            (+ (1- gregorian-epoch)    ; Days before start of calendar
+               (* 365 (1- year))       ; Ordinary days since epoch
+               (quotient (1- year)
+                          4)           ; Julian leap days since epoch...
+               (-                      ; ...minus century years since epoch...
+                (quotient (1- year) 100))
+               (quotient               ; ...plus years since epoch divisible...
+                (1- year) 400)         ; ...by 400.
+               (quotient               ; Days in prior months this year...
+                (- (* 367 month) 362)  ; ...assuming 30-day Feb
+                12)
+               (if (<= month 2)        ; Correct for 28- or 29-day Feb
+                   0
+                 (if (gregorian-leap-year? year)
+                     -1
+                   -2))
+               day)))                  ; Days so far this month.
+        """
+        year = g_date[0]
+        month = g_date[1]
+        day = g_date[2]
+        result = (self.GREGORIAN_EPOCH - 1 + 365 * self.QUOTIENT(year - 1, 4) -
+                  self.QUOTIENT(year - 1, 100) + self.QUOTIENT(year - 1, 400) +
+                  self.QUOTIENT(367 * month - 362, 12))
+
+        if month > 2:
+            if self.GREGORIAN_LEAP_YEAR(year):
+                result -= 1
+            else:
+                result -= 2
+
+        return result + day
+
     ## def gregorian_leap_year(self, g_year):
     ##     """
     ##     (defun gregorian-leap-year? (g-year)
