@@ -1,13 +1,13 @@
 # Include the bare minimum.
 -r base.txt
 
-coverage
 wheel
 twine
 #pynose
 #testfixtures
 pytest
-
+#pytest-cov
+coverage
 ipython
 
 Sphinx

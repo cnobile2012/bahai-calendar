@@ -15,7 +15,12 @@ class BahaiCalendar(BaseCalender):
     """
     Implementation of the Baha'i (Badi) Calendar.
     """
-    _TEHRAN_LOCATION = (35.696111, 51.423056, 0, 3.5)
+    #(defconstant bahai-location
+    #  ;; TYPE location
+    #  ;; Location of Tehran for astronomical Baha’i calendar.
+    #  (location (deg 35.696111L0) (deg 51.423056L0)
+    #   (mt 0) (hr (+ 3 1/2))))
+    BAHAI_LOCATION = (35.696111, 51.423056, 0, 3.5)
 
     #(defconstant ayyam-i-ha
     #  ;; TYPE bahai-month
@@ -32,33 +37,6 @@ class BahaiCalendar(BaseCalender):
     MORNING = True
     SPRING = 0
     MEAN_TROPICAL_YEAR = 365.242189
-
-    # Various lists
-    COEFFICIENTS = (
-        403406, 195207, 119433, 112392, 3891, 2819, 1721, 660, 350, 334, 314,
-        268, 242, 234, 158, 132, 129, 114, 99, 93, 86, 78, 72, 68, 64, 46, 38,
-        37, 32, 29, 28, 27, 27, 25, 24, 21, 21, 20, 18, 17, 14, 13, 13, 13, 12,
-        10, 10, 10, 10
-        )
-    MULTIPLIERS = (
-        0.9287892, 35999.1376958, 35999.4089666, 35998.7287385, 71998.20261,
-        71998.4403, 36000.35726, 71997.4812, 32964.4678, -19.4410, 445267.1117,
-        45036.8840, 3.1008, 22518.4434, -19.9739, 65928.9345, 9038.0293,
-        3034.7684, 33718.148, 3034.448, -2280.773, 29929.992, 31556.493,
-        149.588, 9037.750, 107997.405, -4444.176, 151.771, 67555.316,
-        31556.080, -4561.540, 107996.706, 1221.655, 62894.167, 31437.369,
-        14578.298, -31931.757, 34777.243, 1221.999, 62894.511, -4442.039,
-        107997.909, 119.066, 16859.071, -4.578, 26895.292, -39.127, 12297.536,
-        90073.778
-        )
-    ADDENDS = (
-        270.54861, 340.19128, 63.91854, 331.26220, 317.843, 86.631, 240.052,
-        310.26, 247.23, 260.87, 297.82, 343.14, 166.79, 81.53, 3.50, 132.75,
-        182.95, 162.03, 29.8, 266.4, 249.2, 157.6, 257.8, 185.1, 69.9, 8.0,
-        197.1, 250.4, 65.3, 162.7, 341.5, 291.6, 98.5, 146.7, 110.0, 5.2,
-        342.6, 230.9, 256.1, 45.3, 242.9, 115.2, 151.8, 285.3, 53.3, 126.6,
-        205.7, 85.9, 146.1
-        )
 
     def __init__(self):
         super().__init__()
@@ -247,43 +225,6 @@ class BahaiCalendar(BaseCalender):
         """
         return self.universal_from_standard(self.sunset(data))
 
-    def standard_from_universal(self, tee_rom_u):
-        """
-        (defun standard-from-universal (tee_rom-u location)
-          ;; TYPE (moment location) -> moment
-          ;; Standard time from tee_rom-u in universal time at location.
-          (+ tee_rom-u (zone location)))
-        """
-        return tee_rom_u + self.zone
-
-    def universal_from_standard(self, tee_rom_s):
-        """
-        (defun universal-from-standard (tee_rom-s location)
-          ;; TYPE (moment location) -> moment
-          ;; Universal time from tee_rom-s in standard time at location.
-          (- tee_rom-s (zone location)))
-        """
-        return tee_rom_s - self.zone
-
-    def standard_from_local(self, tee_ell):
-        """
-        (defun standard-from-local (tee_ell location)
-          ;; TYPE (moment location) -> moment
-          ;; Standard time from local tee_ell at location.
-          (standard-from-universal (universal-from-local tee_ell location)
-          location))
-        """
-        return self.standard_from_universal(self.universal_from_local(tee_ell))
-
-    def universal_from_local(self, tee_ell):
-        """
-        (defun universal-from-local (tee_ell location)
-          ;; TYPE (moment location) -> moment
-          ;; Universal time from local tee_ell at location.
-          (- tee_ell (zone-from-longitude (longitude location))))
-        """
-        return tee_ell - self.zone_from_longitude(self.longitude)
-
     def zone_from_longitude(self, phi):
         """
         (defun zone-from-longitude (phi)
@@ -441,220 +382,6 @@ class BahaiCalendar(BaseCalender):
                 self.sin_degrees(alpha) / (self.cos_degrees(delta) *
                                            self.cos_degrees(phi)))
 
-    def solar_longitude(self, tee):
-        '''
-        (defun solar-longitude (tee)
-          ;; TYPE moment -> season
-          ;; Longitude of sun at moment tee.
-          ;; Adapted from "Planetary Programs and Tables from -4000
-          ;; to +2800" by Pierre Bretagnon and Jean-Simon,
-          ;; Willmann-Bell, 1986.
-          (let* ((c       ; moment in Julian centuries
-                  (julian-centuries tee))
-                 (coefficients
-                  (list 403406 195207 119433 112392 3891 2819 1721
-                        660 350 334 314 268 242 234 158 132 129 114
-                        99 93 86 78 72 68 64 46 38 37 32 29 28 27 27
-                        25 24 21 21 20 18 17 14 13 13 13 12 10 10 10
-                        10))
-                 (multipliers
-                  (list 0.9287892L0 35999.1376958L0 35999.4089666L0
-                        35998.7287385L0 71998.20261L0 71998.4403L0
-                        36000.35726L0 71997.4812L0 32964.4678L0
-                        -19.4410L0 445267.1117L0 45036.8840L0 3.1008L0
-                        22518.4434L0 -19.9739L0 65928.9345L0
-                        9038.0293L0 3034.7684L0 33718.148L0 3034.448L0
-                        -2280.773L0 29929.992L0 31556.493L0 149.588L0
-                        9037.750L0 107997.405L0 -4444.176L0 151.771L0
-                        67555.316L0 31556.080L0 -4561.540L0
-                        107996.706L0 1221.655L0 62894.167L0
-                        31437.369L0 14578.298L0 -31931.757L0
-                        34777.243L0 1221.999L0 62894.511L0
-                        -4442.039L0 107997.909L0 119.066L0 16859.071L0
-                        -4.578L0 26895.292L0 -39.127L0 12297.536L0
-                        90073.778L0))
-                 (addends
-                  (list 270.54861L0 340.19128L0 63.91854L0 331.26220L0
-                        317.843L0 86.631L0 240.052L0 310.26L0 247.23L0
-                        260.87L0 297.82L0 343.14L0 166.79L0 81.53L0
-                        3.50L0 132.75L0 182.95L0 162.03L0 29.8L0
-                        266.4L0 249.2L0 157.6L0 257.8L0 185.1L0 69.9L0
-                        8.0L0 197.1L0 250.4L0 65.3L0 162.7L0 341.5L0
-                        291.6L0 98.5L0 146.7L0 110.0L0 5.2L0 342.6L0
-                        230.9L0 256.1L0 45.3L0 242.9L0 115.2L0 151.8L0
-                        285.3L0 53.3L0 126.6L0 205.7L0 85.9L0
-                        146.1L0))
-                 (lambda
-                   (+ (deg 282.7771834L0)
-                      (* (deg 36000.76953744L0) c)
-                      (* (deg 0.000005729577951308232L0)
-                         (sigma ((x coefficients)
-                                 (y addends)
-                                 (z multipliers))
-                                (* x (sin-degrees (+ y (* z c)))))))))
-            (mod (+ lambda (aberration tee) (nutation tee)) 360)))
-        '''
-        c = self.julian_centuries(tee)
-        lambda_ = (282.7771834 + (36000.76953744 * c) +
-                   (0.000005729577951308232 *
-                    self.sigma(((x, self.COEFFICIENTS), (y, self.MULTIPLIERS),
-                                (z, self.ADDENDS)),
-                               'x * self.sin_degrees(y + (z * c))')))
-        return (lambda_ + self.aberration(tee) + self.nutation(tee) + 360)
-
-    def aberration(self, tee):
-        """
-        (defun aberration (tee)
-          ;; TYPE moment -> circle
-          ;; Aberration at moment tee.
-          (let* ((c       ; moment in Julian centuries
-                  (julian-centuries tee)))
-            (- (* (deg 0.0000974L0)
-                  (cos-degrees
-                   (+ (deg 177.63L0) (* (deg 35999.01848L0) c))))
-               (deg 0.005575L0))))
-        """
-        c = self.julian_centuries(tee)
-        return ((0.0000974 * self.cos_degrees(177.63 + (35999.01848 * c)))
-                - 0.005575)
-
-    def nutation(self, tee):
-        """
-        (defun nutation (tee)
-          ;; TYPE moment -> circle
-          ;; Longitudinal nutation at moment tee.
-          (let* ((c       ; moment in Julian centuries
-                  (julian-centuries tee))
-                 (cap-A (poly c (deg (list 124.90L0 -1934.134L0 0.002063L0))))
-                 (cap-B (poly c (deg (list 201.11L0 72001.5377L0 0.00057L0)))))
-             (+ (* (deg -0.004778L0) (sin-degrees cap-A))
-                (* (deg -0.0003667L0) (sin-degrees cap-B)))))
-        """
-        c = self.julian_centuries(tee)
-        cap_a = self.poly(c, (124.90, -1934.134, 0.002063))
-        car_b = self.poly(c, (201.11, 72001.5377, 0.00057))
-        return ((-0.004778 * self.sin_degrees(cap_a)) +
-                (-0.0003667 * self.sin_degrees(cap_a)))
-
-    def refraction(self, tee):
-        """
-        (defun refraction (tee location)
-          ;; TYPE (moment location) -> half-circle
-          ;; Refraction angle at moment tee at location.
-          ;; The moment is not used.
-          (let* ((h (max (mt 0) (elevation location)))
-                 (cap-R (mt 6.372d6)) ; Radius of Earth.
-                 (dip ; Depression of visible horizon.
-                  (arccos-degrees (/ cap-R (+ cap-R h)))))
-            (+ (mins 34) dip (* (secs 19) (sqrt h)))))
-        """
-        h = max(0, self.elevation)
-        cap_r = 6.372 #d6 -- Wikipedia average is 6371 Km
-        dip = self.arccos_degrees(cap_r / (cap_r + h))
-        return self.MINS(34) + dip + (self.SECS(19) * math.sqrt(h))
-
-    def declination(self, tee, beta, lambda_):
-        """
-        (defun declination (tee beta lambda)
-          ;; TYPE (moment half-circle circle) -> angle
-          ;; Declination at moment UT tee of object at
-          ;; latitude beta and longitude lambda.
-          (let* ((varepsilon (obliquity tee)))
-            (arcsin-degrees (+ (* (sin-degrees beta)
-                                  (cos-degrees varepsilon))
-                               (* (cos-degrees beta)
-                                  (sin-degrees varepsilon)
-                                  (sin-degrees lambda))))))
-        """
-        varepsilon = self.obliquity(tee)
-        return ((self.sin_degrees(beta) * self.cos_degrees(varepsilon)) +
-                (self.cos_degrees(beta) * self.sin_degrees(varepsilon)
-                 * self.sin_degrees(lambda_)))
-
-    def obliquity(self, tee):
-        """
-        (defun obliquity (tee)
-          ;; TYPE moment -> angle
-          ;; Obliquity of ecliptic at moment tee.
-          (let* ((c (julian-centuries tee)))
-            (+ (angle 23 26 21.448L0)
-               (poly c (list 0L0
-                             (angle 0 0 -46.8150L0)
-                             (angle 0 0 -0.00059L0)
-                             (angle 0 0 0.001813L0))))))
-        """
-        c = self.julian_centuries(tee)
-        angle_list = (0, self.ANGLE(0, 0, -46.8150),
-                      self.ANGLE(0, 0, -0.00059), self.ANGLE(0, 0, 0.001813))
-        return self.ANGLE(23, 26, 21.448) + self.POLY(c, angle_list)
-
-    def equation_of_time(self, tee):
-        '''
-        (defun equation-of-time (tee)
-          ;; TYPE moment -> fraction-of-day
-          ;; Equation of time (as fraction of day) for moment tee.
-          ;; Adapted from "Astronomical Algorithms" by Jean Meeus,
-          ;; Willmann-Bell, 2nd edn., 1998, p. 185.
-          (let* ((c (julian-centuries tee))
-                 (lambda
-                   (poly c
-                         (deg (list 280.46645L0 36000.76983L0 0.0003032L0))))
-                 (anomaly
-                  (poly c
-                        (deg (list 357.52910L0 35999.05030L0
-                                   -0.0001559L0 -0.00000048L0))))
-                 (eccentricity
-                  (poly c
-                        (list 0.016708617L0 -0.000042037L0 -0.0000001236L0)))
-                 (varepsilon (obliquity tee))
-                 (y (expt (tan-degrees (/ varepsilon 2)) 2))
-                 (equation
-                  (* (/ 1 2 pi)
-                     (+ (* y (sin-degrees (* 2 lambda)))
-                        (* -2 eccentricity (sin-degrees anomaly))
-                        (* 4 eccentricity y (sin-degrees anomaly)
-                           (cos-degrees (* 2 lambda)))
-                        (* -0.5L0 y y (sin-degrees (* 4 lambda)))
-                        (* -1.25L0 eccentricity eccentricity
-                           (sin-degrees (* 2 anomaly)))))))
-            (* (sign equation) (min (abs equation) (hr 12L0)))))
-        '''
-        c = self.julian_centuries(tee)
-        lambda_ = self.POLY(c, (280.46645, 36000.76983, 0.0003032))
-        anomaly = self.POLY(c, (357.52910, 35999.05030, -0.0001559,
-                                -0.00000048))
-        eccentricity = self.POLY(c, (0.016708617, -0.000042037, -0.0000001236))
-        varepsilon = self.obliquity(tee)
-        y = self.tan_degrees(varepsilon / 2) ** 2
-        equation = ((0.5 / math.pi) *
-                    ((y * self.sin_degrees(2 * lambda_)) +
-                     (-2 * eccentricity * self.sin_degrees(anomaly) *
-                      self.cos_degrees(2 * lambda_)) +
-                     (-0.5 * y * y * self.sin_degrees(4 * lambda_)) +
-                     (-1.25 * eccentricity * eccentricity *
-                      self.sin_degrees(2 * anomaly))))
-        return math.sin(equation) * min(abs(equation)) * self.HR(12)
-
-    def apparent_from_local(self, tee_ell):
-        """
-        (defun apparent-from-local (tee_ell location)
-          ;; TYPE (moment location) -> moment
-          ;; Sundial time from local time tee_ell at location.
-          (+ tee_ell (equation-of-time
-                      (universal-from-local tee_ell location))))
-        """
-        return tee_ell + self.equation_of_time(
-            self.universal_from_local(tee_ell))
-
-    def local_from_apparent(self, tee):
-        """
-        (defun local-from-apparent (tee location)
-          ;; TYPE (moment location) -> moment
-          ;; Local time from sundial time tee at location.
-          (- tee (equation-of-time (universal-from-local tee location))))
-        """
-        return tees - self.equation_of_time(self.universal_from_local(tee))
-
     def estimate_prior_solar_longitude(self, lambda_, tee):
         """
         (defun estimate-prior-solar-longitude (lambda tee)
@@ -678,104 +405,42 @@ class BahaiCalendar(BaseCalender):
         cap_delta = self.MOD3(self.solar_longitude(tau) - lambda_, -180, 180)
         return min(tee, tau - rate * cap_delta)
 
-    def fixed_from_moment(self, tee):
+    def standard_from_universal(self, tee_rom_u):
         """
-        (defun fixed-from-moment (tee)
-          ;; TYPE moment -> fixed-date
-          ;; Fixed-date from moment tee.
-          (floor tee))
+        (defun standard-from-universal (tee_rom-u location)
+          ;; TYPE (moment location) -> moment
+          ;; Standard time from tee_rom-u in universal time at location.
+          (+ tee_rom-u (zone location)))
         """
-        return math.floor(tee)
+        return tee_rom_u + self.zone
 
-    def radians_from_degrees(self, theta):
+    def universal_from_standard(self, tee_rom_s):
         """
-        (defun radians-from-degrees (theta)
-          ;; TYPE real -> radian
-          ;; Convert angle theta from degrees to radians.
-          (* (mod theta 360) pi 1/180))
+        (defun universal-from-standard (tee_rom-s location)
+          ;; TYPE (moment location) -> moment
+          ;; Universal time from tee_rom-s in standard time at location.
+          (- tee_rom-s (zone location)))
         """
-        return (theta % 360) * math.pi * 1/180
+        return tee_rom_s - self.zone
 
-    def degrees_from_radians(self, theta):
+    def standard_from_local(self, tee_ell):
         """
-        (defun degrees-from-radians (theta)
-          ;; TYPE radian -> angle
-          ;; Convert angle theta from radians to degrees.
-          (mod (/ theta pi 1/180) 360))
+        (defun standard-from-local (tee_ell location)
+          ;; TYPE (moment location) -> moment
+          ;; Standard time from local tee_ell at location.
+          (standard-from-universal (universal-from-local tee_ell location)
+          location))
         """
-        return (theta / math.pi / 1/180) % 360
+        return self.standard_from_universal(self.universal_from_local(tee_ell))
 
-    def sin_degrees(self, theta):
+    def universal_from_local(self, tee_ell):
         """
-        (defun sin-degrees (theta)
-          ;; TYPE angle -> amplitude
-          ;; Sine of theta (given in degrees).
-          (sin (radians-from-degrees theta)))
+        (defun universal-from-local (tee_ell location)
+          ;; TYPE (moment location) -> moment
+          ;; Universal time from local tee_ell at location.
+          (- tee_ell (zone-from-longitude (longitude location))))
         """
-        return math.sin(self.radians_from_degrees(theta))
-
-    def cos_degrees(self, theta):
-        """
-        (defun cos-degrees (theta)
-          ;; TYPE angle -> amplitude
-          ;; Cosine of theta (given in degrees).
-          (cos (radians-from-degrees theta)))
-        """
-        return math.cos(self.radians_from_degrees(theta))
-
-    def tan_degrees(self, theta):
-        """
-        (defun tan-degrees (theta)
-          ;; TYPE angle -> real
-          ;; Tangent of theta (given in degrees).
-          (tan (radians-from-degrees theta)))
-        """
-        return math.tan(self.radians_from_degrees(theta))
-
-    def dynamical_from_universal(self, tee_rom_u):
-        """
-        (defun dynamical-from-universal (tee_rom-u)
-          ;; TYPE moment -> moment
-          ;; Dynamical time at Universal moment tee_rom-u.
-          (+ tee_rom-u (ephemeris-correction tee_rom-u)))
-        """
-        return tee_rom_u + self.ephemeris_correction(tee_rom_u)
-
-    def universal_from_dynamical(self, tee):
-        """
-        (defun universal-from-dynamical (tee)
-          ;; TYPE moment -> moment
-          ;; Universal moment from Dynamical time tee.
-          (- tee (ephemeris-correction tee)))
-        """
-        return tee - self.ephemeris_correction(tee_rom_u)
-
-    def julian_centuries(self, tee):
-        """
-        (defun julian-centuries (tee)
-          ;; TYPE moment -> century
-          ;; Julian centuries since 2000 at moment tee.
-          (/ (- (dynamical-from-universal tee) j2000) 36525))
-        """
-        return (self.dynamical_from_universal(tee) - 2000) / 36525
-
-    def arcsin_degrees(self, x):
-        """
-        (defun arcsin-degrees (x)
-          ;; TYPE amplitude -> angle
-          ;; Arcsine of x in degrees.
-          (degrees-from-radians (asin x)))
-        """
-        return self.degrees_from_radians(math.asin(x))
-
-    def arccos_degrees(x):
-        """
-        (defun arccos-degrees (x)
-          ;; TYPE amplitude -> angle
-          ;; Arccosine of x in degrees.
-          (degrees-from-radians (acos x)))
-        """
-        return self.degrees_from_radians(math.acos(x))
+        return tee_ell - self.zone_from_longitude(self.longitude)
 
     @property
     def latitude(self):
@@ -784,7 +449,7 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE location -> half-circle
           (first location))
         """
-        return self._TEHRAN_LOCATION[0]
+        return self.BAHAI_LOCATION[0]
 
     @property
     def longitude(self):
@@ -793,7 +458,7 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE location -> circle
           (second location))
         """
-        return self._TEHRAN_LOCATION[1]
+        return self.BAHAI_LOCATION[1]
 
     @property
     def elevation(self):
@@ -802,7 +467,7 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE location -> distance
           (third location))
         """
-        return self._TEHRAN_LOCATION[2]
+        return self.BAHAI_LOCATION[2]
 
     @property
     def zone(self):
@@ -811,7 +476,7 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE location -> real
           (fourth location))
         """
-        return self._TEHRAN_LOCATION[3]
+        return self.BAHAI_LOCATION[3]
 
 """
 (defun bahai-major (date)
@@ -833,11 +498,6 @@ class BahaiCalendar(BaseCalender):
 (defun bahai-day (date)
   ;; TYPE bahai-date -> bahai-day
   (fifth date))
-
-(defconstant ayyam-i-ha
-  ;; TYPE bahai-month
-  ;; Signifies intercalary period of 4 or 5 days.
-  0)
 """
 
     ## def mt(self, x):
@@ -868,33 +528,16 @@ class BahaiCalendar(BaseCalender):
     ##       (list d m s))
     ##     """
     ##     return d, m, s
-"""
-1
- (defun apparent-from-universal (tee_rom-u location)
-2
- ;; TYPE (moment location) -> moment
-3
- ;; True (apparent) time at universal time tee at location.
-4
- (apparent-from-local
-5
- (local-from-universal tee_rom-u location)
-6
- location))
- (14.23)
-1
- (defun universal-from-apparent (tee location)
-2
- ;; TYPE (moment location) -> moment
-3
- ;; Universal time from sundial time tee at location.
-4
- (universal-from-local
-5
- (local-from-apparent tee location)
-6
- location))
-"""
+
+    ## def bahai_new_year(self, g_year):
+    ##     """
+    ##     (defun bahai-new-year (g-year)
+    ##       ;; TYPE gregorian-year -> fixed-date
+    ##       ;; Fixed date of Baha’i New Year in Gregorian year g-year.
+    ##       (fixed-from-gregorian
+    ##        (gregorian-date g-year march 21)))
+    ##     """
+    ##     return self._gc.gregorian_new_year((g_year, self._gc.MARCH, 21))
 
     ## def bahai_from_fixed(self, data):
     ##     """
@@ -936,8 +579,7 @@ class BahaiCalendar(BaseCalender):
     ##     years = g_year - start
 
     ##     if date <= self._gc.fixed_from_gregorian(
-    ##         self.fixed_from_gregorian(self._gc.gregorian_date(
-    ##             g_year, self._gc.MARCH, 20))):
+    ##         self.fixed_from_gregorian((g_year, self._gc.MARCH, 20))):
     ##         year -= 1.0
 
     ##     major = self.QUOTIENT(years, 361) + 1

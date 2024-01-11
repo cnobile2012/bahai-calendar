@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+#
+# bahai_calendar/test/test_badi_calandar.py
+#
+__docformat__ = "restructuredtext en"
+
+import os
+import unittest
+
+
+class TestBadiCalandar(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+

@@ -44,19 +44,9 @@ class GregorianCalendar(BaseCalender):
         super().__init__()
         self._date = []
 
-    def parse_datetime(self, dt:datetime.datetime):
-        self.gregorian_date(dt.year, dt.month, dt.day)
-        self.time_of_day(dt.hour, dt.minute, dt.second)
-
-    def gregorian_date(self, year, month, day):
-        """
-        (defun gregorian-date (year month day)
-          ;; TYPE (gregorian-year gregorian-month gregorian-day)
-          ;; TYPE -> gregorian-date
-          (list year month day))
-        """
-        self._date[:] = (year, month, day)
-        return self._date
+    def parse_datetime(self, dt:datetime.datetime) -> None:
+        self._date[:] = (dt.year, dt.month, dt.day)
+        super().parse_datetime(dt)
 
     @property
     def standard_year(self):

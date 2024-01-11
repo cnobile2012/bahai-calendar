@@ -14,6 +14,7 @@ LOGS_DIR	= $(PREFIX)/logs
 RM_REGEX	= '(^.*.pyc$$)|(^.*.wsgic$$)|(^.*~$$)|(.*\#$$)|(^.*,cover$$)'
 RM_CMD		= find $(PREFIX) -regextype posix-egrep -regex $(RM_REGEX) \
                   -exec rm {} \;
+COVERAGE_FILE	= $(PREFIX)/.coveragerc
 PIP_ARGS	= # Pass variables for pip install.
 TEST_PATH	= # The path to run tests on.
 
@@ -40,10 +41,11 @@ tar	: clobber
 # $ make tests TEST_PATH=tests/test_bases.py:TestBases.test_version
 .PHONY	: tests
 tests	: clobber
-	@mkdir -p $(LOGS_DIR)
-	@nosetests --with-coverage --cover-erase --cover-inclusive \
-                   --cover-html --cover-html-dir=$(DOCS_DIR)/htmlcov \
-                   --cover-package=$(PREFIX)/src $(TEST_PATH)
+	@rm -rf $(DOCS_DIR)/htmlcov
+	@coverage erase --rcfile=$(COVERAGE_FILE)
+	@coverage run --rcfile=$(COVERAGE_FILE) -m pytest
+	@coverage report -m --rcfile=$(COVERAGE_FILE)
+	@coverage html --rcfile=$(COVERAGE_FILE)
 	@echo $(TODAY)
 
 .PHONY	: sphinx
@@ -71,6 +73,6 @@ clean	:
 	$(shell $(RM_CMD))
 
 clobber	: clean
-#	@(cd $(DOCS_DIR); make clobber)
 	@rm -rf build dist
+#	@(cd $(DOCS_DIR); make clobber)
 #	@rm -rf $(LOGS_DIR)
