@@ -102,9 +102,7 @@ class BaseCalender:
         """
         return tee_ell - self.zone_from_longitude(self.longitude)
 
-"""
-local-from-universal
-"""
+# local-from-universal
 
     def standard_from_universal(self, tee_rom_u):
         """
@@ -134,9 +132,7 @@ local-from-universal
         """
         return self.standard_from_universal(self.universal_from_local(tee_ell))
 
-"""
-local-from-standard
-"""
+#local-from-standard
 
     def dynamical_from_universal(self, tee_rom_u):
         """
@@ -232,10 +228,8 @@ local-from-standard
         """
         return tees - self.equation_of_time(self.universal_from_local(tee))
 
-"""
-apparent-from-universal
-universal-from-apparent
-"""
+#apparent-from-universal
+#universal-from-apparent
 
     #
     # Time and Astronomy (The Year)

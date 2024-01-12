@@ -18,7 +18,13 @@ class TestBaseCalandar(unittest.TestCase):
         super().__init__(name)
 
     def setUp(self):
-        self._bc = BaseCalender()
+        class FakeParent(BaseCalender):
+            latitude = 35.696111
+            longitude = 51.423056
+            elevation = 0
+            zone = 3.5
+
+        self._bc = FakeParent()
 
     #@unittest.skip("Temporarily skipped")
     def test_HR(self):
@@ -127,6 +133,63 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Should be {expected_dt}, found {self._bc._time}"
         self.assertTrue(
             all([i == j for i, j in zip(expected_dt, self._bc._time)]), msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_zone_from_longitude(self):
+        """
+        Test that the zone_from_longitude method returns the difference
+        between UT and local mean time at longitude phi as a fraction of
+        a day.
+        """
+        phi = 1000
+        result = self._bc.zone_from_longitude(phi)
+        expected_result = phi / 360
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_universal_from_local(self):
+        """
+        Test that the zone is determined from the time zone.
+        """
+        tee_ell = 30.5
+        result = self._bc.universal_from_local(tee_ell)
+        expected_result = tee_ell - self._bc.zone_from_longitude(
+            self._bc.longitude)
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_standard_from_universal(self):
+        """
+        Test that the zone is determined from the standard time from
+        tee_rom_u in universal time at location.
+        """
+        tee_rom_u = 30
+        result = self._bc.standard_from_universal(tee_rom_u)
+        expected_result = tee_rom_u + self._bc.zone
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_universal_from_standard(self):
+        """
+        Test that the zone is determined from the universal time from
+        tee_rom_s in standard time at location.
+        """
+        tee_rom_s = 30
+        result = self._bc.universal_from_standard(tee_rom_s)
+        expected_result = tee_rom_s - self._bc.zone
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+
+
+
+
+
+
+
 
     @unittest.skip("Temporarily skipped")
     def test_new_moon_at_or_after(self):
