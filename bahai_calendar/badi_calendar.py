@@ -7,11 +7,11 @@ __docformat__ = "restructuredtext en"
 import math
 import datetime
 
-from bahai_calendar.base_calendar import BaseCalender
+from bahai_calendar.base_calendar import BaseCalendar
 from bahai_calendar.gregorian_calendar import GregorianCalendar
 
 
-class BahaiCalendar(BaseCalender):
+class BahaiCalendar(BaseCalendar):
     """
     Implementation of the Baha'i (Badi) Calendar.
     """
@@ -36,66 +36,57 @@ class BahaiCalendar(BaseCalender):
 
     def __init__(self):
         super().__init__()
+        # major: 361-year (19^2) cycle (integer)
+        # cycle: (integer) 19-year cycle
+        # year: (integer) 1 - 19
+        # month: (integer) 1 - 19 plus 0 for Ayyām-i-Hā
+        # day: (integer) 1 - 19
         # Baha'i date: [major, cycle, year, month, day]
-        self._bahai_date = []
+        self._bahai_date = None
         self._gc = GregorianCalendar()
 
-    def bahai_date(self, major, cycle, year, month, day):
-        """
-        (defun bahai-date (major cycle year month day)
-          ;; TYPE (bahai-major bahai-cycle bahai-year
-          ;; TYPE bahai-month bahai-day) -> bahai-date
-          (list major cycle year month day))
-        """
-        self._bahai_date[:] = (major, cycle, year, month, day)
+    def parse_datetime(self, dt:datetime.datetime) -> None:
+        self._gc.parse_datetime(dt)
+        fixed = self._gc.fixed_from_gregorian(self._gc.date_representation)
+        self.date_representation = self.astro_bahai_from_fixed(fixed)
+
+    @property
+    def date_representation(self):
         return self._bahai_date
 
-    def astro_bahai_from_fixed(self, ):
-        """
-        (defun astro-bahai-from-fixed (date)
-          ;; TYPE fixed-date -> bahai-date
-          ;; Astronomical Baha’i date corresponding to fixed date.
-          (let* ((new-year (astro-bahai-new-year-on-or-before date))
-                 (years (round (/ (- new-year bahai-epoch)
-                                  mean-tropical-year)))
-                 (major (1+ (quotient years 361)))
-                 (cycle (1+ (quotient (mod years 361) 19)))
-                 (year (1+ (mod years 19)))
-                 (days        ; Since start of year
-                  (- date new-year))
-                 (month
-                  (cond
-                   ((>= date (fixed-from-astro-bahai
-                              (bahai-date major cycle year 19 1)))
-                              ; last month of year
-                    19)
-                   ((>= date
-                        (fixed-from-astro-bahai
-                         (bahai-date major cycle year ayyam-i-ha 1)))
-                              ; intercalary month
-                    ayyam-i-ha)
-                   (t (1+ (quotient days 19)))))
-                 (day (- date -1
-                         (fixed-from-astro-bahai
-                          (bahai-date major cycle year month 1)))))
-            (bahai-date major cycle year month day)))
-        """
-        new_year = self.astro_bahai_new_year_on_or_before(date)
-        years = (new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR
-        major = self.QUOTIENT(years, 361) + 1
-        cycle = self.QUOTIENT(years % 361, 19) + 1
-        year = (years % 19) + 1
-        days = date - new_year
+    @date_representation.setter
+    def date_representation(self, representation):
+        self._bahai_date = representation
 
-        if date >= self.fixed_from_astro_bahai((major, cycle, year, 19, 1)):
-            month = 19
-        elif date >= self.fixed_from_astro_bahai((major, cycle, year,
-                                                  self.AYYAM_I_HA, 1)):
-            month = self.AYYAM_I_HA
-        else:
-            month = self.QUOTIENT(days, 19)
+    def bahai_sunset(self, date):
+        """
+        (defun bahai-sunset (date)
+          ;; TYPE fixed-date -> moment
+          ;; Universal time of sunset on fixed date in Bahai-Location.
+          (universal-from-standard
+           (sunset date bahai-location)
+           bahai-location))
+        """
+        return self.universal_from_standard(self.sunset(date))
 
-        return (major, cycle, year, month, day)
+    def astro_bahai_new_year_on_or_before(self, date):
+        """
+        (defun astro-bahai-new-year-on-or-before (date)
+          ;; TYPE fixed-date -> fixed-date
+          ;; Fixed date of astronomical Bahai New Year on or before fixed
+          ;; date.
+        (let* ((approx            ; Approximate time of equinox.
+                (estimate-prior-solar-longitude spring (bahai-sunset date))))
+          (next day (1- (floor approx))
+                (<= (solar-longitude (bahai-sunset day))
+                    (+ spring (deg 2))))))
+        """
+        approx = self.estimate_prior_solar_longitude(
+            self.SPRING, self.bahai_sunset(date))
+        initial = math.floor(approx) - 1
+        condition = lambda day: (self.solar_longitude(self.bahai_sunset(day))
+                                 <= (self.SPRING + 2))
+        return self._next(initial, condition)
 
     def fixed_from_astro_bahai(self, b_date):
         """
@@ -118,7 +109,7 @@ class BahaiCalendar(BaseCalender):
                                     (+ years 1/2)))))
                       -20 day))
                   ((= month ayyam-i-ha)
-                   ;; intercalary month, between 18th & 19th
+                                  ; intercalary month, between 18th & 19th
                    (+ (astro-bahai-new-year-on-or-before
                        (+ bahai-epoch
                           (floor (* mean-tropical-year
@@ -150,25 +141,67 @@ class BahaiCalendar(BaseCalender):
 
         return result
 
-    def astro_bahai_new_year_on_or_before(self, date):
+    def astro_bahai_from_fixed(self, date):
         """
-        (defun astro-bahai-new-year-on-or-before (date)
-          ;; TYPE fixed-date -> fixed-date
-          ;; Fixed date of astronomical Bahai New Year on or before fixed
-          ;; date.
-        (let* ((approx ; Approximate time of equinox.
-                (estimate-prior-solar-longitude spring (bahai-sunset date))))
-          (next day (1- (floor approx))
-                (<= (solar-longitude (bahai-sunset day))
-                    (+ spring (deg 2))))))
+        (defun astro-bahai-from-fixed (date)
+          ;; TYPE fixed-date -> bahai-date
+          ;; Astronomical Baha’i date corresponding to fixed date.
+          (let* ((new-year (astro-bahai-new-year-on-or-before date))
+                 (years (round (/ (- new-year bahai-epoch)
+                                  mean-tropical-year)))
+                 (major (1+ (quotient years 361)))
+                 (cycle (1+ (quotient (mod years 361) 19)))
+                 (year (1+ (mod years 19)))
+                 (days        ; Since start of year
+                  (- date new-year))
+                 (month
+                  (cond
+                   ((>= date (fixed-from-astro-bahai
+                              (bahai-date major cycle year 19 1)))
+                              ; last month of year
+                    19)
+                   ((>= date
+                        (fixed-from-astro-bahai
+                         (bahai-date major cycle year ayyam-i-ha 1)))
+                              ; intercalary month
+                    ayyam-i-ha)
+                   (t (1+ (quotient days 19)))))
+                 (day (- date -1
+                         (fixed-from-astro-bahai
+                          (bahai-date major cycle year month 1)))))
+            (bahai-date major cycle year month day)))
         """
-        approx = self.estimate_prior_solar_longitude(
-            self.SPRING, self.bahai_sunset(date))
+        new_year = self.astro_bahai_new_year_on_or_before(date)
+        years = (new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR
+        print(f"POOP--{new_year}, {years}")
+        major = self.QUOTIENT(years, 361) + 1
+        cycle = self.QUOTIENT(years % 361, 19) + 1
+        year = (years % 19) + 1
+        days = date - new_year
 
-        initial = math.floor(approx) - 1
-        condition = (self.solar_longitude(self.bahai_sunset(day))
-                     <= (self.SPRING + 2))
-        return self.next_index(initial, 360, condition)
+        if date >= self.fixed_from_astro_bahai((major, cycle, year, 19, 1)):
+            month = 19
+        elif date >= self.fixed_from_astro_bahai((major, cycle, year,
+                                                  self.AYYAM_I_HA, 1)):
+            month = self.AYYAM_I_HA
+        else:
+            month = self.QUOTIENT(days, 19)
+
+        day = date + 1 - self.fixed_from_astro_bahai(
+            (major, cycle, year, month, 1))
+        return (major, cycle, year, month, day)
+
+    def nam_ruz(self, g_year):
+        """
+        (defun naw-ruz (g-year)
+          ;; TYPE gregorian-year -> fixed-date
+          ;; Fixed date of Baha’i New Year (Naw-Ruz) in Gregorian
+          ;; year g-year.
+          (astro-bahai-new-year-on-or-before
+           (gregorian-new-year (1+ g-year))))
+        """
+        return self.astro_bahai_new_year_on_or_before(
+            self._gc.gregorian_new_year(g_year + 1))
 
     def feast_of_ridvan(self, g_year):
         """
@@ -185,8 +218,8 @@ class BahaiCalendar(BaseCalender):
           ;; TYPE gregorian-year -> fixed-date
           ;; Fixed date of the Birthday of the Bab
           ;; in Gregorian year g-year.
-          (let* ((ny ; Beginning of Baha’i year.
-                 (naw-ruz g-year))
+          (let* ((ny              ; Beginning of Baha’i year.
+                  (naw-ruz g-year))
                  (set1 (bahai-sunset ny))
                  (m1 (new-moon-at-or-after set1))
                  (m8 (new-moon-at-or-after (+ m1 190)))
@@ -196,30 +229,13 @@ class BahaiCalendar(BaseCalender):
                 (1+ day)
               (+ day 2))))
         """
-        return
-
-    def nam_ruz(self, g_year):
-        """
-        (defun naw-ruz (g-year)
-          ;; TYPE gregorian-year -> fixed-date
-          ;; Fixed date of Baha’i New Year (Naw-Ruz) in Gregorian
-          ;; year g-year.
-          (astro-bahai-new-year-on-or-before
-           (gregorian-new-year (1+ g-year))))
-        """
-        return self.astro_bahai_new_year_on_or_before(
-            self._gc.gregorian_new_year(g_year + 1))
-
-    def bahai_sunset(self, date):
-        """
-        (defun bahai-sunset (date)
-          ;; TYPE fixed-date -> moment
-          ;; Universal time of sunset on fixed date in Bahai-Location.
-          (universal-from-standard
-           (sunset date bahai-location)
-           bahai-location))
-        """
-        return self.universal_from_standard(self.sunset(data))
+        ny = self.naw_ruz(g_year)
+        set1 = self.bahai_sunset(ny)
+        m1 = self.new_moon_at_or_after(set1)
+        m8 = self.new_moon_at_or_after(m1 + 190)
+        day = self.fixed_from_moment(m8)
+        set8 = self.bahai_sunset(day)
+        return day + 1 if m8 < set8 else dat + 2
 
     @property
     def latitude(self):
@@ -257,27 +273,6 @@ class BahaiCalendar(BaseCalender):
         """
         return self.BAHAI_LOCATION[3]
 
-"""
-(defun bahai-major (date)
-  ;; TYPE bahai-date -> bahai-major
-  (first date))
-
-(defun bahai-cycle (date)
-  ;; TYPE bahai-date -> bahai-cycle
-  (second date))
-
-(defun bahai-year (date)
-  ;; TYPE bahai-date -> bahai-year
-  (third date))
-
-(defun bahai-month (date)
-  ;; TYPE bahai-date -> bahai-month
-  (fourth date))
-
-(defun bahai-day (date)
-  ;; TYPE bahai-date -> bahai-day
-  (fifth date))
-"""
 
     ## def bahai_new_year(self, g_year):
     ##     """

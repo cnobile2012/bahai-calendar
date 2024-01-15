@@ -8,7 +8,7 @@ import math
 import datetime
 
 
-class BaseCalender:
+class BaseCalendar:
     """
     Basic functionality used with all calenders.
     """
@@ -25,7 +25,7 @@ class BaseCalender:
     #   ;; TYPE (real nonzero-real) -> integer
     #   ;; Whole part of m/n.
     #   (floor m n))
-    QUOTIENT = lambda self, m, n: int(math.floor(m / n))
+    QUOTIENT = lambda self, m, n: math.floor(m / n)
 
     #(defconstant mean-synodic-month
     #  ;; TYPE duration
@@ -46,14 +46,14 @@ class BaseCalender:
     EVENING = False
     SPRING = 0
 
-    # Lists for solar_longitude().
-    COEFFICIENTS = (
+    # Lists for solar_longitude()
+    _COEFFICIENTS = (
         403406, 195207, 119433, 112392, 3891, 2819, 1721, 660, 350, 334, 314,
         268, 242, 234, 158, 132, 129, 114, 99, 93, 86, 78, 72, 68, 64, 46, 38,
         37, 32, 29, 28, 27, 27, 25, 24, 21, 21, 20, 18, 17, 14, 13, 13, 13, 12,
         10, 10, 10, 10
         )
-    MULTIPLIERS = (
+    _MULTIPLIERS = (
         0.9287892, 35999.1376958, 35999.4089666, 35998.7287385, 71998.20261,
         71998.4403, 36000.35726, 71997.4812, 32964.4678, -19.4410, 445267.1117,
         45036.8840, 3.1008, 22518.4434, -19.9739, 65928.9345, 9038.0293,
@@ -64,7 +64,7 @@ class BaseCalender:
         107997.909, 119.066, 16859.071, -4.578, 26895.292, -39.127, 12297.536,
         90073.778
         )
-    ADDENDS = (
+    _ADDENDS = (
         270.54861, 340.19128, 63.91854, 331.26220, 317.843, 86.631, 240.052,
         310.26, 247.23, 260.87, 297.82, 343.14, 166.79, 81.53, 3.50, 132.75,
         182.95, 162.03, 29.8, 266.4, 249.2, 157.6, 257.8, 185.1, 69.9, 8.0,
@@ -74,10 +74,21 @@ class BaseCalender:
         )
 
     def __init__(self):
-        self._time = []
+        self._time = None
+        from bahai_calendar.gregorian_calendar import BaseGregorianCalendar
+        self._bgc = BaseGregorianCalendar()
 
     def parse_datetime(self, dt:datetime.datetime) -> None:
-        self._time[:] = (dt.hour, dt.minute, dt.second)
+        self.date_representation = (dt.hour, dt.minute, dt.second,
+                                    dt.microsecond)
+
+    @property
+    def date_representation(self):
+        return self._time
+
+    @date_representation.setter
+    def date_representation(self, representation):
+        self._time = representation
 
     #
     # Time and Astronomy (Time)
@@ -102,7 +113,7 @@ class BaseCalender:
         """
         return tee_ell - self.zone_from_longitude(self.longitude)
 
-# local-from-universal
+    # local-from-universal
 
     def standard_from_universal(self, tee_rom_u):
         """
@@ -132,10 +143,134 @@ class BaseCalender:
         """
         return self.standard_from_universal(self.universal_from_local(tee_ell))
 
-#local-from-standard
+    #local-from-standard
+
+    def ephemeris_correction(self, tee):
+        '''
+        used
+
+        (defun ephemeris-correction (tee)
+          ;; TYPE moment -> fraction-of-day
+          ;; Dynamical Time minus Universal Time (in days) for moment tee.
+          ;; Adapted from "Astronomical Algorithms" by Jean Meeus,
+          ;; Willmann-Bell (1991) for years 1600-1986 and from polynomials
+          ;; on the NASA Eclipse web site for other years.
+          (let* ((year (gregorian-year-from-fixed (floor tee)))
+                 (c (/ (gregorian-date-difference
+                        (gregorian-date 1900 january 1)
+                        (gregorian-date year july 1))
+                       36525))
+                 (c2051 (* 1/86400
+                           (+ -20 (* 32 (expt (/ (- year 1820) 100) 2))
+                              (* 0.5628L0 (- 2150 year)))))
+                 (y2000 (- year 2000))
+                 (c2006 (* 1/86400
+                           (poly y2000
+                               (list 62.92L0 0.32217L0 0.005589L0))))
+                 (c1987 (* 1/86400
+                           (poly y2000
+                                 (list 63.86L0 0.3345L0 -0.060374L0
+                                 0.0017275L0 0.000651814L0 0.00002373599L0))))
+                 (c1900 (poly c
+                              (list -0.00002L0 0.000297L0 0.025184L0
+                              -0.181133L0 0.553040L0 -0.861938L0 0.677066L0
+                              -0.212591L0)))
+                 (c1800 (poly c
+                              (list -0.000009L0 0.003844L0 0.083563L0
+                              0.865736L0 4.867575L0 15.845535L0 31.332267L0
+                              38.291999L0 28.316289L0 11.636204L0 2.043794L0)))
+                 (y1700 (- year 1700))
+                 (c1700 (* 1/86400
+                           (poly y1700
+                                 (list 8.118780842L0 -0.005092142L0
+                                 0.003336121L0 -0.0000266484L0))))
+                 (y1600 (- year 1600))
+                 (c1600 (* 1/86400
+                           (poly y1600
+                                 (list 120 -0.9808L0 -0.01532L0
+                                 0.000140272128L0))))
+                 (y1000 (/ (- year 1000) 100L0))
+                 (c500 (* 1/86400
+                          (poly y1000
+                                (list 1574.2L0 -556.01L0 71.23472L0 0.319781L0
+                                -0.8503463L0 -0.005050998L0 0.0083572073L0))))
+                 (y0 (/ year 100L0))
+                 (c0 (* 1/86400
+                        (poly y0
+                              (list 10583.6L0 -1014.41L0 33.78311L0
+                              -5.952053L0 -0.1798452L0 0.022174192L0
+                              0.0090316521L0))))
+                 (y1820 (/ (- year 1820) 100L0))
+                 (other (* 1/86400
+                           (poly y1820 (list -20 0 32)))))
+            (cond ((<= 2051 year 2150) c2051)
+                  ((<= 2006 year 2050) c2006)
+                  ((<= 1987 year 2005) c1987)
+                  ((<= 1900 year 1986) c1900)
+                  ((<= 1800 year 1899) c1800)
+                  ((<= 1700 year 1799) c1700)
+                  ((<= 1600 year 1699) c1600)
+                  ((<= 500 year 1599) c500)
+                  ((< -500 year 500) c0)
+                  (t other))))
+        '''
+        year = self._bgc.gregorian_year_from_fixed(math.floor(tee))
+        c = self._bgc.gregorian_date_difference(
+            (1900, self._bgc.JANUARY, 1), (year, self._bgc.JULY, 1)) / 36525
+        c2051 = 1/86400 + -20 + 32 * (((year - 1820) / 100) ** 2)
+        y2000 = year - 2000
+        c2006 = 1/86400 * self._poly(y2000, (62.92, 0.32217, 0.005589))
+        c1987 = 1/86400 * self._poly(
+            y2000, (63.86, 0.3345, -0.060374, 0.0017275, 0.000651814,
+                    0.00002373599))
+        c1900 = self._poly(c, (-0.00002, 0.000297, 0.025184, -0.181133,
+                               0.553040, -0.861938, 0.677066, -0.212591))
+        c1800 = self._poly(c, (-0.000009, 0.003844, 0.083563, 0.865736,
+                               4.867575, 15.845535, 31.332267, 38.291999,
+                               28.316289, 11.636204, 2.043794))
+        y1700 = year - 1700
+        c1700 = 1/86400 * self._poly(y1700, (8.118780842, -0.005092142,
+                                             0.003336121, -0.0000266484))
+        y1600 = year - 1600
+        c1600 = 1/86400 * self._poly(y1600, (120, -0.9808, -0.01532,
+                                             0.000140272128))
+        y1000 = (year - 1000) / 100
+        c500 = 1/86400 * self._poly(y1000, (1574.2, -556.01, 71.23472, 0.319781,
+                                            -0.8503463, -0.005050998,
+                                            0.0083572073))
+        y0 = year / 100
+        c0 = 1/86400 * self._poly(y0, (10583.6, -1014.41, 33.78311, -5.952053,
+                                       -0.1798452, 0.022174192, 0.0090316521))
+        y1820 = (year - 1820) / 100
+        other = 1/86400 * self._poly(y1820, (-20, 0, 32))
+
+        if 2051 <= year <= 2150:
+            result = c2051
+        elif 2006 <= year <= 2050:
+            result = c2006
+        elif 1987 <= year <= 2005:
+            result = c1987
+        elif 1900 <= year <= 1986:
+            result = c1900
+        elif 1800 <= year <= 1899:
+            result = c1800
+        elif 1700 <= year <= 1799:
+            result = c1700
+        elif 1600 <= year <= 1699:
+            result = c1600
+        elif 500 <= year <= 1599:
+            result = c500
+        elif -500 < year < 500:
+            result = c0
+        else:
+            result = other
+
+        return result
 
     def dynamical_from_universal(self, tee_rom_u):
         """
+        used
+
         (defun dynamical-from-universal (tee_rom-u)
           ;; TYPE moment -> moment
           ;; Dynamical time at Universal moment tee_rom-u.
@@ -150,10 +285,12 @@ class BaseCalender:
           ;; Universal moment from Dynamical time tee.
           (- tee (ephemeris-correction tee)))
         """
-        return tee - self.ephemeris_correction(tee_rom_u)
+        return tee - self.ephemeris_correction(tee)
 
     def julian_centuries(self, tee):
         """
+        used
+
         (defun julian-centuries (tee)
           ;; TYPE moment -> century
           ;; Julian centuries since 2000 at moment tee.
@@ -193,20 +330,22 @@ class BaseCalender:
             (* (sign equation) (min (abs equation) (hr 12L0)))))
         '''
         c = self.julian_centuries(tee)
-        lambda_ = self.POLY(c, (280.46645, 36000.76983, 0.0003032))
-        anomaly = self.POLY(c, (357.52910, 35999.05030, -0.0001559,
-                                -0.00000048))
-        eccentricity = self.POLY(c, (0.016708617, -0.000042037, -0.0000001236))
+        lambda_ = self._poly(c, (280.46645, 36000.76983, 0.0003032))
+        anomaly = self._poly(c, (357.52910, 35999.05030, -0.0001559,
+                                 -0.00000048))
+        eccentricity = self._poly(c, (0.016708617, -0.000042037,
+                                      -0.0000001236))
         varepsilon = self.obliquity(tee)
         y = self.tan_degrees(varepsilon / 2) ** 2
         equation = ((0.5 / math.pi) *
                     ((y * self.sin_degrees(2 * lambda_)) +
-                     (-2 * eccentricity * self.sin_degrees(anomaly) *
+                     (-2 * eccentricity * self.sin_degrees(anomaly)) +
+                     (4 * eccentricity * y * self.sin_degrees(anomaly) *
                       self.cos_degrees(2 * lambda_)) +
                      (-0.5 * y * y * self.sin_degrees(4 * lambda_)) +
                      (-1.25 * eccentricity * eccentricity *
                       self.sin_degrees(2 * anomaly))))
-        return math.sin(equation) * min(abs(equation)) * self.HR(12)
+        return math.sin(equation) * min(abs(equation), self.HR(12))
 
     def apparent_from_local(self, tee_ell):
         """
@@ -226,10 +365,10 @@ class BaseCalender:
           ;; Local time from sundial time tee at location.
           (- tee (equation-of-time (universal-from-local tee location))))
         """
-        return tees - self.equation_of_time(self.universal_from_local(tee))
+        return tee - self.equation_of_time(self.universal_from_local(tee))
 
-#apparent-from-universal
-#universal-from-apparent
+    #apparent-from-universal
+    #universal-from-apparent
 
     #
     # Time and Astronomy (The Year)
@@ -250,7 +389,7 @@ class BaseCalender:
         c = self.julian_centuries(tee)
         angle_list = (0, self.ANGLE(0, 0, -46.8150),
                       self.ANGLE(0, 0, -0.00059), self.ANGLE(0, 0, 0.001813))
-        return self.ANGLE(23, 26, 21.448) + self.POLY(c, angle_list)
+        return self.ANGLE(23, 26, 21.448) + self._poly(c, angle_list)
 
     def declination(self, tee, beta, lambda_):
         """
@@ -272,6 +411,8 @@ class BaseCalender:
 
     def solar_longitude(self, tee):
         '''
+        used
+
         (defun solar-longitude (tee)
           ;; TYPE moment -> season
           ;; Longitude of sun at moment tee.
@@ -326,9 +467,9 @@ class BaseCalender:
         c = self.julian_centuries(tee)
         lambda_ = (282.7771834 + (36000.76953744 * c) +
                    (0.000005729577951308232 *
-                    self.sigma(((x, self.COEFFICIENTS), (y, self.MULTIPLIERS),
-                                (z, self.ADDENDS)),
-                               'x * self.sin_degrees(y + (z * c))')))
+                    self.sigma(
+                        (self._COEFFICIENTS, self._MULTIPLIERS, self._ADDENDS),
+                        lambda x, y, z, : x * self.sin_degrees(y + (z * c)))))
         return (lambda_ + self.aberration(tee) + self.nutation(tee) + 360)
 
     def nutation(self, tee):
@@ -344,8 +485,8 @@ class BaseCalender:
                 (* (deg -0.0003667L0) (sin-degrees cap-B)))))
         """
         c = self.julian_centuries(tee)
-        cap_a = self.poly(c, (124.90, -1934.134, 0.002063))
-        car_b = self.poly(c, (201.11, 72001.5377, 0.00057))
+        cap_a = self._poly(c, (124.90, -1934.134, 0.002063))
+        car_b = self._poly(c, (201.11, 72001.5377, 0.00057))
         return ((-0.004778 * self.sin_degrees(cap_a)) +
                 (-0.0003667 * self.sin_degrees(cap_a)))
 
@@ -367,6 +508,8 @@ class BaseCalender:
 
     def estimate_prior_solar_longitude(self, lambda_, tee):
         """
+        used
+
         (defun estimate-prior-solar-longitude (lambda tee)
           ;; TYPE (season moment) -> moment
           ;; Approximate moment at or before tee when solar
@@ -550,6 +693,8 @@ class BaseCalender:
 
     def new_moon_at_or_after(self, tee):
         """
+        used
+
         (defun new-moon-at-or-after (tee)
           ;; TYPE moment -> moment
           ;; Moment UT of first new moon at or after tee.
@@ -561,7 +706,8 @@ class BaseCalender:
         """
         t0 = self.nth_new_moon(0)
         phi = self.lunar_phase(tee)
-        return
+        n = round((tee - t0) / self.MEAN_TROPICAL_YEAR - phi / 360)
+        return self.nth_new_moon(self._next(n , self.nth_new_moon(n) >= tee))
 
     def lunar_phase(self, n):
         """
@@ -595,7 +741,7 @@ class BaseCalender:
     # Time and Astronomy (Rising and Setting of the Sun and Moon)
     #
 
-    def approx_moment_of_depression(self, approx, alpha, early):
+    def approx_moment_of_depression(self, tee, alpha, early):
         """
         (defun approx-moment-of-depression (tee location alpha early?)
           ;; TYPE (moment location half-circle boolean) - moment
@@ -660,7 +806,7 @@ class BaseCalender:
         """
         phi = self.latitude
         tee_prime = self.universal_from_local(tee)
-        delta = self.declination(tee-prime, 0, self.solar_longitude(tee_prime))
+        delta = self.declination(tee_prime, 0, self.solar_longitude(tee_prime))
         return (self.tan_degrees(phi) * self.tan_degrees(delta) +
                 self.sin_degrees(alpha) / (self.cos_degrees(delta) *
                                            self.cos_degrees(phi)))
@@ -683,8 +829,16 @@ class BaseCalender:
                 (moment-of-depression tee location alpha early?)))))
         """
         tee = self.approx_moment_of_depression(approx, alpha, early=early)
-        return (self.moment_of_depression(tee, alpha, early=early)
-                if tee and abs(approx - tee) < self.SEC(30) else None)
+        bogus = None
+
+        if tee is bogus:
+            result = bogus
+        elif abs(approx - tee) < self.SEC(30):
+            result = tee
+        else:
+            result = self.moment_of_depression(tee, alpha, early=early)
+
+        return result
 
     def dawn(self, date, alpha):
         """
@@ -705,6 +859,8 @@ class BaseCalender:
 
     def dusk(self, date, alpha):
         """
+        used
+
         (defun dusk (date location alpha)
           ;; TYPE (fixed-date location half-circle) -> moment
           ;; Standard time in evening on fixed date at
@@ -722,6 +878,8 @@ class BaseCalender:
 
     def refraction(self, tee):
         """
+        used
+
         (defun refraction (tee location)
           ;; TYPE (moment location) -> half-circle
           ;; Refraction angle at moment tee at location.
@@ -750,6 +908,8 @@ class BaseCalender:
 
     def sunset(self, date):
         """
+        used
+
         (defun sunset (date location)
           ;; TYPE (fixed-date location) -> moment
           ;; Standard time of sunset on fixed date at location.
@@ -823,7 +983,7 @@ class BaseCalender:
         """
         return self.degrees_from_radians(math.asin(x))
 
-    def arccos_degrees(x):
+    def arccos_degrees(self, x):
         """
         (defun arccos-degrees (x)
           ;; TYPE amplitude -> angle
@@ -875,56 +1035,10 @@ class BaseCalender:
         """
         return self._time[3]
 
-    def poly(self, x, a):
+    def sigma(self, lists, func):
         """
-        (defun poly (x a)
-          ;; TYPE (real list-of-reals) -> real
-          ;; Sum powers of x with coefficients (from order 0 up) in list a.
-          (if (equal a nil)
-              0
-            (+ (first a) (* x (poly x (rest a))))))
-        """
-        return 0 if not a else a[0] + (x * self.poly(x, a[1:]))
+        used
 
-    def next_index(self, initial, to, condition):
-        """
-        (defmacro next (index initial condition)
-          ;; TYPE (* integer (integer->boolean)) -> integer
-          ;; First integer greater or equal to initial such that
-          ;; condition holds.
-          `(loop for ,index from ,initial
-                 when ,condition
-                 return ,index))
-        """
-        for idx in range(initial, initial + to):
-            if condition(idx):
-                break
-            else:
-                idx = None
-
-        return idx  # Return the index if condition is met
-
-    def final_index(self, initial, to, condition):
-        """
-        (defmacro final (index initial condition)
-          ;; TYPE (* integer (integer->boolean)) -> integer
-          ;; Last integer greater or equal to initial such that
-          ;; condition holds.
-          `(loop for ,index from ,initial
-                 when (not ,condition)
-                 return (1- ,index)))
-        """
-        for idx in range(initial, initial + to):
-            if not condition(idx):
-                idx -= 1
-                break
-            else:
-                idx = None
-
-        return idx  # Return the index if condition is met
-
-    def sigma(self, list_of_pairs, body):
-        """
         (defmacro sigma (list body)
           ;; TYPE (list-of-pairs (list-of-reals->real))
           ;; TYPE -> real
@@ -936,13 +1050,53 @@ class BaseCalender:
                                          ,body))
                              ,@(mapcar `cadr list))))
         """
-        indices, lists = zip(*list_of_pairs)
         # Ensure all lists have the same length
         assert len(set(len(lst) for lst in lists)) == 1, (
             "Lists must have the same length")
-        # Zip lists together to iterate through corresponding
-        #elements simultaneously
-        zipped_lists = zip(*lists)
-        # Perform the summation using a lambda function and reduce
-        return reduce(lambda acc, values: acc + eval(
-            body, dict(zip(indices, values))), zipped_lists, 0)
+        return sum(func(*e) for e in zip(*lists))
+
+    def _poly(self, x, a):
+        """
+        used
+
+        (defun poly (x a)
+          ;; TYPE (real list-of-reals) -> real
+          ;; Sum powers of x with coefficients (from order 0 up) in list a.
+          (if (equal a nil)
+              0
+            (+ (first a) (* x (poly x (rest a))))))
+        """
+        return 0 if not a else a[0] + (x * self._poly(x, a[1:]))
+
+    def _next(self, initial, condition):
+        """
+        used
+
+        (defmacro next (index initial condition)
+          ;; TYPE (* integer (integer->boolean)) -> integer
+          ;; First integer greater or equal to initial such that
+          ;; condition holds.
+          ‘(loop for ,index from ,initial
+                 when ,condition
+                 return ,index))
+        """
+        idx = initial
+
+        while not condition(idx):
+            if idx >= initial: break
+            idx += 1
+
+        return idx
+
+    def _final(self, initial, condition):
+        """
+        (defmacro final (index initial condition)
+          ;; TYPE (* integer (integer->boolean)) -> integer
+          ;; Last integer greater or equal to initial such that
+          ;; condition holds.
+          `(loop for ,index from ,initial
+                 when (not ,condition)
+                 return (1- ,index)))
+        """
+        return (initial - 1 if not condition(initial)
+                else self._final(initial + 1, condition))

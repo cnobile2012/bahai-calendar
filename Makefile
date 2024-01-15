@@ -36,14 +36,23 @@ tar	: clobber
 	@(cd ..; tar -czvf $(PACKAGE_DIR).tar.gz --exclude=".git" \
           --exclude="__pycache__" --exclude=".pytest_cache" $(BASE_DIR))
 
+# Run all tests
 # $ make tests
-# $ make tests TEST_PATH=tests.test_bases
-# $ make tests TEST_PATH=tests/test_bases.py:TestBases.test_version
+#
+# Run all tests in a specific test file.
+# $ make tests TEST_PATH=tests/test_bases.py
+#
+# Run all tests in a specific test file and class.
+# $ make tests TEST_PATH=tests/test_bases.py::TestBases
+#
+# Run just one test in a specific test file and class.
+# $ make tests TEST_PATH=tests/test_bases.py::TestBases::test_version
 .PHONY	: tests
 tests	: clobber
 	@rm -rf $(DOCS_DIR)/htmlcov
 	@coverage erase --rcfile=$(COVERAGE_FILE)
-	@coverage run --rcfile=$(COVERAGE_FILE) -m pytest
+	@coverage run --rcfile=$(COVERAGE_FILE) -m pytest --capture=tee-sys \
+         $(TEST_PATH)
 	@coverage report -m --rcfile=$(COVERAGE_FILE)
 	@coverage html --rcfile=$(COVERAGE_FILE)
 	@echo $(TODAY)

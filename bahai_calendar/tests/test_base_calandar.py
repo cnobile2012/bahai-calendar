@@ -9,7 +9,7 @@ import math
 import unittest
 import datetime
 
-from ..base_calendar import BaseCalender
+from ..base_calendar import BaseCalendar
 
 
 class TestBaseCalandar(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestBaseCalandar(unittest.TestCase):
         super().__init__(name)
 
     def setUp(self):
-        class FakeParent(BaseCalender):
+        class FakeParent(BaseCalendar):
             latitude = 35.696111
             longitude = 51.423056
             elevation = 0
@@ -152,7 +152,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         Test that the zone is determined from the time zone.
         """
-        tee_ell = 30.5
+        tee_ell = 2024
         result = self._bc.universal_from_local(tee_ell)
         expected_result = tee_ell - self._bc.zone_from_longitude(
             self._bc.longitude)
@@ -165,7 +165,7 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the zone is determined from the standard time from
         tee_rom_u in universal time at location.
         """
-        tee_rom_u = 30
+        tee_rom_u = 2024
         result = self._bc.standard_from_universal(tee_rom_u)
         expected_result = tee_rom_u + self._bc.zone
         msg = f"Should be {expected_result}, found {result}."
@@ -177,15 +177,79 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the zone is determined from the universal time from
         tee_rom_s in standard time at location.
         """
-        tee_rom_s = 30
+        tee_rom_s = 2024
         result = self._bc.universal_from_standard(tee_rom_s)
         expected_result = tee_rom_s - self._bc.zone
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
+    #@unittest.skip("Temporarily skipped")
+    def test_standard_from_local(self):
+        """
+        Test that the standard_from_local method returns the standard
+        time from local time at location.
+        """
+        tee_ell = 2024
+        result = self._bc.standard_from_local(tee_ell)
+        expected_result = self._bc.standard_from_universal(
+            self._bc.universal_from_local(tee_ell))
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    @unittest.skip("Temporarily skipped")
+    def test_ephemeris_correction(tee):
+        """
+        
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_dynamical_from_universal(self):
+        """
+        Test that the dynamical_from_universal method returns dynamical
+        time at Universal moment.
+        """
+        tee_rom_u = 2024
+        result = self._bc.dynamical_from_universal(tee_rom_u)
+        expected_result = tee_rom_u + self._bc.ephemeris_correction(tee_rom_u)
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    @unittest.skip("Temporarily skipped")
+    def test_universal_from_dynamical(self):
+        """
+        Test that the universal_from_dynamical method returns universal
+        moment from Dynamical time.
+        """
+        tee = 2024
+        result = self._bc.universal_from_dynamical(tee)
+        expected_result = tee - self._bc.ephemeris_correction(tee)
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    @unittest.skip("Temporarily skipped")
+    def test_julian_centuries(self):
+        """
+        Test that the julian_centuries returns a Julian centuries since
+        2000 at moment.
+        """
+        pass
 
 
 
+    #@unittest.skip("Temporarily skipped")
+    def test_estimate_prior_solar_longitude(self):
+        """
+        Test that the estimate_prior_solar_longitude method returns an
+        approximate moment at or before tee when solar longitude just
+        exceeded lambda degrees.
+        """
+        lambda_ = self._bc.SPRING
+        tee = 673222.6070645516
+        result = self._bc.estimate_prior_solar_longitude(lambda_, tee)
+        expected_result = 673025.5127646256
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
 
 
@@ -258,6 +322,18 @@ class TestBaseCalandar(unittest.TestCase):
         expected_poly = self.run_poly(x, a)
         msg = f"POLY should be {expected_poly}, found {poly}."
         self.assertEqual(expected_poly, poly, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_next_(self):
+        """
+        Test that the next_ method returns the first integer greater
+        or equal to initial such that condition holds.
+        """
+        con = lambda x: x not in range(20)
+
+        for initial in (0, 6, 2, 15, 40, 100):
+            result = self._bc._next(initial , con)
+            #print(initial, result)
 
 
 
