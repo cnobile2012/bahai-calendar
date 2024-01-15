@@ -33,6 +33,15 @@ class BaseGregorianCalendar(BaseCalendar):
     NOVEMBER = 11
     DECEMBER = 12
 
+    #(defun gregorian-leap-year? (g-year)
+    #  ;; TYPE gregorian-year -> boolean
+    #  ;; True if g-year is a leap year on the Gregorian calendar.
+    #  (and (= (mod g-year 4) 0)
+    #       (not (member (mod g-year 400)
+    #                    (list 100 200 300)))))
+    #GREGORIAN_LEAP_YEAR = lambda self, year: (
+    #    year % 4 == 0 and (year % 400 not in (100, 200, 300)))
+
     # ((MOD(year, 4) = 0) * ((MOD(year, 100) <> 0) + (MOD(year, 400) = 0)) = 1)
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
@@ -121,7 +130,7 @@ class BaseGregorianCalendar(BaseCalendar):
         year = (400 * n400) + (100 * n100) + (4 * n4) + n1
         return year if n100 == 4 or n1 == 4 else year + 1
 
-    def gregorian_date_difference(self, g_date1, g_date2):
+    def gregorian_date_difference(self, g_date1:tuple, g_date2:tuple) -> int:
         """
         used
 

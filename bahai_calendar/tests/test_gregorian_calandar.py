@@ -37,13 +37,21 @@ class TestGregorianCalandar(unittest.TestCase):
         Test that the fixed_from_gregorian method returns the proper
         fixed date from a gregorian date.
 
-        November 12, 1945 (Gregorian) = 710347
+        March 21, 1844   = 673222 (Baha'i Epoch)
+        January, 1, 1970 = 719163 (UNIX Epoch)
+        July 6, 622      = 227015 (Islamic Epoch)
         """
-        date_rep = (2094, 4, 4)
-        result = self._gc.fixed_from_gregorian(date_rep)
-        expected_result = 764652
-        msg = f"Expected result {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        date_reps = (
+            ((1844, 3, 21), 673222),
+            ((1970, 1, 1), 719163),
+            ((622, 7, 19), 227015)
+            )
+        msg = "Expected result {} for year {}, found {}."
+
+        for date_rep, expected_result in date_reps:
+            result = self._gc.fixed_from_gregorian(date_rep)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date_rep[0], result))
 
 
 
