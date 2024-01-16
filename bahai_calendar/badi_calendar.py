@@ -173,7 +173,6 @@ class BahaiCalendar(BaseCalendar):
         """
         new_year = self.astro_bahai_new_year_on_or_before(date)
         years = (new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR
-        print(f"POOP--{new_year}, {years}")
         major = self.QUOTIENT(years, 361) + 1
         cycle = self.QUOTIENT(years % 361, 19) + 1
         year = (years % 19) + 1

@@ -11,6 +11,13 @@ import datetime
 class BaseCalendar:
     """
     Basic functionality used with all calenders.
+
+    R.D. = Fixed date—elapsed days since the onset of Monday, January 1, 1
+           (Gregorian)
+    U.T. = Mean solar time at Greenwich, England (0◦ meridian), reckoned
+           from midnight; sometimes g.m.t., Greenwich Mean Time
+    Moment = We call an r.d. that has a fractional part giving the time of
+             day a “moment.”
     """
     # Build out some lambdas
     HR = lambda self, x: x / 24
@@ -20,6 +27,12 @@ class BaseCalendar:
     SECS = lambda self, x: x / 3600
     ANGLE = lambda self, d, m, s: d + (m + (s / 60))
     MOD3 = lambda self, x, a, b : x if a == b else a + (x - a) % (b - a)
+
+    #(defconstant j2000
+    #  ;; TYPE moment
+    #  ;; Noon at start of Gregorian year 2000.
+    #  (+ (hr 12L0) (gregorian-new-year 2000)))
+    J2000 = 730120.5
 
     # (defun quotient (m n)
     #   ;; TYPE (real nonzero-real) -> integer
@@ -217,53 +230,44 @@ class BaseCalendar:
         year = self._bgc.gregorian_year_from_fixed(math.floor(tee))
         c = self._bgc.gregorian_date_difference(
             (1900, self._bgc.JANUARY, 1), (year, self._bgc.JULY, 1)) / 36525
-        c2051 = 1/86400 + -20 + 32 * (((year - 1820) / 100) ** 2)
-        y2000 = year - 2000
-        c2006 = 1/86400 * self._poly(y2000, (62.92, 0.32217, 0.005589))
-        c1987 = 1/86400 * self._poly(
-            y2000, (63.86, 0.3345, -0.060374, 0.0017275, 0.000651814,
-                    0.00002373599))
-        c1900 = self._poly(c, (-0.00002, 0.000297, 0.025184, -0.181133,
-                               0.553040, -0.861938, 0.677066, -0.212591))
-        c1800 = self._poly(c, (-0.000009, 0.003844, 0.083563, 0.865736,
-                               4.867575, 15.845535, 31.332267, 38.291999,
-                               28.316289, 11.636204, 2.043794))
-        y1700 = year - 1700
-        c1700 = 1/86400 * self._poly(y1700, (8.118780842, -0.005092142,
-                                             0.003336121, -0.0000266484))
-        y1600 = year - 1600
-        c1600 = 1/86400 * self._poly(y1600, (120, -0.9808, -0.01532,
-                                             0.000140272128))
-        y1000 = (year - 1000) / 100
-        c500 = 1/86400 * self._poly(y1000, (1574.2, -556.01, 71.23472, 0.319781,
-                                            -0.8503463, -0.005050998,
-                                            0.0083572073))
-        y0 = year / 100
-        c0 = 1/86400 * self._poly(y0, (10583.6, -1014.41, 33.78311, -5.952053,
-                                       -0.1798452, 0.022174192, 0.0090316521))
-        y1820 = (year - 1820) / 100
-        other = 1/86400 * self._poly(y1820, (-20, 0, 32))
 
         if 2051 <= year <= 2150:
-            result = c2051
+            result = 1/86400 - 20 + 32 * (((year - 1820) / 100) ** 2)
         elif 2006 <= year <= 2050:
-            result = c2006
+            y2000 = year - 2000
+            result = 1/86400 * self._poly(y2000, (62.92, 0.32217, 0.005589))
         elif 1987 <= year <= 2005:
-            result = c1987
+            result = 1/86400 * self._poly(y2000,
+                                          (63.86, 0.3345, -0.060374, 0.0017275,
+                                           0.000651814, 0.00002373599))
         elif 1900 <= year <= 1986:
-            result = c1900
+            result = self._poly(c, (-0.00002, 0.000297, 0.025184, -0.181133,
+                                    0.553040, -0.861938, 0.677066, -0.212591))
         elif 1800 <= year <= 1899:
-            result = c1800
+            result = self._poly(c, (-0.000009, 0.003844, 0.083563, 0.865736,
+                                    4.867575, 15.845535, 31.332267, 38.291999,
+                                    28.316289, 11.636204, 2.043794))
         elif 1700 <= year <= 1799:
-            result = c1700
+            y1700 = year - 1700
+            result = 1/86400 * self._poly(
+                y1700, (8.118780842, -0.005092142, 0.003336121, -0.0000266484))
         elif 1600 <= year <= 1699:
-            result = c1600
+            y1600 = year - 1600
+            result = 1/86400 * self._poly(
+               y1600, (120, -0.9808, -0.01532, 0.000140272128))
         elif 500 <= year <= 1599:
-            result = c500
+            y1000 = (year - 1000) / 100
+            result = 1/86400 * self._poly(
+                y1000, (1574.2, -556.01, 71.23472, 0.319781, -0.8503463,
+                        -0.005050998, 0.0083572073))
         elif -500 < year < 500:
-            result = c0
+            y0 = year / 100
+            result = 1/86400 * self._poly(
+                y0, (10583.6, -1014.41, 33.78311, -5.952053, -0.1798452,
+                     0.022174192, 0.0090316521))
         else:
-            result = other
+            y1820 = (year - 1820) / 100
+            result = 1/86400 * self._poly(y1820, (-20, 0, 32))
 
         return result
 
@@ -296,7 +300,7 @@ class BaseCalendar:
           ;; Julian centuries since 2000 at moment tee.
           (/ (- (dynamical-from-universal tee) j2000) 36525))
         """
-        return (self.dynamical_from_universal(tee) - 2000) / 36525
+        return (self.dynamical_from_universal(tee) - self.J2000) / 36525
 
     def equation_of_time(self, tee):
         '''

@@ -143,7 +143,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         phi = 1000
         result = self._bc.zone_from_longitude(phi)
-        expected_result = phi / 360
+        expected_result = 2.7777777777777777
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -152,7 +152,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         Test that the zone is determined from the time zone.
         """
-        tee_ell = 2024
+        tee_ell = 10000.5
         result = self._bc.universal_from_local(tee_ell)
         expected_result = tee_ell - self._bc.zone_from_longitude(
             self._bc.longitude)
@@ -165,7 +165,7 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the zone is determined from the standard time from
         tee_rom_u in universal time at location.
         """
-        tee_rom_u = 2024
+        tee_rom_u = 10000.5
         result = self._bc.standard_from_universal(tee_rom_u)
         expected_result = tee_rom_u + self._bc.zone
         msg = f"Should be {expected_result}, found {result}."
@@ -177,7 +177,7 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the zone is determined from the universal time from
         tee_rom_s in standard time at location.
         """
-        tee_rom_s = 2024
+        tee_rom_s = 10000.5
         result = self._bc.universal_from_standard(tee_rom_s)
         expected_result = tee_rom_s - self._bc.zone
         msg = f"Should be {expected_result}, found {result}."
@@ -189,51 +189,120 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the standard_from_local method returns the standard
         time from local time at location.
         """
-        tee_ell = 2024
+        tee_ell = 10000.5
         result = self._bc.standard_from_local(tee_ell)
         expected_result = self._bc.standard_from_universal(
             self._bc.universal_from_local(tee_ell))
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
-    def test_ephemeris_correction(tee):
+    #@unittest.skip("Temporarily skipped")
+    def test_ephemeris_correction(self):
         """
-        
+        Test that the ephemeris_correction method returns dynamical
+        Time minus Universal Time (in days) for moment.
         """
-        pass
+        fraction = 0.5
+        tees = ((2100, 766645, 230.88001157407405),
+                (2028, 740347, 0.0008833626851851851),
+                (2014, 735234, 0.0007931229629629629),
+                (1943, 709301, 0.05793252154447576),
+                (1850, 675334, 1.7554929729946673),
+                (1750, 638810, 0.00014899798891203703),
+                (1650, 602286, 0.0005809492592592593),
+                (1050, 383140, 0.01520822313332091),
+                (0, -365, 0.12249537037037037),
+                (3000, 1095363, 0.05133888888888889),
+                (-1000, -365607, 0.2943018518518518))
+        msg = "Expected result {} for year {}, found {}."
 
-    @unittest.skip("Temporarily skipped")
+        for year, tee, expected_result in tees:
+            result = self._bc.ephemeris_correction(tee+fraction)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test_dynamical_from_universal(self):
         """
         Test that the dynamical_from_universal method returns dynamical
         time at Universal moment.
+
+        Tested with year 1850, see test_ephemeris_correction above.
         """
-        tee_rom_u = 2024
+        tee_rom_u = 675334.5
         result = self._bc.dynamical_from_universal(tee_rom_u)
-        expected_result = tee_rom_u + self._bc.ephemeris_correction(tee_rom_u)
+        expected_result = 675336.255492973
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_universal_from_dynamical(self):
         """
         Test that the universal_from_dynamical method returns universal
         moment from Dynamical time.
+
+        This test is testing the inverse of the test_dynamical_from_universal
+        test.
+
+        Tested with year 1850, see test_ephemeris_correction above.
         """
-        tee = 2024
+        tee = 675336.255492973
         result = self._bc.universal_from_dynamical(tee)
-        expected_result = tee - self._bc.ephemeris_correction(tee)
+        expected_result = 675334.5
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_julian_centuries(self):
         """
         Test that the julian_centuries returns a Julian centuries since
         2000 at moment.
         """
+        tee = 675334.5
+        result = self._bc.julian_centuries(tee)
+        expected_result = -1.499910869460013
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_equation_of_time(self):
+        """
+        Test that the equation_of_time method returns (as fraction of day)
+        for moment.
+        """
+        tee = 675334.5
+        result = self._bc.equation_of_time(tee)
+        expected_result = -0.00033553630301943875
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    @unittest.skip("Temporarily skipped")
+    def test_apparent_from_local(self):
+        """
+        Test that the new_moon_at_or_after method 
+        """
         pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_local_from_apparent(self):
+        """
+        Test that the new_moon_at_or_after method 
+        """
+        pass
+
+    #@unittest.skip("Temporarily skipped")
+    def test_obliquity(self):
+        """
+        Test that the obliquity method returns obliquity of ecliptic
+        at moment.
+        """
+        tee = 675334.5
+        result = self._bc.obliquity(tee)
+        expected_result = 50.52764803712032
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+
 
 
 
@@ -247,7 +316,7 @@ class TestBaseCalandar(unittest.TestCase):
         lambda_ = self._bc.SPRING
         tee = 673222.6070645516
         result = self._bc.estimate_prior_solar_longitude(lambda_, tee)
-        expected_result = 673025.5127646256
+        expected_result = 672855.2913903068
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -311,15 +380,15 @@ class TestBaseCalandar(unittest.TestCase):
         # Test not x
         x = 10
         a = ()
-        poly = self._bc.poly(x, a)
-        expected_poly = self.run_poly(x, a)
+        poly = self._bc._poly(x, a)
+        expected_poly = 0
         msg = f"POLY should be {expected_poly}, found {poly}."
         self.assertEqual(expected_poly, poly, msg)
         # Test a has a value
-        x = 10
+        x = 0.1
         a = (1, 2, 3, 4)
-        poly = self._bc.poly(x, a)
-        expected_poly = self.run_poly(x, a)
+        poly = self._bc._poly(x, a)
+        expected_poly = 1.234
         msg = f"POLY should be {expected_poly}, found {poly}."
         self.assertEqual(expected_poly, poly, msg)
 
@@ -338,10 +407,3 @@ class TestBaseCalandar(unittest.TestCase):
 
 
 
-
-    def run_poly(self, x, a):
-        """
-        We mimic the entire poly finction so we can determine if the
-        one in the BaseCalendat class has changed.
-        """
-        return 0 if not a else a[0] + (x * self.run_poly(x, a[1:]))

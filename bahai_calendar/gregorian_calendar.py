@@ -51,6 +51,8 @@ class BaseGregorianCalendar(BaseCalendar):
 
     def fixed_from_gregorian(self, g_date:tuple) -> int:
         """
+        used
+
         (defun fixed-from-gregorian (g-date)
           ;; TYPE gregorian-date -> fixed-date
           ;; Fixed date equivalent to the Gregorian date g-date.
@@ -165,36 +167,6 @@ class GregorianCalendar(BaseGregorianCalendar):
     @date_representation.setter
     def date_representation(self, representation):
         self._gregorian_date = representation
-
-    @property
-    def standard_year(self):
-        """
-        (defun standard-year (date)
-          ;; TYPE standard-date -> standard-year
-          ;; Year field of date = (year month day).
-          (first date))
-        """
-        return self._date[0]
-
-    @property
-    def standard_month(self):
-        """
-        (defun standard-month (date)
-          ;; TYPE standard-date -> standard-month
-          ;; Month field of date = (year month day).
-          (second date))
-        """
-        return self._date[1]
-
-    @property
-    def standard_day(self):
-        """
-        (defun standard-day (date)
-          ;; TYPE standard-date -> standard-day
-          ;; Day field of date = (year month day).
-          (third date))
-        """
-        return self._date[2]
 
     # The methods below have been moved to BaseGregorianCalendar
     # gregorian_year_from_fixed, gregorian_date_difference,
