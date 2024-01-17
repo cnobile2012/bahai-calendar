@@ -20,12 +20,48 @@ class BaseCalendar:
              day a “moment.”
     """
     # Build out some lambdas
+    #(defun hr (x)
+    #  ;; TYPE real -> duration
+    #  ;; x hours.
+    #  (/ x 24))
     HR = lambda self, x: x / 24
+
+    #(defun mn (x)
+    #  ;; TYPE real -> duration
+    #  ;; x minutes.
+    #  (/ x 24 60))
     MN = lambda self, x: x / 24 / 60
+
+    #(defun sec (x)
+    #  ;; TYPE real -> duration
+    #  ;; x seconds.
+    #  (/ x 24 60 60))
     SEC = lambda self, x: x / 24 / 60 / 60
+
+    #(defun mins (x)
+    #  ;; TYPE real -> angle
+    #  ;; x arcminutes
+    #  (/ x 60))
     MINS = lambda self, x: x / 60
+
+    #(defun secs (x)
+    #  ;; TYPE real -> angle
+    #  ;; x arcseconds
+    #  (/ x 3600))
     SECS = lambda self, x: x / 3600
-    ANGLE = lambda self, d, m, s: d + (m + (s / 60))
+
+    #(defun angle (d m s)
+    #  ;; TYPE (integer integer real) -> angle
+    #  ;; d degrees, m arcminutes, s arcseconds.
+    #  (+ d (/ (+ m (/ s 60)) 60)))
+    ANGLE = lambda self, d, m, s: d + (m + (s / 60)) # 0 - 360
+
+    #(defun mod3 (x a b)
+    #  ;; TYPE (real real real) -> real
+    #  ;; The value of x shifted into the range [a..b). Returns x if a=b.
+    #  (if (= a b)
+    #      x
+    #    (+ a (mod (- x a) (- b a)))))
     MOD3 = lambda self, x, a, b : x if a == b else a + (x - a) % (b - a)
 
     #(defconstant j2000
@@ -52,7 +88,9 @@ class BaseCalendar:
     #  ;; epoch should be an integer.
     #  (let* ((epoch 0))
     #    (- tee epoch)))
-    # Nothing is implemented for this.
+    # Unless the epoch is changed to something other than 0 there is no need
+    # to implement this function.
+    #RD = tee - 0
 
     MEAN_TROPICAL_YEAR = 365.242189
     MORNING = True
@@ -353,6 +391,8 @@ class BaseCalendar:
 
     def apparent_from_local(self, tee_ell):
         """
+        Apparent time is the time measured by devices such as a sundial.
+
         (defun apparent-from-local (tee_ell location)
           ;; TYPE (moment location) -> moment
           ;; Sundial time from local time tee_ell at location.
@@ -364,6 +404,8 @@ class BaseCalendar:
 
     def local_from_apparent(self, tee):
         """
+        used
+
         (defun local-from-apparent (tee location)
           ;; TYPE (moment location) -> moment
           ;; Local time from sundial time tee at location.
@@ -373,6 +415,9 @@ class BaseCalendar:
 
     #apparent-from-universal
     #universal-from-apparent
+    #midnight
+    #midday
+    #sidereal-from-moment
 
     #
     # Time and Astronomy (The Year)
@@ -391,9 +436,9 @@ class BaseCalendar:
                              (angle 0 0 0.001813L0))))))
         """
         c = self.julian_centuries(tee)
-        angle_list = (0, self.ANGLE(0, 0, -46.8150),
-                      self.ANGLE(0, 0, -0.00059), self.ANGLE(0, 0, 0.001813))
-        return self.ANGLE(23, 26, 21.448) + self._poly(c, angle_list)
+        angles = (0, self.ANGLE(0, 0, -46.8150), self.ANGLE(0, 0, -0.00059),
+                  self.ANGLE(0, 0, 0.001813))
+        return self.ANGLE(23, 26, 21.448) + self._poly(c, angles)
 
     def declination(self, tee, beta, lambda_):
         """
@@ -412,6 +457,9 @@ class BaseCalendar:
         return ((self.sin_degrees(beta) * self.cos_degrees(varepsilon)) +
                 (self.cos_degrees(beta) * self.sin_degrees(varepsilon)
                  * self.sin_degrees(lambda_)))
+
+    #mean-tropical-year
+    #mean-sidereal-year
 
     def solar_longitude(self, tee):
         '''
@@ -510,6 +558,17 @@ class BaseCalendar:
         return ((0.0000974 * self.cos_degrees(177.63 + (35999.01848 * c)))
                 - 0.005575)
 
+    #solar-longitude-after
+    #season-in-gregorian
+    #urbana-winter
+    #precession
+    #sideread-solar-longitude
+    #solar-altitude
+
+    ################################
+    # Astronomical Solar Calandars #
+    ################################
+
     def estimate_prior_solar_longitude(self, lambda_, tee):
         """
         used
@@ -538,6 +597,8 @@ class BaseCalendar:
     #
     # Time and Astronomy (The Month)
     #
+
+    #mean-synodic-month
 
     def nth_new_moon(self, ):
         """
@@ -626,6 +687,26 @@ class BaseCalendar:
         """
         return
 
+    #new-moon-before
+
+    def new_moon_at_or_after(self, tee):
+        """
+        used
+
+        (defun new-moon-at-or-after (tee)
+          ;; TYPE moment -> moment
+          ;; Moment UT of first new moon at or after tee.
+          (let* ((t0 (nth-new-moon 0))
+                 (phi (lunar-phase tee))
+                 (n (round (- (/ (- tee t0) mean-synodic-month)
+                              (/ phi (deg 360))))))
+            (nth-new-moon (next k n (>= (nth-new-moon k) tee))))
+        """
+        t0 = self.nth_new_moon(0)
+        phi = self.lunar_phase(tee)
+        n = round((tee - t0) / self.MEAN_TROPICAL_YEAR - phi / 360)
+        return self.nth_new_moon(self._next(n , self.nth_new_moon(n) >= tee))
+
     def lunar_longitude(self, tee):
         '''
         (defun lunar-longitude (tee)
@@ -695,23 +776,13 @@ class BaseCalendar:
         '''
         return
 
-    def new_moon_at_or_after(self, tee):
-        """
-        used
-
-        (defun new-moon-at-or-after (tee)
-          ;; TYPE moment -> moment
-          ;; Moment UT of first new moon at or after tee.
-          (let* ((t0 (nth-new-moon 0))
-                 (phi (lunar-phase tee))
-                 (n (round (- (/ (- tee t0) mean-synodic-month)
-                              (/ phi (deg 360))))))
-            (nth-new-moon (next k n (>= (nth-new-moon k) tee))))
-        """
-        t0 = self.nth_new_moon(0)
-        phi = self.lunar_phase(tee)
-        n = round((tee - t0) / self.MEAN_TROPICAL_YEAR - phi / 360)
-        return self.nth_new_moon(self._next(n , self.nth_new_moon(n) >= tee))
+    #mean-lunar-longitude
+    #lunar-elongation
+    #solar-anomaly
+    #lunar-anomaly
+    #moon-node
+    #lunar-node
+    #sidereal-lunar-longitude
 
     def lunar_phase(self, n):
         """
@@ -740,6 +811,18 @@ class BaseCalendar:
         phi_prime = (360 * (tee - self.nth_new_moon(n)) /
                      self.MEAN_SYNODIC_MONTH) % 1
         return phi_prime if abs(phi - phi_prime) > 180 else phi
+
+    #lunar-phase-at-or-before
+    #lunar-phase-at-or-after
+    #new
+    #first-quarter
+    #full
+    #last-quarter
+    #lunar-latitude
+    #lunar-altitude
+    #lunar-distance
+    #lunar-parallax
+    #topocentric-lunar-altitude
 
     #
     # Time and Astronomy (Rising and Setting of the Sun and Moon)
@@ -923,11 +1006,28 @@ class BaseCalendar:
         alpha = self.refraction(date + self.HR(18)) + self.MINS(16)
         return self.dusk(date, alpha)
 
+    #urbana-sunset
+    #cfs-alent
+    #jewish-sabbath-ends
+    #jewish-dusk
+    #observed-lunar-altitude
+    #moonrise
+    #moonset
+
     #
     # Time and Astronomy (Times of Day)
     #
-    # Nothing Yet
-    #
+
+    #padua
+    #local-zero-hour
+    #italian-from-local
+    #daytime-temporal-hour
+    #nighttime-temporal-hour
+    #standard-from-sundial
+    #jewish-morning-end
+    #alt-asr
+
+    # We bypass all the Lunar Crescent Visability
 
     #
     # Calendar Basics (Mathematical Notation)
@@ -977,6 +1077,37 @@ class BaseCalendar:
           (tan (radians-from-degrees theta)))
         """
         return math.tan(self.radians_from_degrees(theta))
+
+    def arctan_degrees(self, y, x):
+        """
+        (defun arctan-degrees (y x)
+          ;; TYPE (real real) -> angle
+          ;; Arctangent of y/x in degrees.
+          ;; Returns bogus if x and y are both 0.
+          (if (and (= x y 0))
+              bogus
+            (mod
+             (if (= x 0)
+                 (* (sign y) (deg 90L0))
+               (let* ((alpha (degrees-from-radians
+                              (atan (/ y x)))))
+                 (if (>= x 0)
+                      alpha
+                   (+ alpha (deg 180L0)))))
+              360)))
+        """
+        if not (x == 0 == y):
+            if x == 0:
+                result = math.sin(y) * 90
+            else:
+                alpha = self.degrees_from_radians(math.atan2(y, x))
+                result = alpha if x >= 0 else alpha + 180
+
+            result %= 360
+        else:
+            result = None
+
+        return result
 
     def arcsin_degrees(self, x):
         """

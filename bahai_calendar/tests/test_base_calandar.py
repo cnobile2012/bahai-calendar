@@ -88,7 +88,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         d, m, s = (23, 26, 21.448)
         angle = self._bc.ANGLE(d, m ,s)
-        expected_angle = d + (m + (s / 60))
+        expected_angle = 49.35746666666667
         msg = f"ANGLE should be {expected_angle}, found {angle}."
         self.assertEqual(expected_angle, angle, msg)
 
@@ -133,6 +133,14 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Should be {expected_dt}, found {self._bc._time}"
         self.assertTrue(
             all([i == j for i, j in zip(expected_dt, self._bc._time)]), msg)
+
+    @unittest.skip("Temporarily skipped")
+    def test_date_representation_getter(self):
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_date_representation_setter(self):
+        pass
 
     #@unittest.skip("Temporarily skipped")
     def test_zone_from_longitude(self):
@@ -276,19 +284,35 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_apparent_from_local(self):
         """
-        Test that the new_moon_at_or_after method 
+        Test that the apparent_from_local method returns the sundial
+        time from local time tee_ell at location.
         """
-        pass
+        tee_ell = 675334.5
+        result = self._bc.apparent_from_local(tee_ell)
+        expected_result = 675334.4996718061
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_local_from_apparent(self):
         """
-        Test that the new_moon_at_or_after method 
+        Test that the local_from_apparent method returns the local
+        time from sundial time tee at location.
         """
-        pass
+        tee = 675334.4996718061
+        result = self._bc.local_from_apparent(tee)
+        expected_result = 675334.4999999832 # 675334.5
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #apparent-from-universal
+    #universal-from-apparent
+    #midnight
+    #midday
+    #sidereal-from-moment
 
     #@unittest.skip("Temporarily skipped")
     def test_obliquity(self):
@@ -302,9 +326,36 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
+    @unittest.skip("Temporarily skipped")
+    def test_declination(self):
+        """
+        Test that the
+        """
+        pass
 
+    #mean-tropical-year
+    #mean-sidereal-year
 
+    #@unittest.skip("Temporarily skipped")
+    def test_solar_longitude(self):
+        """
+        Test that the solar_longitude method returns the correct season.
+        """
+        pass
 
+    @unittest.skip("Temporarily skipped")
+    def test_nutation(self):
+        """
+        Test that the
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_aberration(self):
+        """
+        Test that the
+        """
+        pass
 
     #@unittest.skip("Temporarily skipped")
     def test_estimate_prior_solar_longitude(self):
@@ -360,13 +411,6 @@ class TestBaseCalandar(unittest.TestCase):
     def test_lunar_longitude(self):
         """
         Test that the lunar_longitude 
-        """
-        pass
-
-    #@unittest.skip("Temporarily skipped")
-    def test_solar_longitude(self):
-        """
-        Test that the solar_longitude method returns the correct season.
         """
         pass
 
