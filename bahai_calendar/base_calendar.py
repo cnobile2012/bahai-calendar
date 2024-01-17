@@ -1035,6 +1035,8 @@ class BaseCalendar:
 
     def radians_from_degrees(self, theta):
         """
+        used
+
         (defun radians-from-degrees (theta)
           ;; TYPE real -> radian
           ;; Convert angle theta from degrees to radians.
@@ -1049,7 +1051,7 @@ class BaseCalendar:
           ;; Convert angle theta from radians to degrees.
           (mod (/ theta pi 1/180) 360))
         """
-        return (theta / math.pi / 1/180) % 360
+        return theta * 180 / math.pi
 
     def sin_degrees(self, theta):
         """
@@ -1111,11 +1113,14 @@ class BaseCalendar:
 
     def arcsin_degrees(self, x):
         """
+        used
+
         (defun arcsin-degrees (x)
           ;; TYPE amplitude -> angle
           ;; Arcsine of x in degrees.
           (degrees-from-radians (asin x)))
         """
+        assert -1 <= x <= 1, f"The value of x '{x}' must be >= -1 and <= 1."
         return self.degrees_from_radians(math.asin(x))
 
     def arccos_degrees(self, x):
@@ -1125,6 +1130,7 @@ class BaseCalendar:
           ;; Arccosine of x in degrees.
           (degrees-from-radians (acos x)))
         """
+        assert -1 <= x <= 1, f"The value of x '{x}' must be >= -1 and <= 1."
         return self.degrees_from_radians(math.acos(x))
 
     def fixed_from_moment(self, tee):

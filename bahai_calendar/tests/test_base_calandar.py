@@ -308,12 +308,6 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    #apparent-from-universal
-    #universal-from-apparent
-    #midnight
-    #midday
-    #sidereal-from-moment
-
     #@unittest.skip("Temporarily skipped")
     def test_obliquity(self):
         """
@@ -332,9 +326,6 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the
         """
         pass
-
-    #mean-tropical-year
-    #mean-sidereal-year
 
     #@unittest.skip("Temporarily skipped")
     def test_solar_longitude(self):
@@ -371,16 +362,220 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Should be {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-
-
-
+    @unittest.skip("Temporarily skipped")
+    def test_nth_new_moon(self):
+        """
+        Test that the nth_new_moon method returns a moment of n-th new
+        moon after (or before) the new moon of January 11, 1.
+        """
+        pass
 
     @unittest.skip("Temporarily skipped")
     def test_new_moon_at_or_after(self):
         """
-        Test that the new_moon_at_or_after method 
+        Test that the new_moon_at_or_after method moment UT of first
+        new moon at or after tee.
         """
         pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_lunar_longitude(self):
+        """
+        Test that the lunar_longitude method returns the longitude of
+        moon (in degrees) at moment.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_lunar_phase(self):
+        """
+        Test that the lunar_phase method returns the lunar phase,
+        as an angle in degrees, at moment.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_approx_moment_of_depression(self):
+        """
+        Test that the approx_moment_of_depression method returns a moment
+        in local time near tee when depression angle of sun is alpha
+        (negative if above horizon) at location; early is true when
+        morning event is sought and false for evening. Returns None if
+        depression angle is not reached.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_sine_offset(self):
+        """
+        Test that the sine_offset method returns a sine of angle between
+        position of sun at local time tee and when its depression is
+        alpha at location.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_moment_of_depression(self):
+        """
+        Test that the moment_of_depression method returns a moment in
+        local time near approx when depression angle of sun is alpha
+        (negative if above horizon) at location; early is true when
+        morning event is sought, and false for evening. Returns None
+        if depression angle is not reached.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_dawn(self):
+        """
+        Test that the dawn method returns the standard time in morning
+        on fixed date at location when depression angle of sun is alpha.
+        Returns None if there is no dawn on date.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_dusk(self):
+        """
+        Test that the dusk method a standard time in morning on fixed
+        date at location when depression angle of sun is alpha. Returns
+        bogus if there is no dawn on date.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_refraction(self):
+        """
+        Test that the refraction method returns a refraction angle at
+        moment tee at location. The moment is not used.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_sunrise(self):
+        """
+        Test that the sunrise method returns the standard time of
+        sunrise on fixed date at location.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_sunset(self):
+        """
+        Test that the sunset method returns the standard time of
+        sunset on fixed date at location.
+        """
+        pass
+
+    #@unittest.skip("Temporarily skipped")
+    def test_radians_from_degrees(self):
+        """
+        Test that the radians_from_degrees method returns the convert
+        angle theta from degrees to radians.
+        """
+        theta = 90.0
+        result = self._bc.radians_from_degrees(theta)
+        expected_result = 1.5707963267948966
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_degrees_from_radians(self):
+        """
+        Test that the degrees_from_radians method returns the convert
+        angle theta from radians to degrees.
+        """
+        theta = 1.5707963267948966
+        result = self._bc.degrees_from_radians(theta)
+        expected_result = 90.0
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_sin_degrees(self):
+        """
+        Test that the sin_degrees method returns the sine of theta
+        (given in degrees).
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_cos_degrees(self):
+        """
+        Test that the cos_degrees method returns the cosine of theta
+        (given in degrees).
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_tan_degrees(self):
+        """
+        Test that the tan_degrees method returns the tangent of theta
+        (given in degrees).
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_arctan_degrees(self):
+        """
+        Test that the arctan_degrees method returns the arctangent of
+        y/x in degrees. Returns bogus if x and y are both 0.
+        """
+        pass
+
+    #@unittest.skip("Temporarily skipped")
+    def test_arcsin_degrees(self):
+        """
+        Test that the arcsin_degrees method returns the arcsine of x
+        in degrees.
+        """
+        # Test a valid x.
+        x = -0.9
+        result = self._bc.arcsin_degrees(x)
+        expected_result = -64.15806723683288
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+        # Test x out of range.
+        X = (-5, 5)
+        msg = "Expected error {}, found {}"
+
+        for x in X:
+            expected_result = f"The value of x '{x}' must be >= -1 and <= 1."
+
+            with self.assertRaises(AssertionError) as cm:
+                self._bc.arcsin_degrees(x)
+
+            result = str(cm.exception)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_arccos_degrees(self):
+        """
+        Test that the arccos_degrees method returns the arccosine of x
+        in degrees.
+        """
+        # Test a valid x.
+        x = -0.9
+        result = self._bc.arccos_degrees(x)
+        expected_result = 154.15806723683286
+        msg = f"Should be {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+        # Test x out of range.
+        X = (-5, 5)
+        msg = "Expected error {}, found {}"
+
+        for x in X:
+            expected_result = f"The value of x '{x}' must be >= -1 and <= 1."
+
+            with self.assertRaises(AssertionError) as cm:
+                self._bc.arccos_degrees(x)
+
+            result = str(cm.exception)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_fixed_from_moment(self):
@@ -393,31 +588,16 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Should be {expected_moment}, found {moment}."
         self.assertEqual(expected_moment, moment, msg)
 
-    @unittest.skip("Temporarily skipped")
-    def test_nth_new_moon(self):
+    #@unittest.skip("Temporarily skipped")
+    def test_sigma(self):
         """
-        Test that the nth_new_moon method 
-        """
-        pass
-
-    @unittest.skip("Temporarily skipped")
-    def test_lunar_phase(self):
-        """
-        Test that the lunar_phase 
+        Test that the sigma method returns a sum of the provided lists
+        wuth the given function (condition).
         """
         pass
-
-    @unittest.skip("Temporarily skipped")
-    def test_lunar_longitude(self):
-        """
-        Test that the lunar_longitude 
-        """
-        pass
-
-
 
     #@unittest.skip("Temporarily skipped")
-    def test_poly(self):
+    def test__poly(self):
         """
         Test the poly (polynomial) lambda.
         """
@@ -437,7 +617,7 @@ class TestBaseCalandar(unittest.TestCase):
         self.assertEqual(expected_poly, poly, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_next_(self):
+    def test__next(self):
         """
         Test that the next_ method returns the first integer greater
         or equal to initial such that condition holds.
@@ -448,6 +628,10 @@ class TestBaseCalandar(unittest.TestCase):
             result = self._bc._next(initial , con)
             #print(initial, result)
 
-
-
-
+    #@unittest.skip("Temporarily skipped")
+    def test__next(self):
+        """
+        Test that the _next method returns the last integer greater
+        or equal to initial such that condition holds.
+        """
+        pass
