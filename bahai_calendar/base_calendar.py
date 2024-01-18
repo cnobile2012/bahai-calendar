@@ -54,7 +54,7 @@ class BaseCalendar:
     #  ;; TYPE (integer integer real) -> angle
     #  ;; d degrees, m arcminutes, s arcseconds.
     #  (+ d (/ (+ m (/ s 60)) 60)))
-    ANGLE = lambda self, d, m, s: d + (m + (s / 60)) # 0 - 360
+    ANGLE = lambda self, d, m, s: d + (m + (s / 60)) / 60 # 0 - 360
 
     #(defun mod3 (x a b)
     #  ;; TYPE (real real real) -> real
@@ -95,7 +95,11 @@ class BaseCalendar:
     MEAN_TROPICAL_YEAR = 365.242189
     MORNING = True
     EVENING = False
+    # Seasons set to degrees.
     SPRING = 0
+    SUMMER = 90
+    AUTUMN = 180
+    WINTER = 270
 
     # Lists for solar_longitude()
     _COEFFICIENTS = (
@@ -157,6 +161,8 @@ class BaseCalendar:
 
     def universal_from_local(self, tee_ell):
         """
+        used
+
         (defun universal-from-local (tee_ell location)
           ;; TYPE (moment location) -> moment
           ;; Universal time from local tee_ell at location.
@@ -164,7 +170,14 @@ class BaseCalendar:
         """
         return tee_ell - self.zone_from_longitude(self.longitude)
 
-    # local-from-universal
+    def local_from_universal(self, tee_rom_u):
+        """
+        (defun local-from-universal (tee_rom-u location)
+          ;; TYPE (moment location) -> moment
+          ;; Local time from universal tee_rom-u at location.
+          (+ tee_rom-u (zone-from-longitude (longitude location))))
+        """
+        return tee_rom_u + self.zone_from_longitude(self.longitude)
 
     def standard_from_universal(self, tee_rom_u):
         """
@@ -186,6 +199,8 @@ class BaseCalendar:
 
     def standard_from_local(self, tee_ell):
         """
+        used
+
         (defun standard-from-local (tee_ell location)
           ;; TYPE (moment location) -> moment
           ;; Standard time from local tee_ell at location.
@@ -194,7 +209,17 @@ class BaseCalendar:
         """
         return self.standard_from_universal(self.universal_from_local(tee_ell))
 
-    #local-from-standard
+    def local_from_standard(self, tee_rom_s):
+        """
+        (defun local-from-standard (tee_rom-s location)
+          ;; TYPE (moment location) -> moment
+          ;; Local time from standard tee_rom-s at location.
+          (local-from-universal
+           (universal-from-standard tee_rom-s location)
+           location))
+        """
+        return self.local_from_universal(self.universal_from_standard(
+            tee_rom_s))
 
     def ephemeris_correction(self, tee):
         '''
@@ -425,6 +450,11 @@ class BaseCalendar:
 
     def obliquity(self, tee):
         """
+        Obliquity is the inclination of the Earth’s equator. The value
+        of this inclination, called the obliquity, varies in a
+        100000-year cycle, ranging from 24.2◦ 10000 years ago to 22.6◦
+        in another 10000 years.
+
         (defun obliquity (tee)
           ;; TYPE moment -> angle
           ;; Obliquity of ecliptic at moment tee.
@@ -440,7 +470,7 @@ class BaseCalendar:
                   self.ANGLE(0, 0, 0.001813))
         return self.ANGLE(23, 26, 21.448) + self._poly(c, angles)
 
-    def declination(self, tee, beta, lambda_):
+    def declination(self, tee, lat, lon):
         """
         (defun declination (tee beta lambda)
           ;; TYPE (moment half-circle circle) -> angle
@@ -454,9 +484,9 @@ class BaseCalendar:
                                   (sin-degrees lambda))))))
         """
         varepsilon = self.obliquity(tee)
-        return ((self.sin_degrees(beta) * self.cos_degrees(varepsilon)) +
-                (self.cos_degrees(beta) * self.sin_degrees(varepsilon)
-                 * self.sin_degrees(lambda_)))
+        return ((self.sin_degrees(lat) * self.cos_degrees(varepsilon)) +
+                (self.cos_degrees(lat) * self.sin_degrees(varepsilon)
+                 * self.sin_degrees(lon)))
 
     #mean-tropical-year
     #mean-sidereal-year
@@ -828,7 +858,7 @@ class BaseCalendar:
     # Time and Astronomy (Rising and Setting of the Sun and Moon)
     #
 
-    def approx_moment_of_depression(self, tee, alpha, early):
+    def approx_moment_of_depression(self, tee:float, alpha:float, early:bool):
         """
         (defun approx-moment-of-depression (tee location alpha early?)
           ;; TYPE (moment location half-circle boolean) - moment
@@ -1037,48 +1067,53 @@ class BaseCalendar:
         """
         used
 
+        *** TODO Just use the python method throughout the code. ***
+
         (defun radians-from-degrees (theta)
           ;; TYPE real -> radian
           ;; Convert angle theta from degrees to radians.
           (* (mod theta 360) pi 1/180))
         """
-        return (theta % 360) * math.pi * 1/180
+        return math.radians(theta)
 
     def degrees_from_radians(self, theta):
         """
+
+        *** TODO Just use the python method throughout the code. ***
+
         (defun degrees-from-radians (theta)
           ;; TYPE radian -> angle
           ;; Convert angle theta from radians to degrees.
           (mod (/ theta pi 1/180) 360))
         """
-        return theta * 180 / math.pi
+        return math.degrees(theta)
 
-    def sin_degrees(self, theta):
+    def sin_degrees(self, theta:float) -> float:
         """
         (defun sin-degrees (theta)
           ;; TYPE angle -> amplitude
           ;; Sine of theta (given in degrees).
           (sin (radians-from-degrees theta)))
         """
-        return math.sin(self.radians_from_degrees(theta))
+        return math.sin(math.radians(theta))
 
-    def cos_degrees(self, theta):
+    def cos_degrees(self, theta:float) -> float:
         """
         (defun cos-degrees (theta)
           ;; TYPE angle -> amplitude
           ;; Cosine of theta (given in degrees).
           (cos (radians-from-degrees theta)))
         """
-        return math.cos(self.radians_from_degrees(theta))
+        return math.cos(math.radians(theta))
 
-    def tan_degrees(self, theta):
+    def tan_degrees(self, theta:float) -> float:
         """
         (defun tan-degrees (theta)
           ;; TYPE angle -> real
           ;; Tangent of theta (given in degrees).
           (tan (radians-from-degrees theta)))
         """
-        return math.tan(self.radians_from_degrees(theta))
+        return math.tan(math.radians(theta))
 
     def arctan_degrees(self, y, x):
         """
@@ -1141,40 +1176,6 @@ class BaseCalendar:
           (floor tee))
         """
         return math.floor(tee)
-
-    @property
-    def hour(self):
-        """
-        (defun hour (clock)
-          ;; TYPE clock-time -> hour
-          (first clock))
-        """
-        return self._time[0]
-
-    @property
-    def minute(self):
-        """
-        (defun minute (clock)
-          ;; TYPE clock-time -> minute
-          (second clock))
-        """
-        return self._time[1]
-
-    @property
-    def seconds(self):
-        """
-        (defun seconds (clock)
-          ;; TYPE clock-time -> second
-          (third clock))
-        """
-        return self._time[2]
-
-    @property
-    def microsecond(self):
-        """
-        Not in the original implementation
-        """
-        return self._time[3]
 
     def sigma(self, lists, func):
         """

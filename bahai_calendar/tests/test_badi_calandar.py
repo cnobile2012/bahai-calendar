@@ -47,7 +47,7 @@ class TestBadiCalandar(unittest.TestCase):
         """
         fixed_date = 673222
         result = self._bc.bahai_sunset(fixed_date)
-        expected_result = 673222.6071585756
+        expected_result = 673222.6100498212
         msg = f"Expected {expected_result}, found {result}"
         self.assertEqual(expected_result, result, msg)
 

@@ -88,7 +88,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         d, m, s = (23, 26, 21.448)
         angle = self._bc.ANGLE(d, m ,s)
-        expected_angle = 49.35746666666667
+        expected_angle = 23.43929111111111
         msg = f"ANGLE should be {expected_angle}, found {angle}."
         self.assertEqual(expected_angle, angle, msg)
 
@@ -130,7 +130,7 @@ class TestBaseCalandar(unittest.TestCase):
         now = datetime.datetime.now()
         self._bc.parse_datetime(now)
         expected_dt = (now.hour, now.minute, now.second)
-        msg = f"Should be {expected_dt}, found {self._bc._time}"
+        msg = f"Expected {expected_dt}, found {self._bc._time}"
         self.assertTrue(
             all([i == j for i, j in zip(expected_dt, self._bc._time)]), msg)
 
@@ -152,19 +152,31 @@ class TestBaseCalandar(unittest.TestCase):
         phi = 1000
         result = self._bc.zone_from_longitude(phi)
         expected_result = 2.7777777777777777
-        msg = f"Should be {expected_result}, found {result}."
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_universal_from_local(self):
         """
-        Test that the zone is determined from the time zone.
+        Test that the universal_from_local method converts universal
+        time from local tee_ell at location.
         """
         tee_ell = 10000.5
         result = self._bc.universal_from_local(tee_ell)
-        expected_result = tee_ell - self._bc.zone_from_longitude(
-            self._bc.longitude)
-        msg = f"Should be {expected_result}, found {result}."
+        expected_result = 10000.357158177778
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_local_from_universal(self):
+        """
+        Test that the local_from_universal method converts local time
+        from universal tee_rom_u at location.
+        """
+        tee_rom_u = 10000.357158177778
+        result = self._bc.local_from_universal(tee_rom_u)
+        expected_result = 10000.5
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -175,8 +187,8 @@ class TestBaseCalandar(unittest.TestCase):
         """
         tee_rom_u = 10000.5
         result = self._bc.standard_from_universal(tee_rom_u)
-        expected_result = tee_rom_u + self._bc.zone
-        msg = f"Should be {expected_result}, found {result}."
+        expected_result = 10004.0
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -185,10 +197,10 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the zone is determined from the universal time from
         tee_rom_s in standard time at location.
         """
-        tee_rom_s = 10000.5
+        tee_rom_s = 10004.0
         result = self._bc.universal_from_standard(tee_rom_s)
-        expected_result = tee_rom_s - self._bc.zone
-        msg = f"Should be {expected_result}, found {result}."
+        expected_result = 10000.5
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -199,9 +211,20 @@ class TestBaseCalandar(unittest.TestCase):
         """
         tee_ell = 10000.5
         result = self._bc.standard_from_local(tee_ell)
-        expected_result = self._bc.standard_from_universal(
-            self._bc.universal_from_local(tee_ell))
-        msg = f"Should be {expected_result}, found {result}."
+        expected_result = 10003.857158177778
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_local_from_standard(self):
+        """
+        Test that the local_from_standard method converts local time
+        from standard tee_rom_s at location.
+        """
+        tee_rom_s = 10003.857158177778
+        result = self._bc.local_from_standard(tee_rom_s)
+        expected_result = 10000.5
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -240,7 +263,7 @@ class TestBaseCalandar(unittest.TestCase):
         tee_rom_u = 675334.5
         result = self._bc.dynamical_from_universal(tee_rom_u)
         expected_result = 675336.255492973
-        msg = f"Should be {expected_result}, found {result}."
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -257,7 +280,7 @@ class TestBaseCalandar(unittest.TestCase):
         tee = 675336.255492973
         result = self._bc.universal_from_dynamical(tee)
         expected_result = 675334.5
-        msg = f"Should be {expected_result}, found {result}."
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -269,7 +292,7 @@ class TestBaseCalandar(unittest.TestCase):
         tee = 675334.5
         result = self._bc.julian_centuries(tee)
         expected_result = -1.499910869460013
-        msg = f"Should be {expected_result}, found {result}."
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -280,8 +303,8 @@ class TestBaseCalandar(unittest.TestCase):
         """
         tee = 675334.5
         result = self._bc.equation_of_time(tee)
-        expected_result = -0.00033553630301943875
-        msg = f"Should be {expected_result}, found {result}."
+        expected_result = -1.049036856585601e-05
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -292,8 +315,8 @@ class TestBaseCalandar(unittest.TestCase):
         """
         tee_ell = 675334.5
         result = self._bc.apparent_from_local(tee_ell)
-        expected_result = 675334.4996718061
-        msg = f"Should be {expected_result}, found {result}."
+        expected_result = 675334.4999898048
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -304,28 +327,35 @@ class TestBaseCalandar(unittest.TestCase):
         """
         tee = 675334.4996718061
         result = self._bc.local_from_apparent(tee)
-        expected_result = 675334.4999999832 # 675334.5
-        msg = f"Should be {expected_result}, found {result}."
+        expected_result = 675334.4996820006 # 675334.5
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_obliquity(self):
         """
         Test that the obliquity method returns obliquity of ecliptic
-        at moment.
+        at moment tee.
         """
         tee = 675334.5
         result = self._bc.obliquity(tee)
-        expected_result = 50.52764803712032
-        msg = f"Should be {expected_result}, found {result}."
+        expected_result = 23.458794133952004
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_declination(self):
         """
-        Test that the
+        Test that the declination method returns the declination at
+        moment UT tee of object at latitude beta and longitude lambda.
         """
-        pass
+        tee = 675334.5
+        lat = 35.696111
+        lon = 51.423056
+        result = self._bc.declination(tee, lat, lon)
+        expected_result = 0.7880038536133311
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_solar_longitude(self):
@@ -359,7 +389,7 @@ class TestBaseCalandar(unittest.TestCase):
         tee = 673222.6070645516
         result = self._bc.estimate_prior_solar_longitude(lambda_, tee)
         expected_result = 672855.2913903068
-        msg = f"Should be {expected_result}, found {result}."
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     @unittest.skip("Temporarily skipped")
@@ -403,7 +433,11 @@ class TestBaseCalandar(unittest.TestCase):
         morning event is sought and false for evening. Returns None if
         depression angle is not reached.
         """
-        pass
+        # Test with early == False, alpha >= 0
+        tee = 675334.5
+        alpha = None
+        early = False
+
 
     @unittest.skip("Temporarily skipped")
     def test_sine_offset(self):
@@ -413,6 +447,9 @@ class TestBaseCalandar(unittest.TestCase):
         alpha at location.
         """
         pass
+        #tee =
+        #alpha = 
+
 
     @unittest.skip("Temporarily skipped")
     def test_moment_of_depression(self):
@@ -476,7 +513,7 @@ class TestBaseCalandar(unittest.TestCase):
         theta = 90.0
         result = self._bc.radians_from_degrees(theta)
         expected_result = 1.5707963267948966
-        msg = f"Should be {expected_result}, found {result}."
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -488,34 +525,44 @@ class TestBaseCalandar(unittest.TestCase):
         theta = 1.5707963267948966
         result = self._bc.degrees_from_radians(theta)
         expected_result = 90.0
-        msg = f"Should be {expected_result}, found {result}."
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-
-
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_sin_degrees(self):
         """
         Test that the sin_degrees method returns the sine of theta
         (given in degrees).
         """
-        pass
+        theta = 90.0
+        result = self._bc.sin_degrees(theta)
+        expected_result = 1.0
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_cos_degrees(self):
         """
         Test that the cos_degrees method returns the cosine of theta
         (given in degrees).
         """
-        pass
+        theta = 90.0
+        result = self._bc.cos_degrees(theta)
+        expected_result = 6.123233995736766e-17 # is 0?
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_tan_degrees(self):
         """
         Test that the tan_degrees method returns the tangent of theta
         (given in degrees).
         """
-        pass
+        theta = 90.0
+        result = self._bc.tan_degrees(theta)
+        expected_result = 1.633123935319537e+16
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
     @unittest.skip("Temporarily skipped")
     def test_arctan_degrees(self):
@@ -535,7 +582,7 @@ class TestBaseCalandar(unittest.TestCase):
         x = -0.9
         result = self._bc.arcsin_degrees(x)
         expected_result = -64.15806723683288
-        msg = f"Should be {expected_result}, found {result}."
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
         # Test x out of range.
         X = (-5, 5)
@@ -561,7 +608,7 @@ class TestBaseCalandar(unittest.TestCase):
         x = -0.9
         result = self._bc.arccos_degrees(x)
         expected_result = 154.15806723683286
-        msg = f"Should be {expected_result}, found {result}."
+        msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
         # Test x out of range.
         X = (-5, 5)
@@ -585,7 +632,7 @@ class TestBaseCalandar(unittest.TestCase):
         tee = 10.99999
         moment = self._bc.fixed_from_moment(tee)
         expected_moment = math.floor(tee)
-        msg = f"Should be {expected_moment}, found {moment}."
+        msg = f"Expected {expected_moment}, found {moment}."
         self.assertEqual(expected_moment, moment, msg)
 
     #@unittest.skip("Temporarily skipped")
