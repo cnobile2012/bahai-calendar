@@ -580,8 +580,7 @@ class BaseCalendar:
           (let* ((c       ; moment in Julian centuries
                   (julian-centuries tee)))
             (- (* (deg 0.0000974L0)
-                  (cos-degrees
-                   (+ (deg 177.63L0) (* (deg 35999.01848L0) c))))
+                  (cos-degrees (+ (deg 177.63L0) (* (deg 35999.01848L0) c))))
                (deg 0.005575L0))))
         """
         c = self.julian_centuries(tee)
@@ -594,6 +593,9 @@ class BaseCalendar:
     #precession
     #sideread-solar-longitude
     #solar-altitude
+    # Here α is the sun’s right ascension, δ is its declination,
+    # and H is the local sidereal hour angle.
+
 
     ################################
     # Astronomical Solar Calandars #
@@ -1062,31 +1064,17 @@ class BaseCalendar:
     #
     # Calendar Basics (Mathematical Notation)
     #
-
-    def radians_from_degrees(self, theta):
-        """
-        used
-
-        *** TODO Just use the python method throughout the code. ***
-
-        (defun radians-from-degrees (theta)
-          ;; TYPE real -> radian
-          ;; Convert angle theta from degrees to radians.
-          (* (mod theta 360) pi 1/180))
-        """
-        return math.radians(theta)
-
-    def degrees_from_radians(self, theta):
-        """
-
-        *** TODO Just use the python method throughout the code. ***
-
-        (defun degrees-from-radians (theta)
-          ;; TYPE radian -> angle
-          ;; Convert angle theta from radians to degrees.
-          (mod (/ theta pi 1/180) 360))
-        """
-        return math.degrees(theta)
+    # Both of the below function have equivelent Python builtin functions.
+    #
+    #    (defun radians-from-degrees (theta)
+    #      ;; TYPE real -> radian
+    #      ;; Convert angle theta from degrees to radians.
+    #      (* (mod theta 360) pi 1/180))
+    #
+    #    (defun degrees-from-radians (theta)
+    #      ;; TYPE radian -> angle
+    #      ;; Convert angle theta from radians to degrees.
+    #      (mod (/ theta pi 1/180) 360))
 
     def sin_degrees(self, theta:float) -> float:
         """
@@ -1156,7 +1144,7 @@ class BaseCalendar:
           (degrees-from-radians (asin x)))
         """
         assert -1 <= x <= 1, f"The value of x '{x}' must be >= -1 and <= 1."
-        return self.degrees_from_radians(math.asin(x))
+        return math.degrees(math.asin(x))
 
     def arccos_degrees(self, x):
         """
@@ -1166,7 +1154,7 @@ class BaseCalendar:
           (degrees-from-radians (acos x)))
         """
         assert -1 <= x <= 1, f"The value of x '{x}' must be >= -1 and <= 1."
-        return self.degrees_from_radians(math.acos(x))
+        return math.degrees(math.acos(x))
 
     def fixed_from_moment(self, tee):
         """

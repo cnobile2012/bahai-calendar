@@ -360,9 +360,14 @@ class TestBaseCalandar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_solar_longitude(self):
         """
-        Test that the solar_longitude method returns the correct season.
+        Test that the solar_longitude method returns the longitude of
+        sun at moment tee.
         """
-        pass
+        tee = 675334.5
+        result = self._bc.solar_longitude(tee)
+        expected_result = -53358.49686748232
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
     @unittest.skip("Temporarily skipped")
     def test_nutation(self):
@@ -371,12 +376,17 @@ class TestBaseCalandar(unittest.TestCase):
         """
         pass
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_aberration(self):
         """
         Test that the
         """
-        pass
+        tee = 675334.5
+        result = self._bc.aberration(tee)
+        expected_result = -0.005672320789253863
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
 
     #@unittest.skip("Temporarily skipped")
     def test_estimate_prior_solar_longitude(self):
@@ -424,7 +434,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         pass
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_approx_moment_of_depression(self):
         """
         Test that the approx_moment_of_depression method returns a moment
@@ -433,23 +443,34 @@ class TestBaseCalandar(unittest.TestCase):
         morning event is sought and false for evening. Returns None if
         depression angle is not reached.
         """
-        # Test with early == False, alpha >= 0
-        tee = 675334.5
-        alpha = None
-        early = False
+        # 1. Test tee = 675334.5, early = False, alpha >= 0
+        # 2. Test tee = 675334.5, early = False, alpha < 0
+        # 3. Test tee = 675334.5, early = True, alpha >= 0
+        # 4. Test tee = 675334.5, early = True, alpha < 0
+        data = ((675334.5, 30.5, False, 675334.856459419),
+                (675334.5, -30.5, False, 675334.6415663845),
+                (675334.5, 30.5, True, 675334.1435609942),
+                (675334.5, -30.5, True, 675334.3584540095))
+        msg = "Expected {}, with alpha '{}' and early '{}', found {}."
 
+        for tee, alpha, early, expected_result in data:
+            result = self._bc.approx_moment_of_depression(tee, alpha, early)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, alpha, early, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_sine_offset(self):
         """
         Test that the sine_offset method returns a sine of angle between
         position of sun at local time tee and when its depression is
         alpha at location.
         """
-        pass
-        #tee =
-        #alpha = 
-
+        tee = 675334.5
+        alpha = 30.5
+        result = self._bc.sine_offset(tee, alpha)
+        expected_result = 0.6200728278403642
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
     @unittest.skip("Temporarily skipped")
     def test_moment_of_depression(self):
@@ -503,30 +524,6 @@ class TestBaseCalandar(unittest.TestCase):
         sunset on fixed date at location.
         """
         pass
-
-    #@unittest.skip("Temporarily skipped")
-    def test_radians_from_degrees(self):
-        """
-        Test that the radians_from_degrees method returns the convert
-        angle theta from degrees to radians.
-        """
-        theta = 90.0
-        result = self._bc.radians_from_degrees(theta)
-        expected_result = 1.5707963267948966
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
-
-    #@unittest.skip("Temporarily skipped")
-    def test_degrees_from_radians(self):
-        """
-        Test that the degrees_from_radians method returns the convert
-        angle theta from radians to degrees.
-        """
-        theta = 1.5707963267948966
-        result = self._bc.degrees_from_radians(theta)
-        expected_result = 90.0
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_sin_degrees(self):
