@@ -948,18 +948,18 @@ class BaseCalendar:
                 (moment-of-depression tee location alpha early?)))))
         """
         tee = self.approx_moment_of_depression(approx, alpha, early=early)
-        bogus = None
 
-        if tee is bogus:
-            result = bogus
-        elif abs(approx - tee) < self.SEC(30):
-            result = tee
+        if tee is not None:
+            if abs(approx - tee) < self.SEC(30):
+                result = tee
+            else:
+                result = self.moment_of_depression(tee, alpha, early=early)
         else:
-            result = self.moment_of_depression(tee, alpha, early=early)
+            result = None
 
         return result
 
-    def dawn(self, date, alpha):
+    def dawn(self, date, alpha:float):
         """
         (defun dawn (date location alpha)
           ;; TYPE (fixed-date location half-circle) -> moment
@@ -974,9 +974,9 @@ class BaseCalendar:
         """
         result = self.moment_of_depression(date + self.HR(6), alpha,
                                            self.EVENING)
-        return self.standard_from_local(result) if result else result
+        return self.standard_from_local(result) if result else None
 
-    def dusk(self, date, alpha):
+    def dusk(self, date, alpha:float):
         """
         used
 

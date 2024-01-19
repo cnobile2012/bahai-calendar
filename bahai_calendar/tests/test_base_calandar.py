@@ -447,10 +447,13 @@ class TestBaseCalandar(unittest.TestCase):
         # 2. Test tee = 675334.5, early = False, alpha < 0
         # 3. Test tee = 675334.5, early = True, alpha >= 0
         # 4. Test tee = 675334.5, early = True, alpha < 0
-        data = ((675334.5, 30.5, False, 675334.856459419),
-                (675334.5, -30.5, False, 675334.6415663845),
-                (675334.5, 30.5, True, 675334.1435609942),
-                (675334.5, -30.5, True, 675334.3584540095))
+        data = (
+            (675334.5, 30.5, False, 675334.856459419),
+            (675334.5, -30.5, False, 675334.6415663845),
+            (675334.5, 30.5, True, 675334.1435609942),
+            (675334.5, -30.5, True, 675334.3584540095),
+            #(675334.5, 1000, True, None)
+            )
         msg = "Expected {}, with alpha '{}' and early '{}', found {}."
 
         for tee, alpha, early, expected_result in data:
@@ -472,7 +475,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_moment_of_depression(self):
         """
         Test that the moment_of_depression method returns a moment in
@@ -481,7 +484,18 @@ class TestBaseCalandar(unittest.TestCase):
         morning event is sought, and false for evening. Returns None
         if depression angle is not reached.
         """
-        pass
+        data = (
+            (675334.856459419, 675334.5, False, 675334.6601645576),
+            (675334.6415663845, 675334.5, False, 675334.6601645576),
+            (675334.1435609942, 675334.5, True, 675334.3398568633),
+            (675334.3584540095, 675334.5, True, 675334.3398568633)
+            )
+        msg = "Expected {}, with alpha '{}' and early '{}', found {}."
+
+        for approx, alpha, early, expected_result in data:
+            result = self._bc.moment_of_depression(approx, alpha, early)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, alpha, early, result))
 
     @unittest.skip("Temporarily skipped")
     def test_dawn(self):
@@ -499,15 +513,24 @@ class TestBaseCalandar(unittest.TestCase):
         date at location when depression angle of sun is alpha. Returns
         bogus if there is no dawn on date.
         """
-        pass
+        date = 675334.5
+        alpha = None
+        result = self._bc.dusk(date, alpha)
+        expected_result = 0
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_refraction(self):
         """
         Test that the refraction method returns a refraction angle at
         moment tee at location. The moment is not used.
         """
-        pass
+        tee = 675334.5
+        result = self._bc.refraction(tee)
+        expected_result = 0.5666666666666667
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
     @unittest.skip("Temporarily skipped")
     def test_sunrise(self):
