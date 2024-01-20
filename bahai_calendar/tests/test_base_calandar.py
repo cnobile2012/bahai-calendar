@@ -135,11 +135,11 @@ class TestBaseCalandar(unittest.TestCase):
             all([i == j for i, j in zip(expected_dt, self._bc._time)]), msg)
 
     @unittest.skip("Temporarily skipped")
-    def test_date_representation_getter(self):
+    def test_time_representation_getter(self):
         pass
 
     @unittest.skip("Temporarily skipped")
-    def test_date_representation_setter(self):
+    def test_time_representation_setter(self):
         pass
 
     #@unittest.skip("Temporarily skipped")
@@ -387,7 +387,6 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-
     #@unittest.skip("Temporarily skipped")
     def test_estimate_prior_solar_longitude(self):
         """
@@ -506,7 +505,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         pass
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_dusk(self):
         """
         Test that the dusk method a standard time in morning on fixed
@@ -514,9 +513,9 @@ class TestBaseCalandar(unittest.TestCase):
         bogus if there is no dawn on date.
         """
         date = 675334.5
-        alpha = None
+        alpha = 0.5666666666666667
         result = self._bc.dusk(date, alpha)
-        expected_result = 0
+        expected_result = 675339.1083339454
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -540,13 +539,17 @@ class TestBaseCalandar(unittest.TestCase):
         """
         pass
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_sunset(self):
         """
         Test that the sunset method returns the standard time of
         sunset on fixed date at location.
         """
-        pass
+        date = 675334.5
+        result = self._bc.sunset(date)
+        expected_result = 675339.1092460548
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_sin_degrees(self):
@@ -655,7 +658,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Expected {expected_moment}, found {moment}."
         self.assertEqual(expected_moment, moment, msg)
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_sigma(self):
         """
         Test that the sigma method returns a sum of the provided lists

@@ -6,6 +6,7 @@ __docformat__ = "restructuredtext en"
 
 import os
 import math
+import datetime
 import unittest
 
 from ..gregorian_calendar import GregorianCalendar
@@ -28,6 +29,7 @@ class TestGregorianCalandar(unittest.TestCase):
     def setUp(self):
         self._gc = GregorianCalendar()
 
+    #@unittest.skip("Temporarily skipped")
     def test_GREGORIAN_LEAP_YEAR(self):
         """
         Test that the lambda GREGORIAN_LEAP_YEAR function correctly
@@ -39,6 +41,26 @@ class TestGregorianCalandar(unittest.TestCase):
         for year, value in years:
             result = self._gc.GREGORIAN_LEAP_YEAR(year)
             self.assertEqual(value, result, msg.format(value, year, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_parse_datetime(self):
+        """
+        Test that the parse_datetime method sets the date and time properly.
+
+        We test using the Baha'i epoch on 1844-03-21T18:11:00
+        """
+        bahai_g_epech = datetime.datetime(year=1844, month=3, day=21,
+                                          hour=18, minute=11, second=0)
+        expected_result = ((1844, 3, 21), (18, 11, 0))
+        # Test date
+        self._gc.parse_datetime(bahai_g_epech)
+        result = self._gc.date_representation
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result[0], result, msg)
+        # Test time
+        result = self._gc.time_representation
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result[1], result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_fixed_from_gregorian(self):
@@ -59,6 +81,18 @@ class TestGregorianCalandar(unittest.TestCase):
                              msg.format(expected_result, date_rep[0], result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_gregorian_new_year(self):
+        """
+        Test that the gregorian_new_year method returns the fixed date
+        of January 1 in g_year.
+        """
+        g_year = 2024
+        result = self._gc.gregorian_new_year(g_year)
+        expected_result = 738886
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
     def test_gregorian_year_from_fixed(self):
         """
         Test that the gregorian_year_from_fixed method returns a
@@ -72,6 +106,24 @@ class TestGregorianCalandar(unittest.TestCase):
             self.assertEqual(
                 expected_result, result,
                 msg.format(expected_result, expected_result, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_gregorian_from_fixed(self):
+        """
+        Test that the gregorian_from_fixed method returns the Gregorian
+        (year month day) corresponding to fixed date.
+        """
+        dates = (
+            (673222, (1844, 3, 21)),
+            (719163, (1970, 1 ,1)),
+            (227015, (622, 7, 19))
+            )
+        msg = "Expected result {}, found {}."
+
+        for date, expected_result in dates:
+            result = self._gc.gregorian_from_fixed(date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_gregorian_date_difference(self):

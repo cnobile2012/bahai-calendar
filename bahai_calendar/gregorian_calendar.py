@@ -10,9 +10,9 @@ import datetime
 from bahai_calendar.base_calendar import BaseCalendar
 
 
-class BaseGregorianCalendar(BaseCalendar):
+class GregorianCalendar(BaseCalendar):
     """
-    The methods in this class are needed by the BaseCalendar class.
+    Implementation of the Gregorian Calendar.
     """
     #(defconstant gregorian-epoch
     #  ;; TYPE fixed-date
@@ -47,7 +47,21 @@ class BaseGregorianCalendar(BaseCalendar):
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
 
     def __init__(self):
-        pass
+        super().__init__()
+        # [year, month, day]
+        self._gregorian_date = None
+
+    def parse_datetime(self, dt:datetime.datetime) -> None:
+        self.date_representation = (dt.year, dt.month, dt.day)
+        super().parse_datetime(dt)
+
+    @property
+    def date_representation(self):
+        return self._gregorian_date
+
+    @date_representation.setter
+    def date_representation(self, representation):
+        self._gregorian_date = representation
 
     def fixed_from_gregorian(self, g_date:tuple) -> int:
         """
@@ -94,6 +108,21 @@ class BaseGregorianCalendar(BaseCalendar):
 
         return result + day
 
+    def gregorian_new_year(self, g_year):
+        """
+        used
+
+        (defun gregorian-new-year (g-year)
+          ;; TYPE gregorian-year -> fixed-date
+          ;; Fixed date of January 1 in g-year.
+          (fixed-from-gregorian
+           (gregorian-date g-year january 1) )))
+        """
+        return self.fixed_from_gregorian((g_year, self.JANUARY, 1))
+
+    # gregorian-year-end
+    # gregorian-year-range
+
     def gregorian_year_from_fixed(self, date:int) -> int:
         """
         (defun gregorian-year-from-fixed (date)
@@ -132,47 +161,7 @@ class BaseGregorianCalendar(BaseCalendar):
         year = (400 * n400) + (100 * n100) + (4 * n4) + n1
         return year if n100 == 4 or n1 == 4 else year + 1
 
-    def gregorian_date_difference(self, g_date1:tuple, g_date2:tuple) -> int:
-        """
-        used
-
-        (defun gregorian-date-difference (g-date1 g-date2)
-          ;; TYPE (gregorian-date gregorian-date) -> integer
-          ;; Number of days from Gregorian date g-date1 until g-date2.
-          (- (fixed-from-gregorian g-date2)
-             (fixed-from-gregorian g-date1)))
-        """
-        return (self.fixed_from_gregorian(g_date1) -
-                self.fixed_from_gregorian(g_date2))
-
-
-class GregorianCalendar(BaseGregorianCalendar):
-    """
-    Implementation of the Gregorian Calendar.
-    """
-
-    def __init__(self):
-        super().__init__()
-        # [year, month, day]
-        self._gregorian_date = None
-
-    def parse_datetime(self, dt:datetime.datetime) -> None:
-        self.date_representation = (dt.year, dt.month, dt.day)
-        super().parse_datetime(dt)
-
-    @property
-    def date_representation(self):
-        return self._gregorian_date
-
-    @date_representation.setter
-    def date_representation(self, representation):
-        self._gregorian_date = representation
-
-    # The methods below have been moved to BaseGregorianCalendar
-    # gregorian_year_from_fixed, gregorian_date_difference,
-    # fixed_from_gregorian
-
-    def gregorian_from_fixed(date):
+    def gregorian_from_fixed(self, date):
         """
         (defun gregorian-from-fixed (date)
           ;; TYPE fixed-date -> gregorian-date
@@ -180,7 +169,7 @@ class GregorianCalendar(BaseGregorianCalendar):
           (let* ((year (gregorian-year-from-fixed date))
                  (prior-days          ; This year
                   (- date (gregorian-new-year year)))
-                 (correction; To simulate a 30-day Feb
+                 (correction          ; To simulate a 30-day Feb
                   (if (< date (fixed-from-gregorian
                                (gregorian-date year march 1)))
                       0
@@ -197,28 +186,35 @@ class GregorianCalendar(BaseGregorianCalendar):
                           (gregorian-date year month 1))))))
             (gregorian-date year month day)))
         """
-        return
+        year = self.gregorian_year_from_fixed(date)
+        prior_days = date - self.gregorian_new_year(year)
 
-    def gregorian_new_year(self, g_year):
+        if date < self.fixed_from_gregorian((year, self.MARCH, 1)):
+            correction = 0
+        elif self.GREGORIAN_LEAP_YEAR(year):
+            correction = 1
+        else:
+            correction = 2
+
+        month = self.QUOTIENT(12 * (prior_days + correction) + 373, 367)
+        day = date - self.fixed_from_gregorian((year, month, 1)) + 1
+        return (year, month, day)
+
+    def gregorian_date_difference(self, g_date1:tuple, g_date2:tuple) -> int:
         """
         used
 
-        (defun gregorian-new-year (g-year)
-          ;; TYPE gregorian-year -> fixed-date
-          ;; Fixed date of January 1 in g-year.
-          (fixed-from-gregorian
-           (gregorian-date g-year january 1) )))
+        (defun gregorian-date-difference (g-date1 g-date2)
+          ;; TYPE (gregorian-date gregorian-date) -> integer
+          ;; Number of days from Gregorian date g-date1 until g-date2.
+          (- (fixed-from-gregorian g-date2)
+             (fixed-from-gregorian g-date1)))
         """
-        return self.fixed_from_gregorian((g_year, self.JANUARY, 1))
+        return (self.fixed_from_gregorian(g_date1) -
+                self.fixed_from_gregorian(g_date2))
 
-    ## def gregorian_leap_year(self, g_year):
-    ##     """
-    ##     (defun gregorian-leap-year? (g-year)
-    ##       ;; TYPE gregorian-year -> boolean
-    ##       ;; True if g-year is a leap year on the Gregorian
-    ##       ;; calendar.
-    ##       (and (= (mod g-year 4) 0)
-    ##            (not (member (mod g-year 400)
-    ##                         (list 100 200 300)))))
-    ##     """
-    ##     return (g_year % 4) == 0 and ((g_year % 400) in (100, 200, 300))
+    #days-remaining
+    #last-day-of-gregorian-month
+    #alt-fixed-from-gregorian
+    #alt-gregorian-from-fixed
+    #alt-gregorian-year-from-fixed

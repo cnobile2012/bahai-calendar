@@ -130,19 +130,16 @@ class BaseCalendar:
 
     def __init__(self):
         self._time = None
-        from bahai_calendar.gregorian_calendar import BaseGregorianCalendar
-        self._bgc = BaseGregorianCalendar()
 
     def parse_datetime(self, dt:datetime.datetime) -> None:
-        self.date_representation = (dt.hour, dt.minute, dt.second,
-                                    dt.microsecond)
+        self.time_representation = (dt.hour, dt.minute, dt.second)
 
     @property
-    def date_representation(self):
+    def time_representation(self):
         return self._time
 
-    @date_representation.setter
-    def date_representation(self, representation):
+    @time_representation.setter
+    def time_representation(self, representation):
         self._time = representation
 
     #
@@ -290,9 +287,12 @@ class BaseCalendar:
                   ((< -500 year 500) c0)
                   (t other))))
         '''
-        year = self._bgc.gregorian_year_from_fixed(math.floor(tee))
-        c = self._bgc.gregorian_date_difference(
-            (1900, self._bgc.JANUARY, 1), (year, self._bgc.JULY, 1)) / 36525
+        from .gregorian_calendar import GregorianCalendar
+        gc = GregorianCalendar()
+
+        year = gc.gregorian_year_from_fixed(math.floor(tee))
+        c = gc.gregorian_date_difference(
+            (1900, gc.JANUARY, 1), (year, gc.JULY, 1)) / 36525
 
         if 2051 <= year <= 2150:
             result = 1/86400 - 20 + 32 * (((year - 1820) / 100) ** 2)

@@ -43,7 +43,7 @@ class TestBadiCalandar(unittest.TestCase):
         Test that the bahai_sunset method returns the universal time of
         sunset on fixed date in Bahai-Location.
 
-        Baha'i epoc in fixed date is 673222.
+        Baha'i epoc in fixed date is 673222 at 6:11 pm.
         """
         fixed_date = 673222
         result = self._bc.bahai_sunset(fixed_date)
@@ -61,17 +61,27 @@ class TestBadiCalandar(unittest.TestCase):
         """
         fixed_date = 673222
         result = self._bc.astro_bahai_new_year_on_or_before(fixed_date)
-        expected_result = 672854
+        expected_result = 673222
         msg = f"Expected {expected_result}, found {result}"
         self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_fixed_from_astro_bahai(self):
         """
         Test that the fixed_from_astro_bahai method returns a fixed date
         of Baha’i date.
         """
-        pass
+        b_dates = (
+            ((1, 1, 1, 1, 1), 673222),
+            ((1, 10, 9, 17, 2), 0),
+            #((), 0)
+            )
+        msg = "Expected result {}, found {}."
+
+        for b_date, expected_result in b_dates:
+            result = self._bc.fixed_from_astro_bahai(b_date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_astro_bahai_from_fixed(self):
@@ -81,10 +91,14 @@ class TestBadiCalandar(unittest.TestCase):
 
         Baha'i epic date of 1844, March, 21 = 673222 in fixed date.
         """
-        fixed_date = 673222
-        result = self._bc.astro_bahai_from_fixed(fixed_date)
-        expected_result = (1, 1, 1, 1, 1)
-        msg = f"Expected {expected_result}, found {result}"
-        self.assertEqual(expected_result, result, msg)
+        fixed_dates = (
+            (673222, (1, 1, 1, 1, 1)),
+            )
+        msg = "Expected {}, found {}"
+
+        for fixed_date, expected_result in fixed_dates:
+            result = self._bc.astro_bahai_from_fixed(fixed_date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
 

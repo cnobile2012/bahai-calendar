@@ -98,11 +98,11 @@ class BahaiCalendar(BaseCalendar):
                  (year (bahai-year b-date))
                  (month (bahai-month b-date))
                  (day (bahai-day b-date))
-                 (years; Years from epoch
+                 (years           ; Years from epoch
                   (+ (* 361 (1- major))
                      (* 19 (1- cycle))
                      year)))
-            (cond ((= month 19); last month of year
+            (cond ((= month 19)   ; last month of year
                    (+ (astro-bahai-new-year-on-or-before
                        (+ bahai-epoch
                           (floor (* mean-tropical-year
@@ -127,17 +127,21 @@ class BahaiCalendar(BaseCalendar):
         year = b_date[2]
         month = b_date[3]
         day = b_date[4]
-        years = (major + 1) * 361 + (cycle + 1) * 19 + year
-        on_or_before = self.astro_bahai_new_year_on_or_before(
-            self.BAHAI_EPOCH + math.floor(self.MEAN_TROPICAL_YEAR *
-                                          (years - 0.5)))
+        years = (major - 1) * 361 + (cycle - 1) * 19 + year
 
         if month == 19:
-            result = on_or_before - 20 + day
+            result = self.astro_bahai_new_year_on_or_before(
+                self.BAHAI_EPOCH + math.floor(
+                    self.MEAN_TROPICAL_YEAR * (years + 0.5))) - 20 + day
         elif month == self.AYYAM_I_HA:
-            result = on_or_before + 341 + day
+            result = self.astro_bahai_new_year_on_or_before(
+                self.BAHAI_EPOCH + math.floor(
+                    self.MEAN_TROPICAL_YEAR * (years - 0.5))) + 341 + day
         else:
-            result = on_or_before + (month - 1) * 19 + day - 1
+            result = self.astro_bahai_new_year_on_or_before(
+                self.BAHAI_EPOCH + math.floor(
+                    self.MEAN_TROPICAL_YEAR * (years - 0.5))) + (
+                month - 1) * 19 + day - 1
 
         return result
 
@@ -172,7 +176,7 @@ class BahaiCalendar(BaseCalendar):
             (bahai-date major cycle year month day)))
         """
         new_year = self.astro_bahai_new_year_on_or_before(date)
-        years = (new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR
+        years = round((new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR)
         major = self.QUOTIENT(years, 361) + 1
         cycle = self.QUOTIENT(years % 361, 19) + 1
         year = (years % 19) + 1
@@ -184,7 +188,7 @@ class BahaiCalendar(BaseCalendar):
                                                   self.AYYAM_I_HA, 1)):
             month = self.AYYAM_I_HA
         else:
-            month = self.QUOTIENT(days, 19)
+            month = self.QUOTIENT(days, 19) + 1
 
         day = date + 1 - self.fixed_from_astro_bahai(
             (major, cycle, year, month, 1))
