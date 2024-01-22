@@ -108,7 +108,7 @@ class GregorianCalendar(BaseCalendar):
 
         return result + day
 
-    def gregorian_new_year(self, g_year):
+    def gregorian_new_year(self, g_year:int) -> int:
         """
         used
 
@@ -161,7 +161,7 @@ class GregorianCalendar(BaseCalendar):
         year = (400 * n400) + (100 * n100) + (4 * n4) + n1
         return year if n100 == 4 or n1 == 4 else year + 1
 
-    def gregorian_from_fixed(self, date):
+    def gregorian_from_fixed(self, date:float) -> tuple:
         """
         (defun gregorian-from-fixed (date)
           ;; TYPE fixed-date -> gregorian-date

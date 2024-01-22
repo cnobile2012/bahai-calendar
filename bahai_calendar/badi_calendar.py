@@ -18,8 +18,7 @@ class BahaiCalendar(BaseCalendar):
     #(defconstant bahai-location
     #  ;; TYPE location
     #  ;; Location of Tehran for astronomical Baha’i calendar.
-    #  (location (deg 35.696111L0) (deg 51.423056L0)
-    #   (mt 0) (hr (+ 3 1/2))))
+    #  (location (deg 35.696111L0) (deg 51.423056L0) (mt 0) (hr (+ 3 1/2))))
     BAHAI_LOCATION = (35.696111, 51.423056, 0, 3.5)
 
     #(defconstant ayyam-i-ha
@@ -51,14 +50,14 @@ class BahaiCalendar(BaseCalendar):
         self.date_representation = self.astro_bahai_from_fixed(fixed)
 
     @property
-    def date_representation(self):
+    def date_representation(self) -> tuple:
         return self._bahai_date
 
     @date_representation.setter
-    def date_representation(self, representation):
+    def date_representation(self, representation:tuple):
         self._bahai_date = representation
 
-    def bahai_sunset(self, date):
+    def bahai_sunset(self, date:float) -> float:
         """
         (defun bahai-sunset (date)
           ;; TYPE fixed-date -> moment
@@ -69,7 +68,7 @@ class BahaiCalendar(BaseCalendar):
         """
         return self.universal_from_standard(self.sunset(date))
 
-    def astro_bahai_new_year_on_or_before(self, date):
+    def astro_bahai_new_year_on_or_before(self, date:float) -> float:
         """
         (defun astro-bahai-new-year-on-or-before (date)
           ;; TYPE fixed-date -> fixed-date
@@ -84,11 +83,12 @@ class BahaiCalendar(BaseCalendar):
         approx = self.estimate_prior_solar_longitude(
             self.SPRING, self.bahai_sunset(date))
         initial = math.floor(approx) - 1
+        print(approx, initial)
         condition = lambda day: (self.solar_longitude(self.bahai_sunset(day))
                                  <= (self.SPRING + 2))
         return self._next(initial, condition)
 
-    def fixed_from_astro_bahai(self, b_date):
+    def fixed_from_astro_bahai(self, b_date:tuple) -> float:
         """
         (defun fixed-from-astro-bahai (b-date)
           ;; TYPE bahai-date -> fixed-date
@@ -145,7 +145,7 @@ class BahaiCalendar(BaseCalendar):
 
         return result
 
-    def astro_bahai_from_fixed(self, date):
+    def astro_bahai_from_fixed(self, date:float) -> tuple:
         """
         (defun astro-bahai-from-fixed (date)
           ;; TYPE fixed-date -> bahai-date
@@ -184,8 +184,8 @@ class BahaiCalendar(BaseCalendar):
 
         if date >= self.fixed_from_astro_bahai((major, cycle, year, 19, 1)):
             month = 19
-        elif date >= self.fixed_from_astro_bahai((major, cycle, year,
-                                                  self.AYYAM_I_HA, 1)):
+        elif date >= self.fixed_from_astro_bahai(
+            (major, cycle, year, self.AYYAM_I_HA, 1)):
             month = self.AYYAM_I_HA
         else:
             month = self.QUOTIENT(days, 19) + 1

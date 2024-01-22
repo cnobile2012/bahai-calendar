@@ -19,7 +19,6 @@ class BaseCalendar:
     Moment = We call an r.d. that has a fractional part giving the time of
              day a “moment.”
     """
-    # Build out some lambdas
     #(defun hr (x)
     #  ;; TYPE real -> duration
     #  ;; x hours.
@@ -64,12 +63,6 @@ class BaseCalendar:
     #    (+ a (mod (- x a) (- b a)))))
     MOD3 = lambda self, x, a, b : x if a == b else a + (x - a) % (b - a)
 
-    #(defconstant j2000
-    #  ;; TYPE moment
-    #  ;; Noon at start of Gregorian year 2000.
-    #  (+ (hr 12L0) (gregorian-new-year 2000)))
-    J2000 = 730120.5
-
     # (defun quotient (m n)
     #   ;; TYPE (real nonzero-real) -> integer
     #   ;; Whole part of m/n.
@@ -80,6 +73,18 @@ class BaseCalendar:
     #  ;; TYPE duration
     #  29.530588861L0)
     MEAN_SYNODIC_MONTH = 29.530588861
+
+    #(defun time-from-moment (tee)
+    #  ;; TYPE moment -> time
+    #  ;; Time from moment tee.
+    #  (mod tee 1))
+    TIME_FROM_MOMENT = lambda tee: tee % 1
+
+    #(defconstant j2000
+    #  ;; TYPE moment
+    #  ;; Noon at start of Gregorian year 2000.
+    #  (+ (hr 12L0) (gregorian-new-year 2000)))
+    J2000 = 730120.5
 
     # (defun rd (tee)
     #  ;; TYPE moment -> moment
@@ -549,7 +554,7 @@ class BaseCalendar:
         c = self.julian_centuries(tee)
         lambda_ = (282.7771834 + (36000.76953744 * c) +
                    (0.000005729577951308232 *
-                    self.sigma(
+                    self._sigma(
                         (self._COEFFICIENTS, self._MULTIPLIERS, self._ADDENDS),
                         lambda x, y, z, : x * self.sin_degrees(y + (z * c)))))
         return (lambda_ + self.aberration(tee) + self.nutation(tee) + 360)
@@ -584,7 +589,7 @@ class BaseCalendar:
                (deg 0.005575L0))))
         """
         c = self.julian_centuries(tee)
-        return ((0.0000974 * self.cos_degrees(177.63 + (35999.01848 * c)))
+        return ((0.0000974 * self.cos_degrees(177.63 + 35999.01848 * c))
                 - 0.005575)
 
     #solar-longitude-after
@@ -609,9 +614,9 @@ class BaseCalendar:
           ;; TYPE (season moment) -> moment
           ;; Approximate moment at or before tee when solar
           ;; longitude just exceeded lambda degrees.
-          (let* ((rate ; Mean change of one degree.
+          (let* ((rate        ; Mean change of one degree.
                   (/ mean-tropical-year (deg 360)))
-                 (tau ; First approximation.
+                 (tau         ; First approximation.
                   (- tee
                      (* rate (mod (- (solar-longitude tee)
                                      lambda)
@@ -640,7 +645,7 @@ class BaseCalendar:
           ;; of January 11, 1. Adapted from "Astronomical Algorithms"
           ;; by Jean Meeus, Willmann-Bell, corrected 2nd edn., 2005.
           (let* ((n0 24724)              ; Months from RD 0 until j2000.
-                 (k (- n n0)) ; Months since j2000.
+                 (k (- n n0))            ; Months since j2000.
                  (c (/ k 1236.85L0))     ; Julian centuries.
                  (approx (+ j2000
                             (poly c (list 5.09766L0
@@ -663,7 +668,7 @@ class BaseCalendar:
                   (poly c (deg (list 160.7108L0 (* 390.67050284L0 1236.85L0)
                                      -0.0016118L0 -0.00000227L0
                                      0.000000011L0))))
-                 (cap-omega ; Longitude of ascending node.
+                 (cap-omega              ; Longitude of ascending node.
                   (poly c (deg (list 124.7746L0 (* -1.56375588L0 1236.85L0)
                                      0.0020672L0 0.00000215L0))))
                  (E-factor (list 0 1 0 0 1 1 2 0 0 1 0 1 1 1 0 0 0 0
@@ -737,7 +742,8 @@ class BaseCalendar:
         t0 = self.nth_new_moon(0)
         phi = self.lunar_phase(tee)
         n = round((tee - t0) / self.MEAN_TROPICAL_YEAR - phi / 360)
-        return self.nth_new_moon(self._next(n , self.nth_new_moon(n) >= tee))
+        func = lambda n: self.nth_new_moon(n) >= tee
+        return self.nth_new_moon(self._next(n , func))
 
     def lunar_longitude(self, tee):
         '''
@@ -860,7 +866,8 @@ class BaseCalendar:
     # Time and Astronomy (Rising and Setting of the Sun and Moon)
     #
 
-    def approx_moment_of_depression(self, tee:float, alpha:float, early:bool):
+    def approx_moment_of_depression(self, tee:float, alpha:float,
+                                    early:bool) -> float:
         """
         (defun approx-moment-of-depression (tee location alpha early?)
           ;; TYPE (moment location half-circle boolean) - moment
@@ -875,7 +882,7 @@ class BaseCalendar:
                         (+ date (hr 12))))
                  (value (if (> (abs try) 1)
                             (sine-offset alt location alpha) try)))
-           (if (<= (abs value) 1) ; Event occurs
+           (if (<= (abs value) 1)          ; Event occurs
                (let* ((offset (mod3 (/ (arcsin-degrees value) (deg 360))
                                     (hr -12) (hr 12))))
                  (local-from-apparent
@@ -914,7 +921,7 @@ class BaseCalendar:
           ;; Out of range when it does not occur.
           (let* ((phi (latitude location))
                  (tee-prime (universal-from-local tee location))
-                 (delta ; Declination of sun.
+                 (delta                    ; Declination of sun.
                   (declination tee-prime (deg 0L0)
                                (solar-longitude tee-prime))))
             (+ (* (tan-degrees phi)
@@ -959,7 +966,7 @@ class BaseCalendar:
 
         return result
 
-    def dawn(self, date, alpha:float):
+    def dawn(self, date:float, alpha:float) -> float:
         """
         (defun dawn (date location alpha)
           ;; TYPE (fixed-date location half-circle) -> moment
@@ -973,10 +980,10 @@ class BaseCalendar:
               (standard-from-local result location))))
         """
         result = self.moment_of_depression(date + self.HR(6), alpha,
-                                           self.EVENING)
+                                           self.MORNING)
         return self.standard_from_local(result) if result else None
 
-    def dusk(self, date, alpha:float):
+    def dusk(self, date:float, alpha:float) -> float:
         """
         used
 
@@ -993,9 +1000,9 @@ class BaseCalendar:
         """
         result = self.moment_of_depression(date + self.HR(18), alpha,
                                            self.EVENING)
-        return self.standard_from_local(result) if result else result
+        return self.standard_from_local(result) if result else None
 
-    def refraction(self, tee):
+    def refraction(self, tee:float) -> float:
         """
         used
 
@@ -1005,7 +1012,7 @@ class BaseCalendar:
           ;; The moment is not used.
           (let* ((h (max (mt 0) (elevation location)))
                  (cap-R (mt 6.372d6)) ; Radius of Earth.
-                 (dip ; Depression of visible horizon.
+                 (dip                 ; Depression of visible horizon.
                   (arccos-degrees (/ cap-R (+ cap-R h)))))
             (+ (mins 34) dip (* (secs 19) (sqrt h)))))
         """
@@ -1125,7 +1132,7 @@ class BaseCalendar:
             if x == 0:
                 result = math.sin(y) * 90
             else:
-                alpha = self.degrees_from_radians(math.atan2(y, x))
+                alpha = math.degrees(math.atan2(y, x))
                 result = alpha if x >= 0 else alpha + 180
 
             result %= 360
@@ -1156,7 +1163,7 @@ class BaseCalendar:
         assert -1 <= x <= 1, f"The value of x '{x}' must be >= -1 and <= 1."
         return math.degrees(math.acos(x))
 
-    def fixed_from_moment(self, tee):
+    def fixed_from_moment(self, tee:float) -> float:
         """
         (defun fixed-from-moment (tee)
           ;; TYPE moment -> fixed-date
@@ -1165,7 +1172,7 @@ class BaseCalendar:
         """
         return math.floor(tee)
 
-    def sigma(self, lists, func):
+    def _sigma(self, lists:list, func:object) -> float:
         """
         used
 
@@ -1185,7 +1192,7 @@ class BaseCalendar:
             "Lists must have the same length")
         return sum(func(*e) for e in zip(*lists))
 
-    def _poly(self, x, a):
+    def _poly(self, x:float, a:list) -> float:
         """
         used
 
@@ -1198,7 +1205,7 @@ class BaseCalendar:
         """
         return 0 if not a else a[0] + (x * self._poly(x, a[1:]))
 
-    def _next(self, initial, condition):
+    def _next(self, initial:int, func:object) -> int:
         """
         used
 
@@ -1210,15 +1217,12 @@ class BaseCalendar:
                  when ,condition
                  return ,index))
         """
-        idx = initial
+        while not func(initial):
+            initial += 1
 
-        while not condition(idx):
-            if idx >= initial: break
-            idx += 1
+        return initial
 
-        return idx
-
-    def _final(self, initial, condition):
+    def _final(self, initial:int, func:object) -> int:
         """
         (defmacro final (index initial condition)
           ;; TYPE (* integer (integer->boolean)) -> integer
@@ -1228,5 +1232,5 @@ class BaseCalendar:
                  when (not ,condition)
                  return (1- ,index)))
         """
-        return (initial - 1 if not condition(initial)
-                else self._final(initial + 1, condition))
+        return (initial - 1 if not func(initial)
+                else self._final(initial + 1, func))

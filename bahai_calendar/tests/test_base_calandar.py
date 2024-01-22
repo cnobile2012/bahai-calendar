@@ -24,6 +24,20 @@ class TestBaseCalandar(unittest.TestCase):
             elevation = 0
             zone = 3.5
 
+            def location(self, location):
+                if location[0] is not None:
+                    self.latitude = location[0]
+
+                if location[1] is not None:
+                    self.longitude = location[1]
+
+                if location[2] is not None:
+                    self.elevation = location[2]
+
+                if location[3] is not None:
+                    self.zone = location[3]
+            location = property(None, location)
+
         self._bc = FakeParent()
 
     #@unittest.skip("Temporarily skipped")
@@ -363,9 +377,9 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the solar_longitude method returns the longitude of
         sun at moment tee.
         """
-        tee = 675334.5
+        tee = -214193
         result = self._bc.solar_longitude(tee)
-        expected_result = -53358.49686748232
+        expected_result = 118.98911336371384
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -379,11 +393,13 @@ class TestBaseCalandar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_aberration(self):
         """
-        Test that the
+        Test that the aberration method returns the aberration at moment tee.
+        Since it's on the ark of a circle the result must be
+        0 <= result > 360.
         """
-        tee = 675334.5
+        tee = 675334 # (1850, 1, 1)
         result = self._bc.aberration(tee)
-        expected_result = -0.005672320789253863
+        expected_result = 0
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -545,11 +561,23 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the sunset method returns the standard time of
         sunset on fixed date at location.
         """
-        date = 675334.5
-        result = self._bc.sunset(date)
-        expected_result = 675339.1092460548
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        dates = (
+            # New York (2024-01-20)
+            #     Official: Sunset: 2024-01-20 16:57:32.839373-05:00
+            # Astronomical: Sunset: 2024-01-20 18:33:38.288695-05:00
+            #(738905, 738905, (40.7127281, -74.0060152, 10.0584, -5)),
+            # Tehran (1844-03-20)
+            #     Official: Sunset: 1844-03-20 18:11:15.013257+03:26
+            # Astronomical: Sunset: 1844-03-20 19:36:34.035553+03:26
+            (673221, 673225.1101307202, (35.6892523, 51.3896004, 0, 3.5)),
+            )
+        msg = "Expected {}, found {}."
+
+        for date, expected_result, location in dates:
+            self._bc.location = location
+            result = self._bc.sunset(date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_sin_degrees(self):
@@ -587,13 +615,18 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_arctan_degrees(self):
         """
         Test that the arctan_degrees method returns the arctangent of
         y/x in degrees. Returns bogus if x and y are both 0.
         """
-        pass
+        x = 2.0
+        y = 2.0
+        result = self._bc.arctan_degrees(x, y)
+        expected_result = 45
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_arcsin_degrees(self):
@@ -658,27 +691,34 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Expected {expected_moment}, found {moment}."
         self.assertEqual(expected_moment, moment, msg)
 
-    @unittest.skip("Temporarily skipped")
-    def test_sigma(self):
+    #@unittest.skip("Temporarily skipped")
+    def test__sigma(self):
         """
         Test that the sigma method returns a sum of the provided lists
         wuth the given function (condition).
         """
-        pass
+        lists = ((0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+                 (1, 2, 3, 4, 5, 6, 7, 8, 9, 0),
+                 (2, 3, 4, 5, 6, 7, 8, 9, 0, 1))
+        func = lambda x, y, z, : x * y * z
+        result = self._bc._sigma(lists, func)
+        expected_result = 1260
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test__poly(self):
         """
         Test the poly (polynomial) lambda.
         """
-        # Test not x
+        # Test not 'x'
         x = 10
         a = ()
         poly = self._bc._poly(x, a)
         expected_poly = 0
         msg = f"POLY should be {expected_poly}, found {poly}."
         self.assertEqual(expected_poly, poly, msg)
-        # Test a has a value
+        # Test 'a' has a value
         x = 0.1
         a = (1, 2, 3, 4)
         poly = self._bc._poly(x, a)
@@ -692,16 +732,20 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the next_ method returns the first integer greater
         or equal to initial such that condition holds.
         """
-        con = lambda x: x not in range(20)
+        y = 20
+        condition = lambda x: x >= y
+        msg = "Expected {}, found {}"
+        data = ((0, 20), (6, 20), (2, 20), (15, 20), (40, 40), (100, 100))
 
-        for initial in (0, 6, 2, 15, 40, 100):
-            result = self._bc._next(initial , con)
-            #print(initial, result)
+        for initial, expected_result in data:
+            result = self._bc._next(initial , condition)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__next(self):
+    def test__final(self):
         """
-        Test that the _next method returns the last integer greater
+        Test that the _final method returns the last integer greater
         or equal to initial such that condition holds.
         """
         pass
