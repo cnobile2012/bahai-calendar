@@ -188,15 +188,18 @@ class GregorianCalendar(BaseCalendar):
         """
         year = self.gregorian_year_from_fixed(date)
         prior_days = date - self.gregorian_new_year(year)
+        fixed = self.fixed_from_gregorian((year, self.MARCH, 1))
+        #print(f"\ndate: {date}, year: {year}, prior_days: {prior_days}, "
+        #      f"fixed: {fixed}, ", end="")
 
-        if date < self.fixed_from_gregorian((year, self.MARCH, 1)):
-            correction = 0
-        elif self.GREGORIAN_LEAP_YEAR(year):
-            correction = 1
-        else:
-            correction = 2
+        if not (date < fixed):
+            if self.GREGORIAN_LEAP_YEAR(year):
+                prior_days += 1
+            else:
+                prior_days += 2
 
-        month = self.QUOTIENT(12 * (prior_days + correction) + 373, 367)
+        #print(f"prior_days: {prior_days}")
+        month = self.QUOTIENT(12 * prior_days + 373, 367)
         day = date - self.fixed_from_gregorian((year, month, 1)) + 1
         return (year, month, day)
 

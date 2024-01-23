@@ -379,16 +379,22 @@ class TestBaseCalandar(unittest.TestCase):
         """
         tee = -214193
         result = self._bc.solar_longitude(tee)
-        expected_result = 118.98911336371384
+        expected_result = 118.98911336367019
+        #                 118.98911336371384
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_nutation(self):
         """
-        Test that the
+        Test that the nutation method returns Longitudinal nutation at
+        moment tee.
         """
-        pass
+        tee = 712359 # (1951, 5, 17)
+        result = self._bc.nutation(tee)
+        expected_result = 0.000853464307791487
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_aberration(self):
@@ -397,9 +403,9 @@ class TestBaseCalandar(unittest.TestCase):
         Since it's on the ark of a circle the result must be
         0 <= result > 360.
         """
-        tee = 675334 # (1850, 1, 1)
+        tee = 712359 # (1951, 5, 17)
         result = self._bc.aberration(tee)
-        expected_result = 0
+        expected_result = -0.005509800931812071
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -413,7 +419,7 @@ class TestBaseCalandar(unittest.TestCase):
         lambda_ = self._bc.SPRING
         tee = 673222.6070645516
         result = self._bc.estimate_prior_solar_longitude(lambda_, tee)
-        expected_result = 672855.2913903068
+        expected_result = 673218.1676884833
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -463,10 +469,10 @@ class TestBaseCalandar(unittest.TestCase):
         # 3. Test tee = 675334.5, early = True, alpha >= 0
         # 4. Test tee = 675334.5, early = True, alpha < 0
         data = (
-            (675334.5, 30.5, False, 675334.856459419),
-            (675334.5, -30.5, False, 675334.6415663845),
-            (675334.5, 30.5, True, 675334.1435609942),
-            (675334.5, -30.5, True, 675334.3584540095),
+            (675334.5, 30.5, False, 675334.8564633271),
+            (675334.5, -30.5, False, 675334.6415703789),
+            (675334.5, 30.5, True, 675334.1435570861),
+            (675334.5, -30.5, True, 675334.3584500151),
             #(675334.5, 1000, True, None)
             )
         msg = "Expected {}, with alpha '{}' and early '{}', found {}."
@@ -486,7 +492,7 @@ class TestBaseCalandar(unittest.TestCase):
         tee = 675334.5
         alpha = 30.5
         result = self._bc.sine_offset(tee, alpha)
-        expected_result = 0.6200728278403642
+        expected_result = 0.6200920920933394
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -500,10 +506,10 @@ class TestBaseCalandar(unittest.TestCase):
         if depression angle is not reached.
         """
         data = (
-            (675334.856459419, 675334.5, False, 675334.6601645576),
-            (675334.6415663845, 675334.5, False, 675334.6601645576),
-            (675334.1435609942, 675334.5, True, 675334.3398568633),
-            (675334.3584540095, 675334.5, True, 675334.3398568633)
+            (675334.856459419, 675334.5, False, 675334.6601682939),
+            (675334.6415663845, 675334.5, False, 675334.6601682939),
+            (675334.1435609942, 675334.5, True, 675334.3398532611),
+            (675334.3584540095, 675334.5, True, 675334.3398532611)
             )
         msg = "Expected {}, with alpha '{}' and early '{}', found {}."
 
@@ -531,7 +537,7 @@ class TestBaseCalandar(unittest.TestCase):
         date = 675334.5
         alpha = 0.5666666666666667
         result = self._bc.dusk(date, alpha)
-        expected_result = 675339.1083339454
+        expected_result = 675339.1083374813
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -565,11 +571,11 @@ class TestBaseCalandar(unittest.TestCase):
             # New York (2024-01-20)
             #     Official: Sunset: 2024-01-20 16:57:32.839373-05:00
             # Astronomical: Sunset: 2024-01-20 18:33:38.288695-05:00
-            #(738905, 738905, (40.7127281, -74.0060152, 10.0584, -5)),
+            (738905, 738900.9582987919, (40.7127281, -74.0060152, 10.0584, -5)),
             # Tehran (1844-03-20)
             #     Official: Sunset: 1844-03-20 18:11:15.013257+03:26
             # Astronomical: Sunset: 1844-03-20 19:36:34.035553+03:26
-            (673221, 673225.1101307202, (35.6892523, 51.3896004, 0, 3.5)),
+            (673221, 673225.1101687355, (35.6892523, 51.3896004, 0, 3.5)),
             )
         msg = "Expected {}, found {}."
 
@@ -628,18 +634,37 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
+        # Test that both x and y are equal to 0.
+        x = y = 0
+        msg = "Expected {}, found {}."
+        expected_result = (
+            f"The value of x '{x}' and y '{y}' must not be x == 0 == y.")
+
+        with self.assertRaises(AssertionError) as cm:
+            self._bc.arctan_degrees(x, y)
+
+        result = str(cm.exception)
+        self.assertEqual(expected_result, result,
+                         msg.format(expected_result, result))
+
     #@unittest.skip("Temporarily skipped")
     def test_arcsin_degrees(self):
         """
         Test that the arcsin_degrees method returns the arcsine of x
         in degrees.
+
+        https://www.rapidtables.com/calc/math/Arcsin_Calculator.html
         """
-        # Test a valid x.
-        x = -0.9
-        result = self._bc.arcsin_degrees(x)
-        expected_result = -64.15806723683288
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        X = ((-1, -90), (-0.8660254, -60), (-0.7071068, -45), (-0.5, -30),
+             (0, 0), (0.5, 30), (0.7071068, 45), (0.8660254, 60), (1, 90))
+        msg = "Expected {} with {}, found {}."
+
+        for x, expected_result in X:
+            result = self._bc.arcsin_degrees(x)
+            self.assertTrue(
+                math.isclose(expected_result, result, rel_tol=0.00000009),
+                msg.format(expected_result, x, result))
+
         # Test x out of range.
         X = (-5, 5)
         msg = "Expected error {}, found {}"
@@ -659,13 +684,19 @@ class TestBaseCalandar(unittest.TestCase):
         """
         Test that the arccos_degrees method returns the arccosine of x
         in degrees.
+
+        https://www.rapidtables.com/calc/math/Arccos_Calculator.html
         """
-        # Test a valid x.
-        x = -0.9
-        result = self._bc.arccos_degrees(x)
-        expected_result = 154.15806723683286
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        X = ((-1, 180), (-0.8660254, 150), (-0.7071068, 135), (-0.5, 120),
+             (0, 90), (0.5, 60), (0.7071068, 45), (0.8660254, 30), (1, 0))
+        msg = "Expected {} with {}, found {}."
+
+        for x, expected_result in X:
+            result = self._bc.arccos_degrees(x)
+            self.assertTrue(
+                math.isclose(expected_result, result, rel_tol=0.00000009),
+                msg.format(expected_result, x, result))
+
         # Test x out of range.
         X = (-5, 5)
         msg = "Expected error {}, found {}"

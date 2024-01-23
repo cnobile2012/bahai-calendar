@@ -83,7 +83,7 @@ class BahaiCalendar(BaseCalendar):
         approx = self.estimate_prior_solar_longitude(
             self.SPRING, self.bahai_sunset(date))
         initial = math.floor(approx) - 1
-        print(approx, initial)
+        #print(date, approx, initial)
         condition = lambda day: (self.solar_longitude(self.bahai_sunset(day))
                                  <= (self.SPRING + 2))
         return self._next(initial, condition)

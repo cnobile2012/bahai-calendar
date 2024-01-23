@@ -78,7 +78,7 @@ class BaseCalendar:
     #  ;; TYPE moment -> time
     #  ;; Time from moment tee.
     #  (mod tee 1))
-    TIME_FROM_MOMENT = lambda tee: tee % 1
+    TIME_FROM_MOMENT = lambda self, tee: tee % 1
 
     #(defconstant j2000
     #  ;; TYPE moment
@@ -555,9 +555,9 @@ class BaseCalendar:
         lambda_ = (282.7771834 + (36000.76953744 * c) +
                    (0.000005729577951308232 *
                     self._sigma(
-                        (self._COEFFICIENTS, self._MULTIPLIERS, self._ADDENDS),
+                        (self._COEFFICIENTS, self._ADDENDS, self._MULTIPLIERS),
                         lambda x, y, z, : x * self.sin_degrees(y + (z * c)))))
-        return (lambda_ + self.aberration(tee) + self.nutation(tee) + 360)
+        return (lambda_ + self.aberration(tee) + self.nutation(tee)) % 360
 
     def nutation(self, tee):
         """
@@ -573,9 +573,9 @@ class BaseCalendar:
         """
         c = self.julian_centuries(tee)
         cap_a = self._poly(c, (124.90, -1934.134, 0.002063))
-        car_b = self._poly(c, (201.11, 72001.5377, 0.00057))
+        cap_b = self._poly(c, (201.11, 72001.5377, 0.00057))
         return ((-0.004778 * self.sin_degrees(cap_a)) +
-                (-0.0003667 * self.sin_degrees(cap_a)))
+                (-0.0003667 * self.sin_degrees(cap_b)))
 
     def aberration(self, tee):
         """
@@ -1017,7 +1017,7 @@ class BaseCalendar:
             (+ (mins 34) dip (* (secs 19) (sqrt h)))))
         """
         h = max(0, self.elevation)
-        cap_r = 6.372 #d6 -- Wikipedia average is 6371 Km
+        cap_r = 6.372 * 10**6 # Wikipedia average is 6371 Km
         dip = self.arccos_degrees(cap_r / (cap_r + h))
         return self.MINS(34) + dip + (self.SECS(19) * math.sqrt(h))
 
@@ -1128,18 +1128,16 @@ class BaseCalendar:
                    (+ alpha (deg 180L0)))))
               360)))
         """
-        if not (x == 0 == y):
-            if x == 0:
-                result = math.sin(y) * 90
-            else:
-                alpha = math.degrees(math.atan2(y, x))
-                result = alpha if x >= 0 else alpha + 180
+        assert not (x == 0 == y), (
+            f"The value of x '{x}' and y '{y}' must not be x == 0 == y.")
 
-            result %= 360
+        if x == 0:
+            result = math.sin(y) * 90
         else:
-            result = None
+            alpha = math.degrees(math.atan2(y, x))
+            result = alpha if x >= 0 else alpha + 180
 
-        return result
+        return result % 360
 
     def arcsin_degrees(self, x):
         """

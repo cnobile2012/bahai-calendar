@@ -114,9 +114,9 @@ class TestGregorianCalandar(unittest.TestCase):
         (year month day) corresponding to fixed date.
         """
         dates = (
-            (673222, (1844, 3, 21)),
-            (719163, (1970, 1 ,1)),
-            (227015, (622, 7, 19))
+            (719163, (1970, 1 ,1)),  #
+            (673222, (1844, 3, 21)), # Leap Year
+            (227015, (622, 7, 19)),
             )
         msg = "Expected result {}, found {}."
 
@@ -134,11 +134,11 @@ class TestGregorianCalandar(unittest.TestCase):
         C(n, k) = n!/k!*(n−k)!
         """
         date_reps = (
-            (1844, 3, 21),
-            (1970, 1, 1),
-            (622, 7, 19)
+            (1970, 1, 1),  #
+            (1844, 3, 21), # Leap Year
+            (622, 7, 19),
             )
-        expected_result = (446207, 492148, -446207)
+        expected_result = (492148, 446207, -492148)
         num = len(date_reps)
         combinations = []
         msg = "Expected result {} year {} - {}, found {}."
