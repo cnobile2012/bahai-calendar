@@ -107,6 +107,19 @@ class TestBaseCalandar(unittest.TestCase):
         self.assertEqual(expected_angle, angle, msg)
 
     #@unittest.skip("Temporarily skipped")
+    def test_AMOD(self):
+        """
+        Test the AMOD lambda.
+        """
+        data = ((2, 2, 2), (5, 2, 1), (5, -2, -1))
+        msg = "Expected {} with args '{}, {}', found {}"
+
+        for x, y, expected_result in data:
+            result = self._bc.AMOD(x, y)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, x, y, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test_MOD3(self):
         """
         Test the MOD3 (modular three) lambda.
@@ -773,10 +786,27 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test__final(self):
         """
         Test that the _final method returns the last integer greater
         or equal to initial such that condition holds.
         """
         pass
+
+    #@unittest.skip("Temporarily skipped")
+    def test__to_radix(self):
+        """
+        Test that the _to_radix method returns the radix notation
+        corresponding to x with base b for whole part and c for fraction.
+        """
+        data = (
+            (10, (1, 2, 3, 4), (), (0, 0, 0, 2, 2)),
+            (10, (1, 2, 3, 4), (4, 3, 2, 1), (0, 0, 0, 2, 2, 0, 0, 0, 0)),
+            )
+        msg = "Expected {} with '{}, {}, {}', found {}."
+
+        for x, b, c, expected_result in data:
+            result = self._bc._to_radix(x, b, c)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, x, b, c, result))

@@ -218,6 +218,96 @@ class GregorianCalendar(BaseCalendar):
 
     #days-remaining
     #last-day-of-gregorian-month
-    #alt-fixed-from-gregorian
-    #alt-gregorian-from-fixed
-    #alt-gregorian-year-from-fixed
+
+    def alt_fixed_from_gregorian(self, g_date):
+        """
+        (defun alt-fixed-from-gregorian (g-date)
+          ;; TYPE gregorian-date -> fixed-date
+          ;; Alternative calculation of fixed date equivalent to the
+          ;; Gregorian date g-date.
+          (let* ((month (standard-month g-date))
+                 (day (standard-day g-date))
+                 (year (standard-year g-date))
+                 (m-prime (mod (- month 3) 12))
+                 (y-prime (- year (quotient m-prime 10))))
+            (+ (1- gregorian-epoch)
+               -306              ; Days in March...December.
+               (* 365 y-prime)   ; Ordinary days.
+               (sigma ((y (to-radix y-prime (list 4 25 4)))
+                       (a (list 97 24 1 0)))
+                      (* y a))
+               (quotient         ; Days in prior months.
+                (+ (* 3 m-prime) 2)
+                5)
+               (* 30 m-prime)
+               day)))            ; Days so far this month.
+        """
+        year = g_date[0]
+        month = g_date[1]
+        day = g_date[2]
+        m_prime = (month - 3) % 12
+        y_prime = year - self.QUOTIENT(m_prime, 10)
+        func = lambda y, a: y * a
+        return (self.GREGORIAN_EPOCH - 1 - 306 + 365 * y_prime +
+                self._sigma(
+                    (self._to_radix(y_prime, (4, 25, 4)), (97, 24, 1, 0)),
+                    func) + self.QUOTIENT(3 * m_prime + 2, 5) +
+                30 * m_prime + day)
+
+    def alt_gregorian_from_fixed(self, date):
+        """
+        defun alt-gregorian-from-fixed (date)
+         ;; TYPE fixed-date -> gregorian-date
+         ;; Alternative calculation of Gregorian (year month day)
+         ;; corresponding to fixed $date$.
+         (let* ((y (gregorian-year-from-fixed
+                    (+ (1- gregorian-epoch)
+                       date
+                       306)))
+                (prior-days
+                 (- date (fixed-from-gregorian
+                          (gregorian-date (1- y) march 1))))
+                (month
+                 (amod (+ (quotient
+                           (+ (* 5 prior-days) 2)
+                           153)
+                          3)
+                       12))
+                (year (- y (quotient (+ month 9) 12)))
+                (day
+                 (1+ (- date
+                        (fixed-from-gregorian
+                         (gregorian-date year month 1))))))
+           (gregorian-date year month day)))
+        """
+        y = self.gregorian_year_from_fixed(
+            self.GREGORIAN_EPOCH - 1 + date + 306)
+        prior_days = date - self.fixed_from_gregorian((y - 1, self.MARCH, 1))
+        month = self.AMOD(self.QUOTIENT(5 * prior_days + 2, 153) + 3, 12)
+        year = y - self.QUOTIENT(month + 9, 12)
+        day = date - self.fixed_from_gregorian((year, month, 1)) + 1
+        return (year, month, day)
+
+    def alt_gregorian_year_from_fixed(self, date):
+        """
+        (defun alt-gregorian-year-from-fixed (date)
+          ;; TYPE fixed-date -> gregorian-year
+          ;; Gregorian year corresponding to the fixed $date$.
+          (let* ((approx        ; approximate year
+                 (quotient (- date gregorian-epoch -2)
+                           146097/400))
+                 (start         ; start of next year
+                  (+ gregorian-epoch
+                     (* 365 approx)
+                     (sigma ((y (to-radix approx (list 4 25 4)))
+                             (a (list 97 24 1 0)))
+                            (* y a)))))
+            (if (< date start)
+                approx
+              (1+ approx))))
+        """
+        approx = self.QUOTIENT(date - self.GREGORIAN_EPOCH + 2, 365.2425)
+        func = lambda y, a: y * a
+        start = self.GREGORIAN_EPOCH + 365 * approx + self._sigma(
+            (self._to_radix(approx, (4, 25, 4)), (97, 24, 1, 0)), func)
+        return approx if date < start else approx + 1

@@ -7,6 +7,9 @@ __docformat__ = "restructuredtext en"
 import math
 import datetime
 
+from functools import reduce
+from operator import mul
+
 
 class BaseCalendar:
     """
@@ -54,6 +57,12 @@ class BaseCalendar:
     #  ;; d degrees, m arcminutes, s arcseconds.
     #  (+ d (/ (+ m (/ s 60)) 60)))
     ANGLE = lambda self, d, m, s: d + (m + (s / 60)) / 60 # 0 - 360
+
+    #(defun amod (x y)
+    #  ;; TYPE (integer nonzero-integer) -> integer
+    #  ;; The value of ($x$ mod $y$) with $y$ instead of 0.
+    #  (+ y (mod x (- y))))
+    AMOD = lambda self, x, y: y + x % -y
 
     #(defun mod3 (x a b)
     #  ;; TYPE (real real real) -> real
@@ -1170,7 +1179,7 @@ class BaseCalendar:
         """
         return math.floor(tee)
 
-    def _sigma(self, lists:list, func:object) -> float:
+    def _sigma(self, lists:tuple, func:object) -> float:
         """
         used
 
@@ -1232,3 +1241,29 @@ class BaseCalendar:
         """
         return (initial - 1 if not func(initial)
                 else self._final(initial + 1, func))
+
+    def _to_radix(self, x:int, b:tuple, c:tuple=()):
+        """
+        (defun to-radix (x b &optional c)
+          ;; TYPE (real list-of-rationals list-of-rationals)
+          ;; TYPE -> list-of-reals
+          ;; The radix notation corresponding to x
+          ;; with base b for whole part and c for fraction.
+          (if (null c)
+              (if (null b)
+                  (list x)
+            (append (to-radix (quotient x (nth (1- (length b)) b))
+                              (butlast b) nil)
+                    (list (mod x (nth (1- (length b)) b)))))
+           (to-radix (* x (apply ’* c)) (append b c))))
+        """
+        if not c:
+            if not b:
+                result = (x,)
+            else:
+                result = self._to_radix(self.QUOTIENT(x, b[-1]),
+                                        b[:-1]) + (x % b[-1],)
+        else:
+            result = self._to_radix(x * reduce(mul, c), b + c)
+
+        return result

@@ -153,8 +153,56 @@ class TestGregorianCalandar(unittest.TestCase):
             self.assertEqual(er, result,
                 msg.format(er, g_date1[0], g_date2[0], result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_alt_fixed_from_gregorian(self):
+        """
+        Test that the alt_fixed_from_gregorian method returns the
+        alternative calculation of fixed date equivalent to the Gregorian
+        date g-date.
+        """
+        date_reps = (
+            #((2094, 4, 4), 764652),
+            ((1844, 3, 21), 673222),
+            ((1970, 1, 1), 719163),
+            ((622, 7, 19), 227015)
+            )
+        msg = "Expected result {} for year {}, found {}."
 
+        for date_rep, expected_result in date_reps:
+            result = self._gc.alt_fixed_from_gregorian(date_rep)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date_rep[0], result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_alt_gregorian_from_fixed(self):
+        """
+        Test that the gregorian_from_fixed method returns the Gregorian
+        (year month day) corresponding to fixed date.
+        """
+        dates = (
+            #(764652, (2094, 4, 4)),  # Easter
+            (719163, (1970, 1 ,1)),  #
+            (673222, (1844, 3, 21)), # Leap Year
+            (227015, (622, 7, 19)),
+            )
+        msg = "Expected result {}, found {}."
 
+        for date, expected_result in dates:
+            result = self._gc.alt_gregorian_from_fixed(date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_alt_gregorian_year_from_fixed(self):
+        """
+        Test that the gregorian_year_from_fixed method returns a
+        Gregorian year corresponding to the fixed date
+        """
+        dates = ((673222, 1844), (719163, 1970), (227015, 622))
+        msg = "Expected result {} for year {}, found {}."
 
+        for date, expected_result in dates:
+            result = self._gc.alt_gregorian_year_from_fixed(date)
+            self.assertEqual(
+                expected_result, result,
+                msg.format(expected_result, expected_result, result))
