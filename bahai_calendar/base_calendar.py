@@ -160,8 +160,15 @@ class BaseCalendar:
     # Time and Astronomy (Time)
     #
 
+    #greenwich
+    #acre
+    #direction
+    #arctan
+
     def zone_from_longitude(self, phi):
         """
+        used
+
         (defun zone-from-longitude (phi)
           ;; TYPE circle -> duration
           ;; Difference between UT and local mean time at longitude
@@ -192,21 +199,25 @@ class BaseCalendar:
 
     def standard_from_universal(self, tee_rom_u):
         """
+        (Fixed bug in LISP code)
+
         (defun standard-from-universal (tee_rom-u location)
           ;; TYPE (moment location) -> moment
           ;; Standard time from tee_rom-u in universal time at location.
           (+ tee_rom-u (zone location)))
         """
-        return tee_rom_u + self.zone
+        return tee_rom_u + self.HR(self.zone)
 
     def universal_from_standard(self, tee_rom_s):
         """
+        used (Fixed bug in LISP code)
+
         (defun universal-from-standard (tee_rom-s location)
           ;; TYPE (moment location) -> moment
           ;; Universal time from tee_rom-s in standard time at location.
           (- tee_rom-s (zone location)))
         """
-        return tee_rom_s - self.zone
+        return tee_rom_s - self.HR(self.zone)
 
     def standard_from_local(self, tee_ell):
         """
@@ -623,20 +634,20 @@ class BaseCalendar:
           ;; TYPE (season moment) -> moment
           ;; Approximate moment at or before tee when solar
           ;; longitude just exceeded lambda degrees.
-          (let* ((rate        ; Mean change of one degree.
+          (let* ((rate            ; Mean change of one degree.
                   (/ mean-tropical-year (deg 360)))
-                 (tau         ; First approximation.
+                 (tau             ; First approximation.
                   (- tee
                      (* rate (mod (- (solar-longitude tee)
                                      lambda)
                               360))))
-                   (cap-Delta ; Difference in longitude.
-                    (mod3 (- (solar-longitude tau) lambda)
-                          -180 180)))
+                 (cap-Delta       ; Difference in longitude.
+                  (mod3 (- (solar-longitude tau) lambda)
+                        -180 180)))
             (min tee (- tau (* rate cap-Delta)))))
         """
         rate = self.MEAN_TROPICAL_YEAR / 360
-        tau = tee - (rate * (self.solar_longitude(tee) - lambda_) % 360)
+        tau = tee - (rate * ((self.solar_longitude(tee) - lambda_) % 360))
         cap_delta = self.MOD3(self.solar_longitude(tau) - lambda_, -180, 180)
         return min(tee, tau - rate * cap_delta)
 
@@ -930,7 +941,7 @@ class BaseCalendar:
           ;; Out of range when it does not occur.
           (let* ((phi (latitude location))
                  (tee-prime (universal-from-local tee location))
-                 (delta                    ; Declination of sun.
+                 (delta                 ; Declination of sun.
                   (declination tee-prime (deg 0L0)
                                (solar-longitude tee-prime))))
             (+ (* (tan-degrees phi)
@@ -1028,7 +1039,7 @@ class BaseCalendar:
         h = max(0, self.elevation)
         cap_r = 6.372 * 10**6 # Wikipedia average is 6371 Km
         dip = self.arccos_degrees(cap_r / (cap_r + h))
-        return self.MINS(34) + dip + (self.SECS(19) * math.sqrt(h))
+        return self.MINS(34) + dip + self.SECS(19) * math.sqrt(h)
 
     def sunrise(self, date):
         """
@@ -1044,6 +1055,7 @@ class BaseCalendar:
     def sunset(self, date):
         """
         used
+        This is based on  standard time which itself is based on location.
 
         (defun sunset (date location)
           ;; TYPE (fixed-date location) -> moment

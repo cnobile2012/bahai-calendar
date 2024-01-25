@@ -64,20 +64,24 @@ class TestBadiCalandar(unittest.TestCase):
         msg = f"Expected {expected_result}, found {result}"
         self.assertEqual(expected_result, result, msg)
 
+    @unittest.skip("Temporarily skipped")
+    def test_date_representation(self):
+        """
+        Test that both the setter and getter properties set and get
+        the correct location data.
+        """
+        pass
+
     #@unittest.skip("Temporarily skipped")
     def test_bahai_sunset(self):
         """
         Test that the bahai_sunset method returns the universal time of
-        sunset on fixed date in Bahai-Location.
+        sunset on fixed date. This results in the UTC time of sunset.
 
         Baha'i epoc in fixed date is 673221 (1844-03-20) at:
-            Official: 6:11 pm
-        Astronomical: 7:37 pm
+            Official: 6:11 pm -> 18.14182542 (6:08:30)
+        Astronomical: 7:37 pm -> Does not seem to be used.
         (GMT+3:25:44) Sunset in Tehran, Tehran Province, Iran
-
-        The fixed date moment (expected_result) below is probably
-        wrong as it indicates that sunset was at 14.6418254184
-        (14 hours 38.5095 minutes) hours.
         """
         fixed_date = 673221
         result = self._bc.bahai_sunset(fixed_date)

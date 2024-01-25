@@ -54,11 +54,16 @@ class BahaiCalendar(BaseCalendar):
         return self._bahai_date
 
     @date_representation.setter
-    def date_representation(self, representation:tuple):
+    def date_representation(self, representation:tuple=None):
+        if not representation:
+            representation = self.BAHAI_LOCATION
+
         self._bahai_date = representation
 
     def bahai_sunset(self, date:float) -> float:
         """
+        The UT time is returned in other words the UTC time.
+
         (defun bahai-sunset (date)
           ;; TYPE fixed-date -> moment
           ;; Universal time of sunset on fixed date in Bahai-Location.

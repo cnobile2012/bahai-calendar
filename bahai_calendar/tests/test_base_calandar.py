@@ -47,7 +47,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         value = 6
         hr = self._bc.HR(value)
-        expected_hr = value / 24
+        expected_hr = 0.25
         msg = f"HR should be {expected_hr}, found {hr}."
         self.assertEqual(expected_hr, hr, msg)
 
@@ -58,7 +58,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         value = 6
         mn = self._bc.MN(value)
-        expected_mn = value / 24 / 60
+        expected_mn = 0.00416666666666666667
         msg = f"MN should be {expected_mn}, found {mn}."
         self.assertEqual(expected_mn, mn, msg)
 
@@ -69,7 +69,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         value = 6
         sec = self._bc.SEC(value)
-        expected_sec = value / 24 / 60 / 60
+        expected_sec = 6.94444444444444444444e-5
         msg = f"SEC should be {expected_sec}, found {sec}."
         self.assertEqual(expected_sec, sec, msg)
 
@@ -80,7 +80,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         value = 6
         mins = self._bc.MINS(value)
-        expected_mins = value / 60
+        expected_mins = 0.1
         msg = f"MINS should be {expected_mins}, found {mins}."
         self.assertEqual(expected_mins, mins, msg)
 
@@ -91,7 +91,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         value = 6
         secs = self._bc.SECS(value)
-        expected_secs = value / 3600
+        expected_secs = 0.00166666666666666667
         msg = f"SECS should be {expected_secs}, found {secs}."
         self.assertEqual(expected_secs, secs, msg)
 
@@ -159,15 +159,8 @@ class TestBaseCalandar(unittest.TestCase):
         expected_dt = (now.hour, now.minute, now.second)
         msg = f"Expected {expected_dt}, found {self._bc._time}"
         self.assertTrue(
-            all([i == j for i, j in zip(expected_dt, self._bc._time)]), msg)
-
-    @unittest.skip("Temporarily skipped")
-    def test_time_representation_getter(self):
-        pass
-
-    @unittest.skip("Temporarily skipped")
-    def test_time_representation_setter(self):
-        pass
+            all([i == j for i, j in zip(expected_dt,
+                                        self._bc.time_representation)]), msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_zone_from_longitude(self):
@@ -176,11 +169,16 @@ class TestBaseCalandar(unittest.TestCase):
         between UT and local mean time at longitude phi as a fraction of
         a day.
         """
-        phi = 1000
-        result = self._bc.zone_from_longitude(phi)
-        expected_result = 2.7777777777777777
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        #    longitude   expected_result
+        data = (
+            (51.4777815, 0.1429938375), # Greenwich
+            (32.94, 0.0915), # Acre
+            )
+        msg = "Expected {}, found {}."
+
+        for phi, expected_result in data:
+            result = self._bc.zone_from_longitude(phi)
+            self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_universal_from_local(self):
@@ -188,11 +186,19 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the universal_from_local method converts universal
         time from local tee_ell at location.
         """
-        tee_ell = 10000.5
-        result = self._bc.universal_from_local(tee_ell)
-        expected_result = 10000.357158177778
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            # Greenwich (2024-01-20)
+            (738905, 738905.0, (51.4777815, 0, 46.9, 0)),
+            # Acre (2024-01-20)
+            (738905, 738904.9025277778, (32.94, 35.09, 22, 2)),
+            )
+        msg = "Expected {}, found {}."
+
+        for tee_ell, expected_result, location in data:
+            self._bc.location = location
+            result = self._bc.universal_from_local(tee_ell)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_local_from_universal(self):
@@ -200,11 +206,19 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the local_from_universal method converts local time
         from universal tee_rom_u at location.
         """
-        tee_rom_u = 10000.357158177778
-        result = self._bc.local_from_universal(tee_rom_u)
-        expected_result = 10000.5
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            # Greenwich (2024-01-20)
+            (738905.0, 738905, (51.4777815, 0, 46.9, 0)),
+            # Acre (2024-01-20)
+            (738904.9025277778, 738905, (32.94, 35.09, 22, 2)),
+            )
+        msg = "Expected {}, found {}."
+
+        for tee_rom_u, expected_result, location in data:
+            self._bc.location = location
+            result = self._bc.local_from_universal(tee_rom_u)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_standard_from_universal(self):
@@ -212,11 +226,19 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the zone is determined from the standard time from
         tee_rom_u in universal time at location.
         """
-        tee_rom_u = 10000.5
-        result = self._bc.standard_from_universal(tee_rom_u)
-        expected_result = 10004.0
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            # Greenwich (2024-01-20)
+            (738905.0, 738905.0, (51.4777815, 0, 46.9, 0)),
+            # Acre (2024-01-20)
+            (738904.9025277778, 738904.9858611112, (32.94, 35.09, 22, 2)),
+            )
+        msg = "Expected {}, found {}."
+
+        for tee_rom_u, expected_result, location in data:
+            self._bc.location = location
+            result = self._bc.standard_from_universal(tee_rom_u)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_universal_from_standard(self):
@@ -224,11 +246,19 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the zone is determined from the universal time from
         tee_rom_s in standard time at location.
         """
-        tee_rom_s = 10004.0
-        result = self._bc.universal_from_standard(tee_rom_s)
-        expected_result = 10000.5
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            # Greenwich (2024-01-20)
+            (738905.0, 738905.0, (51.4777815, 0, 46.9, 0)),
+            # Acre (2024-01-20)
+            (738904.9858611112, 738904.9025277778, (32.94, 35.09, 22, 2)),
+            )
+        msg = "Expected {}, found {}."
+
+        for tee_rom_s, expected_result, location in data:
+            self._bc.location = location
+            result = self._bc.universal_from_standard(tee_rom_s)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_standard_from_local(self):
@@ -236,11 +266,19 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the standard_from_local method returns the standard
         time from local time at location.
         """
-        tee_ell = 10000.5
-        result = self._bc.standard_from_local(tee_ell)
-        expected_result = 10003.857158177778
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            # Greenwich (2024-01-20)
+            (738905.0, 738905.0, (51.4777815, 0, 46.9, 0)),
+            # Acre (2024-01-20)
+            (738904.9025277778, 738904.888388889, (32.94, 35.09, 22, 2)),
+            )
+        msg = "Expected {}, found {}."
+
+        for tee_ell, expected_result, location in data:
+            self._bc.location = location
+            result = self._bc.standard_from_local(tee_ell)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_local_from_standard(self):
@@ -248,11 +286,19 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the local_from_standard method converts local time
         from standard tee_rom_s at location.
         """
-        tee_rom_s = 10003.857158177778
-        result = self._bc.local_from_standard(tee_rom_s)
-        expected_result = 10000.5
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            # Greenwich (2024-01-20)
+            (738905.0, 738905.0, (51.4777815, 0, 46.9, 0)),
+            # Acre (2024-01-20)
+            (738904.9858611112, 738905.0, (32.94, 35.09, 22, 2)),
+            )
+        msg = "Expected {}, found {}."
+
+        for tee_rom_s, expected_result, location in data:
+            self._bc.location = location
+            result = self._bc.local_from_standard(tee_rom_s)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_ephemeris_correction(self):
@@ -543,16 +589,26 @@ class TestBaseCalandar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_dusk(self):
         """
-        Test that the dusk method a standard time in morning on fixed
-        date at location when depression angle of sun is alpha. Returns
-        bogus if there is no dawn on date.
+        Test that the dusk method returns the standard time in evening
+        on fixed date at location when depression angle of sun is alpha.
+        Returns bogus if there is no dusk on date.
         """
-        date = 675334.5
-        alpha = 0.5666666666666667
-        result = self._bc.dusk(date, alpha)
-        expected_result = 675339.1083374813
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        #    date      alpha               expected_result    location
+        data = (
+            # Greenwich (2024-01-20)
+            (738905.0, 0.8226397005246857, 738905.7525269118,
+             (51.4777815, 0, 46.9, 0)),
+            # Acre (2024-01-20)
+            (738905.0, 0.741981935570424, 738905.7377549361,
+             (32.94, 35.09, 22, 2)),
+            )
+        msg = "Expected {}, with date {} and alpha {}, found {}."
+
+        for date, alpha, expected_result, location in data:
+            self._bc.location = location
+            result = self._bc.dusk(date, alpha)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, alpha, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_refraction(self):
@@ -584,11 +640,13 @@ class TestBaseCalandar(unittest.TestCase):
             # New York (2024-01-20)
             #     Official: Sunset: 2024-01-20 16:57:32.839373-05:00
             # Astronomical: Sunset: 2024-01-20 18:33:38.288695-05:00
-            (738905, 738900.9582987919, (40.7127281, -74.0060152, 10.0584, -5)),
+            (738905, 738905.7499654585, # 738905.77335648148148148148
+             (40.7127281, -74.0060152, 10.0584, -5)),
             # Tehran (1844-03-20)
             #     Official: Sunset: 1844-03-20 18:11:15.013257+03:26
             # Astronomical: Sunset: 1844-03-20 19:36:34.035553+03:26
-            (673221, 673225.1101687355, (35.6892523, 51.3896004, 0, 3.5)),
+            (673221, 673221.7560020689, # 673221.81706018518518518519
+             (35.6892523, 51.3896004, 0, 3.5)),
             )
         msg = "Expected {}, found {}."
 
