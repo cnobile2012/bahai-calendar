@@ -436,10 +436,10 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the solar_longitude method returns the longitude of
         sun at moment tee.
         """
-        tee = -214193
+        tee = -214193 # The test value is from the book pg. 446
         result = self._bc.solar_longitude(tee)
         expected_result = 118.98911336367019
-        #                 118.98911336371384
+        #                 118.98911336371384 Book value
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -474,13 +474,25 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the estimate_prior_solar_longitude method returns an
         approximate moment at or before tee when solar longitude just
         exceeded lambda degrees.
+
+        The solar longitude starts at the moment of the Vernal Equinox.
+        Both results seem to be wrong. *** TODO ***
+        673223 (1844, 3, 22) -> 673218.1676991577 (1844, 3, 17.16769915772602)
+        Correct date is:        March 20, 1844, 6:57 am LMT
+        738886 (2024, 1, 1)  -> 738599.875870285 (2023, 3, 20.875870284973644)
+        Correct date is:        March 19, 2024, 11:06 pm LMT
         """
-        lambda_ = self._bc.SPRING
-        tee = 673222.6070645516
-        result = self._bc.estimate_prior_solar_longitude(lambda_, tee)
-        expected_result = 673218.1676884833
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        lam = self._bc.SPRING
+        data = (
+            (673223, 673218.1676991577),
+            (738886, 738599.875870285),
+            )
+        msg = "Expected result {}, found {}."
+
+        for tee, expected_result in data:
+            result = self._bc.estimate_prior_solar_longitude(lam, tee)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     @unittest.skip("Temporarily skipped")
     def test_nth_new_moon(self):

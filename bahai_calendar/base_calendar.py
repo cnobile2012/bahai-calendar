@@ -107,6 +107,8 @@ class BaseCalendar:
     #RD = tee - 0
 
     MEAN_TROPICAL_YEAR = 365.242189
+    MEAN_SIDEREAL_YEAR = 365.25636
+
     MORNING = True
     EVENING = False
     # Seasons set to degrees.
@@ -121,7 +123,15 @@ class BaseCalendar:
         268, 242, 234, 158, 132, 129, 114, 99, 93, 86, 78, 72, 68, 64, 46, 38,
         37, 32, 29, 28, 27, 27, 25, 24, 21, 21, 20, 18, 17, 14, 13, 13, 13, 12,
         10, 10, 10, 10
-        )
+        ) # x
+    _ADDENDS = (
+        270.54861, 340.19128, 63.91854, 331.26220, 317.843, 86.631, 240.052,
+        310.26, 247.23, 260.87, 297.82, 343.14, 166.79, 81.53, 3.50, 132.75,
+        182.95, 162.03, 29.8, 266.4, 249.2, 157.6, 257.8, 185.1, 69.9, 8.0,
+        197.1, 250.4, 65.3, 162.7, 341.5, 291.6, 98.5, 146.7, 110.0, 5.2,
+        342.6, 230.9, 256.1, 45.3, 242.9, 115.2, 151.8, 285.3, 53.3, 126.6,
+        205.7, 85.9, 146.1
+        ) # y
     _MULTIPLIERS = (
         0.9287892, 35999.1376958, 35999.4089666, 35998.7287385, 71998.20261,
         71998.4403, 36000.35726, 71997.4812, 32964.4678, -19.4410, 445267.1117,
@@ -132,15 +142,7 @@ class BaseCalendar:
         14578.298, -31931.757, 34777.243, 1221.999, 62894.511, -4442.039,
         107997.909, 119.066, 16859.071, -4.578, 26895.292, -39.127, 12297.536,
         90073.778
-        )
-    _ADDENDS = (
-        270.54861, 340.19128, 63.91854, 331.26220, 317.843, 86.631, 240.052,
-        310.26, 247.23, 260.87, 297.82, 343.14, 166.79, 81.53, 3.50, 132.75,
-        182.95, 162.03, 29.8, 266.4, 249.2, 157.6, 257.8, 185.1, 69.9, 8.0,
-        197.1, 250.4, 65.3, 162.7, 341.5, 291.6, 98.5, 146.7, 110.0, 5.2,
-        342.6, 230.9, 256.1, 45.3, 242.9, 115.2, 151.8, 285.3, 53.3, 126.6,
-        205.7, 85.9, 146.1
-        )
+        ) # z
 
     def __init__(self):
         self._time = None
@@ -581,6 +583,8 @@ class BaseCalendar:
 
     def nutation(self, tee):
         """
+        used
+
         (defun nutation (tee)
           ;; TYPE moment -> circle
           ;; Longitudinal nutation at moment tee.
@@ -594,11 +598,13 @@ class BaseCalendar:
         c = self.julian_centuries(tee)
         cap_a = self._poly(c, (124.90, -1934.134, 0.002063))
         cap_b = self._poly(c, (201.11, 72001.5377, 0.00057))
-        return ((-0.004778 * self.sin_degrees(cap_a)) +
-                (-0.0003667 * self.sin_degrees(cap_b)))
+        return (-0.004778 * self.sin_degrees(cap_a) +
+                -0.0003667 * self.sin_degrees(cap_b))
 
     def aberration(self, tee):
         """
+        used
+
         (defun aberration (tee)
           ;; TYPE moment -> circle
           ;; Aberration at moment tee.
@@ -609,7 +615,7 @@ class BaseCalendar:
                (deg 0.005575L0))))
         """
         c = self.julian_centuries(tee)
-        return ((0.0000974 * self.cos_degrees(177.63 + 35999.01848 * c))
+        return (0.0000974 * self.cos_degrees(177.63 + 35999.01848 * c)
                 - 0.005575)
 
     #solar-longitude-after
@@ -626,7 +632,7 @@ class BaseCalendar:
     # Astronomical Solar Calandars #
     ################################
 
-    def estimate_prior_solar_longitude(self, lambda_, tee):
+    def estimate_prior_solar_longitude(self, lam, tee):
         """
         used
 
@@ -647,8 +653,8 @@ class BaseCalendar:
             (min tee (- tau (* rate cap-Delta)))))
         """
         rate = self.MEAN_TROPICAL_YEAR / 360
-        tau = tee - (rate * ((self.solar_longitude(tee) - lambda_) % 360))
-        cap_delta = self.MOD3(self.solar_longitude(tau) - lambda_, -180, 180)
+        tau = tee - (rate * ((self.solar_longitude(tee) - lam) % 360))
+        cap_delta = self.MOD3(self.solar_longitude(tau) - lam, -180, 180)
         return min(tee, tau - rate * cap_delta)
 
     #
@@ -657,8 +663,8 @@ class BaseCalendar:
 
     #mean-synodic-month
 
-    def nth_new_moon(self, ):
-        """
+    def nth_new_moon(self, n):
+        '''
         (defun nth-new-moon (n)
           ;; TYPE integer -> moment
           ;; Moment of n-th new moon after (or before) the new moon
@@ -741,7 +747,7 @@ class BaseCalendar:
                         (* l (sin-degrees (+ i (* j k)))))))
              (universal-from-dynamical
               (+ approx correction extra additional))))
-        """
+        '''
         return
 
     #new-moon-before
@@ -1279,3 +1285,73 @@ class BaseCalendar:
             result = self._to_radix(x * reduce(mul, c), b + c)
 
         return result
+
+    #
+    # Additional methods
+    #
+
+    def _latitude_and_longitude_from_degrees(self, coords):
+        '''
+        Convert coordinates to latitude.
+
+        Coordinantes in degrees, minutes, and seconds.
+        The Shrine of Baha’u’llah: 32°56’36.86″N, 35° 5’30.38″E
+        The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″E
+
+        https://lweb.cfa.harvard.edu/space_geodesy/ATLAS/cme_convert.html
+
+        To convert the Latitude or Longitude to Map Coordinates (MC):
+
+        Step 1: Multiply (×) the "degrees" by 60
+        Step 2: Add (+) the "minutes"
+        Step 3: If the Latitude (Longitude) degrees are S (W) use a minus
+                sign ("-") in front. This result is the Latitude (Longitude)
+                converted to Minutes.
+        Step 4: Subtract Reference Location converted to Minutes.
+
+        Example Location:
+        +----------+---------+--------------------+
+        |      Latitude      |      Longitude     |
+        +----------+---------+----------+---------+
+        |  N/S 42  |  20.736 |  E/W 71  |  5.745  |
+        +----------+---------+----------+---------+
+        |  Degrees | Minutes | Degrees  | Minutes |
+        +----------+---------+----------+---------+
+
+        Latitude Map Coordinates:
+
+        Step 1: Degrees × 60 = 42 × 60 = 2520
+        Step 2: 2520 + 20.736 = 2540.736
+        Step 3: The Latitude is not "S" so the Latitude converted to
+                Minutes is 2540.736
+        Step 4: Suppose the Latitude Reference Location converted to
+                Minutes is 2545.273. Then the answer is
+                2540.736 -2545.273 = -4.537
+
+        Longitude Map Coordinates:
+
+        Step 1: Degrees × 60 = 71 × 60 = 4260
+        Step 2: 4260 + 5.745 = 4265.745
+        Step 3: The Longitude is "W" so the answer is -4265.745
+        Step 4: Suppose the Longitude Reference Location converted to
+                Minutes is -4267.523. Then the answer is
+                -4265.745 - (-4267.523) = +1.788
+        '''
+        latitude = coords * 60 + 
+        longitude = None
+        return
+
+    def _latitude_and_longitude_from_dms(self, degrees, minutes, seconds):
+        '''
+        Convert degrees, minutes, and seconds to a floating point coordinate.
+
+        Degrees, minutes, and seconds to a float:
+
+        1. Add the degrees to the minutes divided by 60
+        2. Add the seconds divided by (60 x 60), which is 3600
+
+        Example: To convert 35° 20′ 35", the answer is
+                 35 + (20/60) + (35/3600) = 35.34306 degrees.
+        '''
+        coords = degrees + minutes / 60 + seconds / 3600
+        return self._latitude_and_longitude_from_degrees(coords)
