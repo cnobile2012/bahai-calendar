@@ -890,17 +890,21 @@ class TestBaseCalandar(unittest.TestCase):
         https://warble.com/blog/2017/11/05/virtually-hovering-over-holy-places/
         The Shrine of Baha’u’llah: 32°56’36.86″N, 35°5’30.38″E
         The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″E
-        The Guardian’s Resting Place (not 3D): 51°37’21.85″N, 0°08’35.57″W
+        The Guardian’s Resting Place: 51°37’21.85″N, 0°08’35.57″W
         """
         data = (
-            # Statue of Liberty latitude
+            # Statue of Liberty latitude (US)
             ((40, 41, 21.29, 'N'), 40.68924722222222),
-            # Statue of Liberty longitude
+            # Statue of Liberty longitude (US)
             ((74, 2, 40.29, 'W'), -74.044525),
-            # The Shrine of Baha’u’llah latitude
+            # The Shrine of Baha’u’llah latitude (IL)
             ((32, 56, 36.86, 'N'), 32.943572222222215),
-            # The Shrine of Baha’u’llah longitude
+            # The Shrine of Baha’u’llah longitude (IL)
             ((35, 5, 30.37, 'E'), 35.091769444444445),
+            # Sydney Opera House latitude (AU)
+            ((-33, 51, 24.37, 'S'), -33.856769444444446),
+            # Sydney Opera House longitude (AU)
+            ((151, 12, 54.43, 'E'), 151.21511944444444),
             )
         msg = "Expected {} with '{}', found {}."
 
@@ -917,14 +921,18 @@ class TestBaseCalandar(unittest.TestCase):
         and seconds.
         """
         data = (
-            # Statue of Liberty latitude
+            # Statue of Liberty latitude (US)
             ((40.68924722222222, 'lat'), (40, 41, 21.28999999999559, 'N')),
-            # Statue of Liberty longitude
+            # Statue of Liberty longitude (US)
             ((-74.044525, 'lon'), (74, 2, 40.28999999997495, 'W')),
-            # The Shrine of Baha’u’llah latitude
+            # The Shrine of Baha’u’llah latitude (IL)
             ((32.943572222222215, 'lat'), (32, 56, 36.85999999997529, 'N')),
-            # The Shrine of Baha’u’llah longitude
+            # The Shrine of Baha’u’llah longitude (IL)
             ((35.091769444444445, 'lon'), (35, 5, 30.37000000000207, 'E')),
+            # Sydney Opera House latitude (AU)
+            ((-33.856769444444446, 'lat'), (33, 51, 24.370000000004175, 'S')),
+            # Sydney Opera House longitude (AU)
+            ((151.21511944444444, 'lon'), (151, 12, 54.42999999998388, 'E')),
             )
         msg = "Expected {} with '{}', found {}."
 

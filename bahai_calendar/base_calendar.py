@@ -1325,6 +1325,8 @@ class BaseCalendar:
         dirs = ('N', 'S', 'E', 'W')
         assert direction.upper() in dirs, (
             f"The 'direction' argument must be one of {dirs}")
+        # Remove the minus sign iof it exists.
+        degrees = -degrees if degrees < 0 else degrees
         decimal = degrees + (minutes / 60) + (seconds / 3600)
         # Adjust the sign based on the direction.
         return -decimal if direction.upper() in ['S', 'W'] else decimal
