@@ -880,3 +880,55 @@ class TestBaseCalandar(unittest.TestCase):
             result = self._bc._to_radix(x, b, c)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, x, b, c, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_decimal_from_dms(self):
+        """
+        Test that the method decimal_from_dms correctly converts degrees,
+        minutes, and seconds into a decimal number.
+
+        https://warble.com/blog/2017/11/05/virtually-hovering-over-holy-places/
+        The Shrine of Baha’u’llah: 32°56’36.86″N, 35°5’30.38″E
+        The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″E
+        The Guardian’s Resting Place (not 3D): 51°37’21.85″N, 0°08’35.57″W
+        """
+        data = (
+            # Statue of Liberty latitude
+            ((40, 41, 21.29, 'N'), 40.68924722222222),
+            # Statue of Liberty longitude
+            ((74, 2, 40.29, 'W'), -74.044525),
+            # The Shrine of Baha’u’llah latitude
+            ((32, 56, 36.86, 'N'), 32.943572222222215),
+            # The Shrine of Baha’u’llah longitude
+            ((35, 5, 30.37, 'E'), 35.091769444444445),
+            )
+        msg = "Expected {} with '{}', found {}."
+
+        for args, expected_result in data:
+            result = self._bc.decimal_from_dms(*args)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, args, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_dms_from_decimal(self):
+        """
+        Test that the dms_from_degrees method correctly converts a decimal
+        representation of a latitude or longitude into degrees, minutes,
+        and seconds.
+        """
+        data = (
+            # Statue of Liberty latitude
+            ((40.68924722222222, 'lat'), (40, 41, 21.28999999999559, 'N')),
+            # Statue of Liberty longitude
+            ((-74.044525, 'lon'), (74, 2, 40.28999999997495, 'W')),
+            # The Shrine of Baha’u’llah latitude
+            ((32.943572222222215, 'lat'), (32, 56, 36.85999999997529, 'N')),
+            # The Shrine of Baha’u’llah longitude
+            ((35.091769444444445, 'lon'), (35, 5, 30.37000000000207, 'E')),
+            )
+        msg = "Expected {} with '{}', found {}."
+
+        for args, expected_result in data:
+            result = self._bc.dms_from_decimal(*args)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, args, result))

@@ -62,7 +62,7 @@ class BahaiCalendar(BaseCalendar):
 
     def bahai_sunset(self, date:float) -> float:
         """
-        The UT time is returned in other words the UTC time.
+        The UTC time is returned.
 
         (defun bahai-sunset (date)
           ;; TYPE fixed-date -> moment

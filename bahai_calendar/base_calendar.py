@@ -1290,68 +1290,74 @@ class BaseCalendar:
     # Additional methods
     #
 
-    def _latitude_and_longitude_from_degrees(self, coords):
+    def decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
+                         direction:str) -> float:
         '''
-        Convert coordinates to latitude.
-
         Coordinantes in degrees, minutes, and seconds.
         The Shrine of Baha’u’llah: 32°56’36.86″N, 35° 5’30.38″E
         The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″E
+        The Guardian’s Resting Place (not 3D): 51°37’21.85″N, 0°08’35.57″W
 
-        https://lweb.cfa.harvard.edu/space_geodesy/ATLAS/cme_convert.html
+        ****
 
-        To convert the Latitude or Longitude to Map Coordinates (MC):
+        Convert degrees, minutes, and seconds to a decimal.
 
-        Step 1: Multiply (×) the "degrees" by 60
-        Step 2: Add (+) the "minutes"
-        Step 3: If the Latitude (Longitude) degrees are S (W) use a minus
-                sign ("-") in front. This result is the Latitude (Longitude)
-                converted to Minutes.
-        Step 4: Subtract Reference Location converted to Minutes.
-
-        Example Location:
-        +----------+---------+--------------------+
-        |      Latitude      |      Longitude     |
-        +----------+---------+----------+---------+
-        |  N/S 42  |  20.736 |  E/W 71  |  5.745  |
-        +----------+---------+----------+---------+
-        |  Degrees | Minutes | Degrees  | Minutes |
-        +----------+---------+----------+---------+
-
-        Latitude Map Coordinates:
-
-        Step 1: Degrees × 60 = 42 × 60 = 2520
-        Step 2: 2520 + 20.736 = 2540.736
-        Step 3: The Latitude is not "S" so the Latitude converted to
-                Minutes is 2540.736
-        Step 4: Suppose the Latitude Reference Location converted to
-                Minutes is 2545.273. Then the answer is
-                2540.736 -2545.273 = -4.537
-
-        Longitude Map Coordinates:
-
-        Step 1: Degrees × 60 = 71 × 60 = 4260
-        Step 2: 4260 + 5.745 = 4265.745
-        Step 3: The Longitude is "W" so the answer is -4265.745
-        Step 4: Suppose the Longitude Reference Location converted to
-                Minutes is -4267.523. Then the answer is
-                -4265.745 - (-4267.523) = +1.788
-        '''
-        latitude = coords * 60 + 
-        longitude = None
-        return
-
-    def _latitude_and_longitude_from_dms(self, degrees, minutes, seconds):
-        '''
-        Convert degrees, minutes, and seconds to a floating point coordinate.
-
-        Degrees, minutes, and seconds to a float:
+        Degrees, minutes, and seconds to a decimal coordinant:
 
         1. Add the degrees to the minutes divided by 60
         2. Add the seconds divided by (60 x 60), which is 3600
 
         Example: To convert 35° 20′ 35", the answer is
                  35 + (20/60) + (35/3600) = 35.34306 degrees.
+
+        :param degrees: The degree part of the coordinats.
+        :type degrees: int
+        :param minutes: The minute part of the coordinate.
+        :type minutes: int
+        :param seconds: The second part of the coordinate.
+        :param direction: The direction part of the coordinate which can be
+                          any of the following N, S, E, W in upper or lower
+                          case.
+        :type direction: str
+        :return: latitude and longitude
+        :rtype: tuple
         '''
-        coords = degrees + minutes / 60 + seconds / 3600
-        return self._latitude_and_longitude_from_degrees(coords)
+        dirs = ('N', 'S', 'E', 'W')
+        assert direction.upper() in dirs, (
+            f"The 'direction' argument must be one of {dirs}")
+        decimal = degrees + (minutes / 60) + (seconds / 3600)
+        # Adjust the sign based on the direction.
+        return -decimal if direction.upper() in ['S', 'W'] else decimal
+
+    def dms_from_decimal(self, coord:float, direction:str) -> tuple:
+        """
+        Convert a decimal degree into degrees, minutes, and seconds.
+
+        :param coord: The decimal coordinant.
+        :type coord: float
+        :param direction: The direction part of the coordinate which can be
+                          any of the following N, S, E, W in upper or lower
+                          case.
+        :type direction: str
+        :return: The degree, minute, second, and direction for of the
+                 coordinate.
+        :rtype: tuple
+        """
+        dirs = ('LATITUDE', 'LONGITUDE')
+        direction = direction.upper()
+        size = len(direction)
+        assert size >= 3 and any([d.startswith(direction) for d in dirs]), (
+            f"The direction argument must be one of {dirs}")
+        # degrees
+        degrees = int(abs(coord))
+        # minutes
+        minutes = int((abs(coord) - degrees) * 60)
+        # seconds
+        seconds = (abs(coord) - degrees - (minutes / 60)) * 3600
+
+        if coord < 0:
+            direc = 'S' if direction == 'LAT' else 'W'
+        else:
+            direc = 'N' if direction == 'LAT' else 'E'
+
+        return degrees, minutes, seconds, direc
