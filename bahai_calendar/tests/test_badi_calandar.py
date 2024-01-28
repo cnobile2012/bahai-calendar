@@ -79,9 +79,17 @@ class TestBadiCalandar(unittest.TestCase):
         sunset on fixed date. This results in the UTC time of sunset.
 
         Baha'i epoc in fixed date is 673221 (1844-03-20) at:
-            Official: 6:11 pm -> 18.14182542 (6:08:30)
+            Official: 6:11 pm (18.1833333333) -> 18.14182542 (6:08:30)
         Astronomical: 7:37 pm -> Does not seem to be used.
         (GMT+3:25:44) Sunset in Tehran, Tehran Province, Iran
+
+        18hr + 11min * 1hr / 60min +0s * 1hr / 3600s
+        =18hr + 0.1833hr + 0hr
+        =18.18333333333333333333 hrs
+
+        673221 + 1 * 18.1833hr / 24
+        =673221.75763888888888888889
+        =1844-03-20T18:11:00
         """
         fixed_date = 673221
         result = self._bc.bahai_sunset(fixed_date)

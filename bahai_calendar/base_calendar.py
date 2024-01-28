@@ -318,13 +318,13 @@ class BaseCalendar:
         gc = GregorianCalendar()
 
         year = gc.gregorian_year_from_fixed(math.floor(tee))
+        y2000 = year - 2000
         c = gc.gregorian_date_difference(
             (1900, gc.JANUARY, 1), (year, gc.JULY, 1)) / 36525
 
         if 2051 <= year <= 2150:
             result = 1/86400 - 20 + 32 * (((year - 1820) / 100) ** 2)
         elif 2006 <= year <= 2050:
-            y2000 = year - 2000
             result = 1/86400 * self._poly(y2000, (62.92, 0.32217, 0.005589))
         elif 1987 <= year <= 2005:
             result = 1/86400 * self._poly(y2000,
@@ -624,9 +624,10 @@ class BaseCalendar:
     #precession
     #sideread-solar-longitude
     #solar-altitude
+
     # Here α is the sun’s right ascension, δ is its declination,
     # and H is the local sidereal hour angle.
-
+    # Greek letters phi (φ) for latitude and lambda (λ) for longitude.
 
     ################################
     # Astronomical Solar Calandars #
@@ -635,6 +636,8 @@ class BaseCalendar:
     def estimate_prior_solar_longitude(self, lam, tee):
         """
         used
+
+        https://farside.ph.utexas.edu/books/Syntaxis/Almagest/node34.html
 
         (defun estimate-prior-solar-longitude (lambda tee)
           ;; TYPE (season moment) -> moment

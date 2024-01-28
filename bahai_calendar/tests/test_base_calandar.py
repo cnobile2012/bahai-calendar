@@ -435,13 +435,33 @@ class TestBaseCalandar(unittest.TestCase):
         """
         Test that the solar_longitude method returns the longitude of
         sun at moment tee.
+
+        Data from the book page 446 and 452
         """
-        tee = -214193 # The test value is from the book pg. 446
-        result = self._bc.solar_longitude(tee)
-        expected_result = 118.98911336367019
-        #                 118.98911336371384 Book value
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            # (-586, 7, 24)
+            (-214193, 118.98911336367019), # 118.98911336371384 Book value
+            # (576, 5, 20)
+            (210155, 58.64246274798643),   # 59.119741
+            # (1288, 4, 2)
+            (470160, 13.008819286362268),  # 13.498220
+            # (1553, 9, 19)
+            (567118, 175.56893798499368),  # 176.059431
+            # (1768, 6, 19)
+            (645554, 88.09044293293846),   # 88.567428
+            # (1941, 9, 29)
+            (708842, 185.50156897346096),  # 185.945867
+            # (2038, 11, 10)
+            (744313, 227.68273548343677),  # 228.184879
+            # (2094, 7, 18)
+            (764652, 334.87117657772615),  # 116.439352 This is way off
+            )
+        msg = "Expected {}, found {}."
+
+        for tee, expected_result in data:
+            result = self._bc.solar_longitude(tee)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_nutation(self):
@@ -475,17 +495,20 @@ class TestBaseCalandar(unittest.TestCase):
         approximate moment at or before tee when solar longitude just
         exceeded lambda degrees.
 
+        See https://nshdpi.ca/is/equinox/vern1788-2211.html
+
         The solar longitude starts at the moment of the Vernal Equinox.
-        Both results seem to be wrong. *** TODO ***
+        Both results seem to be off the correct date and time.
+
         673223 (1844, 3, 22) -> 673218.1676991577 (1844, 3, 17.16769915772602)
-        Correct date is:        March 20, 1844, 6:57 am LMT
+        Correct date is:        March 20, 1844, 11:53 am
         738886 (2024, 1, 1)  -> 738599.875870285 (2023, 3, 20.875870284973644)
-        Correct date is:        March 19, 2024, 11:06 pm LMT
+        Correct date is:        March 20, 2023, 21:24 pm UTC
         """
         lam = self._bc.SPRING
         data = (
-            (673223, 673218.1676991577),
-            (738886, 738599.875870285),
+            (673223, 673218.1676991577), # 1844-03-20T11:53:00
+            (738886, 738599.875870285),  # 2023-03-20T21:01:15.192624
             )
         msg = "Expected result {}, found {}."
 
