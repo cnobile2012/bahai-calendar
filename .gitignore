@@ -17,6 +17,7 @@ docs/htmlcov
 !docs/*.pdf
 logs
 package
+.~lock.*
 
 # C extensions
 *.so
