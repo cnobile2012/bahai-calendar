@@ -574,12 +574,12 @@ class BaseCalendar:
             (mod (+ lambda (aberration tee) (nutation tee)) 360)))
         '''
         c = self.julian_centuries(tee)
-        lambda_ = (282.7771834 + (36000.76953744 * c) +
-                   (0.000005729577951308232 *
-                    self._sigma(
-                        (self._COEFFICIENTS, self._ADDENDS, self._MULTIPLIERS),
-                        lambda x, y, z, : x * self.sin_degrees(y + (z * c)))))
-        return (lambda_ + self.aberration(tee) + self.nutation(tee)) % 360
+        lam = (282.77718340883195 + (36000.769537439775 * c) +
+               (0.000005729577951308232 *
+                self._sigma(
+                    (self._COEFFICIENTS, self._ADDENDS, self._MULTIPLIERS),
+                    lambda x, y, z, : x * self.sin_degrees(y + z * c))))
+        return (lam + self.aberration(tee) + self.nutation(tee)) % 360
 
     def nutation(self, tee):
         """

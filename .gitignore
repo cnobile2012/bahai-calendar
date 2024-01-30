@@ -18,6 +18,7 @@ docs/htmlcov
 logs
 package
 .~lock.*
+junk*
 
 # C extensions
 *.so
