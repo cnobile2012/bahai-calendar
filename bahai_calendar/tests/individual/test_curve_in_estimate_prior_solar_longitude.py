@@ -16,7 +16,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 sys.path.append(BASE_DIR)
 
 from bahai_calendar.base_calendar import BaseCalendar
-from bahai_calendar.julian_calendar import JulianCalendar
 from bahai_calendar.gregorian_calendar import GregorianCalendar
 
 

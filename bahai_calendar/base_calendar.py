@@ -10,8 +10,10 @@ import datetime
 from functools import reduce
 from operator import mul
 
+from bahai_calendar.julian_period import JulianPeriod
 
-class BaseCalendar:
+
+class BaseCalendar(JulianPeriod):
     """
     Basic functionality used with all calenders.
 
@@ -88,13 +90,6 @@ class BaseCalendar:
     #  ;; Time from moment tee.
     #  (mod tee 1))
     TIME_FROM_MOMENT = lambda self, tee: tee % 1
-
-    #(defconstant j2000
-    #  ;; TYPE moment
-    #  ;; Noon at start of Gregorian year 2000.
-    #  (+ (hr 12L0) (gregorian-new-year 2000)))
-    # https://aa.usno.navy.mil/faq/sun_approx 2451545.0
-    J2000 = 730120.5
 
     # (defun rd (tee)
     #  ;; TYPE moment -> moment
@@ -420,17 +415,6 @@ class BaseCalendar:
           (- tee (ephemeris-correction tee)))
         """
         return tee - self.ephemeris_correction(tee)
-
-    def julian_centuries(self, tee):
-        """
-        used
-
-        (defun julian-centuries (tee)
-          ;; TYPE moment -> century
-          ;; Julian centuries since 2000 at moment tee.
-          (/ (- (dynamical-from-universal tee) j2000) 36525))
-        """
-        return (self.dynamical_from_universal(tee) - self.J2000) / 36525
 
     def equation_of_time(self, tee):
         '''
