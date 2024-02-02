@@ -13,8 +13,9 @@ class JulianPeriod:
 
     This Julian period is said to be named after Julius Cæsar Scaliger,
     the father of Josephus Justus Scaliger (Born: August 5, 1540, Agen,
-    France), who invented the concept. It has nothing to do with the
-    Julian Calendar introduced by Julius Caesar.
+    France), who invented the concept. The Julian Period is related to
+    the Julian Calendar introduced by Julius Caesar, but it is not the
+    same.
 
     See https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
     See https://www.tondering.dk/claus/cal/julperiod.php
@@ -31,25 +32,67 @@ class JulianPeriod:
     #  ;; Fixed date of start of the Julian calendar.
     #  (fixed-from-gregorian (gregorian-date 0 december 30)))
     JULIAN_EPOCH = -1
+    # 28 (solar cycle) × 19 (lunar cycle) × 15 (indiction cycle) = 7980 years
     JULIAN_PERIOD = 7980
-    JULIAN_CENTURY = 100
     JULIAN_YEAR = 365.25
+    JULIAN_MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     JD_EPOCH = -1721424.5
     MJD_EPOCH = 678576
 
     def __init__(self):
         super().__init__()
-        # (period, century, year, month, day)
+        # (period, year, month, day)
         self._julian_date = None
 
-    def julian_period(self, jd):
+    def julian_period_date_from_jd(self, jd:float) -> tuple:
+        """
+        Convert the Julian day to a Julian date.
+
+        .. note::
+
+           The Julian Period is 13 days behind the Gregorian Calendar.
+        """
         c = jd / self.JULIAN_YEAR
         period = math.floor(c / self.JULIAN_PERIOD) + 1
-        century = math.floor(period * c) + 1
-        year = None #math.floor()
-        month = None
-        day = None
-        return (period, century, year, month, day)
+        year = math.floor(c) + 1
+        days_remaining = jd - (year - 1) * self.JULIAN_YEAR
+        accumulated_days = 0
+
+        for month, md in enumerate(self.JULIAN_MONTHS, start=1):
+            if month == 2: # Subtract 0 or  1 from Febuary if leap year.
+                md -= 0 if self.julian_leap_year(jd) else 1
+
+            accumulated_days += md
+
+            if days_remaining <= accumulated_days:
+                accumulated_days -= md
+                break
+
+        day = days_remaining - accumulated_days
+        return (period, year, month, day)
+
+    def jd_from_julian_period_date(self, date:tuple) -> float:
+        """
+        https://en.wikipedia.org/wiki/Julian_day
+        JDN = 367 * Y − (7 * (Y + 5001 + (M − 9) / 7))
+              / 4 + (275 * M) / 9 + D + 1729777
+        """
+        period = date[0]
+        year = date[1]
+        month = date[2]
+        day = date[3]
+        days = (period - 1) * self.JULIAN_PERIOD
+        days += (year - 1) * self.JULIAN_YEAR
+        days += sum([md for md in self.JULIAN_MONTHS[:month - 1]])
+        days += day
+
+        if month >= 2 and not self.julian_leap_year(days):
+            days -= 1
+
+        #m0 = math.floor((month - 9) / 7)
+        #m1 = math.floor((275 * month) / 9)
+        #JDN = 367 * year - (7 * (year + 5001 + m0)) / 4 + m1 + day + 1729777
+        return days
 
     def moment_from_jd(self, jd:float) -> float:
         """
@@ -169,9 +212,10 @@ class JulianPeriod:
                    -2))
                day)))                 ; Days so far this month.
         """
-        year = j_date[0]
-        month = j_date[1]
-        day = j_date[2]
+        period = j_date[0] # ** TODO ** Do something with this.
+        year = j_date[1]
+        month = j_date[2]
+        day = j_date[3]
         y = year + 1 if year < 0 else year
         correction = 0
 
@@ -182,7 +226,7 @@ class JulianPeriod:
                 correction = -2
 
         return (self.JULIAN_EPOCH - 1) + 365 * (y - 1) + self.QUOTIENT(
-            y - 1, 4) + self.QUOTIENT(367 * month- 362, 12) + correction + day
+            y - 1, 4) + self.QUOTIENT(367 * month - 362, 12) + correction + day
 
     def julian_from_fixed(self, date:tuple) -> float:
         """
@@ -232,7 +276,7 @@ class JulianPeriod:
 
         month = self.QUOTIENT(12 * (prior_day + correction) + 373, 367)
         day = (date - self.fixed_from_julian((year, month, 1))) + 1
-        return (year, month, day)
+        return (1, year, month, day) # ** TODO ** Do something with the period.
 
     def julian_from_gregorian(self, g_date:tuple) -> int:
         """
