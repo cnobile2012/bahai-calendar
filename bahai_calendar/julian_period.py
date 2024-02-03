@@ -44,7 +44,7 @@ class JulianPeriod:
         # (period, year, month, day)
         self._julian_date = None
 
-    def julian_period_date_from_jd(self, jd:float) -> tuple:
+    def julian_period_from_julian_day(self, jd:float) -> tuple:
         """
         Convert the Julian day to a Julian date.
 
@@ -312,15 +312,19 @@ class JulianPeriod:
         year = c - 4715 if month in (1, 2) else c - 4716
         return (year, month, day)
 
-    def fixed_from_julian_day(self, jd:float) -> float:
-        """
-        Convert Julian day to fixed moment.
+    ## def fixed_from_julian_day(self, jd:float) -> float:
+    ##     """
+    ##     Convert Julian day to fixed moment.
 
-        A.D. 2024 January 31	00:00:00.0	2460340.500000
-        A.D. 2024 January 31	12:00:00.0	2460341.000000
-        See https://aa.usno.navy.mil/data/JulianDate
-        """
-        centuries = jd / 36525
+    ##     A.D. 2024 January 31	00:00:00.0	2460340.500000
+    ##     A.D. 2024 January 31	12:00:00.0	2460341.000000
+    ##     See https://aa.usno.navy.mil/data/JulianDate
+    ##     """
+    ##     date = self.julian_period_from_julian_day(jd)
+    ##     return self.fixed_from_julian(date)
+
+    ## def julian_day_from_fixed(self, tee):
+    ##     """
+    ##     Convert a fixed day to a Julian day.
+    ##     """
         
-
-

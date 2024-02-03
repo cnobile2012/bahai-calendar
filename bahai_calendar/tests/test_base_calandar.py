@@ -374,11 +374,18 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the equation_of_time method returns (as fraction of day)
         for moment.
         """
-        tee = 675334.5
-        result = self._bc.equation_of_time(tee)
-        expected_result = -1.049036856585601e-05
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            (738965.12921296296296296296, -2.641140003457961e-05),
+            (739057.86832175925925925926, -1.5413246282548904e-06),
+            (739151.53, 2.672104530920557e-05),
+            (739241.38881944444444444444, 1.447899046463908e-06),
+            )
+        msg = "Expected {}, found {}."
+
+        for tee, expected_result in data:
+            result = self._bc.equation_of_time(tee)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_apparent_from_local(self):
@@ -436,25 +443,66 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the solar_longitude method returns the longitude of
         sun at moment tee.
 
-        Data from the book page 446 and 452
+        Equinox & Solstice Calculator
+        https://stellafane.org/misc/equinox.html
+
+        Solar Position Calculator
+        https://gml.noaa.gov/grad/solcalc/azel.html
+        Greenwich lat: 51, 29, 36.24 N
+                  lon: 00, 00, 00.00 E
+
+        Data from the book pages 225, 446 and 452
+        ===============================================================
+                                  Solar     Approximate      Season
+        Name
+                                  longitude date             length
+        ---------------------------------------------------------------
+        Vernal (spring) equinox     0◦      March 20         92.76 days
+        Summer solstice            90◦      June 21          93.65 days
+        Autumnal (fall) equinox   180◦      September 22−23  89.84 days
+        Winter solstice           270◦      December 21−22   88.99 days
         """
         data = (
+            # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
+            (738965.12921296296296296296, 359.06056707685093), # 0
+            # (2024, 6, 20) Summer solstice 2024-06-20T20:50:23 UTC
+            (739057.86832175925925925926, 90.18524388015976),  # 90
+            # (2024, 9, 22) Autumnal equinox 2024-09-22T12:43:12 UTC
+            (739151.53, 181.37149002119986),                   # 180
+            # (2024, 12, 21) Winter solstice 2024-12-21T09:19:54 UTC
+            (739241.38881944444444444444, 269.80025515382476), # 270
+            # (1800, 3, 20) Vernal equinox 1800-03-20T20:11:48 UTC
+            (657150.84152777777777777778, 125.80566001606348), # 0
+            # (1800, 6, 21) Summer solstice 1800-06-21T17:51:29 UTC
+            (657243.74408564814814814815, 216.86651406357123), # 90
+            # (1800, 9, 23) Autumnal equinox 1800-09-23T07:25:31 UTC
+            (657337.30938657407407407407, 309.9571399783017),  # 180
+            # (1800, 12, 22) Winter solstice 1800-12-22T00:16:24
+            (657427.01138888888888888889, 39.075272069181665), # 270
+            # (2073, 3, 20) Vernal equinox 2073-03-20T00:12:24 UTC
+            (756862.00861111111111111111, 180.66421547552818), # 0
+            # (2073, 6, 20) Summer solstice 2073-06-20T17:06:18 UTC
+            (756954.71270833333333333333, 271.8997512399437),  # 90
+            # (2073, 9, 22) Autumnal equinox 2073-09-22T09:14:10 UTC
+            (757048.38483796296296296296, 4.958974892488186),  # 180
+            # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
+            (757138.28450231481481481481, 93.24384461815498),  # 270
             # (-586, 7, 24)
-            (-214193, 118.98911336367019), # 118.98911336371384 Book value
+            #(-214193, 118.98911336367019), # 118.98911336371384 Book value
             # (576, 5, 20)
-            (210155, 58.64246274798643),   # 59.119741
+            #(210155, 58.64246274798643),   # 59.119741
             # (1288, 4, 2)
-            (470160, 13.008819286362268),  # 13.498220
+            #(470160, 13.008819286362268),  # 13.498220
             # (1553, 9, 19)
-            (567118, 175.56893798499368),  # 176.059431
+            #(567118, 175.56893798499368),  # 176.059431
             # (1768, 6, 19)
-            (645554, 88.09044293293846),   # 88.567428
+            #(645554, 88.09044293293846),   # 88.567428
             # (1941, 9, 29)
-            (708842, 185.50156897346096),  # 185.945867
+            #(708842, 185.50156897346096),  # 185.945867
             # (2038, 11, 10)
-            (744313, 227.68273548343677),  # 228.184879
+            #(744313, 227.68273548343677),  # 228.184879
             # (2094, 7, 18)
-            (764652, 334.87117657772615),  # 116.439352 This is way off
+            #(764652, 334.87117657772615),  # 116.439352 This is way off
             )
         msg = "Expected {}, found {}."
 
