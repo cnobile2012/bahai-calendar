@@ -23,6 +23,9 @@ class BaseCalendar(JulianPeriod):
            from midnight; sometimes g.m.t., Greenwich Mean Time
     Moment = We call an r.d. that has a fractional part giving the time of
              day a “moment.”
+
+    Transformations between Time Systems:
+    https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems
     """
     #(defun hr (x)
     #  ;; TYPE real -> duration
@@ -158,26 +161,6 @@ class BaseCalendar(JulianPeriod):
         -4.577932783095277, 26895.292075327292, -39.12728782948392,
         12297.536396341642, 90073.7782400445
         ) # z
-
-    ## _ADDENDS = (
-    ##     270.54861, 340.19128, 63.91854, 331.26220, 317.843, 86.631, 240.052,
-    ##     310.26, 247.23, 260.87, 297.82, 343.14, 166.79, 81.53, 3.50, 132.75,
-    ##     182.95, 162.03, 29.8, 266.4, 249.2, 157.6, 257.8, 185.1, 69.9, 8.0,
-    ##     197.1, 250.4, 65.3, 162.7, 341.5, 291.6, 98.5, 146.7, 110.0, 5.2,
-    ##     342.6, 230.9, 256.1, 45.3, 242.9, 115.2, 151.8, 285.3, 53.3, 126.6,
-    ##     205.7, 85.9, 146.1
-    ##     ) # y
-    ## _MULTIPLIERS = (
-    ##     0.9287892, 35999.1376958, 35999.4089666, 35998.7287385, 71998.20261,
-    ##     71998.4403, 36000.35726, 71997.4812, 32964.4678, -19.4410, 445267.1117,
-    ##     45036.8840, 3.1008, 22518.4434, -19.9739, 65928.9345, 9038.0293,
-    ##     3034.7684, 33718.148, 3034.448, -2280.773, 29929.992, 31556.493,
-    ##     149.588, 9037.750, 107997.405, -4444.176, 151.771, 67555.316,
-    ##     31556.080, -4561.540, 107996.706, 1221.655, 62894.167, 31437.369,
-    ##     14578.298, -31931.757, 34777.243, 1221.999, 62894.511, -4442.039,
-    ##     107997.909, 119.066, 16859.071, -4.578, 26895.292, -39.127, 12297.536,
-    ##     90073.778
-    ##     ) # z
 
     def __init__(self):
         self._time = None
@@ -607,42 +590,16 @@ class BaseCalendar(JulianPeriod):
 
     def alt_solar_longitude(self, tee):
         """
-        This uses data driectly from the book:
-        Planetary Programs and Tables from -4000 to +2800.
+        See the following links:
+        https://aa.usno.navy.mil/faq/sun_approx
+        https://squarewidget.com/solar-coordinates/
         """
-        IL = (403406, 195207, 119433, 112392, 3891, 2819, 1721, 0, 660, 350,
-              334, 314, 268, 242, 234, 158, 132, 129, 114, 99, 93, 86, 78, 72,
-              68, 64, 46, 38, 37, 32, 29, 28, 27, 27, 25, 24, 21, 21, 20, 18,
-              17, 14, 13, 13, 13, 12, 10, 10, 10, 10)
-        AL = (4.721964, 5.937458, 1.115589, 5.781616, 5.5474, 1.512, 4.1897,
-              1.163, 5.415, 4.315, 4.553, 5.198, 5.989, 2.911, 1.423, 0.061,
-              2.317, 3.193, 2.828, 0.52, 4.65, 4.35, 2.75, 4.5, 3.23, 1.22,
-              0.14, 3.44, 4.37, 1.14, 2.84, 5.96, 5.09, 1.72, 2.56, 1.92,
-              0.09, 5.98, 4.03, 4.27, 0.79, 4.24, 2.01, 2.65, 4.98, 0.93,
-              2.21, 3.59, 1.5, 2.55)
-        BL = (1.621043, 6283.348067, 6283.821524, 62829.634302, 125660.5691,
-              125660.9845, 62832.4766, 0.813, 125659.31, 57533.85, -33.931,
-              777137.715, 78604.191, 5.412, 39302.098, -34.861, 115067.698,
-              15774.337, 5296.67, 58849.27, 5296.11, -3980.7, 52237.69,
-              55076.47, 261.08, 15773.85, 188491.03, -7756.55, 264.89,
-              117906.27, 55075.75, -7961.39, 188489.81, 2132.19, 109771.03,
-              54868.56, 25443.93, -55731.43, 60697.74, 2132.79, 109771.63,
-              -7752.82, 188491.91, 207.81, 29424.63, -7.99, 46941.14, -68.29,
-              21463.25, 157208.4)
-        u = self.jd_from_moment(tee)
-        dl = 0.0
-
-        for i in range(50):
-            dl += IL[i] * math.sin(AL[i] + BL[i] * u)
-
-        dl = dl * 0.000005729577951308232 + 4.935392 + 62833.196168 * u
-        dl = dl % (2 * math.pi)
-
-        if dl < 0.0:
-            dl = dl + 2 * math.pi
-
-        return (math.degrees(dl) + self.aberration(tee)
-                + self.nutation(tee)) % 360
+        jd = self.jd_from_moment(tee)
+        d = jd - self.jd_from_moment(self.RD_J2000)
+        g = self.coterminal_angle(357.529 + 0.98560028 * d)
+        q = self.coterminal_angle(280.459 + 0.98564736 * d)
+        result = q + 1.915 * math.sin(g) + 0.02 * math.sin(2 * g)
+        return result
 
     def nutation(self, tee):
         """
@@ -719,8 +676,8 @@ class BaseCalendar(JulianPeriod):
             (min tee (- tau (* rate cap-Delta)))))
         """
         rate = self.MEAN_TROPICAL_YEAR / 360
-        tau = tee - (rate * ((self.solar_longitude(tee) - lam) % 360))
-        cap_delta = self.MOD3(self.solar_longitude(tau) - lam, -180, 180)
+        tau = tee - (rate * ((self.alt_solar_longitude(tee) - lam) % 360))
+        cap_delta = self.MOD3(self.alt_solar_longitude(tau) - lam, -180, 180)
         return min(tee, tau - rate * cap_delta)
 
     #
@@ -1024,7 +981,8 @@ class BaseCalendar(JulianPeriod):
         """
         phi = self.latitude
         tee_prime = self.universal_from_local(tee)
-        delta = self.declination(tee_prime, 0, self.solar_longitude(tee_prime))
+        delta = self.declination(tee_prime, 0,
+                                 self.alt_solar_longitude(tee_prime))
         return (self.tan_degrees(phi) * self.tan_degrees(delta) +
                 self.sin_degrees(alpha) / (self.cos_degrees(delta) *
                                            self.cos_degrees(phi)))
@@ -1097,6 +1055,9 @@ class BaseCalendar(JulianPeriod):
     def refraction(self, tee:float) -> float:
         """
         used
+
+        Refraction is the bending of the sun’s light by the Earth’s
+        atmosphere.
 
         (defun refraction (tee location)
           ;; TYPE (moment location) -> half-circle
@@ -1429,3 +1390,10 @@ class BaseCalendar(JulianPeriod):
             direc = 'N' if direction == 'LAT' else 'E'
 
         return degrees, minutes, seconds, direc
+
+    def coterminal_angle(self, value):
+        """
+        Find a Coterminal Angle.
+        """
+        value %= 360
+        return value + 360 if value < 0 else value

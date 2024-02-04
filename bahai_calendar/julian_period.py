@@ -24,14 +24,21 @@ class JulianPeriod:
     #  ;; TYPE moment
     #  ;; Noon at start of Gregorian year 2000.
     #  (+ (hr 12L0) (gregorian-new-year 2000)))
-    # https://aa.usno.navy.mil/faq/sun_approx 2451545.0
-    J2000 = 730120.5
+    RD_J2000 = 730120.5
+
+    # January 1, 2000, at 12:00 TT (Terrestrial Time)
+    # TAI = TT - 32.184 seconds
+    # January 1, 2000, 11:59:27.816 TAI (International Atomic Time)
+    # January 1, 2000, 11:58:55.816 UTC (Coordinated Universal Time)
+    # https://aa.usno.navy.mil/faq/sun_approx
+    J2000 = 2451545.0
 
     #(defconstant julian-epoch
     #  ;; TYPE fixed-date
     #  ;; Fixed date of start of the Julian calendar.
     #  (fixed-from-gregorian (gregorian-date 0 december 30)))
     JULIAN_EPOCH = -1
+
     # 28 (solar cycle) × 19 (lunar cycle) × 15 (indiction cycle) = 7980 years
     JULIAN_PERIOD = 7980
     JULIAN_YEAR = 365.25
@@ -175,7 +182,7 @@ class JulianPeriod:
           ;; Julian centuries since 2000 at moment tee.
           (/ (- (dynamical-from-universal tee) j2000) 36525))
         """
-        return (self.dynamical_from_universal(tee) - self.J2000) / 36525
+        return (self.dynamical_from_universal(tee) - self.RD_J2000) / 36525
 
     def julian_leap_year(self, j_year:float) -> bool:
         """

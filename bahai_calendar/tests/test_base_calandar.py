@@ -447,9 +447,9 @@ class TestBaseCalandar(unittest.TestCase):
         https://stellafane.org/misc/equinox.html
 
         Solar Position Calculator
-        https://gml.noaa.gov/grad/solcalc/azel.html
-        Greenwich lat: 51, 29, 36.24 N
-                  lon: 00, 00, 00.00 E
+        https://gml.noaa.gov/grad/solcalc/
+        Greenwich lat: 51, 29, 36.24 N (51.4934)
+                  lon: 00, 00, 00.00 E (0.0)
 
         Data from the book pages 225, 446 and 452
         ===============================================================
@@ -508,6 +508,80 @@ class TestBaseCalandar(unittest.TestCase):
 
         for tee, expected_result in data:
             result = self._bc.solar_longitude(tee)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_alt_solar_longitude(self):
+        """
+        Test that the solar_longitude method returns the longitude of
+        sun at moment tee.
+
+        Equinox & Solstice Calculator
+        https://stellafane.org/misc/equinox.html
+
+        Solar Position Calculator
+        https://gml.noaa.gov/grad/solcalc/
+        Greenwich lat: 51, 29, 36.24 N (51.4934)
+                  lon: 00, 00, 00.00 E (0.0)
+
+        Data from the book pages 225, 446 and 452
+        ===============================================================
+                                  Solar     Approximate      Season
+        Name
+                                  longitude date             length
+        ---------------------------------------------------------------
+        Vernal (spring) equinox     0◦      March 20         92.76 days
+        Summer solstice            90◦      June 21          93.65 days
+        Autumnal (fall) equinox   180◦      September 22−23  89.84 days
+        Winter solstice           270◦      December 21−22   88.99 days
+        """
+        data = (
+            # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
+            (738965.12921296296296296296, 357.04419198166175), # 0
+            # (2024, 6, 20) Summer solstice 2024-06-20T20:50:23 UTC
+            (739057.86832175925925925926, 90.11195106383903),  # 90
+            # (2024, 9, 22) Autumnal equinox 2024-09-22T12:43:12 UTC
+            (739151.53, 183.39425453494826),                   # 180
+            # (2024, 12, 21) Winter solstice 2024-12-21T09:19:54 UTC
+            (739241.38881944444444444444, 272.35241269293834), # 270
+            # (1800, 3, 20) Vernal equinox 1800-03-20T20:11:48 UTC
+            (657150.84152777777777777778, 357.97032859275566), # 0
+            # (1800, 6, 21) Summer solstice 1800-06-21T17:51:29 UTC
+            (657243.74408564814814814815, 90.66574929305018), # 90
+            # (1800, 9, 23) Autumnal equinox 1800-09-23T07:25:31 UTC
+            (657337.30938657407407407407, 179.98650666653378),  # 180
+            # (1800, 12, 22) Winter solstice 1800-12-22T00:16:24
+            (657427.01138888888888888889, 268.6335208164205), # 270
+            # (2073, 3, 20) Vernal equinox 2073-03-20T00:12:24 UTC
+            (756862.00861111111111111111, 356.2545621758088), # 0
+            # (2073, 6, 20) Summer solstice 2073-06-20T17:06:18 UTC
+            (756954.71270833333333333333, 91.2771129795312),  # 90
+            # (2073, 9, 22) Autumnal equinox 2073-09-22T09:14:10 UTC
+            (757048.38483796296296296296, 181.95382093003212),  # 180
+            # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
+            (757138.28450231481481481481, 271.70524477519655),  # 270
+            # (-586, 7, 24)
+            #(-214193, 118.98911336367019), # 118.98911336371384 Book value
+            # (576, 5, 20)
+            #(210155, 58.64246274798643),   # 59.119741
+            # (1288, 4, 2)
+            #(470160, 13.008819286362268),  # 13.498220
+            # (1553, 9, 19)
+            #(567118, 175.56893798499368),  # 176.059431
+            # (1768, 6, 19)
+            #(645554, 88.09044293293846),   # 88.567428
+            # (1941, 9, 29)
+            #(708842, 185.50156897346096),  # 185.945867
+            # (2038, 11, 10)
+            #(744313, 227.68273548343677),  # 228.184879
+            # (2094, 7, 18)
+            #(764652, 334.87117657772615),  # 116.439352 This is way off
+            )
+        msg = "Expected {}, found {}."
+
+        for tee, expected_result in data:
+            result = self._bc.alt_solar_longitude(tee)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
 
@@ -611,10 +685,10 @@ class TestBaseCalandar(unittest.TestCase):
         # 3. Test tee = 675334.5, early = True, alpha >= 0
         # 4. Test tee = 675334.5, early = True, alpha < 0
         data = (
-            (675334.5, 30.5, False, 675334.8564633271),
-            (675334.5, -30.5, False, 675334.6415703789),
-            (675334.5, 30.5, True, 675334.1435570861),
-            (675334.5, -30.5, True, 675334.3584500151),
+            (675334.5, 30.5, False, 675334.8564588708),
+            (675334.5, -30.5, False, 675334.6415658242),
+            (675334.5, 30.5, True, 675334.1435615424),
+            (675334.5, -30.5, True, 675334.3584545698),
             #(675334.5, 1000, True, None)
             )
         msg = "Expected {}, with alpha '{}' and early '{}', found {}."
@@ -634,7 +708,7 @@ class TestBaseCalandar(unittest.TestCase):
         tee = 675334.5
         alpha = 30.5
         result = self._bc.sine_offset(tee, alpha)
-        expected_result = 0.6200920920933394
+        expected_result = 0.6200701256619134
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
@@ -648,10 +722,10 @@ class TestBaseCalandar(unittest.TestCase):
         if depression angle is not reached.
         """
         data = (
-            (675334.856459419, 675334.5, False, 675334.6601682939),
-            (675334.6415663845, 675334.5, False, 675334.6601682939),
-            (675334.1435609942, 675334.5, True, 675334.3398532611),
-            (675334.3584540095, 675334.5, True, 675334.3398532611)
+            (675334.856459419, 675334.5, False, 675334.6601649774),
+            (675334.6415663845, 675334.5, False, 675334.6601649774),
+            (675334.1435609942, 675334.5, True, 675334.339858309),
+            (675334.3584540095, 675334.5, True, 675334.339858309)
             )
         msg = "Expected {}, with alpha '{}' and early '{}', found {}."
 
@@ -679,10 +753,10 @@ class TestBaseCalandar(unittest.TestCase):
         #    date      alpha               expected_result    location
         data = (
             # Greenwich (2024-01-20)
-            (738905.0, 0.8226397005246857, 738905.7525269118,
+            (738905.0, 0.8226397005246857, 738905.7525083687,
              (51.4777815, 0, 46.9, 0)),
             # Acre (2024-01-20)
-            (738905.0, 0.741981935570424, 738905.7377549361,
+            (738905.0, 0.741981935570424, 738905.7377463694,
              (32.94, 35.09, 22, 2)),
             )
         msg = "Expected {}, with date {} and alpha {}, found {}."
@@ -723,12 +797,12 @@ class TestBaseCalandar(unittest.TestCase):
             # New York (2024-01-20)
             #     Official: Sunset: 2024-01-20 16:57:32.839373-05:00
             # Astronomical: Sunset: 2024-01-20 18:33:38.288695-05:00
-            (738905, 738905.7499646139,
+            (738905, 738905.749950217,
              (40.7127281, -74.0060152, 10.0584, -5)),
             # Tehran (1844-03-20)
             #     Official: Sunset: 1844-03-20 18:11:15.013257+03:26
             # Astronomical: Sunset: 1844-03-20 19:36:34.035553+03:26
-            (673221, 673221.7559889737,
+            (673221, 673221.7559442059,
              (35.6892523, 51.3896004, 0, 3.5)),
             )
         msg = "Expected {}, found {}."
