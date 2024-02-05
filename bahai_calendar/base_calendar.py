@@ -75,7 +75,8 @@ class BaseCalendar(JulianPeriod):
     #  (if (= a b)
     #      x
     #    (+ a (mod (- x a) (- b a)))))
-    MOD3 = lambda self, x, a, b : x if a == b else a + (x - a) % (b - a)
+    MOD3 = lambda self, x, a, b : x if a == b else (
+        a + math.fmod((x - a), (b - a)))
 
     # (defun quotient (m n)
     #   ;; TYPE (real nonzero-real) -> integer
@@ -92,7 +93,7 @@ class BaseCalendar(JulianPeriod):
     #  ;; TYPE moment -> time
     #  ;; Time from moment tee.
     #  (mod tee 1))
-    TIME_FROM_MOMENT = lambda self, tee: tee % 1
+    TIME_FROM_MOMENT = lambda self, tee: math.fmod(tee, 1)
 
     # (defun rd (tee)
     #  ;; TYPE moment -> moment
@@ -586,7 +587,8 @@ class BaseCalendar(JulianPeriod):
                 self._sigma(
                     (self._COEFFICIENTS, self._ADDENDS, self._MULTIPLIERS),
                     lambda x, y, z, : x * self.sin_degrees(y + z * c))))
-        return (lam + self.aberration(tee) + self.nutation(tee)) % 360
+        return math.fmod((lam + self.aberration(tee)
+                          + self.nutation(tee)), 360)
 
     def alt_solar_longitude(self, tee):
         """
@@ -598,8 +600,7 @@ class BaseCalendar(JulianPeriod):
         d = jd - self.jd_from_moment(self.RD_J2000)
         g = self.coterminal_angle(357.529 + 0.98560028 * d)
         q = self.coterminal_angle(280.459 + 0.98564736 * d)
-        result = q + 1.915 * math.sin(g) + 0.02 * math.sin(2 * g)
-        return result
+        return q + 1.915 * math.sin(g) + 0.02 * math.sin(2 * g)
 
     def nutation(self, tee):
         """
@@ -675,8 +676,9 @@ class BaseCalendar(JulianPeriod):
                         -180 180)))
             (min tee (- tau (* rate cap-Delta)))))
         """
-        rate = self.MEAN_TROPICAL_YEAR / 360
-        tau = tee - (rate * ((self.alt_solar_longitude(tee) - lam) % 360))
+        rate = self.MEAN_TROPICAL_YEAR / 360 # always = 1.01456163611111111111
+        tau = tee - rate * (math.fmod(
+            (self.alt_solar_longitude(tee) - lam), 360))
         cap_delta = self.MOD3(self.alt_solar_longitude(tau) - lam, -180, 180)
         return min(tee, tau - rate * cap_delta)
 
@@ -892,11 +894,12 @@ class BaseCalendar(JulianPeriod):
                 phi-prime
               phi)))
         """
-        phi = (self.lunar_longitude(tee) - self.solar_longitude(tee)) % 360
+        phi = math.fmod((self.lunar_longitude(tee)
+                         - self.solar_longitude(tee)), 360)
         t0 = self.nth_new_moon(0)
         n = round((tee -t0) / self.MEAN_SYNODIC_MONTH)
-        phi_prime = (360 * (tee - self.nth_new_moon(n)) /
-                     self.MEAN_SYNODIC_MONTH) % 1
+        phi_prime = math.fmod((360 * (tee - self.nth_new_moon(n)) /
+                               self.MEAN_SYNODIC_MONTH), 1)
         return phi_prime if abs(phi - phi_prime) > 180 else phi
 
     #lunar-phase-at-or-before
@@ -989,6 +992,8 @@ class BaseCalendar(JulianPeriod):
 
     def moment_of_depression(self, approx, alpha, early=EVENING):
         """
+        used
+
         (defun moment-of-depression (approx location alpha early?)
           ;; TYPE (moment location half-circle boolean) - moment
           ;; Moment in local time near approx when depression angle of sun
@@ -1052,7 +1057,7 @@ class BaseCalendar(JulianPeriod):
                                            self.EVENING)
         return self.standard_from_local(result) if result else None
 
-    def refraction(self, tee:float) -> float:
+    def refraction(self) -> float:
         """
         used
 
@@ -1070,7 +1075,7 @@ class BaseCalendar(JulianPeriod):
             (+ (mins 34) dip (* (secs 19) (sqrt h)))))
         """
         h = max(0, self.elevation)
-        cap_r = 6.372 * 10**6 # Wikipedia average is 6371 Km
+        cap_r = 6.372e6 # Wikipedia average is 6371 Km
         dip = self.arccos_degrees(cap_r / (cap_r + h))
         return self.MINS(34) + dip + self.SECS(19) * math.sqrt(h)
 
@@ -1082,7 +1087,7 @@ class BaseCalendar(JulianPeriod):
           (let* ((alpha (+ (refraction (+ date (hr 6)) location) (mins 16))))
             (dawn date location alpha)))
         """
-        alpha = self.refraction(date + self.HR(6)) + self.MINS(16)
+        alpha = self.refraction() + self.MINS(16)
         return self.dawn(date, alpha)
 
     def sunset(self, date):
@@ -1096,7 +1101,7 @@ class BaseCalendar(JulianPeriod):
           (let* ((alpha (+ (refraction (+ date (hr 18)) location) (mins 16))))
             (dusk date location alpha)))
         """
-        alpha = self.refraction(date + self.HR(18)) + self.MINS(16)
+        alpha = self.refraction() + self.MINS(16)
         return self.dusk(date, alpha)
 
     #urbana-sunset
@@ -1191,7 +1196,7 @@ class BaseCalendar(JulianPeriod):
             alpha = math.degrees(math.atan2(y, x))
             result = alpha if x >= 0 else alpha + 180
 
-        return result % 360
+        return math.fmod(result, 360)
 
     def arcsin_degrees(self, x):
         """
@@ -1307,7 +1312,7 @@ class BaseCalendar(JulianPeriod):
                 result = (x,)
             else:
                 result = self._to_radix(self.QUOTIENT(x, b[-1]),
-                                        b[:-1]) + (x % b[-1],)
+                                        b[:-1]) + (math.fmod(x, b[-1]),)
         else:
             result = self._to_radix(x * reduce(mul, c), b + c)
 
@@ -1395,5 +1400,5 @@ class BaseCalendar(JulianPeriod):
         """
         Find a Coterminal Angle.
         """
-        value %= 360
+        value = math.fmod(value, 360)
         return value + 360 if value < 0 else value

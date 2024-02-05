@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#
+# This script generates the NOAA r.d. moments for dates 1788 - 2211.
+#
 
 import os
 import sys

@@ -57,12 +57,19 @@ class TestBadiCalandar(unittest.TestCase):
         of the first Kull-i-Shay, of the Bahá’í Era.
         [major, cycle, year, month, day]
         """
-        dt = datetime.datetime(1930, 4, 21)
-        self._bc.parse_datetime(dt)
-        result = self._bc.date_representation
-        expected_result = (1, 5, 11, 2, 13)
-        msg = f"Expected {expected_result}, found {result}"
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            ((1844, 3, 21), (1, 1, 1, 1, 1)),
+            ((1930, 4, 21), (1, 5, 11, 2, 13)),
+            #((), ()),
+            )
+        msg = "Expected {}, found {}"
+
+        for g_date, expected_result in data:
+            dt = datetime.datetime(*g_date)
+            self._bc.parse_datetime(dt)
+            result = self._bc.date_representation
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     @unittest.skip("Temporarily skipped")
     def test_date_representation(self):
@@ -105,11 +112,15 @@ class TestBadiCalandar(unittest.TestCase):
 
         Baha'i epoc in fixed date is 673222.
         """
-        fixed_date = 673222
-        result = self._bc.astro_bahai_new_year_on_or_before(fixed_date)
-        expected_result = 673222
-        msg = f"Expected {expected_result}, found {result}"
-        self.assertEqual(expected_result, result, msg)
+        data = (
+            (673222, 673222),
+            )
+        msg = "Expected result {}, found {}."
+
+        for date, expected_result in data:
+            result = self._bc.astro_bahai_new_year_on_or_before(date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_fixed_from_astro_bahai(self):
@@ -148,5 +159,3 @@ class TestBadiCalandar(unittest.TestCase):
             result = self._bc.astro_bahai_from_fixed(fixed_date)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
-
-

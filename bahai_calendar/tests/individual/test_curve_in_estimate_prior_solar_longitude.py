@@ -47,7 +47,7 @@ class TestVernalEquinox(BaseCalendar):
             g_date = gc.gregorian_from_fixed(ve_fixed)
             ve_date = self.convert_to_full_date(g_date)
             iso_date = self.convert_to_iso(ve_date)
-            season = self.get_solar_longitude(year)
+            season = self.get_solar_longitude(year, alt=True)
             data[year] = (ve_fixed, g_date, ve_date, iso_date, season)
 
         return data
@@ -76,10 +76,11 @@ class TestVernalEquinox(BaseCalendar):
         second = ve_date[5]
         return f"{year}-{month:>02}-{day}T{hour:>02}:{minute:>02}:{second:>02}"
 
-    def get_solar_longitude(self, year):
+    def get_solar_longitude(self, year, alt=True):
         gc = GregorianCalendar()
         tee = gc.fixed_from_gregorian((year, 3, 20))
-        return self.solar_longitude(tee)
+        return (self.alt_solar_longitude(tee) if alt
+                else self.solar_longitude(tee))
 
 
 if __name__ == "__main__":
@@ -89,11 +90,11 @@ if __name__ == "__main__":
     #pprint.pprint(data)
 
     # Date as seperate fields
-    #items = [values[2] for year, values in data.items()]
+    items = [values[2] for year, values in data.items()]
     #[print(f"{Y} {M} {D} {h} {m} {s}") for Y, M, D, h, m, s in items]
 
     # R.D. dates only
-    #[print(values[0]) for year, values in data.items()]
+    [print(values[0]) for year, values in data.items()]
 
     # Solar Longitude Season
-    [print(values[4]) for year, values in data.items()]
+    #[print(values[4]) for year, values in data.items()]
