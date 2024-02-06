@@ -42,9 +42,13 @@ class JulianPeriod:
     # 28 (solar cycle) × 19 (lunar cycle) × 15 (indiction cycle) = 7980 years
     JULIAN_PERIOD = 7980
     JULIAN_YEAR = 365.25
-    JULIAN_MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    _MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     JD_EPOCH = -1721424.5
     MJD_EPOCH = 678576
+
+    # ((MOD(year, 4) = 0) * ((MOD(year, 100) <> 0) + (MOD(year, 400) = 0)) = 1)
+    GREGORIAN_LEAP_YEAR = lambda self, year: (
+        (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
 
     def __init__(self):
         super().__init__()
@@ -65,8 +69,8 @@ class JulianPeriod:
         days_remaining = jd - (year - 1) * self.JULIAN_YEAR
         accumulated_days = 0
 
-        for month, md in enumerate(self.JULIAN_MONTHS, start=1):
-            if month == 2: # Subtract 0 or  1 from Febuary if leap year.
+        for month, md in enumerate(self._MONTHS, start=1):
+            if month == 2: # Subtract 0 or 1 from Febuary if leap year.
                 md -= 0 if self.julian_leap_year(jd) else 1
 
             accumulated_days += md
@@ -90,7 +94,7 @@ class JulianPeriod:
         day = date[3]
         days = (period - 1) * self.JULIAN_PERIOD
         days += (year - 1) * self.JULIAN_YEAR
-        days += sum([md for md in self.JULIAN_MONTHS[:month - 1]])
+        days += sum([md for md in self._MONTHS[:month - 1]])
         days += day
 
         if month >= 2 and not self.julian_leap_year(days):
@@ -285,20 +289,37 @@ class JulianPeriod:
         day = (date - self.fixed_from_julian((year, month, 1))) + 1
         return (1, year, month, day) # ** TODO ** Do something with the period.
 
-    def julian_from_gregorian(self, g_date:tuple) -> int:
+    def julian_from_gregorian(self, g_date:tuple) -> float:
         """
-        Convert Gregorian dates to Julian day count.
-        https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
+        Convert Gregorian dates to Julian day count with the 1582 10, 15
+        correction.
+
+        .. note::
+
+          See Astronomical Formulae for Calculators Enlarged & Revised,
+          by Jean Meeus
         """
         year = g_date[0]
-        month = g_date[1]
-        day = g_date[2]
-        a = math.floor(year / 100)
-        b = math.floor(a / 4)
-        c = 2 - a + b
-        e = math.floor(365.25 * (year + 4716))
-        f = math.floor(30.6001 * (month + 1))
-        return c + day + e + f - 1524.5
+        month = abs(g_date[1])
+        day = abs(g_date[2])
+        self._check_valid_gregorian_month_day(g_date)
+
+        if month > 2:
+            y = year
+            m = month
+        elif month <= 2:
+            y = year - 1
+            m = month + 12
+
+        a = int(365.25 * y - (0 if y >= 0 else 0.75))
+        jd = a + int(30.6001 * (m + 1)) + day + 1720994.5
+
+        if g_date >= (1582, 10, 15):
+            b = int(y / 100)
+            c = 2 - b + int(b / 4)
+            jd += c
+
+        return jd
 
     def gregorian_from_julian(self, jd:float) -> tuple:
         """
@@ -319,6 +340,37 @@ class JulianPeriod:
         year = c - 4715 if month in (1, 2) else c - 4716
         return (year, month, day)
 
+    def gregorian_from_julian_1582_correction(self, jd:float) -> tuple:
+        """
+        """
+        pass
+
+
+
+
+    def _check_valid_gregorian_month_day(self, g_date:tuple) -> bool:
+        """
+        Check that the monmth and day values are valid.
+
+        ** TODO ** Move to the GregorianCalendar
+        """
+        from .gregorian_calendar import GregorianCalendar
+
+        year = g_date[0]
+        month = abs(g_date[1])
+        day = abs(g_date[2])
+        assert 1 <= month <= 12, f"Invalid month '{month}', should be 1 - 12."
+
+        for mo, md in enumerate(self._MONTHS, start=1):
+            if mo == 2 == month: # Subtract 0 or 1 from Febuary if leap year.
+                md -= 0 if GregorianCalendar.GREGORIAN_LEAP_YEAR(year) else 1
+                break
+            elif mo == month:
+                break
+
+        assert 1 <= day <= self._MONTHS[mo-1], (
+            f"Invalid day '{day}' for month '{month}' should be 1 - {md}.")
+
     ## def fixed_from_julian_day(self, jd:float) -> float:
     ##     """
     ##     Convert Julian day to fixed moment.
@@ -334,4 +386,4 @@ class JulianPeriod:
     ##     """
     ##     Convert a fixed day to a Julian day.
     ##     """
-        
+
