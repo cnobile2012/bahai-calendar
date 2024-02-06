@@ -32,6 +32,7 @@ class GregorianCalendar(BaseCalendar):
     OCTOBER = 10
     NOVEMBER = 11
     DECEMBER = 12
+    _MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
     #(defun gregorian-leap-year? (g-year)
     #  ;; TYPE gregorian-year -> boolean
@@ -91,6 +92,7 @@ class GregorianCalendar(BaseCalendar):
                    -2))
                day)))                 ; Days so far this month.
         """
+        self._check_valid_gregorian_month_day(g_date)
         year = g_date[0]
         month = g_date[1]
         day = g_date[2]
@@ -213,13 +215,15 @@ class GregorianCalendar(BaseCalendar):
           (- (fixed-from-gregorian g-date2)
              (fixed-from-gregorian g-date1)))
         """
+        self._check_valid_gregorian_month_day(g_date1)
+        self._check_valid_gregorian_month_day(g_date2)
         return (self.fixed_from_gregorian(g_date1) -
                 self.fixed_from_gregorian(g_date2))
 
     #days-remaining
     #last-day-of-gregorian-month
 
-    def alt_fixed_from_gregorian(self, g_date):
+    def alt_fixed_from_gregorian(self, g_date:tuple) -> int:
         """
         (defun alt-fixed-from-gregorian (g-date)
           ;; TYPE gregorian-date -> fixed-date
@@ -311,3 +315,19 @@ class GregorianCalendar(BaseCalendar):
         start = self.GREGORIAN_EPOCH + 365 * approx + self._sigma(
             (self._to_radix(approx, (4, 25, 4)), (97, 24, 1, 0)), func)
         return approx if date < start else approx + 1
+
+    def _check_valid_gregorian_month_day(self, g_date:tuple) -> bool:
+        """
+        Check that the monmth and day values are valid.
+        """
+        year = g_date[0]
+        month = abs(g_date[1])
+        day = abs(g_date[2])
+        assert 1 <= month <= 12, f"Invalid month '{month}', should be 1 - 12."
+        days = self._MONTHS[month - 1]
+
+        if month == 2: # Subtract 0 or 1 from Febuary if leap year.
+            days -= 0 if self.GREGORIAN_LEAP_YEAR(year) else 1
+
+        assert 1 <= day <= days, (
+            f"Invalid day '{day}' for month '{month}' should be 1 - {days}.")

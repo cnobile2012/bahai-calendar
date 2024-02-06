@@ -42,13 +42,8 @@ class JulianPeriod:
     # 28 (solar cycle) × 19 (lunar cycle) × 15 (indiction cycle) = 7980 years
     JULIAN_PERIOD = 7980
     JULIAN_YEAR = 365.25
-    _MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     JD_EPOCH = -1721424.5
     MJD_EPOCH = 678576
-
-    # ((MOD(year, 4) = 0) * ((MOD(year, 100) <> 0) + (MOD(year, 400) = 0)) = 1)
-    GREGORIAN_LEAP_YEAR = lambda self, year: (
-        (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
 
     def __init__(self):
         super().__init__()
@@ -63,13 +58,15 @@ class JulianPeriod:
 
            The Julian Period is 13 days behind the Gregorian Calendar.
         """
+        from .gregorian_clendar import GregorianCalendar
+
         c = jd / self.JULIAN_YEAR
         period = math.floor(c / self.JULIAN_PERIOD) + 1
         year = math.floor(c) + 1
         days_remaining = jd - (year - 1) * self.JULIAN_YEAR
         accumulated_days = 0
 
-        for month, md in enumerate(self._MONTHS, start=1):
+        for month, md in enumerate(GregorianCalendar._MONTHS, start=1):
             if month == 2: # Subtract 0 or 1 from Febuary if leap year.
                 md -= 0 if self.julian_leap_year(jd) else 1
 
@@ -88,13 +85,15 @@ class JulianPeriod:
         JDN = 367 * Y − (7 * (Y + 5001 + (M − 9) / 7))
               / 4 + (275 * M) / 9 + D + 1729777
         """
+        from .gregorian_clendar import GregorianCalendar
+
         period = date[0]
         year = date[1]
         month = date[2]
         day = date[3]
         days = (period - 1) * self.JULIAN_PERIOD
         days += (year - 1) * self.JULIAN_YEAR
-        days += sum([md for md in self._MONTHS[:month - 1]])
+        days += sum([md for md in GregorianCalendar._MONTHS[:month - 1]])
         days += day
 
         if month >= 2 and not self.julian_leap_year(days):
@@ -299,10 +298,12 @@ class JulianPeriod:
           See Astronomical Formulae for Calculators Enlarged & Revised,
           by Jean Meeus
         """
+        from .gregorian_calendar import GregorianCalendar
+        gc = GregorianCalendar()
         year = g_date[0]
         month = abs(g_date[1])
         day = abs(g_date[2])
-        self._check_valid_gregorian_month_day(g_date)
+        gc._check_valid_gregorian_month_day(g_date)
 
         if month > 2:
             y = year
@@ -347,29 +348,6 @@ class JulianPeriod:
 
 
 
-
-    def _check_valid_gregorian_month_day(self, g_date:tuple) -> bool:
-        """
-        Check that the monmth and day values are valid.
-
-        ** TODO ** Move to the GregorianCalendar
-        """
-        from .gregorian_calendar import GregorianCalendar
-
-        year = g_date[0]
-        month = abs(g_date[1])
-        day = abs(g_date[2])
-        assert 1 <= month <= 12, f"Invalid month '{month}', should be 1 - 12."
-
-        for mo, md in enumerate(self._MONTHS, start=1):
-            if mo == 2 == month: # Subtract 0 or 1 from Febuary if leap year.
-                md -= 0 if GregorianCalendar.GREGORIAN_LEAP_YEAR(year) else 1
-                break
-            elif mo == month:
-                break
-
-        assert 1 <= day <= self._MONTHS[mo-1], (
-            f"Invalid day '{day}' for month '{month}' should be 1 - {md}.")
 
     ## def fixed_from_julian_day(self, jd:float) -> float:
     ##     """

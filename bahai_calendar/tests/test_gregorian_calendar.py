@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# bahai_calendar/test/test_gregorian_calandar.py
+# bahai_calendar/test/test_gregorian_calendar.py
 #
 __docformat__ = "restructuredtext en"
 
@@ -12,7 +12,7 @@ import unittest
 from ..gregorian_calendar import GregorianCalendar
 
 
-class TestGregorianCalandar(unittest.TestCase):
+class TestGregorianCalendar(unittest.TestCase):
     """
     This test class provides unittests for the GregorianCalendar class.
     Many tests use the Gregorian dates and their cooesponding fixed dates
@@ -206,3 +206,45 @@ class TestGregorianCalandar(unittest.TestCase):
             self.assertEqual(
                 expected_result, result,
                 msg.format(expected_result, expected_result, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__check_valid_gregorian_month_day(self):
+        """
+        Check that the month and day in a gregorian date are in bounds.
+        """
+        year = 2024
+
+        # Test correct dates
+        for month in range(1, 13):
+            for days in range(self._gc._MONTHS[month - 1]):
+                if month == 2: # Subtract 0 or 1 from Febuary if leap year.
+                    days -= 0 if self._gc.GREGORIAN_LEAP_YEAR(year) else 1
+
+                for day in range(1, days+1):
+                    date = (2024, month, day)
+                    self._gc._check_valid_gregorian_month_day(date)
+
+        # Test invalid month
+        month = 14
+        date = (year, month, 30)
+        msg = f"Invalid month '{month}', should be 1 - 12."
+
+        with self.assertRaises(AssertionError) as cm:
+            self._gc._check_valid_gregorian_month_day(date)
+
+        message = str(cm.exception)
+        self.assertEqual(msg, message)
+
+        # Test invalid dates
+        day = 32
+        msg = "Invalid day '{}' for month '{}' should be 1 - {}."
+
+        for month in range(1, 13):
+            date = (year, month, day)
+            err_msg = msg.format(day, month, self._gc._MONTHS[month - 1])
+
+            with self.assertRaises(AssertionError) as cm:
+                self._gc._check_valid_gregorian_month_day(date)
+
+            message = str(cm.exception)
+            self.assertEqual(err_msg, message)
