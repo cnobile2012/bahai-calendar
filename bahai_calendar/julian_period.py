@@ -326,28 +326,35 @@ class JulianPeriod:
         """
         Convert Julian day to Gregorian date.
         """
-        q = jd + 0.5
-        z = math.floor(q)
-        w = math.floor((z - 1867216.25) / 36524.25)
-        x = math.floor(w / 4)
-        a = z + 1 + w - x
+        a = jd + 0.5
+        z = int(a)
+        f = a % 1
+
+        if z < 2299161:
+            a = z
+        else:
+            alpha = int((z - 1867216.25) / 36524.25)
+            a = z + 1 + alpha - int(alpha / 4)
+
         b = a + 1524
-        c = math.floor((b - 122.1) / 365.25)
-        d = math.floor(365.25 * c)
-        e = math.floor((b - d) / 30.6001)
-        f = math.floor(30.6001 * e)
-        day = int(b - d - f + ( q - z))
-        month = e - 1 if e <= 12 else e - 13
-        year = c - 4715 if month in (1, 2) else c - 4716
+        c = int((b - 122.1) / 365.25)
+        d = int(365.25 * c)
+        e = int((b - d) / 30.6001)
+        day = b - d - int(30.6001 * e) + f
+        month = 0
+        year = 0
+
+        if e < 13.5:
+            month = e - 1
+        elif e > 13.5:
+            month = e - 13
+
+        if month > 2.5:
+            year = c - 4716
+        elif month < 2.5:
+            year = c - 4715
+
         return (year, month, day)
-
-    def gregorian_from_julian_1582_correction(self, jd:float) -> tuple:
-        """
-        """
-        pass
-
-
-
 
     ## def fixed_from_julian_day(self, jd:float) -> float:
     ##     """

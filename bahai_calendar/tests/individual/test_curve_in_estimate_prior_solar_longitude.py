@@ -90,7 +90,7 @@ if __name__ == "__main__":
     #pprint.pprint(data)
 
     # Date as seperate fields
-    items = [values[2] for year, values in data.items()]
+    #items = [values[2] for year, values in data.items()]
     #[print(f"{Y} {M} {D} {h} {m} {s}") for Y, M, D, h, m, s in items]
 
     # R.D. dates only
