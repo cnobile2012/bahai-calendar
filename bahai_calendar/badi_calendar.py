@@ -85,12 +85,14 @@ class BahaiCalendar(BaseCalendar):
                 (<= (solar-longitude (bahai-sunset day))
                     (+ spring (deg 2))))))
         """
-        approx = self.estimate_prior_solar_longitude(
-            self.SPRING, self.bahai_sunset(date))
+        #approx = self.estimate_prior_solar_longitude(
+        #    self.SPRING, self.bahai_sunset(date))
+        approx = self.find_equinoxes_or_solstices(
+            self.bahai_sunset(date), lam=self.SPRING)
         initial = math.floor(approx) - 1
         #print(date, approx, initial)
-        condition = lambda day: (self.solar_longitude(self.bahai_sunset(day))
-                                 <= (self.SPRING + 2))
+        condition = lambda day: (self.alt_solar_longitude(
+            self.bahai_sunset(day)) <= (self.SPRING + 2))
         return self._next(initial, condition)
 
     def fixed_from_astro_bahai(self, b_date:tuple) -> float:

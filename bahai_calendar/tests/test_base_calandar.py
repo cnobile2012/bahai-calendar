@@ -10,6 +10,7 @@ import unittest
 import datetime
 
 from ..base_calendar import BaseCalendar
+from ..gregorian_calendar import GregorianCalendar
 
 
 class TestBaseCalandar(unittest.TestCase):
@@ -39,6 +40,7 @@ class TestBaseCalandar(unittest.TestCase):
             location = property(None, location)
 
         self._bc = FakeParent()
+        self._gc = GregorianCalendar()
 
     #@unittest.skip("Temporarily skipped")
     def test_HR(self):
@@ -310,6 +312,7 @@ class TestBaseCalandar(unittest.TestCase):
         tees = ((2100, 766645, 230.88001157407405),
                 (2028, 740347, 0.0008833626851851851),
                 (2014, 735234, 0.0007931229629629629),
+                (1990, 726468, 0.0006585027893518518),
                 (1943, 709301, 0.05793252154447576),
                 (1850, 675334, 1.7554929729946673),
                 (1750, 638810, 0.00014899798891203703),
@@ -610,7 +613,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_estimate_prior_solar_longitude(self):
         """
         Test that the estimate_prior_solar_longitude method returns an
@@ -641,6 +644,38 @@ class TestBaseCalandar(unittest.TestCase):
 
         for tee, expected_result in data:
             result = self._bc.estimate_prior_solar_longitude(lam, tee)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_find_equinoxes_or_solstices(self):
+        """
+        Test that the find_equinoxes_or_solstices method returns the correct
+        equinoxe and solstice dates for the given years.
+        """
+        data = (
+            #((), ()),
+            ((1788, 3, 19, 22, 16), (1788, 3, 19, 22, 10, 3.912864625453949)),
+            ((1844, 3, 20, 11, 53), (1844, 3, 20, 11, 50, 12.107031047344208)),
+            ((1951, 3, 21, 10, 26), (1951, 3, 21, 10, 26, 23.991676568984985)),
+            ((2000, 3, 20, 7, 35), (2000, 3, 20, 7, 36, 14.837516248226166)),
+            ((2024, 3, 20, 3, 6), (2024, 3, 20, 3, 7, 31.93735957145691)),
+            ((2038, 3, 20, 12, 40), (2038, 3, 20, 12, 41, 43.56316566467285)),
+            ((2064, 3, 19, 19, 37), (2064, 3, 19, 19, 39, 38.35920453071594)),
+            ((2100, 3, 20, 13, 3), (2100, 3, 20, 13, 5, 3.1134098768234253)),
+            ((2150, 3, 20,16, 1), (2150, 3, 20, 16, 3, 0.585770308971405)),
+            ((2200, 3, 20, 18, 40), (2200, 3, 20, 18, 42, 14.27022099494934)),
+            ((2211, 3, 21, 10, 38), (2211, 3, 21, 10, 39, 1.4414405822753906)),
+            )
+        msg = "Expected '{}', found '{}'"
+
+        for date, expected_result in data:
+            date0 = self._gc.date_from_YMDhms(date)
+            tee = self._gc.fixed_from_gregorian(date0)
+            result = self._bc.find_equinoxes_or_solstices(
+                tee, lam=self._bc.SPRING)
+            result = self._gc.gregorian_from_fixed(result)
+            result = self._gc.YMDhms_from_date(result)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
 

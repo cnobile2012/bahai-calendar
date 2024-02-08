@@ -106,6 +106,10 @@ class BaseCalendar(JulianPeriod):
     # to implement this function.
     #RD = tee - 0
 
+    PARTIAL_DAY_TO_HOURS = lambda self, x: (x % 1) * 24
+    PARTIAL_HOUR_TO_MINUTE = lambda self, x: (x % 1) * 60
+    PARTIAL_MINUTE_TO_SECOND = PARTIAL_HOUR_TO_MINUTE
+
     MEAN_TROPICAL_YEAR = 365.242189
     MEAN_SIDEREAL_YEAR = 365.25636
 
@@ -528,6 +532,8 @@ class BaseCalendar(JulianPeriod):
 
     def solar_longitude(self, tee):
         '''
+        Find the solar longitude in degrees (0 - 360).
+
         used
 
         (defun solar-longitude (tee)
@@ -587,11 +593,12 @@ class BaseCalendar(JulianPeriod):
                 self._sigma(
                     (self._COEFFICIENTS, self._ADDENDS, self._MULTIPLIERS),
                     lambda x, y, z, : x * self.sin_degrees(y + z * c))))
-        return math.fmod((lam + self.aberration(tee)
-                          + self.nutation(tee)), 360)
+        return math.fmod((lam + self.aberration(tee) + self.nutation(tee)), 360)
 
     def alt_solar_longitude(self, tee):
         """
+        Find the solar longitude in degrees (0 - 360).
+
         See the following links:
         https://aa.usno.navy.mil/faq/sun_approx
         https://squarewidget.com/solar-coordinates/
@@ -682,9 +689,11 @@ class BaseCalendar(JulianPeriod):
         cap_delta = self.MOD3(self.alt_solar_longitude(tau) - lam, -180, 180)
         return min(tee, tau - rate * cap_delta)
 
-    def alt_estimate_prior_solar_longitude(self, lam:int, tee:int) -> float:
+    def find_equinoxes_or_solstices(self, tee:int, lam:int=SPRING) -> float:
         """
         Alternate method for finding he equinoxes or solstices.
+
+        See: Astronomical Algorithms, 1998, by Jean Meeus Chapter 24
         """
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
@@ -725,16 +734,17 @@ class BaseCalendar(JulianPeriod):
         t = (jde - 2451545.0) / 36525
         w = 35999.373 * t - 2.47
         delta_lon = 1 + 0.0334 * math.cos(w + 0.0007) * math.cos(2 * w)
-        a = (485, 203, 199, 182, 156, 136, 77, 74, 70, 58, 52, 50,
-             45, 44, 29, 18, 17, 16, 14, 12, 12, 12, 9, 8)
-        b = (324.96, 337.23, 342.08, 27.85, 73.14, 171.52, 222.54, 296.72,
-             243.58, 119.81, 297.17, 21.02, 247.54, 325.15, 60.93, 155.12,
-             288.79, 198.04, 199.76, 95.39, 287.11, 320.81, 227.73, 15.45)
-        c = (1934.134, 32964.467, 20.186, 445267.112, 45036.886, 22518.443,
-             65928.934, 3034.906, 9037.513, 33718.147, 150.678, 2281.226,
-             29929.562, 31555.956, 4443.417, 67555.328, 4562.452, 62894.029,
-             31436.921, 14577.848, 31931.756, 34777.259, 1222.114, 16859.074)
-        s = self._sigma((a, b, c), lambda a, b, c: a * math.cos(b + c))
+        a0 = (485, 203, 199, 182, 156, 136, 77, 74, 70, 58, 52, 50,
+              45, 44, 29, 18, 17, 16, 14, 12, 12, 12, 9, 8)
+        b0 = (324.96, 337.23, 342.08, 27.85, 73.14, 171.52, 222.54, 296.72,
+              243.58, 119.81, 297.17, 21.02, 247.54, 325.15, 60.93, 155.12,
+              288.79, 198.04, 199.76, 95.39, 287.11, 320.81, 227.73, 15.45)
+        c0 = (1934.134, 32964.467, 20.186, 445267.112, 45036.886, 22518.443,
+              65928.934, 3034.906, 9037.513, 33718.147, 150.678, 2281.226,
+              29929.562, 31555.956, 4443.417, 67555.328, 4562.452, 62894.029,
+              31436.921, 14577.848, 31931.756, 34777.259, 1222.114, 16859.074)
+        s = self._sigma(
+            (a0, b0, c0), lambda a, b, c: a * self.cos_degrees(b + c * t))
         return self.moment_from_jd(jde + (0.00001 * s) / delta_lon)
 
     #
@@ -1451,9 +1461,10 @@ class BaseCalendar(JulianPeriod):
 
         return degrees, minutes, seconds, direc
 
-    def coterminal_angle(self, value):
+    def coterminal_angle(self, value:float) -> float:
         """
         Find a Coterminal Angle.
         """
         value = math.fmod(value, 360)
         return value + 360 if value < 0 else value
+

@@ -316,6 +316,36 @@ class GregorianCalendar(BaseCalendar):
             (self._to_radix(approx, (4, 25, 4)), (97, 24, 1, 0)), func)
         return approx if date < start else approx + 1
 
+    def date_from_YMDhms(self, date:tuple) -> tuple:
+        """
+        Convert (year, month, day, hour, minute, second) into a
+        (year, month, day.partial) date.
+        """
+        t_len = len(date)
+        year = date[0]
+        month = date[1]
+        day = date[2]
+        hour = date[3] if t_len > 3 and date[3] is not None else 0
+        minute = date[4] if t_len > 4 and date[4] is not None else 0
+        second = date[5] if t_len > 5 and date[5] is not None else 0
+        day += self.HR(hour) + self.MN(minute) + self.SEC(second)
+        return (year, month, day)
+
+    def YMDhms_from_date(self, date:tuple) -> tuple:
+        """
+        Convert (year, month, day.partial) into a
+        (year, month, day, hour, minute, second).
+        """
+        year = date[0]
+        month = date[1]
+        day = date[2]
+        hd = self.PARTIAL_DAY_TO_HOURS(day)
+        hour = math.floor(hd)
+        md = self.PARTIAL_HOUR_TO_MINUTE(hd)
+        minute = math.floor(md)
+        second = self.PARTIAL_MINUTE_TO_SECOND(md)
+        return (year, month, math.floor(day), hour, minute, second)
+
     def _check_valid_gregorian_month_day(self, g_date:tuple) -> bool:
         """
         Check that the monmth and day values are valid.

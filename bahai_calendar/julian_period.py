@@ -58,7 +58,7 @@ class JulianPeriod:
 
            The Julian Period is 13 days behind the Gregorian Calendar.
         """
-        from .gregorian_clendar import GregorianCalendar
+        from .gregorian_calendar import GregorianCalendar
 
         c = jd / self.JULIAN_YEAR
         period = math.floor(c / self.JULIAN_PERIOD) + 1
@@ -85,7 +85,7 @@ class JulianPeriod:
         JDN = 367 * Y − (7 * (Y + 5001 + (M − 9) / 7))
               / 4 + (275 * M) / 9 + D + 1729777
         """
-        from .gregorian_clendar import GregorianCalendar
+        from .gregorian_calendar import GregorianCalendar
 
         period = date[0]
         year = date[1]
