@@ -986,6 +986,8 @@ class BaseCalendar(JulianPeriod):
     def approx_moment_of_depression(self, tee:float, alpha:float,
                                     early:bool) -> float:
         """
+        used
+
         (defun approx-moment-of-depression (tee location alpha early?)
           ;; TYPE (moment location half-circle boolean) - moment
           ;; Moment in local time near tee when depression angle of sun

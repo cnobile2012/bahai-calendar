@@ -624,7 +624,7 @@ class TestBaseCalandar(unittest.TestCase):
         printed in Astronomical Tables of the Sun, Moon, and Planets,
         by Jean Meeus, 1983 published by Willmann-Bell, Inc., Richmond,
         Virginia 23235, U.S.A.
-        See https://nshdpi.ca/is/equinox/vern1788-2211.html
+        See https://nshdpi.ca/is/equinox/eqindex.html
 
         The solar longitude starts at the moment of the Vernal Equinox.
         Both results seem to be off the correct date and time.
@@ -653,31 +653,58 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the find_equinoxes_or_solstices method returns the correct
         equinoxe and solstice dates for the given years.
         """
+        SP = self._bc.SPRING
+        SM = self._bc.SUMMER
+        AU = self._bc.AUTUMN
+        WN = self._bc.WINTER
+        seasons = {SP: 'SPRING', SM: 'SUMMER', AU: 'AUTUMN', WN: 'WINTER'}
         data = (
-            #((), ()),
-            ((1788, 3, 19, 22, 16), (1788, 3, 19, 22, 10, 3.912864625453949)),
-            ((1844, 3, 20, 11, 53), (1844, 3, 20, 11, 50, 12.107031047344208)),
-            ((1951, 3, 21, 10, 26), (1951, 3, 21, 10, 26, 23.991676568984985)),
-            ((2000, 3, 20, 7, 35), (2000, 3, 20, 7, 36, 14.837516248226166)),
-            ((2024, 3, 20, 3, 6), (2024, 3, 20, 3, 7, 31.93735957145691)),
-            ((2038, 3, 20, 12, 40), (2038, 3, 20, 12, 41, 43.56316566467285)),
-            ((2064, 3, 19, 19, 37), (2064, 3, 19, 19, 39, 38.35920453071594)),
-            ((2100, 3, 20, 13, 3), (2100, 3, 20, 13, 5, 3.1134098768234253)),
-            ((2150, 3, 20,16, 1), (2150, 3, 20, 16, 3, 0.585770308971405)),
-            ((2200, 3, 20, 18, 40), (2200, 3, 20, 18, 42, 14.27022099494934)),
-            ((2211, 3, 21, 10, 38), (2211, 3, 21, 10, 39, 1.4414405822753906)),
+            # Vernal Equinoxe
+            ((900, 3, 1), SP,
+             (900, 3, 20, 18, 19, 21.152683943510056)),
+            ((1788, 3, 19, 22, 16), SP,
+             (1788, 3, 19, 22, 10, 3.912864625453949)),
+            ((1844, 3, 20, 11, 53), SP,
+             (1844, 3, 20, 11, 50, 12.107031047344208)),
+            ((1951, 3, 21, 10, 26), SP,
+             (1951, 3, 21, 10, 26, 23.991676568984985)),
+            ((2000, 3, 20, 7, 35), SP,
+             (2000, 3, 20, 7, 36, 14.837516248226166)),
+            ((2024, 3, 20, 3, 6), SP,
+             (2024, 3, 20, 3, 7, 31.93735957145691)),
+            ((2038, 3, 20, 12, 40), SP,
+             (2038, 3, 20, 12, 41, 43.56316566467285)),
+            ((2064, 3, 19, 19, 37), SP,
+             (2064, 3, 19, 19, 39, 38.35920453071594)),
+            ((2100, 3, 20, 13, 3), SP,
+             (2100, 3, 20, 13, 5, 3.1134098768234253)),
+            ((2150, 3, 20,16, 1), SP,
+             (2150, 3, 20, 16, 3, 0.585770308971405)),
+            ((2200, 3, 20, 18, 40), SP,
+             (2200, 3, 20, 18, 42, 14.27022099494934)),
+            ((2211, 3, 21, 10, 38), SP,
+             (2211, 3, 21, 10, 39, 1.4414405822753906)),
+            # Summer Solstice
+            ((900, 6, 1), SM, (900, 6, 22, 6, 32, 8.929609805345535)),
+            ((2000, 6, 1), SM, (2000, 6, 21, 1, 48, 47.52878665924072)),
+            # Autumn Equinox
+            ((900, 9, 1), AU, (900, 9, 23, 8, 39, 48.59868496656418)),
+            ((2000, 9, 1), AU, (2000, 9, 22, 17, 28, 54.43293124437332)),
+            # Winter Solstice
+            ((900, 12, 1), WN, (900, 12, 21, 11, 58, 6.4360615611076355)),
+            ((2000, 12, 1), WN, (2000, 12, 21, 13, 39, 3.450602889060974)),
             )
-        msg = "Expected '{}', found '{}'"
+        msg = "Expected '{}' during the {}, found '{}'"
 
-        for date, expected_result in data:
+        for date, season, expected_result in data:
             date0 = self._gc.date_from_YMDhms(date)
             tee = self._gc.fixed_from_gregorian(date0)
-            result = self._bc.find_equinoxes_or_solstices(
-                tee, lam=self._bc.SPRING)
+            result = self._bc.find_equinoxes_or_solstices(tee, lam=season)
             result = self._gc.gregorian_from_fixed(result)
             result = self._gc.YMDhms_from_date(result)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+            self.assertEqual(
+                expected_result, result,
+                msg.format(expected_result, seasons[season], result))
 
     @unittest.skip("Temporarily skipped")
     def test_nth_new_moon(self):
