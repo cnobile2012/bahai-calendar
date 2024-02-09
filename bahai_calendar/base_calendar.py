@@ -689,7 +689,8 @@ class BaseCalendar(JulianPeriod):
         cap_delta = self.MOD3(self.alt_solar_longitude(tau) - lam, -180, 180)
         return min(tee, tau - rate * cap_delta)
 
-    def find_equinoxes_or_solstices(self, tee:int, lam:int=SPRING) -> float:
+    def find_moment_of_equinoxes_or_solstices(self, tee:int,
+                                              lam:int=SPRING) -> float:
         """
         Alternate method for finding he equinoxes or solstices.
 
@@ -752,184 +753,10 @@ class BaseCalendar(JulianPeriod):
     #
 
     #mean-synodic-month
-
-    def nth_new_moon(self, n):
-        '''
-        (defun nth-new-moon (n)
-          ;; TYPE integer -> moment
-          ;; Moment of n-th new moon after (or before) the new moon
-          ;; of January 11, 1. Adapted from "Astronomical Algorithms"
-          ;; by Jean Meeus, Willmann-Bell, corrected 2nd edn., 2005.
-          (let* ((n0 24724)              ; Months from RD 0 until j2000.
-                 (k (- n n0))            ; Months since j2000.
-                 (c (/ k 1236.85L0))     ; Julian centuries.
-                 (approx (+ j2000
-                            (poly c (list 5.09766L0
-                                          (* mean-synodic-month
-                                             1236.85L0)
-                                          0.00015437L0
-                                          -0.000000150L0
-                                          0.00000000073L0))))
-                 (cap-E (poly c (list 1 -0.002516L0 -0.0000074L0)))
-                 (solar-anomaly
-                  (poly c (deg (list 2.5534L0
-                                     (* 1236.85L0 29.10535670L0)
-                                     -0.0000014L0 -0.00000011L0))))
-                 (lunar-anomaly
-                  (poly c (deg (list 201.5643L0 (* 385.81693528L0
-                                     1236.85L0)
-                                     0.0107582L0 0.00001238L0
-                                     -0.000000058L0))))
-                 (moon-argument          ; Moon’s argument of latitude.
-                  (poly c (deg (list 160.7108L0 (* 390.67050284L0 1236.85L0)
-                                     -0.0016118L0 -0.00000227L0
-                                     0.000000011L0))))
-                 (cap-omega              ; Longitude of ascending node.
-                  (poly c (deg (list 124.7746L0 (* -1.56375588L0 1236.85L0)
-                                     0.0020672L0 0.00000215L0))))
-                 (E-factor (list 0 1 0 0 1 1 2 0 0 1 0 1 1 1 0 0 0 0
-                                 0 0 0 0 0 0))
-                 (solar-coeff (list 0 1 0 0 -1 1 2 0 0 1 0 1 1 -1 2
-                                    0 3 1 0 1 -1 -1 1 0))
-                 (lunar-coeff (list 1 0 2 0 1 1 0 1 1 2 3 0 0 2 1 2
-                                    0 1 2 1 1 1 3 4))
-                 (moon-coeff (list 0 0 0 2 0 0 0 -2 2 0 0 2 -2 0 0
-                                   -2 0 -2 2 2 2 -2 0 0))
-                 (sine-coeff (list -0.40720L0 0.17241L0 0.01608L0 0.01039L0
-                                   0.00739L0 -0.00514L0 0.00208L0 -0.00111L0
-                                   -0.00057L0 0.00056L0 -0.00042L0 0.00042L0
-                                   0.00038L0 -0.00024L0 -0.00007L0 0.00004L0
-                                   0.00004L0 0.00003L0 0.00003L0 -0.00003L0
-                                   0.00003L0 -0.00002L0 -0.00002L0 0.00002L0))
-                (correction
-                 (+ (* -0.00017L0 (sin-degrees cap-omega))
-                    (sigma ((v sine-coeff)
-                            (w E-factor)
-                            (x solar-coeff)
-                            (y lunar-coeff)
-                            (z moon-coeff))
-                           (* v (expt cap-E w)
-                              (sin-degrees
-                               (+ (* x solar-anomaly)
-                                  (* y lunar-anomaly)
-                                  (* z moon-argument)))))))
-                (add-const (list 251.88L0 251.83L0 349.42L0 84.66L0
-                                 141.74L0 207.14L0 154.84L0 34.52L0 207.19L0
-                                 291.34L0 161.72L0 239.56L0 331.55L0))
-                (add-coeff (list 0.016321L0 26.651886L0 36.412478L0
-                                 18.206239L0 53.303771L0 2.453732L0
-                                 7.306860L0 27.261239L0 0.121824L0
-                                 1.844379L0 24.198154L0 25.513099L0
-                                 3.592518L0))
-                (add-factor (list 0.000165L0 0.000164L0 0.000126L0 0.000110L0
-                                  0.000062L0 0.000060L0 0.000056L0 0.000047L0
-                                  0.000042L0 0.000040L0 0.000037L0 0.000035L0
-                                  0.000023L0))
-                (extra
-                 (* 0.000325L0
-                    (sin-degrees
-                     (poly c
-                           (deg (list 299.77L0 132.8475848L0 -0.009173L0))))))
-                (additional
-                 (sigma ((i add-const)
-                         (j add-coeff)
-                         (l add-factor))
-                        (* l (sin-degrees (+ i (* j k)))))))
-             (universal-from-dynamical
-              (+ approx correction extra additional))))
-        '''
-        return
-
+    #nth-new-moon
     #new-moon-before
-
-    def new_moon_at_or_after(self, tee):
-        """
-        used
-
-        (defun new-moon-at-or-after (tee)
-          ;; TYPE moment -> moment
-          ;; Moment UT of first new moon at or after tee.
-          (let* ((t0 (nth-new-moon 0))
-                 (phi (lunar-phase tee))
-                 (n (round (- (/ (- tee t0) mean-synodic-month)
-                              (/ phi (deg 360))))))
-            (nth-new-moon (next k n (>= (nth-new-moon k) tee))))
-        """
-        t0 = self.nth_new_moon(0)
-        phi = self.lunar_phase(tee)
-        n = round((tee - t0) / self.MEAN_TROPICAL_YEAR - phi / 360)
-        func = lambda n: self.nth_new_moon(n) >= tee
-        return self.nth_new_moon(self._next(n , func))
-
-    def lunar_longitude(self, tee):
-        '''
-        (defun lunar-longitude (tee)
-          ;; TYPE moment -> angle
-          ;; Longitude of moon (in degrees) at moment tee.
-          ;; Adapted from "Astronomical Algorithms" by Jean Meeus,
-          ;; Willmann-Bell, 2nd edn., 1998, pp. 338-342.
-          (let* ((c (julian-centuries tee))
-                 (cap-L-prime (mean-lunar-longitude c))
-                 (cap-D (lunar-elongation c))
-                 (cap-M (solar-anomaly c))
-                 (cap-M-prime (lunar-anomaly c))
-                 (cap-F (moon-node c))
-                 (cap-E (poly c (list 1 -0.002516L0 -0.0000074L0)))
-                 (args-lunar-elongation
-                  (list 0 2 2 0 0 0 2 2 2 2 0 1 0 2 0 0 4 0 4 2 2 1
-                        1 2 2 4 2 0 2 2 1 2 0 0 2 2 2 4 0 3 2 4 0 2
-                        2 2 4 0 4 1 2 0 1 3 4 2 0 1 2))
-                 (args-solar-anomaly
-                  (list 0 0 0 0 1 0 0 -1 0 -1 1 0 1 0 0 0 0 0 0 1 1
-                        0 1 -1 0 0 0 1 0 -1 0 -2 1 2 -2 0 0 -1 0 0 1
-                        -1 2 2 1 -1 0 0 -1 0 1 0 1 0 0 -1 2 1 0))
-                 (args-lunar-anomaly
-                  (list 1 -1 0 2 0 0 -2 -1 1 0 -1 0 1 0 1 1 -1 3 -2
-                        -1 0 -1 0 1 2 0 -3 -2 -1 -2 1 0 2 0 -1 1 0
-                        -1 2 -1 1 -2 -1 -1 -2 0 1 4 0 -2 0 2 1 -2 -3
-                        2 1 -1 3))
-                 (args-moon-node
-                  (list 0 0 0 0 0 2 0 0 0 0 0 0 0 -2 2 -2 0 0 0 0 0
-                        0 0 0 0 0 0 0 2 0 0 0 0 0 0 -2 2 0 2 0 0 0 0
-                        0 0 -2 0 0 0 0 -2 -2 0 0 0 0 0 0 0))
-                 (sine-coeff
-                  (list 6288774 1274027 658314 213618 -185116 -114332
-                        58793 57066 53322 45758 -40923 -34720 -30383
-                        15327 -12528 10980 10675 10034 8548 -7888
-                        -6766 -5163 4987 4036 3994 3861 3665 -2689
-                        -2602 2390 -2348 2236 -2120 -2069 2048 -1773
-                        -1595 1215 -1110 -892 -810 759 -713 -700 691
-                        596 549 537 520 -487 -399 -381 351 -340 330
-                        327 -323 299 294))
-                 (correction
-                  (* (deg 1/1000000)
-                     (sigma ((v sine-coeff)
-                     (w args-lunar-elongation)
-                     (x args-solar-anomaly)
-                     (y args-lunar-anomaly)
-                     (z args-moon-node))
-                    (* v (expt cap-E (abs x))
-                       (sin-degrees
-                        (+ (* w cap-D)
-                           (* x cap-M)
-                           (* y cap-M-prime)
-                           (* z cap-F)))))))
-                 (venus (* (deg 3958/1000000)
-                           (sin-degrees
-                            (+ (deg 119.75L0) (* c (deg 131.849L0))))))
-                 (jupiter (* (deg 318/1000000)
-                             (sin-degrees
-                              (+ (deg 53.09L0)
-                                 (* c (deg 479264.29L0))))))
-                 (flat-earth
-                  (* (deg 1962/1000000)
-                     (sin-degrees (- cap-L-prime cap-F)))))
-            (mod (+ cap-L-prime correction venus jupiter flat-earth
-                    (nutation tee))
-                 360)))
-        '''
-        return
-
+    #new-moon-at-or-after
+    #lunar-longitude
     #mean-lunar-longitude
     #lunar-elongation
     #solar-anomaly
@@ -937,36 +764,7 @@ class BaseCalendar(JulianPeriod):
     #moon-node
     #lunar-node
     #sidereal-lunar-longitude
-
-    def lunar_phase(self, n):
-        """
-        (defun lunar-phase (tee)
-          ;; TYPE moment -> phase
-          ;; Lunar phase, as an angle in degrees, at moment tee.
-          ;; An angle of 0 means a new moon, 90 degrees means the
-          ;; first quarter, 180 means a full moon, and 270 degrees
-          ;; means the last quarter.
-          (let* ((phi (mod (- (lunar-longitude tee)
-                              (solar-longitude tee))
-                           360))
-                 (t0 (nth-new-moon 0))
-                 (n (round (/ (- tee t0) mean-synodic-month)))
-                 (phi-prime (* (deg 360)
-                               (mod (/ (- tee (nth-new-moon n))
-                                       mean-synodic-month)
-                                    1))))
-            (if (> (abs (- phi phi-prime)) (deg 180)) ; close call
-                phi-prime
-              phi)))
-        """
-        phi = math.fmod((self.lunar_longitude(tee)
-                         - self.solar_longitude(tee)), 360)
-        t0 = self.nth_new_moon(0)
-        n = round((tee -t0) / self.MEAN_SYNODIC_MONTH)
-        phi_prime = math.fmod((360 * (tee - self.nth_new_moon(n)) /
-                               self.MEAN_SYNODIC_MONTH), 1)
-        return phi_prime if abs(phi - phi_prime) > 180 else phi
-
+    #lunar-phase
     #lunar-phase-at-or-before
     #lunar-phase-at-or-after
     #new
@@ -1054,8 +852,8 @@ class BaseCalendar(JulianPeriod):
         delta = self.declination(tee_prime, 0,
                                  self.alt_solar_longitude(tee_prime))
         return (self.tan_degrees(phi) * self.tan_degrees(delta) +
-                self.sin_degrees(alpha) / (self.cos_degrees(delta) *
-                                           self.cos_degrees(phi)))
+                self.sin_degrees(alpha) /
+                (self.cos_degrees(delta) * self.cos_degrees(phi)))
 
     def moment_of_depression(self, approx, alpha, early=EVENING):
         """

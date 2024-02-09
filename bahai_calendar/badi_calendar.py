@@ -62,7 +62,7 @@ class BahaiCalendar(BaseCalendar):
 
     def bahai_sunset(self, date:float) -> float:
         """
-        The UTC time is returned.
+        The UTC time is returned not the standard time in Tehran.
 
         (defun bahai-sunset (date)
           ;; TYPE fixed-date -> moment
@@ -73,7 +73,7 @@ class BahaiCalendar(BaseCalendar):
         """
         return self.universal_from_standard(self.sunset(date))
 
-    def astro_bahai_new_year_on_or_before(self, date:float) -> float:
+    def astro_bahai_new_year_on_or_before(self, date:int) -> float:
         """
         (defun astro-bahai-new-year-on-or-before (date)
           ;; TYPE fixed-date -> fixed-date
@@ -85,14 +85,11 @@ class BahaiCalendar(BaseCalendar):
                 (<= (solar-longitude (bahai-sunset day))
                     (+ spring (deg 2))))))
         """
-        #approx = self.estimate_prior_solar_longitude(
-        #    self.SPRING, self.bahai_sunset(date))
-        approx = self.find_equinoxes_or_solstices(
-            self.bahai_sunset(date), lam=self.SPRING)
+        approx = self.find_moment_of_equinoxes_or_solstices(
+            self.sunset(date), lam=self.SPRING)
         initial = math.floor(approx) - 1
-        #print(date, approx, initial)
-        condition = lambda day: (self.alt_solar_longitude(
-            self.bahai_sunset(day)) <= (self.SPRING + 2))
+        condition = lambda day: (
+            self.alt_solar_longitude(self.sunset(day)) <= (self.SPRING + 2))
         return self._next(initial, condition)
 
     def fixed_from_astro_bahai(self, b_date:tuple) -> float:
@@ -182,7 +179,8 @@ class BahaiCalendar(BaseCalendar):
                           (bahai-date major cycle year month 1)))))
             (bahai-date major cycle year month day)))
         """
-        new_year = self.astro_bahai_new_year_on_or_before(date)
+        new_year = self.find_moment_of_equinoxes_or_solstices(date)
+        #new_year = self.astro_bahai_new_year_on_or_before(date)
         years = round((new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR)
         major = self.QUOTIENT(years, 361) + 1
         cycle = self.QUOTIENT(years % 361, 19) + 1

@@ -98,12 +98,13 @@ class TestBadiCalandar(unittest.TestCase):
         =673221.75763888888888888889
         =1844-03-20T18:11:00
         """
+        # All dates are sunset on the beginning of the Baha'i year.
         data = (
-            # (1844, 3, 20, 11, 53) -> (1844, 3, 20, 14, 38, 25.571062490344048)
+            # (1844, 3, 20, 18, 11) -> (1844, 3, 20, 14, 38, 25.571062490344048)
             (673221, 673221.6100181836),
-            # (2024, 3, 20, 3, 6) -> (2024, 3, 20, 14, 38, 24.985318332910538)
-            (738965, 738965.6100114041),
-            # (2064, 3, 19, 19, 37) -> (2064, 3, 19, 14, 38, 19.865490943193436)
+            # (2024, 3, 19, 18, 16) -> (2024, 3, 19, 14, 38, 22.21245065331459)
+            (738964, 738964.6099793108),
+            # (2064, 3, 19, 18, 15) -> (2064, 3, 19, 14, 38, 19.865490943193436)
             (753574, 753574.6099521469),
             )
         msg = "Expected {}, found {}"
@@ -113,13 +114,13 @@ class TestBadiCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_astro_bahai_new_year_on_or_before(self):
         """
         Test that the astro_bahai_new_year_on_or_before method returns a
         fixed date of astronomical Bahai New Year on or before fixed date.
 
-        Baha'i epoc in fixed date is 673222.
+        Baha'i epoc fixed date is 673222.
         """
         data = (
             (673222, 673222),

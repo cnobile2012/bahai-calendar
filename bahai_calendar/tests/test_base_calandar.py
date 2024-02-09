@@ -20,6 +20,9 @@ class TestBaseCalandar(unittest.TestCase):
 
     def setUp(self):
         class FakeParent(BaseCalendar):
+            # Location of Tehran for astronomical Baha’i calendar.
+            # Can be change for individual tests using the location
+            # method below.
             latitude = 35.696111
             longitude = 51.423056
             elevation = 0
@@ -648,10 +651,10 @@ class TestBaseCalandar(unittest.TestCase):
                              msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_find_equinoxes_or_solstices(self):
+    def test_find_moment_of_equinoxes_or_solstices(self):
         """
-        Test that the find_equinoxes_or_solstices method returns the correct
-        equinoxe and solstice dates for the given years.
+        Test that the find_moment_of_equinoxes_or_solstices method returns
+        the correct equinoxe and solstice R.D. moments for the given years.
         """
         SP = self._bc.SPRING
         SM = self._bc.SUMMER
@@ -699,44 +702,13 @@ class TestBaseCalandar(unittest.TestCase):
         for date, season, expected_result in data:
             date0 = self._gc.date_from_YMDhms(date)
             tee = self._gc.fixed_from_gregorian(date0)
-            result = self._bc.find_equinoxes_or_solstices(tee, lam=season)
+            result = self._bc.find_moment_of_equinoxes_or_solstices(
+                tee, lam=season)
             result = self._gc.gregorian_from_fixed(result)
             result = self._gc.YMDhms_from_date(result)
             self.assertEqual(
                 expected_result, result,
                 msg.format(expected_result, seasons[season], result))
-
-    @unittest.skip("Temporarily skipped")
-    def test_nth_new_moon(self):
-        """
-        Test that the nth_new_moon method returns a moment of n-th new
-        moon after (or before) the new moon of January 11, 1.
-        """
-        pass
-
-    @unittest.skip("Temporarily skipped")
-    def test_new_moon_at_or_after(self):
-        """
-        Test that the new_moon_at_or_after method moment UT of first
-        new moon at or after tee.
-        """
-        pass
-
-    @unittest.skip("Temporarily skipped")
-    def test_lunar_longitude(self):
-        """
-        Test that the lunar_longitude method returns the longitude of
-        moon (in degrees) at moment.
-        """
-        pass
-
-    @unittest.skip("Temporarily skipped")
-    def test_lunar_phase(self):
-        """
-        Test that the lunar_phase method returns the lunar phase,
-        as an angle in degrees, at moment.
-        """
-        pass
 
     #@unittest.skip("Temporarily skipped")
     def test_approx_moment_of_depression(self):
@@ -746,15 +718,18 @@ class TestBaseCalandar(unittest.TestCase):
         (negative if above horizon) at location; early is true when
         morning event is sought and false for evening. Returns None if
         depression angle is not reached.
+
+        This test assumes the location to be in Tehran for the
+        astronomical Baha’i calendar.
         """
-        # 1. Test tee = 675334.5, early = False, alpha >= 0
-        # 2. Test tee = 675334.5, early = False, alpha < 0
-        # 3. Test tee = 675334.5, early = True, alpha >= 0
-        # 4. Test tee = 675334.5, early = True, alpha < 0
         data = (
+            # Test tee = 675334.5, early = False, alpha >= 0
             (675334.5, 30.5, False, 675334.8564588708),
+            # Test tee = 675334.5, early = False, alpha < 0
             (675334.5, -30.5, False, 675334.6415658242),
+            # Test tee = 675334.5, early = True, alpha >= 0
             (675334.5, 30.5, True, 675334.1435615424),
+            # Test tee = 675334.5, early = True, alpha < 0
             (675334.5, -30.5, True, 675334.3584545698),
             #(675334.5, 1000, True, None)
             )
