@@ -189,20 +189,14 @@ class BahaiCalendar(BaseCalendar):
 
         if date >= self.fixed_from_astro_bahai((major, cycle, year, 19, 1)):
             month = 19
-            print(f'POOP0, {date}, {d}')
         elif date >= self.fixed_from_astro_bahai(
             (major, cycle, year, self.AYYAM_I_HA, 1)):
             month = self.AYYAM_I_HA
-            print(f'POOP1, {date}, {d}')
         else:
             month = self.QUOTIENT(days, 19) + 1
-            print('POOP2')
 
         day = date + 1 - self.fixed_from_astro_bahai(
             (major, cycle, year, month, 1))
-
-        print(years, days, major, cycle, year, month, day)
-
         return (major, cycle, year, month, day)
 
     def nam_ruz(self, g_year):
