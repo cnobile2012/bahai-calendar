@@ -139,9 +139,20 @@ class TestBadiCalandar(unittest.TestCase):
         of Baha’i date.
         """
         b_dates = (
-            ((1, 10, 9, 19, 1), 738946),
-            ((1, 1, 1, 1, 1), 673222),
-            ((1, 10, 9, 17, 2), 0),
+            # (2024, 2, 25) 1st day of Ayyām-i-Hā
+            ((1, 10, 9, 0, 1), 738941),
+            # (2024, 2, 29) 4th day of Ayyām-i-Hā
+            ((1, 10, 9, 0, 4), 738944),
+            # (2024, 3, 1) 1st day of last month of year 180
+            ((1, 10, 9, 19, 1), 738945),
+            # (2022, 2, 25) 1st day of Ayyām-i-Hā of year 178
+            ((1, 10, 7, 0, 1), 738211),
+            # (2022, 3, 1) 5th day of Ayyām-i-Hā of year 178
+            ((1, 10, 7, 0, 5), 738215),
+            # (2022, 3, 2) 1st day of Baha of year 178
+            ((1, 10, 7, 19, 1), 738216),
+            # (2024, 1, 22) 4th day of 17th month of year 180
+            ((1, 10, 9, 17, 4), 738907),
             )
         msg = "Expected result {}, found {}."
 
@@ -159,9 +170,20 @@ class TestBadiCalandar(unittest.TestCase):
         Baha'i epic date of 1844, March, 21 = 673222 in fixed date.
         """
         fixed_dates = (
-            (738945, (1, 10, 9, 19, 1)), # (2024, 2, 29) Last month of year
-            (738941, (1, 10, 9, 0, 1)),  # (2024, 2, 25) Ayyām-i-Hā
-            (738907, (1, 10, 9, 17, 4)), # (2024, 1, 22) Normal month
+            # (2024, 2, 25) 1st day of Ayyām-i-Hā
+            (738941, (1, 10, 9, 0, 1)),
+            # (2024, 2, 29) 4th day of Ayyām-i-Hā
+            (738944, (1, 10, 9, 0, 4)),
+            # (2024, 3, 1) 1st day of last month of year 180
+            (738945, (1, 10, 9, 19, 1)),
+            # (2022, 2, 25) 1st day of Ayyām-i-Hā year 178
+            (738211, (1, 10, 7, 0, 1)),
+            # (2022, 3, 1) 5th day of Ayyām-i-Hā year 178
+            (738215, (1, 10, 7, 0, 5)),
+            # (2022, 3, 2) 1st day of Baha of year 178
+            (738216, (1, 10, 7, 19, 1)),
+            # (2024, 1, 22) 4th day of 17th month of year 180
+            (738907, (1, 10, 9, 17, 4)),
             )
         msg = "Expected {}, found {}"
 

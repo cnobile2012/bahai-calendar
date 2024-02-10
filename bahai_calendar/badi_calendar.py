@@ -134,20 +134,20 @@ class BahaiCalendar(BaseCalendar):
         years = (major - 1) * 361 + (cycle - 1) * 19 + year
 
         if month == 19:
-            result = self.astro_bahai_new_year_on_or_before(
+            result = self.find_moment_of_equinoxes_or_solstices(
                 self.BAHAI_EPOCH + math.floor(
                     self.MEAN_TROPICAL_YEAR * (years + 0.5))) - 20 + day
         elif month == self.AYYAM_I_HA:
-            result = self.astro_bahai_new_year_on_or_before(
+            result = self.find_moment_of_equinoxes_or_solstices(
                 self.BAHAI_EPOCH + math.floor(
                     self.MEAN_TROPICAL_YEAR * (years - 0.5))) + 341 + day
         else:
-            result = self.astro_bahai_new_year_on_or_before(
+            result = self.find_moment_of_equinoxes_or_solstices(
                 self.BAHAI_EPOCH + math.floor(
                     self.MEAN_TROPICAL_YEAR * (years - 0.5))) + (
                 month - 1) * 19 + day - 1
 
-        return result
+        return math.floor(result)
 
     def astro_bahai_from_fixed(self, date:float) -> tuple:
         """
@@ -184,19 +184,25 @@ class BahaiCalendar(BaseCalendar):
         years = round((new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR)
         major = self.QUOTIENT(years, 361) + 1
         cycle = self.QUOTIENT(years % 361, 19) + 1
-        year = (years % 19) + 1
+        year = (years % 19) #+ 1
         days = date - new_year
 
         if date >= self.fixed_from_astro_bahai((major, cycle, year, 19, 1)):
             month = 19
+            print(f'POOP0, {date}, {d}')
         elif date >= self.fixed_from_astro_bahai(
             (major, cycle, year, self.AYYAM_I_HA, 1)):
             month = self.AYYAM_I_HA
+            print(f'POOP1, {date}, {d}')
         else:
             month = self.QUOTIENT(days, 19) + 1
+            print('POOP2')
 
         day = date + 1 - self.fixed_from_astro_bahai(
             (major, cycle, year, month, 1))
+
+        print(years, days, major, cycle, year, month, day)
+
         return (major, cycle, year, month, day)
 
     def nam_ruz(self, g_year):
@@ -280,119 +286,3 @@ class BahaiCalendar(BaseCalendar):
           (fourth location))
         """
         return self.BAHAI_LOCATION[3]
-
-
-    ## def bahai_new_year(self, g_year):
-    ##     """
-    ##     (defun bahai-new-year (g-year)
-    ##       ;; TYPE gregorian-year -> fixed-date
-    ##       ;; Fixed date of Baha’i New Year in Gregorian year g-year.
-    ##       (fixed-from-gregorian
-    ##        (gregorian-date g-year march 21)))
-    ##     """
-    ##     return self._gc.gregorian_new_year((g_year, self._gc.MARCH, 21))
-
-    ## def bahai_from_fixed(self, data):
-    ##     """
-    ##     (defun bahai-from-fixed (date)
-    ##       ;; TYPE fixed-date -> bahai-date
-    ##       ;; Baha’i (major cycle year month day) corresponding to fixed date.
-    ##       (let* ((g-year (gregorian-year-from-fixed date))
-    ##              (start               ; 1844
-    ##               (gregorian-year-from-fixed bahai-epoch))
-    ##              (years               ; Since start of Baha’i calendar.
-    ##               (- g-year start
-    ##                  (if (<= date (fixed-from-gregorian
-    ##                                (gregorian-date g-year march 20)))
-    ##                      1 0)))
-    ##               (major (1+ (quotient years 361)))
-    ##               (cycle (1+ (quotient (mod years 361) 19)))
-    ##               (year (1+ (mod years 19)))
-    ##               (days               ; Since start of year
-    ##                (- date (fixed-from-bahai
-    ##                         (bahai-date major cycle year 1 1))))
-    ##               (month
-    ##                (cond ((>= date
-    ##                           (fixed-from-bahai
-    ##                            (bahai-date major cycle year 19 1)))
-    ##                       19)         ; Last month of year.
-    ##                      ((>= date    ; Intercalary days.
-    ##                           (fixed-from-bahai
-    ##                           (bahai-date major cycle year
-    ##                                       ayyam-i-ha 1)))
-    ##                      ayyam-i-ha)  ; Intercalary period.
-    ##                     (t (1+ (quotient days 19)))))
-    ##              (day (- date -1
-    ##                      (fixed-from-bahai
-    ##                       (bahai-date major cycle year month 1)))))
-    ##         (bahai-date major cycle year month day)))
-    ##     """
-    ##     g_year = self.gregorian_year_from_fixed(date)
-    ##     start = self.gregorian_year_from_fixed(bahai-epoch)
-    ##     years = g_year - start
-
-    ##     if date <= self._gc.fixed_from_gregorian(
-    ##         self.fixed_from_gregorian((g_year, self._gc.MARCH, 20))):
-    ##         year -= 1.0
-
-    ##     major = self.QUOTIENT(years, 361) + 1
-    ##     cycle = self.QUOTIENT(years % 361, 19) + 1
-    ##     year = (years % 19) + 1
-    ##     days = date - self.fixed_from_bahai((major, year, 1, 1))
-
-    ##     if date >= self.fixed_from_bahai((major, cycle, year, 19, 1)):
-    ##         month = 19
-    ##     elif date >= self.fixed_from_bahai(
-    ##         (major, cycle, year, self.AYYAM_I_HA, 1)):
-    ##         month = self.AYYAM_I_HA
-    ##     else:
-    ##         month = self.QUOTIENT(days, 19) + 1
-
-    ##     day = date + 1 - self.fixed_from_bahai((major, cycle, year, month, 1))
-    ##     return (major, cycle, year, month, day)
-
-    ## def fixed_from_bahai(self, b_date):
-    ##     """
-    ##     (defun fixed-from-bahai (b-date)
-    ##       ;; TYPE bahai-date -> fixed-date
-    ##       ;; Fixed date equivalent to the Baha’i date b-date.
-    ##       (let* ((major (bahai-major b-date))
-    ##              (cycle (bahai-cycle b-date))
-    ##              (year (bahai-year b-date))
-    ##              (month (bahai-month b-date))
-    ##              (day (bahai-day b-date))
-    ##              (g-year                    ; Corresponding Gregorian year.
-    ##               (+ (* 361 (1- major))
-    ##                  (* 19 (1- cycle)) year -1
-    ##                  (gregorian-year-from-fixed bahai-epoch))))
-    ##         (+ (fixed-from-gregorian        ; Prior years.
-    ##             (gregorian-date g-year march 20))
-    ##            (cond ((= month ayyam-i-ha)  ; Intercalary period.
-    ##                   342)                  ; 18 months have elapsed.
-    ##                  ((= month 19)          ; Last month of year.
-    ##                   (if (gregorian-leap-year? (1+ g-year))
-    ##                       347               ; Long ayyam-i-ha.
-    ##                     346))               ; Ordinary ayyam-i-ha.
-    ##                  (t (* 19 (1- month)))) ; Elapsed months.
-    ##            day)))                       ; Days of current month.
-    ##     """
-    ##     major = b_date[0]
-    ##     cycle = b_date[1]
-    ##     year = b_date[2]
-    ##     month = b_date[3]
-    ##     day = b_date[4]
-    ##     g_year = ((major - 1) * 361 + (cycle - 1) * 19 + year - 1 +
-    ##               self._gc.gregorian_year_from_fixed(self.BAHAI_EPOCH))
-    ##     result = self._gc.fixed_from_gregorian((g_year, self._gc.MARCH, 20))
-
-    ##     if month == self.AYYAM_I_HA:
-    ##         result += 342
-    ##     elif month == 19:
-    ##         if self._gc.GREGORIAN_LEAP_YEAR(g_year + 1):
-    ##             result += 347
-    ##         else:
-    ##             result += 346
-    ##     else:
-    ##         result += (month - 1) * 19
-
-    ##     return result + day
