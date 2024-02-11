@@ -44,6 +44,7 @@ class JulianPeriod:
     JULIAN_YEAR = 365.25
     JD_EPOCH = -1721424.5
     MJD_EPOCH = 678576
+    JULIAN_MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
     def __init__(self):
         super().__init__()
@@ -58,15 +59,14 @@ class JulianPeriod:
 
            The Julian Period is 13 days behind the Gregorian Calendar.
         """
-        from .gregorian_calendar import GregorianCalendar
-
+        assert jd >= 0, f"A Julian Period day must be 'jd >= 0', found {jd}"
         c = jd / self.JULIAN_YEAR
         period = math.floor(c / self.JULIAN_PERIOD) + 1
         year = math.floor(c) + 1
         days_remaining = jd - (year - 1) * self.JULIAN_YEAR
         accumulated_days = 0
 
-        for month, md in enumerate(GregorianCalendar._MONTHS, start=1):
+        for month, md in enumerate(self.JULIAN_MONTHS, start=1):
             if month == 2: # Subtract 0 or 1 from Febuary if leap year.
                 md -= 0 if self.julian_leap_year(jd) else 1
 
@@ -76,7 +76,7 @@ class JulianPeriod:
                 accumulated_days -= md
                 break
 
-        day = days_remaining - accumulated_days
+        day = days_remaining - accumulated_days + 1
         return (period, year, month, day)
 
     def jd_from_julian_period_date(self, date:tuple) -> float:
@@ -85,19 +85,21 @@ class JulianPeriod:
         JDN = 367 * Y − (7 * (Y + 5001 + (M − 9) / 7))
               / 4 + (275 * M) / 9 + D + 1729777
         """
-        from .gregorian_calendar import GregorianCalendar
-
         period = date[0]
         year = date[1]
         month = date[2]
         day = date[3]
         days = (period - 1) * self.JULIAN_PERIOD
         days += (year - 1) * self.JULIAN_YEAR
-        days += sum([md for md in GregorianCalendar._MONTHS[:month - 1]])
-        days += day
+        days += sum([md for md in self.JULIAN_MONTHS[:month - 1]])
+        days += day - 1
 
         if month >= 2 and not self.julian_leap_year(days):
             days -= 1
+
+        # ** TODO ** Since the leap year is every 4 years we are subtracting
+        #            0.25 on a day per year before the next leap year happens.
+        # These 0.25 needs to be added.
 
         #m0 = math.floor((month - 9) / 7)
         #m1 = math.floor((275 * month) / 9)
@@ -275,17 +277,17 @@ class JulianPeriod:
         gc = GregorianCalendar()
         approx = self.QUOTIENT(4 * (date - self.JULIAN_EPOCH) + 1464, 1461)
         year = approx - 1 if approx <= 0 else approx
-        prior_day = date - self.fixed_from_julian((year, gc.JANUARY, 1))
+        prior_day = date - self.fixed_from_julian((1, year, gc.JANUARY, 1))
         correction = 0
 
-        if date >= self.fixed_from_julian((year, gc.MARCH, 1)):
+        if date >= self.fixed_from_julian((1, year, gc.MARCH, 1)):
             if self.julian_leap_year(year):
                 correction = 1
             else:
                 correction = 2
 
         month = self.QUOTIENT(12 * (prior_day + correction) + 373, 367)
-        day = (date - self.fixed_from_julian((year, month, 1))) + 1
+        day = (date - self.fixed_from_julian((1, year, month, 1))) + 1
         return (1, year, month, day) # ** TODO ** Do something with the period.
 
     def julian_from_gregorian(self, g_date:tuple) -> float:
