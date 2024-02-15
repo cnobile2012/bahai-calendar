@@ -303,7 +303,7 @@ class GregorianCalendar(BaseCalendar):
             (self._to_radix(approx, (4, 25, 4)), (97, 24, 1, 0)), func)
         return approx if date < start else approx + 1
 
-    def date_from_YMDhms(self, date:tuple) -> tuple:
+    def date_from_ymdhms(self, date:tuple) -> tuple:
         """
         Convert (year, month, day, hour, minute, second) into a
         (year, month, day.partial) date.
@@ -318,7 +318,7 @@ class GregorianCalendar(BaseCalendar):
         day += self.HR(hour) + self.MN(minute) + self.SEC(second)
         return (year, month, day)
 
-    def YMDhms_from_date(self, date:tuple) -> tuple:
+    def ymdhms_from_date(self, date:tuple) -> tuple:
         """
         Convert (year, month, day.partial) into a
         (year, month, day, hour, minute, second).

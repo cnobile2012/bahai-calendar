@@ -351,20 +351,3 @@ class JulianPeriod:
             year = c - 4715
 
         return (year, month, day)
-
-    ## def fixed_from_julian_day(self, jd:float) -> float:
-    ##     """
-    ##     Convert Julian day to fixed moment.
-
-    ##     A.D. 2024 January 31	00:00:00.0	2460340.500000
-    ##     A.D. 2024 January 31	12:00:00.0	2460341.000000
-    ##     See https://aa.usno.navy.mil/data/JulianDate
-    ##     """
-    ##     date = self.julian_period_from_julian_day(jd)
-    ##     return self.fixed_from_julian(date)
-
-    ## def julian_day_from_fixed(self, tee):
-    ##     """
-    ##     Convert a fixed day to a Julian day.
-    ##     """
-

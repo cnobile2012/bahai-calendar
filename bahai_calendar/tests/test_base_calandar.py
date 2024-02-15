@@ -700,12 +700,12 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected '{}' during the {}, found '{}'"
 
         for date, season, expected_result in data:
-            date0 = self._gc.date_from_YMDhms(date)
+            date0 = self._gc.date_from_ymdhms(date)
             tee = self._gc.fixed_from_gregorian(date0)
             result = self._bc.find_moment_of_equinoxes_or_solstices(
                 tee, lam=season)
             result = self._gc.gregorian_from_fixed(result)
-            result = self._gc.YMDhms_from_date(result)
+            result = self._gc.ymdhms_from_date(result)
             self.assertEqual(
                 expected_result, result,
                 msg.format(expected_result, seasons[season], result))

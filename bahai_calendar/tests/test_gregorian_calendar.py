@@ -208,6 +208,46 @@ class TestGregorianCalendar(unittest.TestCase):
                 msg.format(expected_result, expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_date_from_ymdhms(self):
+        """
+        Test that the date_from_ymdhms method returns a
+        (year, month, day.partial) from a
+        (year, month, day, hour, minute, second).
+        """
+        data = (
+            ((2024, 2, 15, 12, 45, 15), (2024, 2, 15.53142361111111) ),
+            # Badi Calendar epoch
+            ((1844, 3, 20, 18, 11, 6), (1844, 3, 20.757708333333333)),
+            )
+        msg = "Expected result {} for ymdhms {}, found {}."
+
+        for ymdhms, expected_result in data:
+            result = self._gc.date_from_ymdhms(ymdhms)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, ymdhms, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_ymdhms_from_date(self):
+        """
+        Test that the ymdhms_from_date method returns a
+        (year, month, day, hour, minute, second) from a
+        (year, month, day.partial).
+        """
+        data = (
+            ((2024, 2, 15.53142361111111),
+             (2024, 2, 15, 12, 45, 14.999999999935199)),
+            # Badi Calendar epoch
+            ((1844, 3, 20.757708333333333),
+             (1844, 3, 20, 18, 11, 6.0000000000081855)),
+            )
+        msg = "Expected result {} for date {}, found {}."
+
+        for date, expected_result in data:
+            result = self._gc.ymdhms_from_date(date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__check_valid_gregorian_month_day(self):
         """
         Check that the month and day in a gregorian date are in bounds.
