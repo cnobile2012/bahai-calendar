@@ -32,12 +32,12 @@ class TestJulianPeriod(unittest.TestCase):
             (0.0, -1721424.5),
             (2394646.5, 673222.0),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for jd {}, found {}"
 
         for jd, expected_result in data:
             result = self._jp.moment_from_jd(jd)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_jd_from_moment(self):
@@ -66,12 +66,12 @@ class TestJulianPeriod(unittest.TestCase):
             (-2400000.5, -1721424.5),
             (-5354.0, 673222.0),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for mjd {}, found {}"
 
         for mjd, expected_result in data:
             result = self._jp.fixed_from_mjd(mjd)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, mjd, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_mjd_from_fixed(self):
@@ -83,12 +83,12 @@ class TestJulianPeriod(unittest.TestCase):
             (-1721424.5, -2400000.5),
             (673222.0, -5354.0),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for {}, found {}"
 
         for fixed, expected_result in data:
             result = self._jp.mjd_from_fixed(fixed)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, fixed, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_fixed_from_jd(self):
@@ -100,12 +100,12 @@ class TestJulianPeriod(unittest.TestCase):
             (0.0, -1721425),
             (2394646.5, 673222),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for js {}, found {}"
 
         for jd, expected_result in data:
             result = self._jp.fixed_from_jd(jd)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_jd_from_fixed(self):
@@ -117,12 +117,12 @@ class TestJulianPeriod(unittest.TestCase):
             (-1721424, 0.5),
             (673222, 2394646.5),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for fixed {}, found {}"
 
         for fixed, expected_result in data:
             result = self._jp.jd_from_fixed(fixed)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, fixed, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_time_from_moment(self):
@@ -156,12 +156,12 @@ class TestJulianPeriod(unittest.TestCase):
             (673222, -1.5577049096121691),
             (730120.5, 2.0236014034713807e-08),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for tee {}, found {}"
 
         for tee, expected_result in data:
             result = fp.julian_centuries(tee)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, tee, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_julian_leap_year(self):
@@ -174,12 +174,12 @@ class TestJulianPeriod(unittest.TestCase):
             (1, False),
             (4, True)
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for {}, found {}"
 
         for year, expected_result in data:
             result = self._jp.julian_leap_year(year)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, year, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_fixed_day_from_julian_date(self):
@@ -197,12 +197,12 @@ class TestJulianPeriod(unittest.TestCase):
             ((6732, 9, 19.75), 2458758.75),
             ((1844, 3, 9), 673222),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for {}, found {}"
 
         for j_date, expected_result in data:
             result = self._jp.fixed_day_from_julian_date(j_date)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, j_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_julian_day_from_julian_date(self):
@@ -226,12 +226,12 @@ class TestJulianPeriod(unittest.TestCase):
             # Thursday 2019 A.D. October 3  00:00:00.0  2458759.5
             ((6732, 9, 19.75), 2458759.75),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for (), found {}"
 
         for j_date, expected_result in data:
             result = self._jp.julian_day_from_julian_date(j_date)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, j_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_julian_date_from_fixed_day(self):
@@ -249,12 +249,12 @@ class TestJulianPeriod(unittest.TestCase):
             (2458758.75, (6732, 9, 19.75)),
             (673222, (1844, 3, 9)),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for f_day {}, found {}"
 
         for f_day, expected_result in data:
             result = self._jp.julian_date_from_fixed_day(f_day)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, f_day, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_julian_date_from_julian_day(self):
@@ -268,19 +268,61 @@ class TestJulianPeriod(unittest.TestCase):
             # Monday   4713 B.C. January 2  00:00:00.0        0.0
             (0.5, (1, 1, 1.5)),
             # Tuesday  4713 B.C. January 2  12:00:00.0        1.0
-            (0.1, (1, 1, 2.0)),
+            (1.0, (1, 1, 2.0)),
             # Saturday    1 A.D. January 1  00:00:00.0  1721423.5
-            (1721422.0, (4714, 1, 1.0)),
+            (1721423.0, (4714, 1, 1.0)),
             # Thursday 1582 A.D. October 4  00:00:00.0  2299159.5
-            (2299158.0, (6295, 10, 4.0)),
+            (2299159.0, (6295, 10, 4.0)),
             # Friday   1582 A.D. October 15 00:00:00.0  2299160.5
-            (2299159.0, (6295, 10, 5.0)),
+            (2299160.0, (6295, 10, 5.0)),
             # Thursday 2019 A.D. October 3  00:00:00.0  2458759.5
-            (2458758.75, (6732, 9, 19.75)),
+            (2458759.75, (6732, 9, 19.75)),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for j_day {}, found {}"
 
         for j_day, expected_result in data:
             result = self._jp.julian_date_from_julian_day(j_day)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, j_day, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_julian_day_from_gregorian_date(self):
+        """
+        Test that the julian_day_from_gregorian_date method returns a
+        Julian day from a Gregorian date.
+        """
+        data = (
+            # -4712-Jan-01 12:00:00
+            ((-4712, 1, 1.5), 0.0),
+            # -4712-Jan-02 00:00:00
+            ((-4712, 1, 2.0), 0.5),
+            # 1844-Mar-21 00:00:00
+            ((1844, 3, 21), 2394646.5),
+            )
+        msg = "Expected {} for g_date {}, found {}"
+
+        for g_date, expected_result in data:
+            result = self._jp.julian_day_from_gregorian_date(g_date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, g_date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_gregorian_date_from_julian_day(self):
+        """
+        Test that the gregorian_date_from_julian_day method returns a
+        Gregorian date from a Julian day.
+        """
+        data = (
+            # -4712-Jan-01 12:00:00
+            (0.0, (-4712, 1, 1.5)),
+            # -4712-Jan-02 00:00:00
+            (0.5, (-4712, 1, 2.0)),
+            # 1844-Mar-21 00:00:00
+            (2394646.5, (1844, 3, 21)),
+            )
+        msg = "Expected {} for j_day {}, found {}"
+
+        for j_day, expected_result in data:
+            result = self._jp.gregorian_date_from_julian_day(j_day)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, j_day, result))

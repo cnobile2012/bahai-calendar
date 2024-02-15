@@ -268,21 +268,23 @@ class JulianPeriod:
         """
         approx = self.QUOTIENT(4 * (f_day - epoch) + 1464, 1461)
         year = approx - 1 if approx <= 0 else approx
-        prior_day = f_day - self.fixed_day_from_julian_date(
-            (year, self.JANUARY, 1))
+        prior_day = f_day - self._julian_or_fixed_from_julian_date(
+            (year, self.JANUARY, 1), epoch)
         correction = 0
 
-        if f_day >= self.fixed_day_from_julian_date((year, self.MARCH, 1)):
+        if f_day >= self._julian_or_fixed_from_julian_date(
+            (year, self.MARCH, 1), epoch):
             if self.julian_leap_year(year):
                 correction = 1
             else:
                 correction = 2
 
         month = self.QUOTIENT(12 * (prior_day + correction) + 373, 367)
-        day = (f_day - self.fixed_day_from_julian_date((year, month, 1))) + 1
+        day = (f_day - self._julian_or_fixed_from_julian_date(
+            (year, month, 1), epoch)) + 1
         return (year, month, day)
 
-    def julian_from_gregorian(self, g_date:tuple) -> float:
+    def julian_day_from_gregorian_date(self, g_date:tuple) -> float:
         """
         Convert Gregorian dates to Julian day count with the 1582 10, 15
         correction.
@@ -316,7 +318,7 @@ class JulianPeriod:
 
         return jd
 
-    def gregorian_from_julian(self, jd:float) -> tuple:
+    def gregorian_date_from_julian_day(self, jd:float) -> tuple:
         """
         Convert Julian day to Gregorian date.
         """
