@@ -182,74 +182,105 @@ class TestJulianPeriod(unittest.TestCase):
                              msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_fixed_from_julian(self):
+    def test_fixed_day_from_julian_date(self):
         """
-        Test that the fixed_from_julian method returns an R.D.
-        fixed day from a Julian day.
+        Test that the fixed_day_from_julian_date method returns a
+        Julian date.
         """
-        class FakeParent(BaseCalendar):
-            pass
-
-        fp = FakeParent()
-
         data = (
-            # Monday   4713 B.C. January 1  12:00:00.0        0.0
-            ((1, 1, 1, 1.0), 0.0),
-            # Monday   4713 B.C. January 2  00:00:00.0        0.0
-            ((1, 1, 1, 1.5), 0.5),
-            # Tuesday  4713 B.C. January 2  12:00:00.0        1.0
-            ((1, 1, 1, 2.0), 1.0),
-            # Saturday    1 A.D. January 1  00:00:00.0  1721423.5
-            ((1, 4714, 1, 1.0), 1721423.0),
-            # Thursday 1582 A.D. October 4  00:00:00.0  2299159.5
-            ((1, 6295, 10, 4.0), 2299159.0),
-            # Friday   1582 A.D. October 15 00:00:00.0  2299160.5
-            ((1, 6295, 10, 5.0), 2299160.0),
-            # Thursday 2019 A.D. October 3  00:00:00.0  2458759.5
-            ((1, 6732, 9, 19.75), 2458759.75),
+            ((1, 1, 1.0), -1.0),
+            ((1, 1, 1.5), -0.5),
+            ((1, 1, 2.0), 0.0),
+            ((4714, 1, 1.0), 1721422.0),
+            ((6295, 10, 4.0), 2299158.0),
+            ((6295, 10, 5.0), 2299159.0),
+            ((6732, 9, 19.75), 2458758.75),
+            ((1844, 3, 9), 673222),
             )
         msg = "Expected {}, found {}"
 
         for j_date, expected_result in data:
-            result = fp.fixed_from_julian(j_date)
+            result = self._jp.fixed_day_from_julian_date(j_date)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test_julian_period_from_julian_day(self):
+    #@unittest.skip("Temporarily skipped")
+    def test_julian_day_from_julian_date(self):
         """
-        Test that the julian_period_from_julian_day method converts to
-        the correct Julian date from the julian period.
-
-        See:
-        ----
-        https://aa.usno.navy.mil/data/JulianDate
-        https://ssd.jpl.nasa.gov/tools/jdc/#/jd
+        Test that the julian_day_from_julian_date method returns an R.D.
+        fixed day from a Julian day.
         """
         data = (
             # Monday   4713 B.C. January 1  12:00:00.0        0.0
-            (0.0, (1, 1, 1, 1.0)),
+            ((1, 1, 1.0), 0.0),
             # Monday   4713 B.C. January 2  00:00:00.0        0.0
-            (0.5, (1, 1, 1, 1.5)),
+            ((1, 1, 1.5), 0.5),
             # Tuesday  4713 B.C. January 2  12:00:00.0        1.0
-            (1.0, (1, 1, 1, 2.0)),
-            (366.0, (1, 2, 1, 1.0)),
-            (366.5, (1, 2, 1, 1.5)),
-            (366.0, (1, 2, 1, 1.0)),
-            (366.5, (1, 2, 1, 1.5)),
-
+            ((1, 1, 2.0), 1.0),
             # Saturday    1 A.D. January 1  00:00:00.0  1721423.5
-            (1721423.5, (1, 4714, 1, 1)),
+            ((4714, 1, 1.0), 1721423.0),
             # Thursday 1582 A.D. October 4  00:00:00.0  2299159.5
-            (2299159.5, (1, 6295, 10, 4.0)),
+            ((6295, 10, 4.0), 2299159.0),
             # Friday   1582 A.D. October 15 00:00:00.0  2299160.5
-            (2299160.5, (1, 6295, 10, 5.0)),
+            ((6295, 10, 5.0), 2299160.0),
             # Thursday 2019 A.D. October 3  00:00:00.0  2458759.5
-            (2458759.5, (1, 6732, 9, 19.75)),
+            ((6732, 9, 19.75), 2458759.75),
             )
         msg = "Expected {}, found {}"
 
-        for day, expected_result in data:
-            result = self._jp.julian_period_from_julian_day(day)
+        for j_date, expected_result in data:
+            result = self._jp.julian_day_from_julian_date(j_date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_julian_date_from_fixed_day(self):
+        """
+        Test that the julian_date_from_fixed_day method returns a
+        Julian date from a fixed day.
+        """
+        data = (
+            (-1.0, (1, 1, 1.0)),
+            (-0.5, (1, 1, 1.5)),
+            (0.0, (1, 1, 2.0)),
+            (1721422.0, (4714, 1, 1.0)),
+            (2299158.0, (6295, 10, 4.0)),
+            (2299159.0, (6295, 10, 5.0)),
+            (2458758.75, (6732, 9, 19.75)),
+            (673222, (1844, 3, 9)),
+            )
+        msg = "Expected {}, found {}"
+
+        for f_day, expected_result in data:
+            result = self._jp.julian_date_from_fixed_day(f_day)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_julian_date_from_julian_day(self):
+        """
+        Test that the julian_date_from_julian_day methods returns a
+        fixed date from a Julian day.
+        """
+        data = (
+            # Monday   4713 B.C. January 1  12:00:00.0        0.0
+            (0.0, (1, 1, 1.0)),
+            # Monday   4713 B.C. January 2  00:00:00.0        0.0
+            (0.5, (1, 1, 1.5)),
+            # Tuesday  4713 B.C. January 2  12:00:00.0        1.0
+            (0.1, (1, 1, 2.0)),
+            # Saturday    1 A.D. January 1  00:00:00.0  1721423.5
+            (1721422.0, (4714, 1, 1.0)),
+            # Thursday 1582 A.D. October 4  00:00:00.0  2299159.5
+            (2299158.0, (6295, 10, 4.0)),
+            # Friday   1582 A.D. October 15 00:00:00.0  2299160.5
+            (2299159.0, (6295, 10, 5.0)),
+            # Thursday 2019 A.D. October 3  00:00:00.0  2458759.5
+            (2458758.75, (6732, 9, 19.75)),
+            )
+        msg = "Expected {}, found {}"
+
+        for j_day, expected_result in data:
+            result = self._jp.julian_date_from_julian_day(j_day)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))

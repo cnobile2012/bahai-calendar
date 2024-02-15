@@ -19,19 +19,6 @@ class GregorianCalendar(BaseCalendar):
     #  ;; Fixed date of start of the (proleptic) Gregorian calendar.
     #  (rd 1))
     GREGORIAN_EPOCH = 1  # See BaseCalender notes.
-
-    JANUARY = 1
-    FEBRUARY = 2
-    MARCH = 3
-    APRIL = 4
-    MAY = 5
-    JUNE = 6
-    JULY = 7
-    AUGUEST = 8
-    SEPTEMBER = 9
-    OCTOBER = 10
-    NOVEMBER = 11
-    DECEMBER = 12
     _MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
     #(defun gregorian-leap-year? (g-year)

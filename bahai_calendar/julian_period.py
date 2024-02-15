@@ -38,20 +38,40 @@ class JulianPeriod:
     #  ;; Fixed date of start of the Julian calendar.
     #  (fixed-from-gregorian (gregorian-date 0 december 30)))
     # The above seems to be off by one day.
-    JULIAN_EPOCH = 0 # -1
+    RD_JULIAN_EPOCH = -1 # This is the R.D. Julian Epoch
+    JULIAN_EPOCH = 0 # This is the actual Julian Epoch
 
     # 28 (solar cycle) × 19 (lunar cycle) × 15 (indiction cycle) = 7980 years
     JULIAN_PERIOD = 7980
     JULIAN_YEAR = 365.25
     JD_EPOCH = -1721424.5
     MJD_EPOCH = 678576
+
+    JANUARY = 1
+    FEBRUARY = 2
+    MARCH = 3
+    APRIL = 4
+    MAY = 5
+    JUNE = 6
+    JULY = 7
+    AUGUEST = 8
+    SEPTEMBER = 9
+    OCTOBER = 10
+    NOVEMBER = 11
+    DECEMBER = 12
     JULIAN_MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
     _CORRECT = lambda self, x: 0.75 if x % 1 in (0.25, 0.75) else 0
 
+    # (defun quotient (m n)
+    #   ;; TYPE (real nonzero-real) -> integer
+    #   ;; Whole part of m/n.
+    #   (floor m n))
+    QUOTIENT = lambda self, m, n: math.floor(m / n)
+
     def __init__(self):
         super().__init__()
-        # (period, year, month, day)
+        # (year, month, day)
         self._julian_date = None
 
     def moment_from_jd(self, jd:float) -> float:
@@ -138,10 +158,27 @@ class JulianPeriod:
         #return (j_year % 4) == 0 if j_year > 0 else 3
         return not j_year % 4
 
-    def fixed_from_julian(self, j_date:tuple) -> float:
+    def fixed_day_from_julian_date(self, j_date:tuple) -> float:
         """
-        This function seems to not return an R.D. fixed day, but returns
-        a Julian day.
+        Converts a Julian date to an R.D. day.
+        """
+        return self._julian_or_fixed_from_julian_date(
+            j_date, self.RD_JULIAN_EPOCH)
+
+    def julian_day_from_julian_date(self, j_date:tuple) -> float:
+        """
+        Converts a Julian date to a Julian day.
+        """
+        return self._julian_or_fixed_from_julian_date(
+            j_date, self.JULIAN_EPOCH)
+
+    def _julian_or_fixed_from_julian_date(self, j_date:tuple,
+                                          epoch:int) -> float:
+        """
+        This method is a slightly modified version of the original from
+        Calendarical Calculations. With only a change in the epoch it can
+        do double duty. It can convert a julian date to either a Julian
+        day or an R.D. day.
 
         (defun fixed-from-julian (j-date)
           ;; TYPE julian-date -> fixed-date
@@ -165,10 +202,9 @@ class JulianPeriod:
                    -2))
                day)))                 ; Days so far this month.
         """
-        period = j_date[0] # ** TODO ** Do something with this.
-        year = j_date[1]
-        month = j_date[2]
-        day = j_date[3]
+        year = j_date[0]
+        month = j_date[1]
+        day = j_date[2]
         y = year + 1 if year < 0 else year
         correction = 0
 
@@ -178,62 +214,37 @@ class JulianPeriod:
             else:
                 correction = -2
 
-        return (self.JULIAN_EPOCH - 1) + 365 * (y - 1) + self.QUOTIENT(
+        return (epoch - 1) + 365 * (y - 1) + self.QUOTIENT(
             y - 1, 4) + self.QUOTIENT(367 * month - 362, 12) + correction + day
 
-    def julian_period_from_julian_day(self, jd:float) -> tuple:
+    def julian_date_from_fixed_day(self, day:float) -> float:
         """
-        Convert the Julian day to a Julian date.
-
-        .. note::
-
-           The Julian Period is 13 days behind the Gregorian Calendar.
+        Converts an R.D. fixed day to a Julian date.
         """
-        assert jd >= 0, f"A Julian Period day must be 'jd >= 0', found {jd}"
-        jd_start = math.floor(jd)
-        jd_part = jd % 1
-        c = jd_start / self.JULIAN_YEAR
-        period = math.floor(c / self.JULIAN_PERIOD) + 1
-        year = math.floor(c) + 1
-        days_remaining = jd_start - (year - 1) * self.JULIAN_YEAR
-        accumulated_days = 0
+        return self._julian_date_from_julian_or_fixed_day(
+            day, self.RD_JULIAN_EPOCH)
 
-        for month, md in enumerate(self.JULIAN_MONTHS, start=1):
-            if month == 2: # Subtract 0 or 1 from Febuary if leap year.
-                md -= 0 if self.julian_leap_year(jd) else 1
-
-            accumulated_days += md
-
-            if days_remaining < accumulated_days:
-                accumulated_days -= md
-                break
-            elif days_remaining == accumulated_days:
-                accumulated_days -= md - 1
-                break
-
-        #print(f"({jd}, {month}, {md}, {days_remaining}, "
-        #      f"{accumulated_days})")
-        # ** TODO ** Since the leap year is every 4 years we are accumulating
-        #            0.25 on a day per year before the next leap year happens.
-        # These 0.25 needs to be subtracted.
-        #print(days_remaining, accumulated_days)
-
-        day = days_remaining - accumulated_days + 1 + jd_part
-        day -= self._CORRECT(day)
-        return (period, year, month, day)
-
-    def julian_from_fixed(self, date:tuple) -> float:
+    def julian_date_from_julian_day(self, day:float) -> float:
         """
-        To be tested with -1721424.5 -> (-4713, 1, 1.5)
+        Converts a Julian day to an Julian date.
+        """
+        return self._julian_date_from_julian_or_fixed_day(
+            day, self.JULIAN_EPOCH)
+
+    def _julian_date_from_julian_or_fixed_day(self, f_day:float,
+                                              epoch:int) -> float:
+        """
+        This method is a slightly modified version of the original from
+        Calendarical Calculations. With only a change in the epoch it can
+        do double duty. It can convert a julian date to either a Julian
+        day or an R.D. day.
 
         (defun julian-from-fixed (date)
           ;; TYPE fixed-date -> julian-date
           ;; Julian (year month day) corresponding to fixed $date$.
           (let* ((approx               ; Nominal year.
-                  (quotient (+ (* 4 (- date julian-epoch)) 1464)
-                            1461))
-                 (year (if (<= approx 0)
-                           (1- approx) ; No year 0.
+                  (quotient (+ (* 4 (- date julian-epoch)) 1464) 1461))
+                 (year (if (<= approx 0) (1- approx) ; No year 0.
                          approx))
                  (prior-days           ; This year
                   (- date (fixed-from-julian
@@ -255,22 +266,21 @@ class JulianPeriod:
                           (julian-date year month 1))))))
             (julian-date year month day)))
         """
-        from .gregorian_calendar import GregorianCalendar
-        gc = GregorianCalendar()
-        approx = self.QUOTIENT(4 * (date - self.JULIAN_EPOCH) + 1464, 1461)
+        approx = self.QUOTIENT(4 * (f_day - epoch) + 1464, 1461)
         year = approx - 1 if approx <= 0 else approx
-        prior_day = date - self.fixed_from_julian((1, year, gc.JANUARY, 1))
+        prior_day = f_day - self.fixed_day_from_julian_date(
+            (year, self.JANUARY, 1))
         correction = 0
 
-        if date >= self.fixed_from_julian((1, year, gc.MARCH, 1)):
+        if f_day >= self.fixed_day_from_julian_date((year, self.MARCH, 1)):
             if self.julian_leap_year(year):
                 correction = 1
             else:
                 correction = 2
 
         month = self.QUOTIENT(12 * (prior_day + correction) + 373, 367)
-        day = (date - self.fixed_from_julian((1, year, month, 1))) + 1
-        return (1, year, month, day) # ** TODO ** Do something with the period.
+        day = (f_day - self.fixed_day_from_julian_date((year, month, 1))) + 1
+        return (year, month, day)
 
     def julian_from_gregorian(self, g_date:tuple) -> float:
         """

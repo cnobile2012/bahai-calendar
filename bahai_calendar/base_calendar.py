@@ -78,12 +78,6 @@ class BaseCalendar(JulianPeriod):
     MOD3 = lambda self, x, a, b : x if a == b else (
         a + math.fmod((x - a), (b - a)))
 
-    # (defun quotient (m n)
-    #   ;; TYPE (real nonzero-real) -> integer
-    #   ;; Whole part of m/n.
-    #   (floor m n))
-    QUOTIENT = lambda self, m, n: math.floor(m / n)
-
     #(defconstant mean-synodic-month
     #  ;; TYPE duration
     #  29.530588861L0)
