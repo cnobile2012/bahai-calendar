@@ -125,12 +125,12 @@ class TestBadiCalandar(unittest.TestCase):
         data = (
             (673222, 673222),
             )
-        msg = "Expected result {}, found {}."
+        msg = "Expected result {} for date {}, found {}."
 
         for date, expected_result in data:
             result = self._bc.astro_bahai_new_year_on_or_before(date)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_fixed_from_astro_bahai(self):
@@ -144,22 +144,22 @@ class TestBadiCalandar(unittest.TestCase):
             # (2024, 2, 29) 4th day of Ayyām-i-Hā
             ((1, 10, 9, 0, 4), 738944),
             # (2024, 3, 1) 1st day of last month of year 180
-            ((1, 10, 9, 19, 1), 738945),
+            ((1, 10, 9, 19, 1), 738946),
             # (2022, 2, 25) 1st day of Ayyām-i-Hā of year 178
             ((1, 10, 7, 0, 1), 738211),
             # (2022, 3, 1) 5th day of Ayyām-i-Hā of year 178
             ((1, 10, 7, 0, 5), 738215),
             # (2022, 3, 2) 1st day of Baha of year 178
-            ((1, 10, 7, 19, 1), 738216),
+            ((1, 10, 7, 19, 1), 738216), # This fails but shouldn't.
             # (2024, 1, 22) 4th day of 17th month of year 180
             ((1, 10, 9, 17, 4), 738907),
             )
-        msg = "Expected result {}, found {}."
+        msg = "Expected result {} for b_date {}, found {}."
 
         for b_date, expected_result in b_dates:
             result = self._bc.fixed_from_astro_bahai(b_date)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, b_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_astro_bahai_from_fixed(self):
@@ -175,7 +175,7 @@ class TestBadiCalandar(unittest.TestCase):
             # (2024, 2, 29) 4th day of Ayyām-i-Hā
             (738944, (1, 10, 9, 0, 4)),
             # (2024, 3, 1) 1st day of last month of year 180
-            (738945, (1, 10, 9, 19, 1)),
+            (738946, (1, 10, 9, 19, 1)),
             # (2022, 2, 25) 1st day of Ayyām-i-Hā year 178
             (738211, (1, 10, 7, 0, 1)),
             # (2022, 3, 1) 5th day of Ayyām-i-Hā year 178
@@ -185,9 +185,9 @@ class TestBadiCalandar(unittest.TestCase):
             # (2024, 1, 22) 4th day of 17th month of year 180
             (738907, (1, 10, 9, 17, 4)),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} for fixed_day {}, found {}"
 
-        for fixed_date, expected_result in fixed_dates:
-            result = self._bc.astro_bahai_from_fixed(fixed_date)
+        for fixed_day, expected_result in fixed_dates:
+            result = self._bc.astro_bahai_from_fixed(fixed_day)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, fixed_day, result))
