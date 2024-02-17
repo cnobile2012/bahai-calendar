@@ -683,27 +683,19 @@ class BaseCalendar(JulianPeriod):
         cap_delta = self.MOD3(self.alt_solar_longitude(tau) - lam, -180, 180)
         return min(tee, tau - rate * cap_delta)
 
-    def find_moment_of_equinoxes_or_solstices(
-        self, tee:int, lam:int=SPRING, greg:bool=True) -> float:
+    def find_moment_of_equinoxes_or_solstices(self, tee:int,
+                                              lam:int=SPRING) -> float:
         """
         Alternate method for finding the equinoxes or solstices.
 
         See: Astronomical Algorithms, 1998, by Jean Meeus Chapter 27 pg 177
         """
-        if greg:
-            from .gregorian_calendar import GregorianCalendar
-            gc = GregorianCalendar()
-            date = gc.gregorian_from_fixed(tee)
-            year = date[0]
-            denominator = 1000
-            numerator = 2000
-        else:
-            denominator = 364878
-            numerator = 730120
-            year = tee
+        from .gregorian_calendar import GregorianCalendar
+        gc = GregorianCalendar()
+        year = gc.gregorian_year_from_fixed(tee)
 
-        if year <= denominator:
-            y = year / denominator
+        if year <= 1000:
+            y = year / 1000
 
             if lam == self.SPRING:
                 jde = (1721139.29189 + 365242.13740 * y + 0.06134 * y**2 +
@@ -718,7 +710,7 @@ class BaseCalendar(JulianPeriod):
                 jde = (1721414.39987 + 365242.88257 * y - 0.00769 * y**2 -
                        0.00933 * y**3 - 0.00006 * y**4)
         else:
-            y = (year - numerator) / denominator
+            y = (year - 2000) / 1000
 
             if lam == self.SPRING:
                 jde = (2451623.80984 + 365242.37404 * y + 0.05169 * y**2 -
