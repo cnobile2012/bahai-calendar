@@ -948,7 +948,7 @@ class BaseCalendar(JulianPeriod):
         alpha = self.refraction() + self.MINS(16)
         return self.dawn(date, alpha)
 
-    def sunset(self, date):
+    def sunset(self, day):
         """
         used
         This is based on  standard time which itself is based on location.
@@ -960,7 +960,7 @@ class BaseCalendar(JulianPeriod):
             (dusk date location alpha)))
         """
         alpha = self.refraction() + self.MINS(16)
-        return self.dusk(date, alpha)
+        return self.dusk(day, alpha)
 
     #urbana-sunset
     #cfs-alent

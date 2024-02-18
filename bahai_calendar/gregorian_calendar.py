@@ -150,7 +150,7 @@ class GregorianCalendar(BaseCalendar):
         year = (400 * n400) + (100 * n100) + (4 * n4) + n1
         return year if n100 == 4 or n1 == 4 else year + 1
 
-    def gregorian_from_fixed(self, date:float) -> tuple:
+    def gregorian_from_fixed(self, day:float) -> tuple:
         """
         (defun gregorian-from-fixed (date)
           ;; TYPE fixed-date -> gregorian-date
@@ -175,21 +175,18 @@ class GregorianCalendar(BaseCalendar):
                           (gregorian-date year month 1))))))
             (gregorian-date year month day)))
         """
-        year = self.gregorian_year_from_fixed(date)
-        prior_days = date - self.gregorian_new_year(year)
+        year = self.gregorian_year_from_fixed(day)
+        prior_days = day - self.gregorian_new_year(year)
         fixed = self.fixed_from_gregorian((year, self.MARCH, 1))
-        #print(f"\ndate: {date}, year: {year}, prior_days: {prior_days}, "
-        #      f"fixed: {fixed}, ", end="")
 
-        if not (date < fixed):
+        if not (day < fixed):
             if self.GREGORIAN_LEAP_YEAR(year):
                 prior_days += 1
             else:
                 prior_days += 2
 
-        #print(f"prior_days: {prior_days}")
         month = self.QUOTIENT(12 * prior_days + 373, 367)
-        day = date - self.fixed_from_gregorian((year, month, 1)) + 1
+        day = day - self.fixed_from_gregorian((year, month, 1)) + 1
         return (year, month, day)
 
     def gregorian_date_difference(self, g_date1:tuple, g_date2:tuple) -> int:

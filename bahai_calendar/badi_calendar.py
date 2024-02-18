@@ -19,6 +19,9 @@ class BahaiCalendar(BaseCalendar):
     #  ;; TYPE location
     #  ;; Location of Tehran for astronomical Baha’i calendar.
     #  (location (deg 35.696111L0) (deg 51.423056L0) (mt 0) (hr (+ 3 1/2))))
+    # WGS84:          35.689252, 51.3896 1595m 3.5
+    # WGS84--https://coordinates-converter.com/
+    # https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-
     BAHAI_LOCATION = (35.696111, 51.423056, 0, 3.5)
 
     #(defconstant ayyam-i-ha
@@ -184,7 +187,7 @@ class BahaiCalendar(BaseCalendar):
         years = round((new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR)
         major = self.QUOTIENT(years, 361) + 1
         cycle = self.QUOTIENT(years % 361, 19) + 1
-        year = (years % 19) #+ 1
+        year = (years % 19) + 1
         days = date - new_year
 
         if date >= self.fixed_from_astro_bahai((major, cycle, year, 19, 1)):
@@ -199,7 +202,22 @@ class BahaiCalendar(BaseCalendar):
             (major, cycle, year, month, 1))
         return (major, cycle, year, month, day)
 
-    def nam_ruz(self, g_year):
+    def nam_ruz(self, b_year):
+        """
+        Return the Badi date for Naw-Ruz from the given Badi year.
+        """
+        tee = self.BAHAI_EPOCH + b_year - 1
+        new_year = self.find_moment_of_equinoxes_or_solstices(tee)
+        years = round((new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR)
+        major = self.QUOTIENT(years, 361) + 1
+        cycle = self.QUOTIENT(years % 361, 19) + 1
+        year = (years % 19) + 1
+        days = tee - new_year
+
+        #print(tee, new_year, years, days)
+        return (major, cycle, year, 0, 0)
+
+    def nam_ruz_from_gregorian_year(self, g_year):
         """
         (defun naw-ruz (g-year)
           ;; TYPE gregorian-year -> fixed-date
@@ -208,7 +226,7 @@ class BahaiCalendar(BaseCalendar):
           (astro-bahai-new-year-on-or-before
            (gregorian-new-year (1+ g-year))))
         """
-        return self.astro_bahai_new_year_on_or_before(
+        return self.find_moment_of_equinoxes_or_solstices(
             self._gc.gregorian_new_year(g_year + 1))
 
     def feast_of_ridvan(self, g_year):
@@ -244,6 +262,25 @@ class BahaiCalendar(BaseCalendar):
         day = self.fixed_from_moment(m8)
         set8 = self.bahai_sunset(day)
         return day + 1 if m8 < set8 else dat + 2
+
+    def _find_month(self, tee):
+        """
+        Find the Badi month from an R.D. moment.
+        """
+
+
+        return
+
+    def _is_leap_year(self, tee):
+        """
+        Return a boolean True if a Badi leap year, False if not.
+
+        ** TODO ** May need to compare sunset not the spring equinoxe.
+        """
+        prev_year = tee - 366
+        prev_ve = self.find_moment_of_equinoxes_or_solstices(prev_year)
+        curr_ve = self.find_moment_of_equinoxes_or_solstices(tee)
+        return 367 > (curr_ve - prev_ve) >= 366
 
     @property
     def latitude(self):
