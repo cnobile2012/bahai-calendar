@@ -8,35 +8,29 @@ import os
 import unittest
 import datetime
 
-from ..badi_calendar import BahaiCalendar
+from ..badi_calendar import BahaiCalendar, GregorianCalendar
 
 
 class TestBadiCalandar(unittest.TestCase):
     """
     Some sunrise and sunset calculations done with my SunriseSunset package.
     Sunrise and Sunset for 1844-03
+
+    The vernal equinox in Tehran was at 15:19 on Wednesday, March 20, 1844.
+    This means the Badi epoch was sunset at 18:11 Wednesday, March 20, 1844.
     https://www.timeanddate.com/sun/@112931?month=3&year=1844
 
     In [1]: from sunrisesunset import SunriseSunset
-    In [2]: import pytz
-    In [3]: dt = datetime.datetime(1844, 3, 20)
-    In [4]: zone = pytz.timezone('Asia/Tehran')
-    In [5]: dt = dt.astimezone(zone)
-    In [6]: ss = SunriseSunset(dt, 35.696111, 51.423056, 'official')
-    In [7]: ss.sun_rise_set
-    Out[7]:
+    In [2]:import datetime
+    In [3]: import pytz
+    In [4]: dt = datetime.datetime(1844, 3, 20)
+    In [5]: zone = pytz.timezone('Asia/Tehran')
+    In [6]: dt = dt.astimezone(zone)
+    In [7]: ss = SunriseSunset(dt, 35.696111, 51.423056, 'official')
+    In [8]: ss.sun_rise_set
+    Out[8]:
     (datetime.datetime(1844, 3, 20, 6, 5, 51, 164827, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>),
      datetime.datetime(1844, 3, 20, 18, 11, 6, 983600, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>))
-    In [8]: ss = SunriseSunset(dt, 35.696111, 51.423056, 'astronomical')
-    In [9]: ss.sun_rise_set
-    Out[9]:
-    (datetime.datetime(1844, 3, 20, 4, 40, 42, 865539, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>),
-     datetime.datetime(1844, 3, 20, 19, 36, 26, 469878, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>))
-    In [10]: ss = SunriseSunset(dt, 35.6892523, 51.3896004, 'astronomical')
-    In [11]: ss.sun_rise_set
-    Out[11]:
-    (datetime.datetime(1844, 3, 20, 4, 40, 51, 342324, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>),
-     datetime.datetime(1844, 3, 20, 19, 36, 34, 35553, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>))
     """
 
     def __init__(self, name):
@@ -44,6 +38,7 @@ class TestBadiCalandar(unittest.TestCase):
 
     def setUp(self):
         self._bc = BahaiCalendar()
+        self._gc = GregorianCalendar()
 
     #@unittest.skip("Temporarily skipped")
     def test_parse_datetime(self):
@@ -191,3 +186,36 @@ class TestBadiCalandar(unittest.TestCase):
             result = self._bc.astro_bahai_from_fixed(fixed_day)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, fixed_day, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_nam_ruz(self):
+        """
+        Test that the nam_ruz method returns the correct Badi date.
+        """
+        data = (
+            (1, (1, 1, 1, 1, 1)),
+            )
+        msg = "Expected {} for date {}, found {}"
+
+        for year, expected_result in data:
+            result = self._bc.nam_ruz(year)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_nam_ruz_from_gregorian_year(self):
+        """
+        Test that the nam_ruz_from_gregorian_year method returns the
+        correct Gregorian dates.
+        """
+        data = (
+            (1844, (1844, 3, 20)), # (1844, 3, 20, 18, 31)
+            )
+        msg = "Expected {} for date {}, found {}"
+
+        for year, date in data:
+            expected_result = self._gc.fixed_from_gregorian(date)
+            result = self._bc.nam_ruz_from_gregorian_year(year)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, result))
+

@@ -627,7 +627,9 @@ class TestBaseCalandar(unittest.TestCase):
         printed in Astronomical Tables of the Sun, Moon, and Planets,
         by Jean Meeus, 1983 published by Willmann-Bell, Inc., Richmond,
         Virginia 23235, U.S.A.
-        See https://nshdpi.ca/is/equinox/eqindex.html
+        See both:
+        https://nshdpi.ca/is/equinox/eqindex.html
+        http://astropixels.com/ephemeris/soleq2001.html
 
         The solar longitude starts at the moment of the Vernal Equinox.
         Both results seem to be off the correct date and time.

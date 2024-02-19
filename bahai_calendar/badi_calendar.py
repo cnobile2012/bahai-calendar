@@ -22,6 +22,7 @@ class BahaiCalendar(BaseCalendar):
     # WGS84:          35.689252, 51.3896 1595m 3.5
     # WGS84--https://coordinates-converter.com/
     # https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-
+    # https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
     BAHAI_LOCATION = (35.696111, 51.423056, 0, 3.5)
 
     #(defconstant ayyam-i-ha
