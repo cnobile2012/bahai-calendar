@@ -310,20 +310,26 @@ class TestBaseCalandar(unittest.TestCase):
         """
         Test that the ephemeris_correction method returns dynamical
         Time minus Universal Time (in days) for moment.
+
+        Dynamical Time difference calculator:
+        https://planetcalc.com/9200/
         """
         fraction = 0.5
-        tees = ((2100, 766645, 230.88001157407405),
-                (2028, 740347, 0.0008833626851851851),
-                (2014, 735234, 0.0007931229629629629),
-                (1990, 726468, 0.0006585027893518518),
-                (1943, 709301, 0.05793252154447576),
-                (1850, 675334, 1.7554929729946673),
-                (1750, 638810, 0.00014899798891203703),
-                (1650, 602286, 0.0005809492592592593),
-                (1050, 383140, 0.01520822313332091),
-                (0, -365, 0.12249537037037037),
-                (3000, 1095363, 0.05133888888888889),
-                (-1000, -365607, 0.2943018518518518))
+        tees = (
+            (3000, 1095363, 0.05133888888888889),
+            (2100, 766645, 0.002997916666666666),
+            (2028, 740347, 0.0008833626851851851),
+            (2014, 735234, 0.0007931229629629629),
+            (1990, 726468, 0.0006585027893518518),
+            (1943, 709301, 0.05793252154447576),
+            (1881, 686657, 0.019770369608438015),
+            (1850, 675334, 1.7554929729946673),
+            (1750, 638810, 0.00014899798891203703),
+            (1650, 602286, 0.0005809492592592593),
+            (1050, 383140, 0.01520822313332091),
+            (0, -365, 0.12249537037037037),
+            (-1000, -365607, 0.2943018518518518),
+            )
         msg = "Expected result {} for year {}, found {}."
 
         for year, tee, expected_result in tees:
@@ -845,6 +851,10 @@ class TestBaseCalandar(unittest.TestCase):
         """
         Test that the sunset method returns the standard time of
         sunset on fixed date at location.
+
+        Finds the lat and lon of a given location.
+        https://www.latlong.net/
+        https://www.timeanddate.com/sun/@112931?month=3&year=1844
         """
         dates = (
             # New York (2024-01-20)
