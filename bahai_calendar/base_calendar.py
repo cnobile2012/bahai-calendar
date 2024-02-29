@@ -11,9 +11,10 @@ from functools import reduce
 from operator import mul
 
 from bahai_calendar.julian_period import JulianPeriod
+from bahai_calendar.calendar_tables import CalendarTables
 
 
-class BaseCalendar(JulianPeriod):
+class BaseCalendar(CalendarTables, JulianPeriod):
     """
     Basic functionality used with all calenders.
 
@@ -61,7 +62,7 @@ class BaseCalendar(JulianPeriod):
     #  ;; TYPE (integer integer real) -> angle
     #  ;; d degrees, m arcminutes, s arcseconds.
     #  (+ d (/ (+ m (/ s 60)) 60)))
-    ANGLE = lambda self, d, m, s: d + (m + (s / 60)) / 60 # 0 - 360
+    ANGLE = lambda self, d, m, s: d + (m + s / 60) / 60 # 0 - 360
 
     #(defun amod (x y)
     #  ;; TYPE (integer nonzero-integer) -> integer
@@ -117,6 +118,8 @@ class BaseCalendar(JulianPeriod):
 
     def __init__(self):
         self._time = None
+        self._nutation = (0, 0)
+        self._obliquity = (0, 0)
 
     def parse_datetime(self, dt:datetime.datetime) -> None:
         self.time_representation = (dt.hour, dt.minute, dt.second)
@@ -384,7 +387,7 @@ class BaseCalendar(JulianPeriod):
                            (sin-degrees (* 2 anomaly)))))))
             (* (sign equation) (min (abs equation) (hr 12L0)))))
         '''
-        c = self.julian_centuries(tee)
+        c = self.julian_centuries_in_rd(tee)
         lam = self._poly(c, (280.46645, 36000.76983, 0.0003032))
         anomaly = self._poly(c, (357.52910, 35999.05030, -0.0001559,
                                  -0.00000048))
@@ -436,28 +439,6 @@ class BaseCalendar(JulianPeriod):
     # Time and Astronomy (The Year)
     #
 
-    def obliquity(self, tee):
-        """
-        Obliquity is the inclination of the Earth’s equator. The value
-        of this inclination, called the obliquity, varies in a
-        100000-year cycle, ranging from 24.2◦ 10000 years ago to 22.6◦
-        in another 10000 years.
-
-        (defun obliquity (tee)
-          ;; TYPE moment -> angle
-          ;; Obliquity of ecliptic at moment tee.
-          (let* ((c (julian-centuries tee)))
-            (+ (angle 23 26 21.448L0)
-               (poly c (list 0L0
-                             (angle 0 0 -46.8150L0)
-                             (angle 0 0 -0.00059L0)
-                             (angle 0 0 0.001813L0))))))
-        """
-        c = self.julian_centuries(tee)
-        angles = (0, self.ANGLE(0, 0, -46.8150), self.ANGLE(0, 0, -0.00059),
-                  self.ANGLE(0, 0, 0.001813))
-        return self.ANGLE(23, 26, 21.448) + self._poly(c, angles)
-
     def declination(self, tee, lat, lon):
         """
         (defun declination (tee beta lambda)
@@ -479,57 +460,107 @@ class BaseCalendar(JulianPeriod):
     #mean-tropical-year
     #mean-sidereal-year
 
-    def solar_longitude(self, moment):
-        jd = self.jd_from_moment(moment)
-        t = (jd - self.J2000) / 365250
-        func = lambda a, b, c: a * math.cos(b + c * t)
-        l0_a = (175347046, 3341656, 34894, 3497, 3418, 3136, 2676, 2343, 1324,
-                1273, 1199, 990, 902, 857, 780, 753, 505, 492, 357, 317, 284,
-                271, 243, 206, 205, 202, 156, 132, 126, 115, 103, 102, 102, 99,
-                98, 86, 85, 85, 80, 79, 75, 74, 74, 70, 62, 61, 57, 56, 56, 52,
-                52, 51, 49, 41, 41, 39, 37, 37, 36, 36, 33, 30, 30, 25)
-        l0_b = (0, 4.6692568, 4.62610, 2.7441, 2.8289, 3.6277, 4.4181, 6.1352,
-                0.7425, 2.0371, 1.1096, 5.233, 2.045, 3.508, 1.179, 2.533,
-                4.583, 4.205, 2.920, 5.849, 1.899, 0.315, 0.345, 4.806, 1.869,
-                2.548, 0.833, 3.411, 1.083, 0.645, 0.636, 0.976, 4.267, 6.21,
-                0.68, 5.98, 1.30, 3.67, 1.81, 3.04, 1.76, 3.50, 4.68, 0.83,
-                3.98, 1.82, 2.78, 4.39, 3.47, 0.19, 1.33, 0.28, 0.49, 5.37,
-                2.40, 6.17, 6.04, 2.57, 1.71, 1.78, 0.59, 0.44, 2.74, 3.16)
-        l0_c = (0, 6283.075850, 12566.15171, 5753.3849, 35231, 77713.7715,
-                7860.4194, 3930.2097, 11506.7698, 529.6910, 1577.3435,
-                5884.927, 26.298, 398.149, 5223.694, 5507.553, 18849.228,
-                775.523, 0.067, 11791.629, 796.298, 10977.079, 5486.778,
-                2544.314, 5573.143, 6069.777, 213.299, 2942.463, 20.775,
-                0.980, 4694.003, 15720.839, 7.114, 2146.17, 155.42, 161000.69,
-                6275.96, 71430.70, 17260.15, 12036.46, 5088.63, 3154.69,
-                801.82, 9437.76, 8827.39, 7084.90, 6286.60, 14143.50, 6279.55,
-                12139.55, 1748.02, 5856.48, 1194.45, 8429.24, 19651.05,
-                10447.37, 10213.29, 1059.38, 2352.87, 6812.77, 17789.85,
-                83996.85, 1349.87, 4690.48)
-        l0 = self._sigma((l0_a, l0_b, l0_c), func)
-        b0_a = (280, 102, 80, 44, 32)
-        b0_b = (3.199, 5.422, 3.88, 3.70, 4.00)
-        b0_c = (84334.662, 5507.553, 5223.69, 2352.87, 1577.34)
-        b0 = self._sigma((b0_a, b0_b, b0_c), func)
-        r0_a = (1000013989, 1670700, 13956, 3084, 1628, 1576, 925, 542, 472,
-                346, 329, 307, 243, 212, 186, 175, 110, 98, 86, 86, 65, 63,
-                57, 56, 49, 47, 45, 43, 39, 38, 37, 37, 36, 35, 33, 32, 32,
-                28, 28, 26)
-        r0_b = (0, 30984635, 3.05525, 5.1985, 1.1739, 2.8469, 5.453, 4.564,
-                3.661, 0.964, 5.90, 0.299, 4.273, 5.847, 5.022, 3.012, 5.055,
-                0.89, 5.69, 1.27, 0.27, 0.92, 2.01, 5.24, 3.25, 2.58, 5.54,
-                6.01, 5.36, 2.39, 0.83, 4.90, 1.67, 1.84, 0.24, 0.18, 1.78,
-                1.21, 1.90, 4.59)
-        r0_c = (0, 6283.075850, 12566.15170, 77713.7715, 5753.3849, 7860.4194,
-                11506.770, 3930.210, 5884.927, 5507.553, 5223.694, 5573.143,
-                11790.629, 1577.344, 10977.079, 18849.228, 5486.778, 6069.78,
-                15720.84, 161000.69, 17260.15, 529.69, 83996.85, 71430.70,
-                2544.31, 775.52, 9437.76, 6275.96, 4694.00, 8827.39, 19651.05,
-                12139.55, 12036.46, 2942.46, 7084.90, 5088.63, 398.15, 6286.60,
-                6279.55, 10447.39)
-        r0 = self._sigma((r0_a, r0_b, r0_c), func)
+    def approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
+                                                     lam:int) -> float:
+        """
+        Find the approximate Julian day for the equinoxes or solstices.
 
-        return l0, b0, r0
+        See: Astronomical Algorithms, 1998, by Jean Meeus Chapter 27 pg 177
+        """
+        if g_year <= 1000:
+            y = g_year / 1000
+
+            if lam == self.SPRING:
+                jde = (1721139.29189 + 365242.13740 * y + 0.06134 * y**2 +
+                       0.00111 * y**3 - 0.00071 * y**4)
+            elif lam == self.SUMMER:
+                jde = (1721233.25401 + 365241.72562 * y - 0.05323 * y**2 +
+                       0.00907 * y**3 + 0.00025 * y**4)
+            elif lam == self.AUTUMN:
+                jde = (1721325.70455 + 365242.49558 * y - 0.11677 * y**2 -
+                       0.00297 * y**3 + 0.00074 * y**4)
+            else: # lam == self.WINTER:
+                jde = (1721414.39987 + 365242.88257 * y - 0.00769 * y**2 -
+                       0.00933 * y**3 - 0.00006 * y**4)
+        else:
+            y = (g_year - 2000) / 1000
+
+            if lam == self.SPRING:
+                jde = (2451623.80984 + 365242.37404 * y + 0.05169 * y**2 -
+                       0.00411 * y**3 - 0.00057 * y**4)
+            elif lam == self.SUMMER:
+                jde = (2451716.56767 + 365241.62603 * y + 0.00325 * y**2 +
+                       0.00888 * y**3 - 0.00030 * y**4)
+            elif lam == self.AUTUMN:
+                jde = (2451810.21715 + 365242.01767 * y - 0.11575 * y**2 +
+                       0.00337 * y**3 + 0.00078 * y**4)
+            else: # lam == self.WINTER:
+                jde = (2451900.05952 + 365242.74049 * y - 0.06223 * y**2 -
+                       0.00823 * y**3 + 0.00032 * y**4)
+
+        return jde
+
+    def _heliocentric_ecliptical_longitude(self, time:float) -> float:
+        """
+        Find the heliocentric ecliptical longitude.
+
+        :param time: The moment in time referenced to J2000.
+        :type time: float
+        :return: Longitude in radians.
+        :rtype: float
+        """
+        func = lambda a, b, c: a * math.cos(b + c * time)
+        l0 = self._sigma((self.L0_A, self.L0_B, self.L0_C), func)
+        l1 = self._sigma((self.L1_A, self.L1_B, self.L1_C), func)
+        l2 = self._sigma((self.L2_A, self.L2_B, self.L2_C), func)
+        l3 = self._sigma((self.L3_A, self.L3_B, self.L3_C), func)
+        l4 = self._sigma((self.L4_A, self.L4_B, self.L4_C), func)
+        l5 = self._sigma((self.L5_A, self.L5_B, self.L5_C), func)
+        return self._poly(time, (l0, l1, l2, l3, l4, l5)) / 10**8
+
+    def _heliocentric_ecliptical_latitude(self, time:float) -> float:
+        """
+        Find the heliocentric ecliptical latitude.
+
+        :param time: The moment in time referenced to J2000.
+        :type time: float
+        :return: Latitude in radians.
+        :rtype: float
+        """
+        func = lambda a, b, c: a * math.cos(b + c * time)
+        b0 = self._sigma((self.B0_A, self.B0_B, self.B0_C), func)
+        b1 = self._sigma((self.B1_A, self.B1_B, self.B1_C), func)
+        return self._poly(time, (b0, b1)) / 10**8
+
+    def _radius_vector(self, time:float) -> float:
+        """
+        Find the radius vector.
+
+        :param time: The moment in time referenced to J2000.
+        :type time: float
+        :return: Radius vector in radians.
+        :rtype: float
+        """
+        func = lambda a, b, c: a * math.cos(b + c * time)
+        r0 = self._sigma((self.R0_A, self.R0_B, self.R0_C), func)
+        r1 = self._sigma((self.R1_A, self.R1_B, self.R1_C), func)
+        r2 = self._sigma((self.R2_A, self.R2_B, self.R2_C), func)
+        r3 = self._sigma((self.R3_A, self.R3_B, self.R3_C), func)
+        r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
+        return self._poly(time, (r0, r1, r2, r3, r4)) / 10**8
+
+    def solar_longitude(self, moment):
+        jde = self.jd_from_moment(moment)
+        t = (jde - self.J2000) / 365250
+        l = self._heliocentric_ecliptical_longitude(t)
+        # Convert to FK5 notation
+        t1 = t * 10
+        l1 = l - math.radians(1.397) * t1 - math.radians(0.00031) * t1**2
+        b = self._heliocentric_ecliptical_latitude(t)
+        dl = -0.09033 + 0.03916 * (math.cos(l1) + math.sin(l1)) * math.tan(b)
+        db = 0.03916 * (math.cos(l1) - math.sin(l1))
+
+        return dl, db
 
     def alt_solar_longitude(self, tee):
         """
@@ -559,11 +590,96 @@ class BaseCalendar(JulianPeriod):
              (+ (* (deg -0.004778L0) (sin-degrees cap-A))
                 (* (deg -0.0003667L0) (sin-degrees cap-B)))))
         """
-        c = self.julian_centuries(tee)
+        c = self.julian_centuries_in_rd(tee)
         cap_a = self._poly(c, (124.90, -1934.134, 0.002063))
         cap_b = self._poly(c, (201.11, 72001.5377, 0.00057))
         return (-0.004778 * self.sin_degrees(cap_a) +
                 -0.0003667 * self.sin_degrees(cap_b))
+
+    def astronomical_nutation(self, jde:float) -> float:
+        """
+        Nutation of the Earth's axis around it's 'mean' position.
+        """
+        if jde != self._nutation[0]:
+            t = self.julian_centuries(jde)
+            nut_sum, obl_sum = self._nutation_and_obliquity(t)
+            self._nutation = (jde, nut_sum)
+            self._obliquity = (jde, obl_sum)
+
+        return self._nutation[1]
+
+    def astronomical_obliquity(self, jde:float) -> float:
+        """
+        """
+        if jde != self._obliquity[0]:
+            t = self.julian_centuries(jde)
+            nut_sum, obl_sum = self._nutation_and_obliquity(t)
+            self._nutation = (jde, nut_sum)
+            self._obliquity = (jde, obl_sum)
+
+        return self._obliquity[1]
+
+    def _nutation_and_obliquity(self, t:float) -> float:
+        """
+        Nutation of the Earth's axis around it's 'mean' position.
+
+        See:
+     https://articles.adsabs.harvard.edu/full/seri/CeMec/0027//0000079.000.html
+        """
+        #l0 = self.coterminal_angle(self._poly(
+        #    t, (280.46646, 36000.76983, 0.0003032)))
+        lm = self.coterminal_angle(self._poly(
+            t, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
+        ls = self.coterminal_angle(self._poly(
+            t, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
+        ff = self.coterminal_angle(self._poly(
+            t, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
+        dd = self.coterminal_angle(self._poly(
+            t, (297.85036, 445267.111480, -0.0019142, 1 / 189474)))
+        om = self.coterminal_angle(self._poly(
+            t, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
+
+        # W = LM*lm + LS*ls + F*ff + D*dd + OM*om
+        # Where LM, LS, F, D, and OM are from the NUT periodic terms.
+        # The nutation in longitude is a sum of terms of the form
+        # (psi_sin + sin * T) * sin(W).
+        # Where psi_sin and t_sin are from the NUT periodic terms and T is
+        # the Julian time from J2000.
+        # The obliquity in latitude is a sum of terms of the form
+        # (eps_cos + cos * T) * cos(W).
+        # Where eps_cos and t_cos are from the NUT periodic terms and T is
+        # the Julian time from J2000.
+        nut_sum = 0
+        obl_sum = 0
+
+        for LM, LS, F, D, OM, day, psi_sin, sin, eps_cos, cos in self.NUT:
+            w = LM*lm + LS*ls + F*ff + D*dd + OM*om
+            nut_sum += (psi_sin + sin * t) * math.sin(w)
+            obl_sum += (eps_cos + cos * t) * math.cos(w)
+
+        return nut_sum / 36000000, obl_sum / 36000000
+
+    def obliquity(self, tee):
+        """
+        Obliquity is the inclination of the Earth’s equator. The value
+        of this inclination, called the obliquity, varies in a
+        100000-year cycle, ranging from 24.2◦ 10000 years ago to 22.6◦
+        in another 10000 years.
+
+        (defun obliquity (tee)
+          ;; TYPE moment -> angle
+          ;; Obliquity of ecliptic at moment tee.
+          (let* ((c (julian-centuries tee)))
+            (+ (angle 23 26 21.448L0)
+               (poly c (list 0L0
+                             (angle 0 0 -46.8150L0)
+                             (angle 0 0 -0.00059L0)
+                             (angle 0 0 0.001813L0))))))
+        """
+        c = self.julian_centuries_in_rd(tee)
+        angles = (0, self.ANGLE(0, 0, -46.815), self.ANGLE(0, 0, -0.00059),
+                  self.ANGLE(0, 0, 0.001813))
+        return self.ANGLE(23, 26, 21.448) + self._poly(c, angles)
 
     def aberration(self, tee):
         """
@@ -578,9 +694,15 @@ class BaseCalendar(JulianPeriod):
                   (cos-degrees (+ (deg 177.63L0) (* (deg 35999.01848L0) c))))
                (deg 0.005575L0))))
         """
-        c = self.julian_centuries(tee)
+        c = self.julian_centuries_in_rd(tee)
         return (0.0000974 * self.cos_degrees(177.63 + 35999.01848 * c)
                 - 0.005575)
+
+    def astronomical_aberration(self, tee):
+        """
+        """
+
+        return
 
     #solar-longitude-after
     #season-in-gregorian
@@ -624,47 +746,6 @@ class BaseCalendar(JulianPeriod):
             (self.alt_solar_longitude(tee) - lam), 360))
         cap_delta = self.MOD3(self.alt_solar_longitude(tau) - lam, -180, 180)
         return min(tee, tau - rate * cap_delta)
-
-    def approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
-                                                     lam:int) -> float:
-        """
-        Find the approximate Julian day for the equinoxes or solstices.
-
-        See: Astronomical Algorithms, 1998, by Jean Meeus Chapter 27 pg 177
-        """
-        if g_year <= 1000:
-            y = g_year / 1000
-
-            if lam == self.SPRING:
-                jde = (1721139.29189 + 365242.13740 * y + 0.06134 * y**2 +
-                       0.00111 * y**3 - 0.00071 * y**4)
-            elif lam == self.SUMMER:
-                jde = (1721233.25401 + 365241.72562 * y - 0.05323 * y**2 +
-                       0.00907 * y**3 + 0.00025 * y**4)
-            elif lam == self.AUTUMN:
-                jde = (1721325.70455 + 365242.49558 * y - 0.11677 * y**2 -
-                       0.00297 * y**3 + 0.00074 * y**4)
-            else: # lam == self.WINTER:
-                jde = (1721414.39987 + 365242.88257 * y - 0.00769 * y**2 -
-                       0.00933 * y**3 - 0.00006 * y**4)
-        else:
-            y = (g_year - 2000) / 1000
-
-            if lam == self.SPRING:
-                jde = (2451623.80984 + 365242.37404 * y + 0.05169 * y**2 -
-                       0.00411 * y**3 - 0.00057 * y**4)
-            elif lam == self.SUMMER:
-                jde = (2451716.56767 + 365241.62603 * y + 0.00325 * y**2 +
-                       0.00888 * y**3 - 0.00030 * y**4)
-            elif lam == self.AUTUMN:
-                jde = (2451810.21715 + 365242.01767 * y - 0.11575 * y**2 +
-                       0.00337 * y**3 + 0.00078 * y**4)
-            else: # lam == self.WINTER:
-                jde = (2451900.05952 + 365242.74049 * y - 0.06223 * y**2 -
-                       0.00823 * y**3 + 0.00032 * y**4)
-
-        return jde
-
 
     def find_moment_of_equinoxes_or_solstices(self, tee:int,
                                               lam:int=SPRING) -> float:
@@ -1059,6 +1140,12 @@ class BaseCalendar(JulianPeriod):
 
     def _poly(self, x:float, a:list) -> float:
         """
+        This is the Horner method used to eliminate the use of powers.
+        Insted of:
+        y = A + B * x + C * x^2 + D * x^3 + E * x^4
+        do this:
+        y = A + x * (B + x * (C + x * (D + x * E)))
+
         used
 
         (defun poly (x a)
@@ -1169,7 +1256,7 @@ class BaseCalendar(JulianPeriod):
         degrees = -degrees if degrees < 0 else degrees
         decimal = degrees + (minutes / 60) + (seconds / 3600)
         # Adjust the sign based on the direction.
-        return -decimal if direction.upper() in ['S', 'W'] else decimal
+        return -decimal if direction.upper() in ('S', 'W') else decimal
 
     def dms_from_decimal(self, coord:float, direction:str) -> tuple:
         """
@@ -1210,4 +1297,3 @@ class BaseCalendar(JulianPeriod):
         """
         value = math.fmod(value, 360)
         return value + 360 if value < 0 else value
-

@@ -61,8 +61,6 @@ class JulianPeriod:
     DECEMBER = 12
     JULIAN_MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
-    _CORRECT = lambda self, x: 0.75 if x % 1 in (0.25, 0.75) else 0
-
     # (defun quotient (m n)
     #   ;; TYPE (real nonzero-real) -> integer
     #   ;; Whole part of m/n.
@@ -137,7 +135,7 @@ class JulianPeriod:
         """
         return t % 1
 
-    def julian_centuries(self, tee):
+    def julian_centuries_in_rd(self, tee):
         """
         used
 
@@ -147,6 +145,12 @@ class JulianPeriod:
           (/ (- (dynamical-from-universal tee) j2000) 36525))
         """
         return (self.dynamical_from_universal(tee) - self.RD_J2000) / 36525
+
+    def julian_centuries(self, jde):
+        """
+        Calculate the Julian centuries from the Julian day.
+        """
+        return (jde - self.J2000) / 36525
 
     def julian_leap_year(self, j_year:float) -> bool:
         """

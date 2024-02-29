@@ -87,14 +87,14 @@ if __name__ == "__main__":
     tve = TestVernalEquinox()
     # All date formats
     data = tve.generate_curve()
-    #pprint.pprint(data)
+    pprint.pprint(data)
 
     # Date as seperate fields
     #items = [values[2] for year, values in data.items()]
     #[print(f"{Y} {M} {D} {h} {m} {s}") for Y, M, D, h, m, s in items]
 
     # R.D. dates only
-    [print(values[0]) for year, values in data.items()]
+    #[print(values[0]) for year, values in data.items()]
 
     # Solar Longitude Season
     #[print(values[4]) for year, values in data.items()]

@@ -95,12 +95,12 @@ class TestBadiCalandar(unittest.TestCase):
         """
         # All dates are sunset on the beginning of the Baha'i year.
         data = (
-            # (1844, 3, 20, 18, 11) -> (1844, 3, 20, 14, 38, 25.571062490344048)
-            (673221, 673221.6100181836),
-            # (2024, 3, 19, 18, 16) -> (2024, 3, 19, 14, 38, 22.21245065331459)
-            (738964, 738964.6099793108),
-            # (2064, 3, 19, 18, 15) -> (2064, 3, 19, 14, 38, 19.865490943193436)
-            (753574, 753574.6099521469),
+            # (1844, 3, 20, 18, 11) -> (1844, 3, 20, 14, 33, 18.275475203990936)
+            (673221, 673221.6064615217),
+            # (2024, 3, 19, 18, 16) -> (2024, 3, 19, 14, 33, 14.83555220067501)
+            (738964, 738964.6064217078),
+            # (2064, 3, 19, 18, 15) -> (2064, 3, 19, 14, 33, 14.920333474874496)
+            (753574, 753574.606422689),
             )
         msg = "Expected {}, found {}"
 
@@ -219,3 +219,23 @@ class TestBadiCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test__is_leap_year(self):
+        """
+        Test that the _is_leap_year method returns the correct boolean
+        for the given year.
+        """
+        data = (
+            (736044, False), # (2016, 3, 21) start 173
+            (736407, False), # (2017, 3, 19) end 173
+            (736408, True),  # (2017, 3, 20) start 174
+            (736773, True),  # (2018, 3, 20) end 174
+            (736774, False), # (2018, 3, 21) start 175
+            (737138, False), # (2019, 3, 20) end 175
+            )
+        msg = "Expected {} for date {}, found {}"
+
+        for day, expected_result in data:
+            result = self._bc._is_leap_year(day)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, day, result))

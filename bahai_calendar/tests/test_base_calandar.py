@@ -369,13 +369,13 @@ class TestBaseCalandar(unittest.TestCase):
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_julian_centuries(self):
+    def test_julian_centuries_in_rd(self):
         """
-        Test that the julian_centuries returns a Julian centuries since
-        2000 at moment.
+        Test that the julian_centuries_in_rd returns a Julian centuries
+        since 2000 at R.D. moment.
         """
         tee = 675334.5
-        result = self._bc.julian_centuries(tee)
+        result = self._bc.julian_centuries_in_rd(tee)
         expected_result = -1.499910869460013
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
