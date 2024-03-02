@@ -118,8 +118,8 @@ class BaseCalendar(CalendarTables, JulianPeriod):
 
     def __init__(self):
         self._time = None
-        self._nutation = (0, 0)
-        self._obliquity = (0, 0)
+        self._nutation = (0, 0, False)
+        self._obliquity = (0, 0, False)
 
     def parse_datetime(self, dt:datetime.datetime) -> None:
         self.time_representation = (dt.hour, dt.minute, dt.second)
@@ -596,30 +596,30 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         return (-0.004778 * self.sin_degrees(cap_a) +
                 -0.0003667 * self.sin_degrees(cap_b))
 
-    def astronomical_nutation(self, jde:float) -> float:
+    def astronomical_nutation(self, jde:float, *, degrees:bool=False) -> float:
         """
         Nutation of the Earth's axis around it's 'mean' position.
         """
-        if jde != self._nutation[0]:
+        if jde != self._nutation[0] or degrees is not self._nutation[2]:
             t = self.julian_centuries(jde)
-            nut_sum, obl_sum = self._nutation_and_obliquity(t)
-            self._nutation = (jde, nut_sum)
-            self._obliquity = (jde, obl_sum)
+            nut_sum, obl_sum = self._nutation_and_obliquity(t, )
+            self._nutation = (jde, nut_sum, degrees)
+            self._obliquity = (jde, obl_sum, degrees)
 
         return self._nutation[1]
 
-    def astronomical_obliquity(self, jde:float) -> float:
+    def astronomical_obliquity(self, jde:float, *, degrees:bool=False) -> float:
         """
         """
-        if jde != self._obliquity[0]:
+        if jde != self._obliquity[0] or degrees is not self._obliquity[2]:
             t = self.julian_centuries(jde)
-            nut_sum, obl_sum = self._nutation_and_obliquity(t)
+            nut_sum, obl_sum = self._nutation_and_obliquity(t, degrees=degrees)
             self._nutation = (jde, nut_sum)
             self._obliquity = (jde, obl_sum)
 
         return self._obliquity[1]
 
-    def _nutation_and_obliquity(self, t:float) -> float:
+    def _nutation_and_obliquity(self, t:float, degrees:bool=False) -> float:
         """
         Nutation of the Earth's axis around it's 'mean' position.
 
@@ -654,10 +654,17 @@ class BaseCalendar(CalendarTables, JulianPeriod):
 
         for LM, LS, F, D, OM, day, psi_sin, sin, eps_cos, cos in self.NUT:
             w = LM*lm + LS*ls + F*ff + D*dd + OM*om
-            nut_sum += (psi_sin + sin * t) * math.sin(w)
-            obl_sum += (eps_cos + cos * t) * math.cos(w)
+            nut_sum += (psi_sin + sin * t) * self.sin_degrees(w)
+            obl_sum += (eps_cos + cos * t) * self.cos_degrees(w)
 
-        return nut_sum / 36000000, obl_sum / 36000000
+        nut_sum /= 36000000
+        obl_sum /= 36000000
+
+        if degrees:
+            nut_sum = self.coterminal_angle(math.degrees(nut_sum))
+            obl_sum = self.coterminal_angle(math.degrees(obl_sum))
+
+        return nut_sum, obl_sum
 
     def obliquity(self, tee):
         """

@@ -100,7 +100,7 @@ class CalendarTables:
     # Periodic terms for the nutation in longitude and obliquity.
     # Nutation in Longitude and Obliquity referred to mean ecliptic of date.
     # Epoch J2000.0 (JD 2451 545.0 TDB) T in Julian Centuries
-    #        Arguments       Period  Longitude          Obliquity
+    #        Arguments       Period  Longitude           Obliquity
     #     LM  LS  F   D  OM   days   psi_sin     t*sin   eps_cos   t*cos
     NUT = (
         ( 0,  0,  0,  0, 1, -6798.4, -171996.0, -174.2, 92025.0,  8.9),
@@ -210,4 +210,3 @@ class CalendarTables:
         (-1, -1,  0,  2, 1,    35.0,       1.0,    0.0,    0.0,   0.0),
         ( 0,  1,  0,  1, 0,    27.3,       1.0,    0.0,    0.0,   0.0),
         )
-
