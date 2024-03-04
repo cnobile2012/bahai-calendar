@@ -168,6 +168,45 @@ class TestBaseCalandar(unittest.TestCase):
                                         self._bc.time_representation)]), msg)
 
     #@unittest.skip("Temporarily skipped")
+    def test_mean_sidereal_time_greenwich(self):
+        """
+        Test that the mean_sidereal_time_greenwich method returns the
+        correct mean sidereal time.
+        """
+        data = (
+            ((1987, 4, 10), False, -4482.29825961912),
+            ((1987, 4, 10), True, 197.70174038088044)
+            )
+        msg = "Expected {}, found {}."
+
+        for g_date, reduce, expected_result in data:
+            fixed = self._gc.fixed_from_gregorian(g_date)
+            jde = self._gc.jd_from_fixed(fixed)
+            result = self._gc.mean_sidereal_time_greenwich(jde, reduce=reduce)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_alt_mean_sidereal_time_greenwich(self):
+        """
+        Test that the alt_mean_sidereal_time_greenwich method returns the
+        correct mean sidereal time.
+        """
+        data = (
+            ((1987, 4, 10), False, -1678122.3068049091),
+            ((1987, 4, 10), True, 197.693195090862)
+            )
+        msg = "Expected {}, found {}."
+
+        for g_date, reduce, expected_result in data:
+            fixed = self._gc.fixed_from_gregorian(g_date)
+            jde = self._gc.jd_from_fixed(fixed)
+            result = self._gc.alt_mean_sidereal_time_greenwich(
+                jde, reduce=reduce)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
+
+    #@unittest.skip("Temporarily skipped")
     def test_zone_from_longitude(self):
         """
         Test that the zone_from_longitude method returns the difference
@@ -183,7 +222,8 @@ class TestBaseCalandar(unittest.TestCase):
 
         for phi, expected_result in data:
             result = self._bc.zone_from_longitude(phi)
-            self.assertEqual(expected_result, result, msg)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
     #@unittest.skip("Temporarily skipped")
     def test_universal_from_local(self):

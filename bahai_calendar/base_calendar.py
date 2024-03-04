@@ -115,6 +115,7 @@ class BaseCalendar(CalendarTables, JulianPeriod):
     SUMMER = 90
     AUTUMN = 180
     WINTER = 270
+    SUN_OFFSET = 50/60
 
     def __init__(self):
         self._time = None
@@ -131,6 +132,122 @@ class BaseCalendar(CalendarTables, JulianPeriod):
     @time_representation.setter
     def time_representation(self, representation):
         self._time = representation
+
+    #
+    # Meeus Astronimical Algorithms
+    #
+
+    def mean_sidereal_time_greenwich(self, jde:float,
+                                     reduce:bool=False) -> float:
+        """
+        Sidereal Time at Greenwich
+
+        Meeus--AA p.87
+        """
+        t0 = int(jde)
+        t = self.julian_centuries(t0)
+        instant = jde % 1 * 1.00273790935
+        deg = self._poly(t, (100.46061837, 36000.770053608, 0.000387933,
+                              -1 / 38710000)) + instant
+        return self.coterminal_angle(deg) if reduce else deg
+
+    def alt_mean_sidereal_time_greenwich(self, jde:float,
+                                     reduce:bool=False) -> float:
+        """
+        Mean sidereal time at Greenwich.
+
+        Meeus--AA p.88
+        """
+        t = self.julian_centuries(jde)
+        deg = (280.46061837 + 360.98564736629 * (jde - self.J2000) +
+               0.000387933 * t**2 - t**3 / 38710000)
+        return self.coterminal_angle(deg) if reduce else deg
+
+    def approx_local_hour_angle(self, jde:float, phi:float=0, lon:float=0,
+                                offset:float=SUN_OFFSET) -> float:
+        """
+        Approximate local hour angle, measured westwards from the South
+        in degrees.
+
+        :param jde: Julian day.
+        :type jde: float
+        :param phi: Latitude
+        :type phi: float
+        :param lon: Longitude
+        :type lon: float
+        :param offset: A constant “standard” altitude, i.e., the geometric
+                       altitude of the center of the body at the time of
+                       apparent rising or setting, namely,
+                       h0 = -0°34’ = -0°5667 for stars and planets;
+                       h0 = -0°50' = -0°8333 for the Sun.
+        :return: The approximat local hour angle.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA p.92, 101, 102
+        """
+        delta = self.declination_meeus(jde)
+        cos_h0 = ((self.sin_degrees(-offset) - self.sin_degrees(phi) *
+                   self.sin_degrees(delta)) / (self.cos_degrees(phi) *
+                                               self.cos_degrees(delta)))
+
+
+        cos_h0 = math.degrees(cos_h0)
+
+        return
+
+    def right_ascension(self, ):
+        """
+        Right ascension is measured (from 0 to 24 hours, sometimes from 0°
+        to 360°) from the vernal equinox, positive to the east, along the
+        celestial equator.
+
+        Meeus--AA p.93 13.3
+        """
+        return
+
+    def apparent_declination(self, t):
+        """
+        Declination is measured (from 0° to +90°) from the equator, positive
+        to the north, negative to the south.
+
+        :param t: Julian centuries.
+        :type t: float
+        :return: The apparent declination of the sun.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA p.93 13.4
+
+        sin declination = sin(latitude) * cos(obliquity) + cos(latitude) *
+                          sin(obliquity) * sin(longitude)
+        """
+        om = self.ascenting_node_longitude(t)
+        eps = self.obliquity_of_ecliptic(t) + 0.00256 - self.cos_degrees(om)
+        lam = self.apparent_longitude(t)
+        return math.degrees(math.asin(self.sin_degrees(eps) *
+                                      self.sin_degrees(lam)))
+
+    def azimuth(self, ):
+        """
+        Azimuth, measured westward from the Souh in degrees.
+
+        Meeus--AA p.93 13.5
+        """
+        return
+
+    def altitude(self, ):
+        """
+        Altitude, positive above the horizon, negative below in degrees.
+
+        Meeus--AA p.93 13.6
+        """
+        return
+
+
+
 
     #
     # Time and Astronomy (Time)
@@ -163,6 +280,9 @@ class BaseCalendar(CalendarTables, JulianPeriod):
           (- tee_ell (zone-from-longitude (longitude location))))
         """
         return tee_ell - self.zone_from_longitude(self.longitude)
+
+
+
 
     def local_from_universal(self, tee_rom_u):
         """

@@ -142,7 +142,7 @@ class TestJulianPeriod(unittest.TestCase):
                              msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_julian_centuries(self):
+    def test_julian_centuries_in_rd(self):
         """
         Test that the julian_centuries method returns the Julian
         century in dynamical time from a R.D. moment.
@@ -154,12 +154,29 @@ class TestJulianPeriod(unittest.TestCase):
 
         data = (
             (673222, -1.5577049096121691),
-            (730120.5, 2.0236014034713807e-08),
+            (self._jp.RD_J2000, 2.0236014034713807e-08),
             )
         msg = "Expected {} for tee {}, found {}"
 
         for tee, expected_result in data:
-            result = fp.julian_centuries(tee)
+            result = fp.julian_centuries_in_rd(tee)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, tee, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_julian_centuries(self):
+        """
+        Test that the julian_centuries method returns the Julian
+        century in dynamical time from a Julian moment.
+        """
+        data = (
+            (2394646.5, -1.5577960301163587),
+            (self._jp.J2000, 0.0),
+            )
+        msg = "Expected {} for tee {}, found {}"
+
+        for tee, expected_result in data:
+            result = self._jp.julian_centuries(tee)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, tee, result))
 
