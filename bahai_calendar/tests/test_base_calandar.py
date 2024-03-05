@@ -489,6 +489,30 @@ class TestBaseCalandar(unittest.TestCase):
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
+    #@unittest.skip("Temporarily skipped")
+    def test_approx_julian_day_for_equinoxes_or_solstices(self):
+        """
+        Test that the approx_julian_day_for_equinoxes_or_solstices method
+        returns a Julian day of the equinoxes or solstices.
+        """
+        data = (
+            (500, self._bc.SPRING, 1903760.376019375),
+            (500, self._bc.SUMMER, 1903854.104661875),
+            (500, self._bc.AUTUMN, 1903946.9228224999),
+            (500, self._bc.WINTER, 1904035.8380625),
+            (2000, self._bc.SPRING, 2451623.80984),
+            (2000, self._bc.SUMMER, 2451716.56767),
+            (2000, self._bc.AUTUMN, 2451810.21715),
+            (2000, self._bc.WINTER, 2451900.05952),
+            )
+        msg = "Expected {}, for year {} at angle {}, found {}."
+
+        for year, season, expected_result in data:
+            result = self._bc.approx_julian_day_for_equinoxes_or_solstices(
+                year, lam=season)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, season, result))
+
     @unittest.skip("Temporarily skipped")
     def test_solar_longitude(self):
         """
@@ -712,11 +736,11 @@ class TestBaseCalandar(unittest.TestCase):
         data = (
             # Vernal Equinoxe
             ((900, 3, 1), SP,
-             (900, 3, 20, 18, 19, 15.64337968826294)),
+             (900, 3, 20, 18, 19, 15.643359571695328)),
             ((1788, 3, 19, 22, 16), SP,
              (1788, 3, 19, 22, 16, 44.93229478597641)),
             ((1844, 3, 20, 11, 53), SP,
-             (1844, 3, 20, 11, 53, 50.242158472537994)),
+             (1844, 3, 20, 11, 53, 50.24219870567322)),
             ((1951, 3, 21, 10, 26), SP,
              (1951, 3, 21, 10, 26, 44.44636344909668)),
             ((2000, 3, 20, 7, 35), SP,
@@ -726,7 +750,7 @@ class TestBaseCalandar(unittest.TestCase):
             ((2038, 3, 20, 12, 40), SP,
              (2038, 3, 20, 12, 42, 2.2778096795082092)),
             ((2064, 3, 19, 19, 37), SP,
-             (2064, 3, 19, 19, 40, 13.716687262058258)),
+             (2064, 3, 19, 19, 40, 13.716727495193481)),
             ((2100, 3, 20, 13, 3), SP,
              (2100, 3, 20, 13, 6, 30.193404257297516)),
             ((2150, 3, 20, 16, 1), SP,
@@ -734,15 +758,15 @@ class TestBaseCalandar(unittest.TestCase):
             ((2200, 3, 20, 18, 40), SP,
              (2200, 3, 20, 18, 48, 6.645336449146271)),
             ((2211, 3, 21, 10, 38), SP,
-             (2211, 3, 21, 10, 45, 29.95472252368927)),
+             (2211, 3, 21, 10, 45, 29.954682290554047)),
             # Summer Solstice
-            ((900, 6, 1), SM, (900, 6, 22, 6, 32, 44.23424631357193)),
+            ((900, 6, 1), SM, (900, 6, 22, 6, 32, 44.23422619700432)),
             ((2000, 6, 1), SM, (2000, 6, 21, 1, 48, 45.353220105171204)),
             # Autumn Equinox
             ((900, 9, 1), AU, (900, 9, 23, 8, 35, 1.4366135001182556)),
             ((2000, 9, 1), AU, (2000, 9, 22, 17, 28, 41.678222715854645)),
             # Winter Solstice
-            ((900, 12, 1), WN, (900, 12, 21, 11, 38, 22.26030796766281)),
+            ((900, 12, 1), WN, (900, 12, 21, 11, 38, 22.260328084230423)),
             ((2000, 12, 1), WN, (2000, 12, 21, 13, 38, 47.16909795999527)),
             )
         msg = "Expected '{}' during the {}, found '{}'"

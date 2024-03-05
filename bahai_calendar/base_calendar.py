@@ -163,6 +163,16 @@ class BaseCalendar(CalendarTables, JulianPeriod):
                0.000387933 * t**2 - t**3 / 38710000)
         return self.coterminal_angle(deg) if reduce else deg
 
+    def apparent_sidereal_time_greenwich(self, jde:float) -> float:
+        """
+        The apparent sidereal time, or the Greenwich hour angle of the
+        true vernal equinox.
+        """
+        t0 = self.alt_mean_sidereal_time_greenwich(jde)
+        eps = self.true_obliquity_of_ecliptic(jde)
+        d_psi = self.nutation_in_longitude(jde)
+        return self.coterminal_angle(t0 + d_psi * self.cos_degrees(eps))
+
     def approx_local_hour_angle(self, jde:float, phi:float=0, lon:float=0,
                                 offset:float=SUN_OFFSET) -> float:
         """
@@ -187,15 +197,19 @@ class BaseCalendar(CalendarTables, JulianPeriod):
 
            Meeus--AA p.92, 101, 102
         """
-        delta = self.declination_meeus(jde)
+        delta = self.apparent_declination(jde)
         cos_h0 = ((self.sin_degrees(-offset) - self.sin_degrees(phi) *
                    self.sin_degrees(delta)) / (self.cos_degrees(phi) *
                                                self.cos_degrees(delta)))
 
+        if cos_h0 < -1:
+            cos_h0 = -1
+        elif cosH0 > 1:
+            cos_h0 = 1
+        else:
+            cos_h0 = math.degrees(math.acos(cos_h0))
 
-        cos_h0 = math.degrees(cos_h0)
-
-        return
+        return cos_h0
 
     def right_ascension(self, ):
         """
@@ -220,15 +234,18 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         .. note::
 
            Meeus--AA p.93 13.4
-
-        sin declination = sin(latitude) * cos(obliquity) + cos(latitude) *
-                          sin(obliquity) * sin(longitude)
         """
         om = self.ascenting_node_longitude(t)
         eps = self.obliquity_of_ecliptic(t) + 0.00256 - self.cos_degrees(om)
         lam = self.apparent_longitude(t)
         return math.degrees(math.asin(self.sin_degrees(eps) *
                                       self.sin_degrees(lam)))
+
+    def ascenting_node_longitude(self, t):
+        """
+        
+        """
+        return
 
     def azimuth(self, ):
         """
@@ -245,9 +262,6 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         Meeus--AA p.93 13.6
         """
         return
-
-
-
 
     #
     # Time and Astronomy (Time)
@@ -574,49 +588,49 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         """
         varepsilon = self.obliquity(tee)
         return ((self.sin_degrees(lat) * self.cos_degrees(varepsilon)) +
-                (self.cos_degrees(lat) * self.sin_degrees(varepsilon)
-                 * self.sin_degrees(lon)))
+                (self.cos_degrees(lat) * self.sin_degrees(varepsilon) *
+                 self.sin_degrees(lon)))
 
     #mean-tropical-year
     #mean-sidereal-year
 
     def approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
-                                                     lam:int) -> float:
+                                                     lam:int=SPRING) -> float:
         """
         Find the approximate Julian day for the equinoxes or solstices.
 
-        See: Astronomical Algorithms, 1998, by Jean Meeus Chapter 27 pg 177
+        See: Astronomical Algorithms, 1998, by Jean Meeus Ch 27 p.177
         """
         if g_year <= 1000:
             y = g_year / 1000
 
             if lam == self.SPRING:
-                jde = (1721139.29189 + 365242.13740 * y + 0.06134 * y**2 +
-                       0.00111 * y**3 - 0.00071 * y**4)
+                jde = self._poly(y, (1721139.29189, 365242.13740, 0.06134,
+                                     0.00111, -0.00071))
             elif lam == self.SUMMER:
-                jde = (1721233.25401 + 365241.72562 * y - 0.05323 * y**2 +
-                       0.00907 * y**3 + 0.00025 * y**4)
+                jde = self._poly(y, (1721233.25401, 365241.72562, -0.05323,
+                                     0.00907, 0.00025))
             elif lam == self.AUTUMN:
-                jde = (1721325.70455 + 365242.49558 * y - 0.11677 * y**2 -
-                       0.00297 * y**3 + 0.00074 * y**4)
+                jde = self._poly(y, (1721325.70455, 365242.49558, -0.11677,
+                                     -0.00297, 0.00074))
             else: # lam == self.WINTER:
-                jde = (1721414.39987 + 365242.88257 * y - 0.00769 * y**2 -
-                       0.00933 * y**3 - 0.00006 * y**4)
+                jde = self._poly(y, (1721414.39987, 365242.88257, -0.00769,
+                                     -0.00933, -0.00006))
         else:
             y = (g_year - 2000) / 1000
 
             if lam == self.SPRING:
-                jde = (2451623.80984 + 365242.37404 * y + 0.05169 * y**2 -
-                       0.00411 * y**3 - 0.00057 * y**4)
+                jde = self._poly(y, (2451623.80984, 365242.37404, 0.05169,
+                                     -0.00411, -0.00057))
             elif lam == self.SUMMER:
-                jde = (2451716.56767 + 365241.62603 * y + 0.00325 * y**2 +
-                       0.00888 * y**3 - 0.00030 * y**4)
+                jde = self._poly(y, (2451716.56767, 365241.62603, 0.00325,
+                                     0.00888, -0.00030))
             elif lam == self.AUTUMN:
-                jde = (2451810.21715 + 365242.01767 * y - 0.11575 * y**2 +
-                       0.00337 * y**3 + 0.00078 * y**4)
+                jde = self._poly(y, (2451810.21715, 365242.01767, -0.11575,
+                                     0.00337, 0.00078))
             else: # lam == self.WINTER:
-                jde = (2451900.05952 + 365242.74049 * y - 0.06223 * y**2 -
-                       0.00823 * y**3 + 0.00032 * y**4)
+                jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
+                                     -0.00823, 0.00032))
 
         return jde
 
