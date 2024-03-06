@@ -173,7 +173,23 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         d_psi = self.nutation_in_longitude(jde)
         return self.coterminal_angle(t0 + d_psi * self.cos_degrees(eps))
 
-    def approx_local_hour_angle(self, jde:float, phi:float=0, lon:float=0,
+    def true_obliquity_of_ecliptic(self, jde:float) -> float:
+        """
+        The obliquity of the ecliptic, or inclination of the Earth’s axis
+        of rotation, is the angle between the equator and the ecliptic.
+        """
+        t = self.julian_centuries(jde)
+        u = t / 100
+
+        # *** TODO *** Why the division by 3600?
+
+        mean_ob = self._poly(u, (84381.448 / 3600, -4680.93 / 3600,
+                                 -1.55 / 3600, 1999.25 / 3600, -51.38 / 3600,
+                                 -249.67 / 3600, -39.05 / 3600, 7.12 / 3600,
+                                 27.87 / 3600, 5.79 / 3600, 2.45 / 3600))
+        return mean_ob + self.astronomical_obliquity(t)
+
+    def approx_local_hour_angle(self, jde:float, lat:float,
                                 offset:float=SUN_OFFSET) -> float:
         """
         Approximate local hour angle, measured westwards from the South
@@ -181,10 +197,8 @@ class BaseCalendar(CalendarTables, JulianPeriod):
 
         :param jde: Julian day.
         :type jde: float
-        :param phi: Latitude
-        :type phi: float
-        :param lon: Longitude
-        :type lon: float
+        :param lat: Latitude
+        :type lat: float
         :param offset: A constant “standard” altitude, i.e., the geometric
                        altitude of the center of the body at the time of
                        apparent rising or setting, namely,
@@ -195,21 +209,25 @@ class BaseCalendar(CalendarTables, JulianPeriod):
 
         .. note::
 
-           Meeus--AA p.92, 101, 102
+           1. Meeus--AA p.92, 101, 102
+           2. If result of equation is negative then add 360°
+              (6.283185307179586 radians). If result is greater than
+              360° then subtract 360° (6.283185307179586 radians).
+              https://www.quora.com/How-do-I-calculate-the-hour-angle
         """
         delta = self.apparent_declination(jde)
-        cos_h0 = ((self.sin_degrees(-offset) - self.sin_degrees(phi) *
-                   self.sin_degrees(delta)) / (self.cos_degrees(phi) *
+        cos_h0 = ((self.sin_degrees(-offset) - self.sin_degrees(lat) *
+                   self.sin_degrees(delta)) / (self.cos_degrees(lat) *
                                                self.cos_degrees(delta)))
 
         if cos_h0 < -1:
-            cos_h0 = -1
+            cos_h0 -= 6.283185307179586
         elif cosH0 > 1:
-            cos_h0 = 1
+            cos_h0 += 6.283185307179586
         else:
-            cos_h0 = math.degrees(math.acos(cos_h0))
+            cos_h0 = math.acos(cos_h0)
 
-        return cos_h0
+        return math.degrees(cos_h0)
 
     def right_ascension(self, ):
         """
@@ -221,7 +239,7 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         """
         return
 
-    def apparent_declination(self, t):
+    def apparent_declination(self, t:float) -> float:
         """
         Declination is measured (from 0° to +90°) from the equator, positive
         to the north, negative to the south.
@@ -243,7 +261,6 @@ class BaseCalendar(CalendarTables, JulianPeriod):
 
     def ascenting_node_longitude(self, t):
         """
-        
         """
         return
 
@@ -262,6 +279,138 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         Meeus--AA p.93 13.6
         """
         return
+
+    def _heliocentric_ecliptical_longitude(self, t:float) -> float:
+        """
+        Find the heliocentric ecliptical longitude.
+
+        :param t: The moment in time referenced to J2000.
+        :type t: float
+        :return: Longitude in radians.
+        :rtype: float
+        """
+        func = lambda a, b, c: a * math.cos(b + c * t)
+        l0 = self._sigma((self.L0_A, self.L0_B, self.L0_C), func)
+        l1 = self._sigma((self.L1_A, self.L1_B, self.L1_C), func)
+        l2 = self._sigma((self.L2_A, self.L2_B, self.L2_C), func)
+        l3 = self._sigma((self.L3_A, self.L3_B, self.L3_C), func)
+        l4 = self._sigma((self.L4_A, self.L4_B, self.L4_C), func)
+        l5 = self._sigma((self.L5_A, self.L5_B, self.L5_C), func)
+        return self._poly(t, (l0, l1, l2, l3, l4, l5)) / 10**8
+
+    def _heliocentric_ecliptical_latitude(self, t:float) -> float:
+        """
+        Find the heliocentric ecliptical latitude.
+
+        :param t: The moment in time referenced to J2000.
+        :type t: float
+        :return: Latitude in radians.
+        :rtype: float
+        """
+        func = lambda a, b, c: a * math.cos(b + c * t)
+        b0 = self._sigma((self.B0_A, self.B0_B, self.B0_C), func)
+        b1 = self._sigma((self.B1_A, self.B1_B, self.B1_C), func)
+        return self._poly(t, (b0, b1)) / 10**8
+
+    def _radius_vector(self, t:float) -> float:
+        """
+        Find the radius vector.
+
+        :param t: The moment in time referenced to J2000.
+        :type t: float
+        :return: Radius vector in radians.
+        :rtype: float
+        """
+        func = lambda a, b, c: a * math.cos(b + c * t)
+        r0 = self._sigma((self.R0_A, self.R0_B, self.R0_C), func)
+        r1 = self._sigma((self.R1_A, self.R1_B, self.R1_C), func)
+        r2 = self._sigma((self.R2_A, self.R2_B, self.R2_C), func)
+        r3 = self._sigma((self.R3_A, self.R3_B, self.R3_C), func)
+        r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
+        return self._poly(t, (r0, r1, r2, r3, r4)) / 10**8
+
+    def solar_longitude(self, moment):
+        jde = self.jd_from_moment(moment)
+        t = (jde - self.J2000) / 365250
+        l = self._heliocentric_ecliptical_longitude(t)
+        # Convert to FK5 notation
+        t1 = t * 10
+        l1 = l - math.radians(1.397) * t1 - math.radians(0.00031) * t1**2
+        b = self._heliocentric_ecliptical_latitude(t)
+        dl = -0.09033 + 0.03916 * (math.cos(l1) + math.sin(l1)) * math.tan(b)
+        db = 0.03916 * (math.cos(l1) - math.sin(l1))
+
+        return dl, db
+
+    def astronomical_nutation(self, jde:float, *, degrees:bool=True) -> float:
+        """
+        Nutation of the Earth's axis around it's 'mean' position.
+        """
+        if jde != self._nutation[0] or degrees is not self._nutation[2]:
+            t = self.julian_centuries(jde)
+            nut_sum, obl_sum = self._nutation_and_obliquity(t, )
+            self._nutation = (jde, nut_sum, degrees)
+            self._obliquity = (jde, obl_sum, degrees)
+
+        return self._nutation[1]
+
+    def astronomical_obliquity(self, jde:float, *, degrees:bool=True) -> float:
+        """
+        """
+        if jde != self._obliquity[0] or degrees is not self._obliquity[2]:
+            t = self.julian_centuries(jde)
+            nut_sum, obl_sum = self._nutation_and_obliquity(t, degrees=degrees)
+            self._nutation = (jde, nut_sum)
+            self._obliquity = (jde, obl_sum)
+
+        return self._obliquity[1]
+
+    def _nutation_and_obliquity(self, t:float, degrees:bool=False) -> float:
+        """
+        Nutation of the Earth's axis around it's 'mean' position.
+
+        See:
+     https://articles.adsabs.harvard.edu/full/seri/CeMec/0027//0000079.000.html
+        """
+        #l0 = self.coterminal_angle(self._poly(
+        #    t, (280.46646, 36000.76983, 0.0003032)))
+        lm = self.coterminal_angle(self._poly(
+            t, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
+        ls = self.coterminal_angle(self._poly(
+            t, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
+        ff = self.coterminal_angle(self._poly(
+            t, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
+        dd = self.coterminal_angle(self._poly(
+            t, (297.85036, 445267.111480, -0.0019142, 1 / 189474)))
+        om = self.coterminal_angle(self._poly(
+            t, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
+
+        # W = LM*lm + LS*ls + F*ff + D*dd + OM*om
+        # Where LM, LS, F, D, and OM are from the NUT periodic terms.
+        # The nutation in longitude is a sum of terms of the form
+        # (psi_sin + sin * T) * sin(W).
+        # Where psi_sin and t_sin are from the NUT periodic terms and T is
+        # the Julian time from J2000.
+        # The obliquity in latitude is a sum of terms of the form
+        # (eps_cos + cos * T) * cos(W).
+        # Where eps_cos and t_cos are from the NUT periodic terms and T is
+        # the Julian time from J2000.
+        nut_sum = 0
+        obl_sum = 0
+
+        for LM, LS, F, D, OM, day, psi_sin, sin, eps_cos, cos in self.NUT:
+            w = LM*lm + LS*ls + F*ff + D*dd + OM*om
+            nut_sum += (psi_sin + sin * t) * self.sin_degrees(w)
+            obl_sum += (eps_cos + cos * t) * self.cos_degrees(w)
+
+        nut_sum /= 36000000
+        obl_sum /= 36000000
+
+        if degrees:
+            nut_sum = self.coterminal_angle(math.degrees(nut_sum))
+            obl_sum = self.coterminal_angle(math.degrees(obl_sum))
+
+        return nut_sum, obl_sum
 
     #
     # Time and Astronomy (Time)
@@ -294,9 +443,6 @@ class BaseCalendar(CalendarTables, JulianPeriod):
           (- tee_ell (zone-from-longitude (longitude location))))
         """
         return tee_ell - self.zone_from_longitude(self.longitude)
-
-
-
 
     def local_from_universal(self, tee_rom_u):
         """
@@ -634,68 +780,6 @@ class BaseCalendar(CalendarTables, JulianPeriod):
 
         return jde
 
-    def _heliocentric_ecliptical_longitude(self, time:float) -> float:
-        """
-        Find the heliocentric ecliptical longitude.
-
-        :param time: The moment in time referenced to J2000.
-        :type time: float
-        :return: Longitude in radians.
-        :rtype: float
-        """
-        func = lambda a, b, c: a * math.cos(b + c * time)
-        l0 = self._sigma((self.L0_A, self.L0_B, self.L0_C), func)
-        l1 = self._sigma((self.L1_A, self.L1_B, self.L1_C), func)
-        l2 = self._sigma((self.L2_A, self.L2_B, self.L2_C), func)
-        l3 = self._sigma((self.L3_A, self.L3_B, self.L3_C), func)
-        l4 = self._sigma((self.L4_A, self.L4_B, self.L4_C), func)
-        l5 = self._sigma((self.L5_A, self.L5_B, self.L5_C), func)
-        return self._poly(time, (l0, l1, l2, l3, l4, l5)) / 10**8
-
-    def _heliocentric_ecliptical_latitude(self, time:float) -> float:
-        """
-        Find the heliocentric ecliptical latitude.
-
-        :param time: The moment in time referenced to J2000.
-        :type time: float
-        :return: Latitude in radians.
-        :rtype: float
-        """
-        func = lambda a, b, c: a * math.cos(b + c * time)
-        b0 = self._sigma((self.B0_A, self.B0_B, self.B0_C), func)
-        b1 = self._sigma((self.B1_A, self.B1_B, self.B1_C), func)
-        return self._poly(time, (b0, b1)) / 10**8
-
-    def _radius_vector(self, time:float) -> float:
-        """
-        Find the radius vector.
-
-        :param time: The moment in time referenced to J2000.
-        :type time: float
-        :return: Radius vector in radians.
-        :rtype: float
-        """
-        func = lambda a, b, c: a * math.cos(b + c * time)
-        r0 = self._sigma((self.R0_A, self.R0_B, self.R0_C), func)
-        r1 = self._sigma((self.R1_A, self.R1_B, self.R1_C), func)
-        r2 = self._sigma((self.R2_A, self.R2_B, self.R2_C), func)
-        r3 = self._sigma((self.R3_A, self.R3_B, self.R3_C), func)
-        r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
-        return self._poly(time, (r0, r1, r2, r3, r4)) / 10**8
-
-    def solar_longitude(self, moment):
-        jde = self.jd_from_moment(moment)
-        t = (jde - self.J2000) / 365250
-        l = self._heliocentric_ecliptical_longitude(t)
-        # Convert to FK5 notation
-        t1 = t * 10
-        l1 = l - math.radians(1.397) * t1 - math.radians(0.00031) * t1**2
-        b = self._heliocentric_ecliptical_latitude(t)
-        dl = -0.09033 + 0.03916 * (math.cos(l1) + math.sin(l1)) * math.tan(b)
-        db = 0.03916 * (math.cos(l1) - math.sin(l1))
-
-        return dl, db
-
     def alt_solar_longitude(self, tee):
         """
         Find the solar longitude in degrees (0 - 360).
@@ -729,76 +813,6 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         cap_b = self._poly(c, (201.11, 72001.5377, 0.00057))
         return (-0.004778 * self.sin_degrees(cap_a) +
                 -0.0003667 * self.sin_degrees(cap_b))
-
-    def astronomical_nutation(self, jde:float, *, degrees:bool=False) -> float:
-        """
-        Nutation of the Earth's axis around it's 'mean' position.
-        """
-        if jde != self._nutation[0] or degrees is not self._nutation[2]:
-            t = self.julian_centuries(jde)
-            nut_sum, obl_sum = self._nutation_and_obliquity(t, )
-            self._nutation = (jde, nut_sum, degrees)
-            self._obliquity = (jde, obl_sum, degrees)
-
-        return self._nutation[1]
-
-    def astronomical_obliquity(self, jde:float, *, degrees:bool=False) -> float:
-        """
-        """
-        if jde != self._obliquity[0] or degrees is not self._obliquity[2]:
-            t = self.julian_centuries(jde)
-            nut_sum, obl_sum = self._nutation_and_obliquity(t, degrees=degrees)
-            self._nutation = (jde, nut_sum)
-            self._obliquity = (jde, obl_sum)
-
-        return self._obliquity[1]
-
-    def _nutation_and_obliquity(self, t:float, degrees:bool=False) -> float:
-        """
-        Nutation of the Earth's axis around it's 'mean' position.
-
-        See:
-     https://articles.adsabs.harvard.edu/full/seri/CeMec/0027//0000079.000.html
-        """
-        #l0 = self.coterminal_angle(self._poly(
-        #    t, (280.46646, 36000.76983, 0.0003032)))
-        lm = self.coterminal_angle(self._poly(
-            t, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
-        ls = self.coterminal_angle(self._poly(
-            t, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
-        ff = self.coterminal_angle(self._poly(
-            t, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
-        dd = self.coterminal_angle(self._poly(
-            t, (297.85036, 445267.111480, -0.0019142, 1 / 189474)))
-        om = self.coterminal_angle(self._poly(
-            t, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
-
-        # W = LM*lm + LS*ls + F*ff + D*dd + OM*om
-        # Where LM, LS, F, D, and OM are from the NUT periodic terms.
-        # The nutation in longitude is a sum of terms of the form
-        # (psi_sin + sin * T) * sin(W).
-        # Where psi_sin and t_sin are from the NUT periodic terms and T is
-        # the Julian time from J2000.
-        # The obliquity in latitude is a sum of terms of the form
-        # (eps_cos + cos * T) * cos(W).
-        # Where eps_cos and t_cos are from the NUT periodic terms and T is
-        # the Julian time from J2000.
-        nut_sum = 0
-        obl_sum = 0
-
-        for LM, LS, F, D, OM, day, psi_sin, sin, eps_cos, cos in self.NUT:
-            w = LM*lm + LS*ls + F*ff + D*dd + OM*om
-            nut_sum += (psi_sin + sin * t) * self.sin_degrees(w)
-            obl_sum += (eps_cos + cos * t) * self.cos_degrees(w)
-
-        nut_sum /= 36000000
-        obl_sum /= 36000000
-
-        if degrees:
-            nut_sum = self.coterminal_angle(math.degrees(nut_sum))
-            obl_sum = self.coterminal_angle(math.degrees(obl_sum))
-
-        return nut_sum, obl_sum
 
     def obliquity(self, tee):
         """

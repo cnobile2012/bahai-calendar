@@ -53,9 +53,14 @@ class TestBadiCalandar(unittest.TestCase):
         [major, cycle, year, month, day]
         """
         data = (
-            ((1844, 3, 21), (1, 1, 1, 1, 1)),
+            # Badi epoch (Vernal Equinox 1844-03-20T11:53:51 DT)
+            ((1844, 3, 20), (1, 1, 1, 1, 1)),
+            # CC ch#16 p271 First day of Riḍván
             ((1930, 4, 21), (1, 5, 11, 2, 13)),
-            #((), ()),
+            # B.E. 100 (Vernal Equinox 1943-03-21T12:03:04 DT)
+            ((1943, 3, 21), (1, 6, 5, 1, 1)),
+            # World Centre update (Vernal Equinox 2015-03-20T22:46:16 DT)
+            ((2015, 3, 21), (1, 10, 1, 1, 1)),
             )
         msg = "Expected {}, found {}"
 
