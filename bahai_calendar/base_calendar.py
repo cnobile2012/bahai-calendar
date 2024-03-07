@@ -140,20 +140,6 @@ class BaseCalendar(CalendarTables, JulianPeriod):
     def mean_sidereal_time_greenwich(self, jde:float,
                                      reduce:bool=False) -> float:
         """
-        Sidereal Time at Greenwich
-
-        Meeus--AA p.87
-        """
-        t0 = int(jde)
-        t = self.julian_centuries(t0)
-        instant = jde % 1 * 1.00273790935
-        deg = self._poly(t, (100.46061837, 36000.770053608, 0.000387933,
-                              -1 / 38710000)) + instant
-        return self.coterminal_angle(deg) if reduce else deg
-
-    def alt_mean_sidereal_time_greenwich(self, jde:float,
-                                     reduce:bool=False) -> float:
-        """
         Mean sidereal time at Greenwich.
 
         Meeus--AA p.88
@@ -167,22 +153,25 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         """
         The apparent sidereal time, or the Greenwich hour angle of the
         true vernal equinox.
+
+        Meeus--AA ch12 p88
         """
-        t0 = self.alt_mean_sidereal_time_greenwich(jde)
+        t0 = self.mean_sidereal_time_greenwich(jde)
         eps = self.true_obliquity_of_ecliptic(jde)
-        d_psi = self.nutation_in_longitude(jde)
+        d_psi = self.astronomical_nutation(jde)
         return self.coterminal_angle(t0 + d_psi * self.cos_degrees(eps))
 
     def true_obliquity_of_ecliptic(self, jde:float) -> float:
         """
         The obliquity of the ecliptic, or inclination of the Earth’s axis
         of rotation, is the angle between the equator and the ecliptic.
+
+        Convert lots of things:
+        https://www.xconvert.com/unit-converter/arcseconds-to-degrees
         """
         t = self.julian_centuries(jde)
         u = t / 100
-
-        # *** TODO *** Why the division by 3600?
-
+        # We convert arcseconds to degrees then do the polonomial.
         mean_ob = self._poly(u, (84381.448 / 3600, -4680.93 / 3600,
                                  -1.55 / 3600, 1999.25 / 3600, -51.38 / 3600,
                                  -249.67 / 3600, -39.05 / 3600, 7.12 / 3600,
@@ -1445,6 +1434,25 @@ class BaseCalendar(CalendarTables, JulianPeriod):
             direc = 'N' if direction == 'LAT' else 'E'
 
         return degrees, minutes, seconds, direc
+
+    def degrees_from_hms(self, h, m, s):
+        """
+        Find the degrees from the hours, minutes, and seconds of 360 degrees.
+        Where as time zones are 15 degrees apart so 24 time zones times 15
+        degrees is 360 degrees.
+
+        15*h+15*m/60+15*s/3600
+        """
+        return 15 * h + 15 * m / 60 + 15 * s / 3600
+
+    def hms_from_degrees(self, deg):
+        """
+        Find the hours, minutes, and seconds from degrees.
+        """
+        h = int(deg / 15)
+        m = int((deg / 15 - h) * 60)
+        s = (deg / 15 - h - m / 60) * 3600
+        return h, m, s
 
     def coterminal_angle(self, value:float) -> float:
         """

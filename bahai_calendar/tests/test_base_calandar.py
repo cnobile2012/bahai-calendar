@@ -170,39 +170,49 @@ class TestBaseCalandar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_mean_sidereal_time_greenwich(self):
         """
-        Test that the mean_sidereal_time_greenwich method returns the
-        correct mean sidereal time.
-        """
-        data = (
-            ((1987, 4, 10), False, -4482.29825961912),
-            ((1987, 4, 10), True, 197.70174038088044)
-            )
-        msg = "Expected {}, found {}."
-
-        for g_date, reduce, expected_result in data:
-            fixed = self._gc.fixed_from_gregorian(g_date)
-            jde = self._gc.jd_from_fixed(fixed)
-            result = self._gc.mean_sidereal_time_greenwich(jde, reduce=reduce)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_alt_mean_sidereal_time_greenwich(self):
-        """
         Test that the alt_mean_sidereal_time_greenwich method returns the
         correct mean sidereal time.
         """
         data = (
             ((1987, 4, 10), False, -1678122.3068049091),
-            ((1987, 4, 10), True, 197.693195090862)
+            # 197.69316708333332
+            ((1987, 4, 10), True, 197.693195090862),
+            # 128.73788708333333
+            ((1987, 4, 10, 19, 21), True, 128.73787324433215),
             )
         msg = "Expected {}, found {}."
 
         for g_date, reduce, expected_result in data:
-            fixed = self._gc.fixed_from_gregorian(g_date)
+            date = self._gc.date_from_ymdhms(g_date)
+            fixed = self._gc.fixed_from_gregorian(date)
             jde = self._gc.jd_from_fixed(fixed)
-            result = self._gc.alt_mean_sidereal_time_greenwich(
+            result = self._gc.mean_sidereal_time_greenwich(
                 jde, reduce=reduce)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_apparent_sidereal_time_greenwich(self):
+        """
+        Test that the apparent_sidereal_time_greenwich method returns
+        the correct apparent sidereal time.
+
+        Calculator:
+        https://aa.usno.navy.mil/calculated/siderealtime
+        """
+        data = (
+            ((1987, 4, 10), 197.6922307459172), # 197.69224541666668
+            ((1987, 4, 10, 19, 21), 128.73688880051486), # 128.73690333333334
+            ((2000, 1, 1), 99.96424993061932), # 99.96424875
+            ((2024, 3, 20), 178.0176569740288), # 178.0176425
+            )
+        msg = "Expected {}, found {}."
+
+        for g_date, expected_result in data:
+            date = self._gc.date_from_ymdhms(g_date)
+            fixed = self._gc.fixed_from_gregorian(date)
+            jde = self._gc.jd_from_fixed(fixed)
+            result = self._gc.apparent_sidereal_time_greenwich(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result,))
 
