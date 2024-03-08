@@ -80,10 +80,15 @@ class GregorianCalendar(BaseCalendar):
                day)))                 ; Days so far this month.
         """
         self._check_valid_gregorian_month_day(g_date)
+        t_len = len(g_date)
         year = g_date[0]
         month = g_date[1]
         day = g_date[2]
         year_1 = year - 1
+        hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
+        minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
+        second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
+        day += self.HR(hour) + self.MN(minute) + self.SEC(second)
         result = (self.GREGORIAN_EPOCH - 1 + 365 * year_1 +
                   self.QUOTIENT(year_1, 4) - self.QUOTIENT(year_1, 100) +
                   self.QUOTIENT(year_1, 400) +
@@ -305,6 +310,7 @@ class GregorianCalendar(BaseCalendar):
         Convert (year, month, day, hour, minute, second) into a
         (year, month, day.partial) date.
         """
+        self._check_valid_gregorian_month_day(date)
         t_len = len(date)
         year = date[0]
         month = date[1]
@@ -320,6 +326,7 @@ class GregorianCalendar(BaseCalendar):
         Convert (year, month, day.partial) into a
         (year, month, day, hour, minute, second).
         """
+        self._check_valid_gregorian_month_day(date)
         year = date[0]
         month = date[1]
         day = date[2]

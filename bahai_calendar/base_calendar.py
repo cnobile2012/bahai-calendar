@@ -138,11 +138,22 @@ class BaseCalendar(CalendarTables, JulianPeriod):
     #
 
     def mean_sidereal_time_greenwich(self, jde:float,
-                                     reduce:bool=False) -> float:
+                                     reduce:bool=True) -> float:
         """
         Mean sidereal time at Greenwich.
 
-        Meeus--AA p.88
+        :param jde: Julian day.
+        :type jde: float
+        :param reduce: If True the degrees are retured reduced if False
+                       the degrees are returned not reduced. The default
+                       is to reduce.
+        :type reduce: bool
+        :return: The mean sidereal time at Greenwich .
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA p.88
         """
         t = self.julian_centuries(jde)
         deg = (280.46061837 + 360.98564736629 * (jde - self.J2000) +
@@ -154,7 +165,14 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         The apparent sidereal time, or the Greenwich hour angle of the
         true vernal equinox.
 
-        Meeus--AA ch12 p88
+        :param jde: Julian day.
+        :type jde: float
+        :return: The apparent sidereal time at Greenwich.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch12 p88
         """
         t0 = self.mean_sidereal_time_greenwich(jde)
         eps = self.true_obliquity_of_ecliptic(jde)
@@ -166,8 +184,16 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         The obliquity of the ecliptic, or inclination of the Earth’s axis
         of rotation, is the angle between the equator and the ecliptic.
 
-        Convert lots of things:
-        https://www.xconvert.com/unit-converter/arcseconds-to-degrees
+        :param jde: Julian day.
+        :type jde: float
+        :return: The obliquity of the ecliptic in degrees as a decimal.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch22 p147
+           Convert lots of things:
+           https://www.xconvert.com/unit-converter/arcseconds-to-degrees
         """
         t = self.julian_centuries(jde)
         u = t / 100
@@ -204,7 +230,7 @@ class BaseCalendar(CalendarTables, JulianPeriod):
               360° then subtract 360° (6.283185307179586 radians).
               https://www.quora.com/How-do-I-calculate-the-hour-angle
         """
-        delta = self.apparent_declination(jde)
+        delta = self.sun_apparent_declination(jde)
         cos_h0 = ((self.sin_degrees(-offset) - self.sin_degrees(lat) *
                    self.sin_degrees(delta)) / (self.cos_degrees(lat) *
                                                self.cos_degrees(delta)))
@@ -228,36 +254,65 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         """
         return
 
-    def apparent_declination(self, t:float) -> float:
+    def sun_apparent_declination(self, jde:float) -> float:
         """
         Declination is measured (from 0° to +90°) from the equator, positive
         to the north, negative to the south.
 
-        :param t: Julian centuries.
-        :type t: float
+        :param jde: Julian day.
+        :type jde: float
         :return: The apparent declination of the sun.
         :rtype: float
 
         .. note::
 
-           Meeus--AA p.93 13.4
+           Meeus--AA ch13 p93 eq13.4
         """
-        om = self.ascenting_node_longitude(t)
-        eps = self.obliquity_of_ecliptic(t) + 0.00256 - self.cos_degrees(om)
-        lam = self.apparent_longitude(t)
+        t = self.julian_centuries(jde)
+        om = self._moon_ascending_node_longitude(t)
+        eps = (self.true_obliquity_of_ecliptic(jde) + 0.00256 -
+               self.cos_degrees(om))
+        lam = self._sun_apparent_longitude(t)
         return math.degrees(math.asin(self.sin_degrees(eps) *
                                       self.sin_degrees(lam)))
 
-    def ascenting_node_longitude(self, t):
+    def _sun_apparent_longitude(self, t):
         """
+        Meeus--AA p164 eq
         """
-        return
+        sol = self._sun_true_longitude(t)
+        om = self._moon_ascending_node_longitude(t)
+        return sol - 0.00569 - 0.00478 * self.sin_degrees(om)
+
+    def _sun_true_longitude(self, t):
+        """
+        Meeus--AA p164
+        """
+        l0 = self._sun_mean_longitude(t)
+        cen = self._sun_equation_of_center(t)
+        return l0 + cen
+
+    def _sun_mean_longitude(self, t):
+        """
+        Meeus--AA ch25 p163 eq25.2
+        """
+        return self.coterminal_angle(self._poly(
+            t, (280.46646, 36000.76983, 0.0003032)))
+
+    def _sun_equation_of_center(self, t):
+        """
+        Meeus--AA ch25 p164
+        """
+        m = self._sun_mean_anomaly(t)
+        return ((1.914602 - 0.004817 * t - 0.000014 * t**2) *
+                self.sin_degrees(m) + (0.019993 - 0.000101 * t) *
+                self.sin_degrees(2 * m) + 0.000290 * self.sin_degrees(3 * m))
 
     def azimuth(self, ):
         """
         Azimuth, measured westward from the Souh in degrees.
 
-        Meeus--AA p.93 13.5
+        Meeus--AA p93 13.5
         """
         return
 
@@ -265,7 +320,7 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         """
         Altitude, positive above the horizon, negative below in degrees.
 
-        Meeus--AA p.93 13.6
+        Meeus--AA p93 13.6
         """
         return
 
@@ -361,18 +416,14 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         See:
      https://articles.adsabs.harvard.edu/full/seri/CeMec/0027//0000079.000.html
         """
-        #l0 = self.coterminal_angle(self._poly(
-        #    t, (280.46646, 36000.76983, 0.0003032)))
         lm = self.coterminal_angle(self._poly(
             t, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
-        ls = self.coterminal_angle(self._poly(
-            t, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
+        ls = self._sun_mean_anomaly(t)
         ff = self.coterminal_angle(self._poly(
             t, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
         dd = self.coterminal_angle(self._poly(
             t, (297.85036, 445267.111480, -0.0019142, 1 / 189474)))
-        om = self.coterminal_angle(self._poly(
-            t, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
+        om = self._moon_ascending_node_longitude(t)
 
         # W = LM*lm + LS*ls + F*ff + D*dd + OM*om
         # Where LM, LS, F, D, and OM are from the NUT periodic terms.
@@ -400,6 +451,24 @@ class BaseCalendar(CalendarTables, JulianPeriod):
             obl_sum = self.coterminal_angle(math.degrees(obl_sum))
 
         return nut_sum, obl_sum
+
+    def _moon_ascending_node_longitude(self, t:float) -> float:
+        """
+        Longitude of the ascending node of the Moon’s mean orbit on the
+        ecliptic, measured from the mean equinox of the date:
+
+        Meeus--AA ch22 p144
+        """
+        return self.coterminal_angle(self._poly(
+            t, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
+
+    def _sun_mean_anomaly(self, t):
+        """
+        Meeus--AA ch22 p144
+        """
+        return self.coterminal_angle(self._poly(
+            t, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
+
 
     #
     # Time and Astronomy (Time)

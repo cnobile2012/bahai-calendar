@@ -71,7 +71,11 @@ class TestGregorianCalendar(unittest.TestCase):
         date_reps = (
             ((1844, 3, 21), 673222),
             ((1970, 1, 1), 719163),
-            ((622, 7, 19), 227015)
+            ((622, 7, 19), 227015),
+            # Vernal Equinox
+            ((2000, 3, 20.31711805555555555556), 730199.3171180555),
+            # Vernal Equinox
+            ((2000, 3, 20, 7, 36, 19), 730199.316886574),
             )
         msg = "Expected result {} for year {}, found {}."
 

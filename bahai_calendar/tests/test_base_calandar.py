@@ -183,8 +183,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, found {}."
 
         for g_date, reduce, expected_result in data:
-            date = self._gc.date_from_ymdhms(g_date)
-            fixed = self._gc.fixed_from_gregorian(date)
+            fixed = self._gc.fixed_from_gregorian(g_date)
             jde = self._gc.jd_from_fixed(fixed)
             result = self._gc.mean_sidereal_time_greenwich(
                 jde, reduce=reduce)
@@ -201,20 +200,154 @@ class TestBaseCalandar(unittest.TestCase):
         https://aa.usno.navy.mil/calculated/siderealtime
         """
         data = (
-            ((1987, 4, 10), 197.6922307459172), # 197.69224541666668
-            ((1987, 4, 10, 19, 21), 128.73688880051486), # 128.73690333333334
-            ((2000, 1, 1), 99.96424993061932), # 99.96424875
-            ((2024, 3, 20), 178.0176569740288), # 178.0176425
+            ((1987, 4, 10), 197.69223074585653),        # 197.69224541666668
+            ((1987, 4, 10, 19, 21), 128.7368888005617), # 128.73690333333334
+            ((2000, 1, 1), 99.96424993061932),          # 99.96424875
+            ((2024, 3, 20), 178.01765697409243),        # 178.0176425
             )
         msg = "Expected {}, found {}."
 
         for g_date, expected_result in data:
-            date = self._gc.date_from_ymdhms(g_date)
-            fixed = self._gc.fixed_from_gregorian(date)
+            fixed = self._gc.fixed_from_gregorian(g_date)
             jde = self._gc.jd_from_fixed(fixed)
             result = self._gc.apparent_sidereal_time_greenwich(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result,))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_true_obliquity_of_ecliptic(self):
+        """
+        Test that the true_obliquity_of_ecliptic method returns the
+        correct the true obliquity of the ecliptic.
+        """
+        data = (
+            ((1987, 4, 10), 23.576505991889046), # 23°26'36".850
+            ((2000, 1, 1), 23.574912330844988),
+            )
+        msg = "Expected {}, found {}."
+
+        for g_date, expected_result in data:
+            fixed = self._gc.fixed_from_gregorian(g_date)
+            jde = self._gc.jd_from_fixed(fixed)
+            result = self._gc.true_obliquity_of_ecliptic(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
+
+    @unittest.skip("Temporarily skipped")
+    def test_approx_local_hour_angle(self):
+        """
+        Test that the approx_local_hour_angle methoid returns the correct
+        angle based on the jde.
+        """
+        data = (
+            (),
+            )
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_right_ascension(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_sun_apparent_declination(self):
+        """
+        Test that the apparent_declination method returns the proper
+        apparent declination measured (from 0° to +90°) from the equator,
+        positive to the north, negative to the south.
+        """
+        data = (
+            ((), ),
+            )
+        msg = "Expected {}, found {}."
+
+        for g_date, expected_result in data:
+            fixed = self._gc.fixed_from_gregorian(g_date)
+            jde = self._gc.jd_from_fixed(fixed)
+
+
+    @unittest.skip("Temporarily skipped")
+    def test__sun_apparent_longitude(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test__sun_true_longitude(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test__sun_equation_of_center(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_azimuth(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_altitude(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test__heliocentric_ecliptical_longitude(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test__heliocentric_ecliptical_latitude(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test__radius_vector(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_astronomical_nutation(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_astronomical_obliquity(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test__nutation_and_obliquity(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test__moon_ascending_node_longitude(self):
+        """
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test__sun_mean_anomaly(self):
+        """
+        """
+
+
+    #
+    # Calandarical Calculations
+    #
 
     #@unittest.skip("Temporarily skipped")
     def test_zone_from_longitude(self):
