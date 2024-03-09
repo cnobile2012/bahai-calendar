@@ -266,83 +266,192 @@ class TestBaseCalandar(unittest.TestCase):
             fixed = self._gc.fixed_from_gregorian(g_date)
             jde = self._gc.jd_from_fixed(fixed)
 
-
     @unittest.skip("Temporarily skipped")
     def test__sun_apparent_longitude(self):
         """
         """
-
 
     @unittest.skip("Temporarily skipped")
     def test__sun_true_longitude(self):
         """
         """
 
-
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__sun_equation_of_center(self):
         """
+        Test that the _sun_equation_of_center method returns the
+        correct values.
         """
+        data = (
+            (2394646.5, 1.8902065487119648),   # 1844-03-21
+            (2451544.5, -0.10114766650438385), # 2000-01-01
+            )
+        msg = "Expected {}, found {}."
 
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc._sun_equation_of_center(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
     @unittest.skip("Temporarily skipped")
     def test_azimuth(self):
         """
         """
 
-
     @unittest.skip("Temporarily skipped")
     def test_altitude(self):
         """
         """
 
-
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__heliocentric_ecliptical_longitude(self):
         """
+        Test that the _heliocentric_ecliptical_longitude method returns
+        the correct values.
         """
+        data = (
+            (2394646.5, -9786.339718571715), # 1844-03-21
+            (2451544.5, 1.6629948027188646), # 2000-01-01
+            )
+        msg = "Expected {}, found {}."
 
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc._heliocentric_ecliptical_longitude(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__heliocentric_ecliptical_latitude(self):
         """
+        Test that the _heliocentric_ecliptical_latitude method returns
+        the correct values.
         """
+        data = (
+            (2394646.5, -3.3690570920741025e-06), # 1844-03-21
+            (2451544.5, -1.8963922136076773e-06), # 2000-01-01
+            )
+        msg = "Expected {}, found {}."
 
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc._heliocentric_ecliptical_latitude(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__radius_vector(self):
         """
+        Test that the _radius_vector method returns the correct values.
         """
+        data = (
+            (2394646.5, 10.01754704501667), # 1844-03-21
+            (2451544.5, 10.00579514718723), # 2000-01-01
+            )
+        msg = "Expected {}, found {}."
 
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc._radius_vector(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
     @unittest.skip("Temporarily skipped")
+    def test_apparent_solar_longitude(self):
+        """
+        """
+
+    #@unittest.skip("Temporarily skipped")
     def test_astronomical_nutation(self):
         """
+        Test that the astronomical_nutation method returns the
+        correct values.
         """
+        data = (
+            (2394646.5, 0.00033096289822969204), # 1844-03-21
+            (2451544.5, 0.0003973015669618662),  # 2000-01-01
+            )
+        msg = "Expected {}, found {}."
 
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc.astronomical_nutation(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_astronomical_obliquity(self):
         """
+        Test that the astronomical_obliquity method returns the
+        correct values.
         """
+        data = (
+            (2394646.5, 0.13528310660714796), # 1844-03-21
+            (2451544.5, 0.1356210417382092),  # 2000-01-01
+            )
+        msg = "Expected {}, found {}."
 
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc.astronomical_obliquity(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__nutation_and_obliquity(self):
         """
+        Test that the _nutation_and_obliquity method returns the
+        correct values.
         """
+        data = (
+            # 1844-03-21
+            (2394646.5, True, (0.26848544569920246, 359.9810167829594)),
+            # 2000-01-01
+            (2451544.5, True, (359.7784057124561, 359.9082631513499)),
+            )
+        msg = "Expected {}, found {}."
 
+        for jde, degrees, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc._nutation_and_obliquity(t, degrees=degrees)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__moon_ascending_node_longitude(self):
         """
+        Test that the _moon_ascending_node_longitude method returns the
+        correct values.
         """
+        data = (
+            (2394646.5, 258.039325958443),   # 1844-03-21
+            (2451544.5, 125.07099688242339), # 2000-01-01
+            )
+        msg = "Expected {}, found {}."
 
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc._moon_ascending_node_longitude(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__sun_mean_anomaly(self):
         """
+        Test that the _sun_mean_anomaly method returns the correct values.
         """
+        data = (
+            (2394646.5, 78.34963598562899),  # 1844-03-21
+            (2451544.5, 357.03491985845307), # 2000-01-01
+            )
+        msg = "Expected {}, found {}."
+
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc._sun_mean_anomaly(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
 
     #

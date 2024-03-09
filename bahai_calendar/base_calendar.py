@@ -358,12 +358,16 @@ class BaseCalendar(CalendarTables, JulianPeriod):
 
     def _radius_vector(self, t:float) -> float:
         """
-        Find the radius vector.
+        Find the distance of a body to the sun.
 
         :param t: The moment in time referenced to J2000.
         :type t: float
         :return: Radius vector in radians.
         :rtype: float
+
+        .. note::
+
+           Meeus--AA ch 25 p166
         """
         func = lambda a, b, c: a * math.cos(b + c * t)
         r0 = self._sigma((self.R0_A, self.R0_B, self.R0_C), func)
@@ -373,18 +377,29 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
         return self._poly(t, (r0, r1, r2, r3, r4)) / 10**8
 
-    def solar_longitude(self, moment):
-        jde = self.jd_from_moment(moment)
-        t = (jde - self.J2000) / 365250
-        l = self._heliocentric_ecliptical_longitude(t)
+    def apparent_solar_longitude(self, jde:float) -> float:
+        """
+        """
+        tm = (jde - self.J2000) / 365250 # Convert to millenna
+        tc = tm * 10 # Convert millenna to centuries
+        l = self._heliocentric_ecliptical_longitude(tm)
+        l += math.pi
         # Convert to FK5 notation
-        t1 = t * 10
-        l1 = l - math.radians(1.397) * t1 - math.radians(0.00031) * t1**2
-        b = self._heliocentric_ecliptical_latitude(t)
-        dl = -0.09033 + 0.03916 * (math.cos(l1) + math.sin(l1)) * math.tan(b)
-        db = 0.03916 * (math.cos(l1) - math.sin(l1))
+        l -= math.radians(0.000025) # -0".09033
 
-        return dl, db
+        # Solar latitude *** TODO *** more to a seperate method.
+        b = self._heliocentric_ecliptical_latitude(tm)
+        b *= -1 # Invert the result
+        b1 = self._poly(tc, (l, -1.397, -0.00031))
+        bd = (math.radians(0.000010877777777777778) *
+              (math.cos(b1) - math.sin(b1)))
+        b += bd
+        l = math.degrees(l)
+        b = math.degrees(b)
+
+        # *** TODO *** add in nutation and aberration
+
+        return self.coterminal_angle(l), self.coterminal_angle(b)
 
     def astronomical_nutation(self, jde:float, *, degrees:bool=True) -> float:
         """
