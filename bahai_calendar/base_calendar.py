@@ -11,10 +11,10 @@ from functools import reduce
 from operator import mul
 
 from bahai_calendar.julian_period import JulianPeriod
-from bahai_calendar.calendar_tables import CalendarTables
+from bahai_calendar.astronomical_terms import AstronomicalTerms
 
 
-class BaseCalendar(CalendarTables, JulianPeriod):
+class BaseCalendar(AstronomicalTerms, JulianPeriod):
     """
     Basic functionality used with all calenders.
 
@@ -134,7 +134,7 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         self._time = representation
 
     #
-    # Meeus Astronimical Algorithms
+    # Meeus Astronomical Algorithms
     #
 
     def mean_sidereal_time_greenwich(self, jde:float,
@@ -377,29 +377,53 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
         return self._poly(t, (r0, r1, r2, r3, r4)) / 10**8
 
-    def apparent_solar_longitude(self, jde:float) -> float:
+    def apparent_solar_longitude(self, jde:float, degrees:bool=True) -> float:
         """
+        Find the apparent solar longitude.
+
+        Meeus--AA ch 25 p166
         """
         tm = (jde - self.J2000) / 365250 # Convert to millenna
-        tc = tm * 10 # Convert millenna to centuries
         l = self._heliocentric_ecliptical_longitude(tm)
         l += math.pi
         # Convert to FK5 notation
         l -= math.radians(0.000025) # -0".09033
+        l += self.astronomical_nutation(jde, degrees=False)
+        # eq 25.11
+        #l -= 0.005775518 * self._radius_vector(tm) *
 
-        # Solar latitude *** TODO *** more to a seperate method.
-        b = self._heliocentric_ecliptical_latitude(tm)
-        b *= -1 # Invert the result
-        b1 = self._poly(tc, (l, -1.397, -0.00031))
-        bd = (math.radians(0.000010877777777777778) *
-              (math.cos(b1) - math.sin(b1)))
-        b += bd
-        l = math.degrees(l)
-        b = math.degrees(b)
+
+        if degrees:
+           l = self.coterminal_angle(math.degrees(l))
 
         # *** TODO *** add in nutation and aberration
 
-        return self.coterminal_angle(l), self.coterminal_angle(b)
+
+        return l
+
+    def apparent_solar_latitude(self, jde:float, degrees:bool=True) -> float:
+        """
+        Find the apparent solar latitude.
+
+        Meeus--AA ch 25 p166
+        """
+        tm = (jde - self.J2000) / 365250 # Convert to millenna
+        tc = tm * 10 # Convert millenna to centuries
+        b = self._heliocentric_ecliptical_latitude(tm)
+        b *= -1 # Invert the result
+        # Convert to FK5 notation
+        l = self.apparent_solar_longitude(jde, degrees=False)
+        #b1 = self._poly(tc, (l, -1.397, -0.00031))
+        b1 = self._poly(tc, (l, -0.024382249650360784,
+                             -0.000005410520681182421))
+        bd = (math.radians(0.000010877777777777778) *
+              (math.cos(b1) - math.sin(b1)))
+        b += bd
+
+        if degrees:
+            b = self.coterminal_angle(math.degrees(b))
+
+        return b
 
     def astronomical_nutation(self, jde:float, *, degrees:bool=True) -> float:
         """
@@ -484,6 +508,10 @@ class BaseCalendar(CalendarTables, JulianPeriod):
         return self.coterminal_angle(self._poly(
             t, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
 
+    def _aberration(self, t:float, correction:bool=True) -> float:
+        """
+        """
+        return
 
     #
     # Time and Astronomy (Time)
@@ -1446,7 +1474,7 @@ class BaseCalendar(CalendarTables, JulianPeriod):
     #
 
     def decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
-                         direction:str) -> float:
+                         direction:str='N') -> float:
         '''
         Coordinantes in degrees, minutes, and seconds.
         The Shrine of Baha’u’llah: 32°56’36.86″N, 35° 5’30.38″E
