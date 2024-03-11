@@ -305,6 +305,24 @@ class GregorianCalendar(BaseCalendar):
             (self._to_radix(approx, (4, 25, 4)), (97, 24, 1, 0)), func)
         return approx if date < start else approx + 1
 
+    def jd_from_date(self, date):
+        """
+        Convert the Gregorian moment to a Julian Period day.
+        """
+        self._check_valid_gregorian_month_day(date)
+        t_len = len(date)
+        year = date[0]
+        month = date[1]
+        day = date[2]
+        hour = date[3] if t_len > 3 and date[3] is not None else 0
+        minute = date[4] if t_len > 4 and date[4] is not None else 0
+        second = date[5] if t_len > 5 and date[5] is not None else 0
+        day += self.HR(hour) + self.MN(minute) + self.SEC(second)
+        j_day = (367 * year - 7 * (year + (month + 9) // 12) // 4 +
+                 275 * month // 9 + day + 1721013.5 + (hour + minute / 60 +
+                                                       second / 3600) / 24)
+        return j_day
+
     def date_from_ymdhms(self, date:tuple) -> tuple:
         """
         Convert (year, month, day, hour, minute, second) into a

@@ -155,9 +155,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus--AA p.88
         """
-        t = self.julian_centuries(jde)
+        tc = self.julian_centuries(jde)
         deg = (280.46061837 + 360.98564736629 * (jde - self.J2000) +
-               0.000387933 * t**2 - t**3 / 38710000)
+               0.000387933 * tc**2 - tc**3 / 38710000)
         return self.coterminal_angle(deg) if reduce else deg
 
     def apparent_sidereal_time_greenwich(self, jde:float) -> float:
@@ -195,14 +195,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Convert lots of things:
            https://www.xconvert.com/unit-converter/arcseconds-to-degrees
         """
-        t = self.julian_centuries(jde)
-        u = t / 100
+        tc = self.julian_centuries(jde)
+        u = tc / 100
         # We convert arcseconds to degrees then do the polonomial.
         mean_ob = self._poly(u, (84381.448 / 3600, -4680.93 / 3600,
                                  -1.55 / 3600, 1999.25 / 3600, -51.38 / 3600,
                                  -249.67 / 3600, -39.05 / 3600, 7.12 / 3600,
                                  27.87 / 3600, 5.79 / 3600, 2.45 / 3600))
-        return mean_ob + self.astronomical_obliquity(t)
+        return mean_ob + self.astronomical_obliquity(tc)
 
     def approx_local_hour_angle(self, jde:float, lat:float,
                                 offset:float=SUN_OFFSET) -> float:
@@ -268,44 +268,44 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus--AA ch13 p93 eq13.4
         """
-        t = self.julian_centuries(jde)
-        om = self._moon_ascending_node_longitude(t)
+        tc = self.julian_centuries(jde)
+        om = self._moon_ascending_node_longitude(tc)
         eps = (self.true_obliquity_of_ecliptic(jde) + 0.00256 -
                self.cos_degrees(om))
-        lam = self._sun_apparent_longitude(t)
+        lam = self._sun_apparent_longitude(tc)
         return math.degrees(math.asin(self.sin_degrees(eps) *
                                       self.sin_degrees(lam)))
 
-    def _sun_apparent_longitude(self, t):
+    def _sun_apparent_longitude(self, tc:float) -> float:
         """
         Meeus--AA p164 eq
         """
-        sol = self._sun_true_longitude(t)
-        om = self._moon_ascending_node_longitude(t)
+        sol = self._sun_true_longitude(tc)
+        om = self._moon_ascending_node_longitude(tc)
         return sol - 0.00569 - 0.00478 * self.sin_degrees(om)
 
-    def _sun_true_longitude(self, t):
+    def _sun_true_longitude(self, tc:float) -> float:
         """
         Meeus--AA p164
         """
-        l0 = self._sun_mean_longitude(t)
-        cen = self._sun_equation_of_center(t)
+        l0 = self._sun_mean_longitude(tc)
+        cen = self._sun_equation_of_center(tc)
         return l0 + cen
 
-    def _sun_mean_longitude(self, t):
+    def _sun_mean_longitude(self, tc:float) -> float:
         """
         Meeus--AA ch25 p163 eq25.2
         """
         return self.coterminal_angle(self._poly(
-            t, (280.46646, 36000.76983, 0.0003032)))
+            tc, (280.46646, 36000.76983, 0.0003032)))
 
-    def _sun_equation_of_center(self, t):
+    def _sun_equation_of_center(self, tc:float) -> float:
         """
         Meeus--AA ch25 p164
         """
-        m = self._sun_mean_anomaly(t)
-        return ((1.914602 - 0.004817 * t - 0.000014 * t**2) *
-                self.sin_degrees(m) + (0.019993 - 0.000101 * t) *
+        m = self._sun_mean_anomaly(tc)
+        return ((1.914602 - 0.004817 * tc - 0.000014 * tc**2) *
+                self.sin_degrees(m) + (0.019993 - 0.000101 * tc) *
                 self.sin_degrees(2 * m) + 0.000290 * self.sin_degrees(3 * m))
 
     def azimuth(self, ):
@@ -324,44 +324,44 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         return
 
-    def _heliocentric_ecliptical_longitude(self, t:float) -> float:
+    def _heliocentric_ecliptical_longitude(self, tm:float) -> float:
         """
         Find the heliocentric ecliptical longitude.
 
-        :param t: The moment in time referenced to J2000.
+        :param t: The moment in time referenced to J2000 millennia.
         :type t: float
         :return: Longitude in radians.
         :rtype: float
         """
-        func = lambda a, b, c: a * math.cos(b + c * t)
+        func = lambda a, b, c: a * math.cos(b + c * tm)
         l0 = self._sigma((self.L0_A, self.L0_B, self.L0_C), func)
         l1 = self._sigma((self.L1_A, self.L1_B, self.L1_C), func)
         l2 = self._sigma((self.L2_A, self.L2_B, self.L2_C), func)
         l3 = self._sigma((self.L3_A, self.L3_B, self.L3_C), func)
         l4 = self._sigma((self.L4_A, self.L4_B, self.L4_C), func)
         l5 = self._sigma((self.L5_A, self.L5_B, self.L5_C), func)
-        return self._poly(t, (l0, l1, l2, l3, l4, l5)) / 10**8
+        return self._poly(tm, (l0, l1, l2, l3, l4, l5)) / 10**8
 
-    def _heliocentric_ecliptical_latitude(self, t:float) -> float:
+    def _heliocentric_ecliptical_latitude(self, tm:float) -> float:
         """
         Find the heliocentric ecliptical latitude.
 
-        :param t: The moment in time referenced to J2000.
-        :type t: float
+        :param tm: The moment in time referenced to J2000 millennia.
+        :type tm: float
         :return: Latitude in radians.
         :rtype: float
         """
-        func = lambda a, b, c: a * math.cos(b + c * t)
+        func = lambda a, b, c: a * math.cos(b + c * tm)
         b0 = self._sigma((self.B0_A, self.B0_B, self.B0_C), func)
         b1 = self._sigma((self.B1_A, self.B1_B, self.B1_C), func)
-        return self._poly(t, (b0, b1)) / 10**8
+        return self._poly(tm, (b0, b1)) / 10**8
 
-    def _radius_vector(self, t:float) -> float:
+    def _radius_vector(self, tm:float) -> float:
         """
-        Find the distance of a body to the sun.
+        Find the distance of earth to the sun.
 
-        :param t: The moment in time referenced to J2000.
-        :type t: float
+        :param tm: The moment in time referenced to J2000 millennia.
+        :type tm: float
         :return: Radius vector in radians.
         :rtype: float
 
@@ -369,13 +369,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus--AA ch 25 p166
         """
-        func = lambda a, b, c: a * math.cos(b + c * t)
+        func = lambda a, b, c: a * math.cos(b + c * tm)
         r0 = self._sigma((self.R0_A, self.R0_B, self.R0_C), func)
         r1 = self._sigma((self.R1_A, self.R1_B, self.R1_C), func)
         r2 = self._sigma((self.R2_A, self.R2_B, self.R2_C), func)
         r3 = self._sigma((self.R3_A, self.R3_B, self.R3_C), func)
         r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
-        return self._poly(t, (r0, r1, r2, r3, r4)) / 10**8
+        return self._poly(tm, (r0, r1, r2, r3, r4)) / 10**8
 
     def apparent_solar_longitude(self, jde:float, degrees:bool=True) -> float:
         """
@@ -383,21 +383,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         Meeus--AA ch 25 p166
         """
-        tm = (jde - self.J2000) / 365250 # Convert to millenna
+        tm = self.julian_millennia(jde)
         l = self._heliocentric_ecliptical_longitude(tm)
         l += math.pi
         # Convert to FK5 notation
         l -= math.radians(0.000025) # -0".09033
         l += self.astronomical_nutation(jde, degrees=False)
         # eq 25.11
-        #l -= 0.005775518 * self._radius_vector(tm) *
-
+        l += self._aberration(tm)
 
         if degrees:
            l = self.coterminal_angle(math.degrees(l))
-
-        # *** TODO *** add in nutation and aberration
-
 
         return l
 
@@ -407,7 +403,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         Meeus--AA ch 25 p166
         """
-        tm = (jde - self.J2000) / 365250 # Convert to millenna
+        tm = self.julian_millennia(jde)
         tc = tm * 10 # Convert millenna to centuries
         b = self._heliocentric_ecliptical_latitude(tm)
         b *= -1 # Invert the result
@@ -441,14 +437,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         """
         if jde != self._obliquity[0] or degrees is not self._obliquity[2]:
-            t = self.julian_centuries(jde)
-            nut_sum, obl_sum = self._nutation_and_obliquity(t, degrees=degrees)
+            tc = self.julian_centuries(jde)
+            nut_sum, obl_sum = self._nutation_and_obliquity(
+                tc, degrees=degrees)
             self._nutation = (jde, nut_sum)
             self._obliquity = (jde, obl_sum)
 
         return self._obliquity[1]
 
-    def _nutation_and_obliquity(self, t:float, degrees:bool=False) -> float:
+    def _nutation_and_obliquity(self, tc:float, degrees:bool=False) -> float:
         """
         Nutation of the Earth's axis around it's 'mean' position.
 
@@ -456,13 +453,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
      https://articles.adsabs.harvard.edu/full/seri/CeMec/0027//0000079.000.html
         """
         lm = self.coterminal_angle(self._poly(
-            t, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
-        ls = self._sun_mean_anomaly(t)
+            tc, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
+        ls = self._sun_mean_anomaly(tc)
         ff = self.coterminal_angle(self._poly(
-            t, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
+            tc, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
         dd = self.coterminal_angle(self._poly(
-            t, (297.85036, 445267.111480, -0.0019142, 1 / 189474)))
-        om = self._moon_ascending_node_longitude(t)
+            tc, (297.85036, 445267.111480, -0.0019142, 1 / 189474)))
+        om = self._moon_ascending_node_longitude(tc)
 
         # W = LM*lm + LS*ls + F*ff + D*dd + OM*om
         # Where LM, LS, F, D, and OM are from the NUT periodic terms.
@@ -479,8 +476,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         for LM, LS, F, D, OM, day, psi_sin, sin, eps_cos, cos in self.NUT:
             w = LM*lm + LS*ls + F*ff + D*dd + OM*om
-            nut_sum += (psi_sin + sin * t) * self.sin_degrees(w)
-            obl_sum += (eps_cos + cos * t) * self.cos_degrees(w)
+            nut_sum += (psi_sin + sin * tc) * self.sin_degrees(w)
+            obl_sum += (eps_cos + cos * tc) * self.cos_degrees(w)
 
         nut_sum /= 36000000
         obl_sum /= 36000000
@@ -491,7 +488,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return nut_sum, obl_sum
 
-    def _moon_ascending_node_longitude(self, t:float) -> float:
+    def _moon_ascending_node_longitude(self, tc:float) -> float:
         """
         Longitude of the ascending node of the Moon’s mean orbit on the
         ecliptic, measured from the mean equinox of the date:
@@ -499,19 +496,103 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Meeus--AA ch22 p144
         """
         return self.coterminal_angle(self._poly(
-            t, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
+            tc, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
 
-    def _sun_mean_anomaly(self, t):
+    def _sun_mean_anomaly(self, tc:float) -> float:
         """
         Meeus--AA ch22 p144
         """
         return self.coterminal_angle(self._poly(
-            t, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
+            tc, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
 
-    def _aberration(self, t:float, correction:bool=True) -> float:
+    def _aberration(self, tm:float, fixed:bool=True) -> float:
         """
+        Find the aberration of a date with respect to a fixed reference
+        frame or to the mean equinox.
         """
-        return
+        if fixed:
+            aberration = 3548.193
+        else:
+            aberration = 3548.33
+
+        for a, b, c in self.ABER_A:
+            aberration += math.radians(a) * self.sin_degrees(b + c * tm)
+
+        for a, b, c in self.ABER_B:
+            aberration += math.radians(a) * tm * self.sin_degrees(b + c * tm)
+
+        for a, b, c in self.ABER_C:
+            aberration += math.radians(a) * tm**2 * self.sin_degrees(b + c * tm)
+
+        r = self._radius_vector(tm)
+        return self.decimal_from_dms(0, 0, -0.005775518 * r * aberration)
+
+    def approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
+                                                     lam:int=SPRING) -> float:
+        """
+        Find the approximate Julian day for the equinoxes or solstices.
+
+        See: Astronomical Algorithms, 1998, by Jean Meeus Ch 27 p.177
+        """
+        if g_year <= 1000:
+            y = g_year / 1000
+
+            if lam == self.SPRING:
+                jde = self._poly(y, (1721139.29189, 365242.13740, 0.06134,
+                                     0.00111, -0.00071))
+            elif lam == self.SUMMER:
+                jde = self._poly(y, (1721233.25401, 365241.72562, -0.05323,
+                                     0.00907, 0.00025))
+            elif lam == self.AUTUMN:
+                jde = self._poly(y, (1721325.70455, 365242.49558, -0.11677,
+                                     -0.00297, 0.00074))
+            else: # lam == self.WINTER:
+                jde = self._poly(y, (1721414.39987, 365242.88257, -0.00769,
+                                     -0.00933, -0.00006))
+        else:
+            y = (g_year - 2000) / 1000
+
+            if lam == self.SPRING:
+                jde = self._poly(y, (2451623.80984, 365242.37404, 0.05169,
+                                     -0.00411, -0.00057))
+            elif lam == self.SUMMER:
+                jde = self._poly(y, (2451716.56767, 365241.62603, 0.00325,
+                                     0.00888, -0.00030))
+            elif lam == self.AUTUMN:
+                jde = self._poly(y, (2451810.21715, 365242.01767, -0.11575,
+                                     0.00337, 0.00078))
+            else: # lam == self.WINTER:
+                jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
+                                     -0.00823, 0.00032))
+
+        return jde
+
+    def find_moment_of_equinoxes_or_solstices(self, tee:int,
+                                              lam:int=SPRING) -> float:
+        """
+        With the rd moment and time of year find an equinoxe or solstice.
+
+        Meeus--AA ch27 p177
+        """
+        from .gregorian_calendar import GregorianCalendar
+        gc = GregorianCalendar()
+        year = gc.gregorian_year_from_fixed(tee)
+        jde = self.approx_julian_day_for_equinoxes_or_solstices(year, lam)
+        tc = self.julian_centuries(jde)
+        w = 35999.373 * tc - 2.47
+        dl = 1 + 0.0334 * self.cos_degrees(w + 0.0007) * self.cos_degrees(2*w)
+        a0 = (485, 203, 199, 182, 156, 136, 77, 74, 70, 58, 52, 50,
+              45, 44, 29, 18, 17, 16, 14, 12, 12, 12, 9, 8)
+        b0 = (324.96, 337.23, 342.08, 27.85, 73.14, 171.52, 222.54, 296.72,
+              243.58, 119.81, 297.17, 21.02, 247.54, 325.15, 60.93, 155.12,
+              288.79, 198.04, 199.76, 95.39, 287.11, 320.81, 227.73, 15.45)
+        c0 = (1934.136, 32964.467, 20.186, 445267.112, 45036.886, 22518.443,
+              65928.934, 3034.906, 9037.513, 33718.147, 150.678, 2281.226,
+              29929.562, 31555.956, 4443.417, 67555.328, 4562.452, 62894.029,
+              31436.921, 14577.848, 31931.756, 34777.259, 1222.114, 16859.074)
+        s = self._sigma(
+            (a0, b0, c0), lambda a, b, c: a * self.cos_degrees(b + c * tc))
+        return self.moment_from_jd(jde + (0.00001 * s) / dl)
 
     #
     # Time and Astronomy (Time)
@@ -841,46 +922,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     #mean-tropical-year
     #mean-sidereal-year
 
-    def approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
-                                                     lam:int=SPRING) -> float:
-        """
-        Find the approximate Julian day for the equinoxes or solstices.
-
-        See: Astronomical Algorithms, 1998, by Jean Meeus Ch 27 p.177
-        """
-        if g_year <= 1000:
-            y = g_year / 1000
-
-            if lam == self.SPRING:
-                jde = self._poly(y, (1721139.29189, 365242.13740, 0.06134,
-                                     0.00111, -0.00071))
-            elif lam == self.SUMMER:
-                jde = self._poly(y, (1721233.25401, 365241.72562, -0.05323,
-                                     0.00907, 0.00025))
-            elif lam == self.AUTUMN:
-                jde = self._poly(y, (1721325.70455, 365242.49558, -0.11677,
-                                     -0.00297, 0.00074))
-            else: # lam == self.WINTER:
-                jde = self._poly(y, (1721414.39987, 365242.88257, -0.00769,
-                                     -0.00933, -0.00006))
-        else:
-            y = (g_year - 2000) / 1000
-
-            if lam == self.SPRING:
-                jde = self._poly(y, (2451623.80984, 365242.37404, 0.05169,
-                                     -0.00411, -0.00057))
-            elif lam == self.SUMMER:
-                jde = self._poly(y, (2451716.56767, 365241.62603, 0.00325,
-                                     0.00888, -0.00030))
-            elif lam == self.AUTUMN:
-                jde = self._poly(y, (2451810.21715, 365242.01767, -0.11575,
-                                     0.00337, 0.00078))
-            else: # lam == self.WINTER:
-                jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
-                                     -0.00823, 0.00032))
-
-        return jde
-
     def alt_solar_longitude(self, tee):
         """
         Find the solar longitude in degrees (0 - 360).
@@ -954,12 +995,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return (0.0000974 * self.cos_degrees(177.63 + 35999.01848 * c)
                 - 0.005575)
 
-    def astronomical_aberration(self, tee):
-        """
-        """
-
-        return
-
     #solar-longitude-after
     #season-in-gregorian
     #urbana-winter
@@ -1002,31 +1037,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             (self.alt_solar_longitude(tee) - lam), 360))
         cap_delta = self.MOD3(self.alt_solar_longitude(tau) - lam, -180, 180)
         return min(tee, tau - rate * cap_delta)
-
-    def find_moment_of_equinoxes_or_solstices(self, tee:int,
-                                              lam:int=SPRING) -> float:
-        """
-        With the rd moment and time of year find an equinoxe or solstice.
-        """
-        from .gregorian_calendar import GregorianCalendar
-        gc = GregorianCalendar()
-        year = gc.gregorian_year_from_fixed(tee)
-        jde = self.approx_julian_day_for_equinoxes_or_solstices(year, lam)
-        t = (jde - self.J2000) / 36525
-        w = 35999.373 * t - 2.47
-        dl = 1 + 0.0334 * self.cos_degrees(w + 0.0007) * self.cos_degrees(2*w)
-        a0 = (485, 203, 199, 182, 156, 136, 77, 74, 70, 58, 52, 50,
-              45, 44, 29, 18, 17, 16, 14, 12, 12, 12, 9, 8)
-        b0 = (324.96, 337.23, 342.08, 27.85, 73.14, 171.52, 222.54, 296.72,
-              243.58, 119.81, 297.17, 21.02, 247.54, 325.15, 60.93, 155.12,
-              288.79, 198.04, 199.76, 95.39, 287.11, 320.81, 227.73, 15.45)
-        c0 = (1934.136, 32964.467, 20.186, 445267.112, 45036.886, 22518.443,
-              65928.934, 3034.906, 9037.513, 33718.147, 150.678, 2281.226,
-              29929.562, 31555.956, 4443.417, 67555.328, 4562.452, 62894.029,
-              31436.921, 14577.848, 31931.756, 34777.259, 1222.114, 16859.074)
-        s = self._sigma(
-            (a0, b0, c0), lambda a, b, c: a * self.cos_degrees(b + c * t))
-        return self.moment_from_jd(jde + (0.00001 * s) / dl)
 
     #
     # Time and Astronomy (The Month)

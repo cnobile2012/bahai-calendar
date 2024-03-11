@@ -152,6 +152,12 @@ class JulianPeriod:
         """
         return (jde - self.J2000) / 36525
 
+    def julian_millennia(self, jde:float) -> float:
+        """
+        Calculate the Julian millennia from the Julian day.
+        """
+        return (jde - self.J2000) / 365250
+
     def julian_leap_year(self, j_year:float) -> bool:
         """
         (defun julian-leap-year? (j-year)

@@ -311,8 +311,8 @@ class TestBaseCalandar(unittest.TestCase):
         the correct values.
         """
         data = (
-            (2394646.5, -9786.339718571715), # 1844-03-21
-            (2451544.5, 1.6629948027188646), # 2000-01-01
+            (2394646.5, -9786.34099384954), # 1844-03-21
+            (2451544.5, 1.6629862162861813), # 2000-01-01
             )
         msg = "Expected {}, found {}."
 
@@ -346,8 +346,9 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the _radius_vector method returns the correct values.
         """
         data = (
-            (2394646.5, 10.01754704501667), # 1844-03-21
-            (2451544.5, 10.00579514718723), # 2000-01-01
+            (2448908.5, 0.9939803723953938), # 1992-10-13
+            (2394646.5, 0.999007019370847),  # 1844-03-21
+            (2451544.5, 0.983424096551254),  # 2000-01-01
             )
         msg = "Expected {}, found {}."
 
@@ -357,8 +358,82 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result,))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_apparent_solar_longitude(self):
+        """
+        Test that the apparent_solar_longitude method returns the
+        longitude of sun at moment tee.
+
+        Equinox & Solstice Calculator
+        https://stellafane.org/misc/equinox.html
+
+        Solar Position Calculator
+        https://gml.noaa.gov/grad/solcalc/
+        Greenwich lat: 51, 29, 36.24 N (51.4934)
+                  lon: 00, 00, 00.00 E (0.0)
+
+        Data from the book pages 225, 446 and 452
+        ===============================================================
+                                  Solar     Approximate      Season
+        Name
+                                  longitude date             length
+        ---------------------------------------------------------------
+        Vernal (spring) equinox     0◦      March 20         92.76 days
+        Summer solstice            90◦      June 21          93.65 days
+        Autumnal (fall) equinox   180◦      September 22−23  89.84 days
+        Winter solstice           270◦      December 21−22   88.99 days
+        """
+        data = (
+            # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
+            (2460389.759722222, 359.7409460372346),   # 0
+            # (2024, 6, 20) Summer solstice 2024-06-20T20:50:23 UTC
+            (2460483.2388888886, 90.44982358000743),  # 90
+            # (2024, 9, 22) Autumnal equinox 2024-09-22T12:43:12 UTC
+            (2460576.561111111, 180.16148331519798),  # 180
+            # (2024, 12, 21) Winter solstice 2024-12-21T09:19:54 UTC
+            (2460666.279166667, 270.0741260963987),   # 270
+            # (1800, 3, 20) Vernal equinox 1800-03-20T20:11:48 UTC
+            (2378575.181944445, 359.4017521693313),   # 0
+            # (1800, 6, 21) Summer solstice 1800-06-21T17:51:29 UTC
+            (2378667.9875, 89.32042154169176),        # 90
+            # (1800, 9, 23) Autumnal equinox 1800-09-23T07:25:31 UTC
+            (2378761.118055556, 178.90744945379265),  # 180
+            # (1800, 12, 22) Winter solstice 1800-12-22T00:16:24
+            (2378850.5222222223, 268.6150934379111),  # 270
+            # (2073, 3, 20) Vernal equinox 2073-03-20T00:12:24 UTC
+            (2478286.520833333, 359.5538050153009),   # 0
+            # (2073, 6, 20) Summer solstice 2073-06-20T17:06:18 UTC
+            (2478379.927777778, 90.19737208451625),   # 90
+            # (2073, 9, 22) Autumnal equinox 2073-09-22T09:14:10 UTC
+            (2478473.2736111116, 179.87105735155274), # 180
+            # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
+            (2478563.072222222, 269.78003015783906),  # 270
+            # (-586, 7, 24)
+            (1507231.5, 118.2074769360479),  # 118.98911336371384 CC Book value
+            # (576, 5, 20)
+            (1931579.5, 58.475207906449214), # 59.119741
+            # (1288, 4, 2)
+            (2191584.5, 12.816341923666187), # 13.498220
+            # (1553, 9, 19)
+            (2288542.5, 175.00334548254614), # 176.059431
+            # (1768, 6, 19)
+            (2366978.5, 88.02762245408667),  # 88.567428
+            # (1941, 9, 29)
+            (2430266.5, 185.09021099155143), # 185.945867
+            # (2038, 11, 10)
+            (2465737.5, 227.07079332053763), # 228.184879
+            # (2094, 7, 18)
+            (2486076.5, 115.38120973602054), # 116.439352
+            )
+        msg = "Expected {}, found {}."
+
+        for jde, expected_result in data:
+            result = self._bc.apparent_solar_longitude(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_apparent_solar_latitude(self):
         """
         """
 
@@ -452,6 +527,112 @@ class TestBaseCalandar(unittest.TestCase):
             result = self._bc._sun_mean_anomaly(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result,))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__aberration(self):
+        """
+        Test that the _aberration method returns the correct values.
+        """
+        data = (
+            # 1992-10-13T00:00:00 TD (-0.005705277777777778)
+            (2448908.5, -0.005679205843346786),
+            (2394646.5, -0.005675213832842919), # 1844-03-21
+            (2451544.5, -0.005600867033197131), # 2000-01-01
+            )
+        msg = "Expected {}, found {}."
+
+        for jde, expected_result in data:
+            tm = self._bc.julian_millennia(jde)
+            result = self._bc._aberration(tm)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_approx_julian_day_for_equinoxes_or_solstices(self):
+        """
+        Test that the approx_julian_day_for_equinoxes_or_solstices method
+        returns a Julian day of the equinoxes or solstices.
+        """
+        data = (
+            (500, self._bc.SPRING, 1903760.376019375),
+            (500, self._bc.SUMMER, 1903854.104661875),
+            (500, self._bc.AUTUMN, 1903946.9228224999),
+            (500, self._bc.WINTER, 1904035.8380625),
+            (2000, self._bc.SPRING, 2451623.80984),
+            (2000, self._bc.SUMMER, 2451716.56767),
+            (2000, self._bc.AUTUMN, 2451810.21715),
+            (2000, self._bc.WINTER, 2451900.05952),
+            )
+        msg = "Expected {}, for year {} at angle {}, found {}."
+
+        for year, season, expected_result in data:
+            result = self._bc.approx_julian_day_for_equinoxes_or_solstices(
+                year, lam=season)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, season, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_find_moment_of_equinoxes_or_solstices(self):
+        """
+        Test that the find_moment_of_equinoxes_or_solstices method returns
+        the correct equinoxe and solstice R.D. moments for the given years.
+        """
+        SP = self._bc.SPRING
+        SM = self._bc.SUMMER
+        AU = self._bc.AUTUMN
+        WN = self._bc.WINTER
+        seasons = {SP: 'SPRING', SM: 'SUMMER', AU: 'AUTUMN', WN: 'WINTER'}
+        data = (
+            # Vernal Equinoxe
+            ((900, 3, 1), SP,
+             (900, 3, 20, 18, 19, 15.643359571695328)),
+            ((1788, 3, 19, 22, 16), SP,
+             (1788, 3, 19, 22, 16, 44.93229478597641)),
+            ((1844, 3, 20, 11, 53), SP,
+             (1844, 3, 20, 11, 53, 50.24219870567322)),
+            ((1951, 3, 21, 10, 26), SP,
+             (1951, 3, 21, 10, 26, 44.44636344909668)),
+            ((2000, 3, 20, 7, 35), SP,
+             (2000, 3, 20, 7, 36, 37.8661984205246)),
+            ((2024, 3, 20, 3, 6), SP,
+             (2024, 3, 20, 3, 7, 49.11582201719284)),
+            ((2038, 3, 20, 12, 40), SP,
+             (2038, 3, 20, 12, 42, 2.2778096795082092)),
+            ((2064, 3, 19, 19, 37), SP,
+             (2064, 3, 19, 19, 40, 13.716727495193481)),
+            ((2100, 3, 20, 13, 3), SP,
+             (2100, 3, 20, 13, 6, 30.193404257297516)),
+            ((2150, 3, 20, 16, 1), SP,
+             (2150, 3, 20, 16, 6, 35.90936601161957)),
+            ((2200, 3, 20, 18, 40), SP,
+             (2200, 3, 20, 18, 48, 6.645336449146271)),
+            ((2211, 3, 21, 10, 38), SP,
+             (2211, 3, 21, 10, 45, 29.954682290554047)),
+            # Summer Solstice
+            ((900, 6, 1), SM, (900, 6, 22, 6, 32, 44.23422619700432)),
+            ((2000, 6, 1), SM, (2000, 6, 21, 1, 48, 45.353220105171204)),
+            # Autumn Equinox
+            ((900, 9, 1), AU, (900, 9, 23, 8, 35, 1.4366135001182556)),
+            ((2000, 9, 1), AU, (2000, 9, 22, 17, 28, 41.678222715854645)),
+            # Winter Solstice
+            ((900, 12, 1), WN, (900, 12, 21, 11, 38, 22.260328084230423)),
+            ((2000, 12, 1), WN, (2000, 12, 21, 13, 38, 47.16909795999527)),
+            )
+        msg = "Expected '{}' during the {}, found '{}'"
+
+        for date, season, expected_result in data:
+            date0 = self._gc.date_from_ymdhms(date)
+            tee = self._gc.fixed_from_gregorian(date0)
+            result = self._bc.find_moment_of_equinoxes_or_solstices(
+                tee, lam=season)
+            result = self._gc.gregorian_from_fixed(result)
+            result = self._gc.ymdhms_from_date(result)
+            self.assertEqual(
+                expected_result, result,
+                msg.format(expected_result, seasons[season], result))
+
+
+
 
 
     #
@@ -742,104 +923,6 @@ class TestBaseCalandar(unittest.TestCase):
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_approx_julian_day_for_equinoxes_or_solstices(self):
-        """
-        Test that the approx_julian_day_for_equinoxes_or_solstices method
-        returns a Julian day of the equinoxes or solstices.
-        """
-        data = (
-            (500, self._bc.SPRING, 1903760.376019375),
-            (500, self._bc.SUMMER, 1903854.104661875),
-            (500, self._bc.AUTUMN, 1903946.9228224999),
-            (500, self._bc.WINTER, 1904035.8380625),
-            (2000, self._bc.SPRING, 2451623.80984),
-            (2000, self._bc.SUMMER, 2451716.56767),
-            (2000, self._bc.AUTUMN, 2451810.21715),
-            (2000, self._bc.WINTER, 2451900.05952),
-            )
-        msg = "Expected {}, for year {} at angle {}, found {}."
-
-        for year, season, expected_result in data:
-            result = self._bc.approx_julian_day_for_equinoxes_or_solstices(
-                year, lam=season)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, year, season, result))
-
-    @unittest.skip("Temporarily skipped")
-    def test_solar_longitude(self):
-        """
-        Test that the solar_longitude method returns the longitude of
-        sun at moment tee.
-
-        Equinox & Solstice Calculator
-        https://stellafane.org/misc/equinox.html
-
-        Solar Position Calculator
-        https://gml.noaa.gov/grad/solcalc/
-        Greenwich lat: 51, 29, 36.24 N (51.4934)
-                  lon: 00, 00, 00.00 E (0.0)
-
-        Data from the book pages 225, 446 and 452
-        ===============================================================
-                                  Solar     Approximate      Season
-        Name
-                                  longitude date             length
-        ---------------------------------------------------------------
-        Vernal (spring) equinox     0◦      March 20         92.76 days
-        Summer solstice            90◦      June 21          93.65 days
-        Autumnal (fall) equinox   180◦      September 22−23  89.84 days
-        Winter solstice           270◦      December 21−22   88.99 days
-        """
-        data = (
-            # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
-            (738965.12921296296296296296, 359.06056707685093), # 0
-            # (2024, 6, 20) Summer solstice 2024-06-20T20:50:23 UTC
-            (739057.86832175925925925926, 90.18524388015976),  # 90
-            # (2024, 9, 22) Autumnal equinox 2024-09-22T12:43:12 UTC
-            (739151.53, 181.37149002119986),                   # 180
-            # (2024, 12, 21) Winter solstice 2024-12-21T09:19:54 UTC
-            (739241.38881944444444444444, 269.80025515382476), # 270
-            # (1800, 3, 20) Vernal equinox 1800-03-20T20:11:48 UTC
-            (657150.84152777777777777778, 125.80566001606348), # 0
-            # (1800, 6, 21) Summer solstice 1800-06-21T17:51:29 UTC
-            (657243.74408564814814814815, 216.86651406357123), # 90
-            # (1800, 9, 23) Autumnal equinox 1800-09-23T07:25:31 UTC
-            (657337.30938657407407407407, 309.9571399783017),  # 180
-            # (1800, 12, 22) Winter solstice 1800-12-22T00:16:24
-            (657427.01138888888888888889, 39.075272069181665), # 270
-            # (2073, 3, 20) Vernal equinox 2073-03-20T00:12:24 UTC
-            (756862.00861111111111111111, 180.66421547552818), # 0
-            # (2073, 6, 20) Summer solstice 2073-06-20T17:06:18 UTC
-            (756954.71270833333333333333, 271.8997512399437),  # 90
-            # (2073, 9, 22) Autumnal equinox 2073-09-22T09:14:10 UTC
-            (757048.38483796296296296296, 4.958974892488186),  # 180
-            # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
-            (757138.28450231481481481481, 93.24384461815498),  # 270
-            # (-586, 7, 24)
-            #(-214193, 118.98911336367019), # 118.98911336371384 Book value
-            # (576, 5, 20)
-            #(210155, 58.64246274798643),   # 59.119741
-            # (1288, 4, 2)
-            #(470160, 13.008819286362268),  # 13.498220
-            # (1553, 9, 19)
-            #(567118, 175.56893798499368),  # 176.059431
-            # (1768, 6, 19)
-            #(645554, 88.09044293293846),   # 88.567428
-            # (1941, 9, 29)
-            #(708842, 185.50156897346096),  # 185.945867
-            # (2038, 11, 10)
-            #(744313, 227.68273548343677),  # 228.184879
-            # (2094, 7, 18)
-            #(764652, 334.87117657772615),  # 116.439352 This is way off
-            )
-        msg = "Expected {}, found {}."
-
-        for tee, expected_result in data:
-            result = self._bc.solar_longitude(tee)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test_alt_solar_longitude(self):
         """
         Test that the solar_longitude method returns the longitude of
@@ -973,66 +1056,6 @@ class TestBaseCalandar(unittest.TestCase):
             result = self._bc.estimate_prior_solar_longitude(lam, tee)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_find_moment_of_equinoxes_or_solstices(self):
-        """
-        Test that the find_moment_of_equinoxes_or_solstices method returns
-        the correct equinoxe and solstice R.D. moments for the given years.
-        """
-        SP = self._bc.SPRING
-        SM = self._bc.SUMMER
-        AU = self._bc.AUTUMN
-        WN = self._bc.WINTER
-        seasons = {SP: 'SPRING', SM: 'SUMMER', AU: 'AUTUMN', WN: 'WINTER'}
-        data = (
-            # Vernal Equinoxe
-            ((900, 3, 1), SP,
-             (900, 3, 20, 18, 19, 15.643359571695328)),
-            ((1788, 3, 19, 22, 16), SP,
-             (1788, 3, 19, 22, 16, 44.93229478597641)),
-            ((1844, 3, 20, 11, 53), SP,
-             (1844, 3, 20, 11, 53, 50.24219870567322)),
-            ((1951, 3, 21, 10, 26), SP,
-             (1951, 3, 21, 10, 26, 44.44636344909668)),
-            ((2000, 3, 20, 7, 35), SP,
-             (2000, 3, 20, 7, 36, 37.8661984205246)),
-            ((2024, 3, 20, 3, 6), SP,
-             (2024, 3, 20, 3, 7, 49.11582201719284)),
-            ((2038, 3, 20, 12, 40), SP,
-             (2038, 3, 20, 12, 42, 2.2778096795082092)),
-            ((2064, 3, 19, 19, 37), SP,
-             (2064, 3, 19, 19, 40, 13.716727495193481)),
-            ((2100, 3, 20, 13, 3), SP,
-             (2100, 3, 20, 13, 6, 30.193404257297516)),
-            ((2150, 3, 20, 16, 1), SP,
-             (2150, 3, 20, 16, 6, 35.90936601161957)),
-            ((2200, 3, 20, 18, 40), SP,
-             (2200, 3, 20, 18, 48, 6.645336449146271)),
-            ((2211, 3, 21, 10, 38), SP,
-             (2211, 3, 21, 10, 45, 29.954682290554047)),
-            # Summer Solstice
-            ((900, 6, 1), SM, (900, 6, 22, 6, 32, 44.23422619700432)),
-            ((2000, 6, 1), SM, (2000, 6, 21, 1, 48, 45.353220105171204)),
-            # Autumn Equinox
-            ((900, 9, 1), AU, (900, 9, 23, 8, 35, 1.4366135001182556)),
-            ((2000, 9, 1), AU, (2000, 9, 22, 17, 28, 41.678222715854645)),
-            # Winter Solstice
-            ((900, 12, 1), WN, (900, 12, 21, 11, 38, 22.260328084230423)),
-            ((2000, 12, 1), WN, (2000, 12, 21, 13, 38, 47.16909795999527)),
-            )
-        msg = "Expected '{}' during the {}, found '{}'"
-
-        for date, season, expected_result in data:
-            date0 = self._gc.date_from_ymdhms(date)
-            tee = self._gc.fixed_from_gregorian(date0)
-            result = self._bc.find_moment_of_equinoxes_or_solstices(
-                tee, lam=season)
-            result = self._gc.gregorian_from_fixed(result)
-            result = self._gc.ymdhms_from_date(result)
-            self.assertEqual(
-                expected_result, result,
-                msg.format(expected_result, seasons[season], result))
 
     #@unittest.skip("Temporarily skipped")
     def test_approx_moment_of_depression(self):
