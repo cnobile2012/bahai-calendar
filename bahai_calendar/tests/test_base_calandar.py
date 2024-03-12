@@ -408,8 +408,9 @@ class TestBaseCalandar(unittest.TestCase):
             (2478473.2736111116, 179.87105735155274), # 180
             # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
             (2478563.072222222, 269.78003015783906),  # 270
+            # All the dates below are from the CC Appendix C Sample Data p452
             # (-586, 7, 24)
-            (1507231.5, 118.2074769360479),  # 118.98911336371384 CC Book value
+            (1507231.5, 118.2074769360479),  # 118.98911336371384
             # (576, 5, 20)
             (1931579.5, 58.475207906449214), # 59.119741
             # (1288, 4, 2)
@@ -431,11 +432,6 @@ class TestBaseCalandar(unittest.TestCase):
             result = self._bc.apparent_solar_longitude(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
-
-    @unittest.skip("Temporarily skipped")
-    def test_apparent_solar_latitude(self):
-        """
-        """
 
     #@unittest.skip("Temporarily skipped")
     def test_astronomical_nutation(self):
@@ -592,12 +588,28 @@ class TestBaseCalandar(unittest.TestCase):
              (1844, 3, 20, 11, 53, 50.24219870567322)),
             ((1951, 3, 21, 10, 26), SP,
              (1951, 3, 21, 10, 26, 44.44636344909668)),
+            ((1962, 6, 1), SM,
+             (1962, 6, 21, 21, 25, 6.023333966732025)),
             ((2000, 3, 20, 7, 35), SP,
              (2000, 3, 20, 7, 36, 37.8661984205246)),
+            ((2018, 3, 20), SP, # Should be 2018-03-20T16:16:36 DT
+             (2018, 3, 20, 16, 16, 23.92842561006546)),  # Found error
+            ((2022, 3, 20), SP, # Should be 2022-03-20T15:34:33 DT
+             (2022, 3, 20, 15, 34, 40.105192959308624)), # Found error
             ((2024, 3, 20, 3, 6), SP,
              (2024, 3, 20, 3, 7, 49.11582201719284)),
+            ((2026, 3, 20), SP, # Should be 2026-03-20T14:47:05 DT
+             (2026, 3, 20, 14, 46, 50.817597806453705)), # Found error
             ((2038, 3, 20, 12, 40), SP,
              (2038, 3, 20, 12, 42, 2.2778096795082092)),
+            ((2043, 3, 20), SP, # Should be 2043-03-20T17:28:58 DT
+             (2043, 3, 20, 17, 29, 7.3780229687690735)), # Found error
+            ((2047, 3, 20), SP, # Should be 2047-03-20T16:53:53 DT
+             (2047, 3, 20, 16, 54, 14.04365211725235)),  # Found error
+            ((2051, 3, 20), SP, # Should be 2051-03-20T16:00:28 DT
+             (2051, 3, 20, 16, 0, 23.23518544435501)),   # Found error
+            ((2055, 3, 20), SM, # Should be 2055-03-20T15:30:03 DT
+             (2055, 6, 21, 8, 40, 54.626329243183136)),  # Found error
             ((2064, 3, 19, 19, 37), SP,
              (2064, 3, 19, 19, 40, 13.716727495193481)),
             ((2100, 3, 20, 13, 3), SP,
@@ -621,8 +633,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected '{}' during the {}, found '{}'"
 
         for date, season, expected_result in data:
-            date0 = self._gc.date_from_ymdhms(date)
-            tee = self._gc.fixed_from_gregorian(date0)
+            tee = self._gc.fixed_from_gregorian(date)
             result = self._bc.find_moment_of_equinoxes_or_solstices(
                 tee, lam=season)
             result = self._gc.gregorian_from_fixed(result)
