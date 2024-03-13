@@ -34,6 +34,9 @@ class GregorianCalendar(BaseCalendar):
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
 
+    # The Julian day for the Gregorian epoch.
+    JD_GREGORIAN_EPOCH = 1721013.5
+
     def __init__(self):
         super().__init__()
         # [year, month, day]
@@ -117,7 +120,7 @@ class GregorianCalendar(BaseCalendar):
     # gregorian-year-end
     # gregorian-year-range
 
-    def gregorian_year_from_fixed(self, date:int) -> int:
+    def gregorian_year_from_fixed(self, date:float) -> int:
         """
         (defun gregorian-year-from-fixed (date)
           ;; TYPE fixed-date -> gregorian-year
@@ -305,23 +308,87 @@ class GregorianCalendar(BaseCalendar):
             (self._to_radix(approx, (4, 25, 4)), (97, 24, 1, 0)), func)
         return approx if date < start else approx + 1
 
-    def jd_from_date(self, date):
+    def jd_from_gregorian_date(self, g_date:tuple) -> float:
         """
-        Convert the Gregorian moment to a Julian Period day.
+        Convert Gregorian dates to Julian day count with the 1582 10, 15
+        correction.
+
+        .. note::
+
+           See Astronomical Formulae for Calculators Enlarged & Revised,
+           by Jean Meeus ch3 p23-25
         """
-        self._check_valid_gregorian_month_day(date)
-        t_len = len(date)
-        year = date[0]
-        month = date[1]
-        day = date[2]
-        hour = date[3] if t_len > 3 and date[3] is not None else 0
-        minute = date[4] if t_len > 4 and date[4] is not None else 0
-        second = date[5] if t_len > 5 and date[5] is not None else 0
-        day += self.HR(hour) + self.MN(minute) + self.SEC(second)
-        j_day = (367 * year - 7 * (year + (month + 9) // 12) // 4 +
-                 275 * month // 9 + day + 1721013.5 + (hour + minute / 60 +
-                                                       second / 3600) / 24)
-        return j_day
+        t_len = len(g_date)
+        year = g_date[0]
+        month = g_date[1]
+        day = g_date[2]
+        hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
+        minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
+        second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
+        self._check_valid_gregorian_month_day(g_date)
+
+        if month > 2:
+            y = year
+            m = month
+        elif month <= 2:
+            y = year - 1
+            m = month + 12
+
+        h = self.HR(hour) + self.MN(minute) + self.SEC(second)
+        day += h if h > 0 else 0
+        jd =  int(365.25 * y) + int(30.6001 * (m + 1)) + day + 1720994.5
+
+        if g_date >= (1582, 10, 15):
+            a = int(y / 100)
+            b = 2 - a + int(a / 4)
+            jd += b
+
+        return jd
+
+    def gregorian_date_from_jd(self, jd:float) -> tuple:
+        """
+        Convert Julian day to Gregorian date.
+
+        .. note::
+
+           See Astronomical Formulae for Calculators Enlarged & Revised,
+           by Jean Meeus ch3 p26-29
+        """
+        j_day = jd + 0.5
+        z = int(j_day)
+        f = j_day % 1
+
+        if z >= 2299161:
+            alpha = int((z - 1867216.25) / 36524.25)
+            a = z + 1 + alpha - int(alpha / 4)
+        else:
+            a = z
+
+        b = a + 1524
+        c = int((b - 122.1) / 365.25)
+        d = int(365.25 * c)
+        e = int((b - d) / 30.6001)
+        day = b - d - int(30.6001 * e) + f
+        month = 0
+        year = 0
+
+        if e < 13.5:
+            month = e - 1
+        elif e > 13.5:
+            month = e - 13
+
+        if month > 2.5:
+            year = c - 4716
+        elif month < 2.5:
+            year = c - 4715
+
+        return year, month, day
+
+    def gregorian_year_from_jd(self, jde:float) -> int:
+        """
+        Find the Gregorian year from a Julian Period day.
+        """
+        return int((jde - self.JD_GREGORIAN_EPOCH) / 367)
 
     def date_from_ymdhms(self, date:tuple) -> tuple:
         """
@@ -359,9 +426,13 @@ class GregorianCalendar(BaseCalendar):
         """
         Check that the monmth and day values are valid.
         """
+        t_len = len(g_date)
         year = g_date[0]
         month = abs(g_date[1])
         day = abs(g_date[2])
+        hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
+        minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
+        second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
         assert 1 <= month <= 12, f"Invalid month '{month}', should be 1 - 12."
         days = self._MONTHS[month - 1]
 
@@ -370,3 +441,16 @@ class GregorianCalendar(BaseCalendar):
 
         assert 1 <= day <= days, (
             f"Invalid day '{day}' for month '{month}' should be 1 - {days}.")
+
+        assert hour < 24, f"Invalid hour '{hour}' it must be < 24"
+        assert minute < 60, f"Invalid minute '{minute}' should be < 60."
+        dp = day % 1
+        hp = hour > 0
+        mp = minute > 0
+        sp = second > 0
+        assert (hp and dp == 0) or not hp, (
+            "If there is a part day then there can be no hours.")
+        assert (mp and dp == 0) or not mp, (
+            "If there is a part day then there can be no minutes.")
+        assert (sp and dp == 0) or not sp, (
+            "If there is a part day then there can be no seconds.")

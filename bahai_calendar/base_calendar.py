@@ -567,7 +567,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return jde
 
-    def find_moment_of_equinoxes_or_solstices(self, tee:int,
+    def find_moment_of_equinoxes_or_solstices(self, jde:float,
                                               lam:int=SPRING) -> float:
         """
         With the rd moment and time of year find an equinoxe or solstice.
@@ -576,7 +576,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
-        year = gc.gregorian_year_from_fixed(tee)
+        year = gc.gregorian_year_from_jd(jde)
         jde = self.approx_julian_day_for_equinoxes_or_solstices(year, lam)
         tc = self.julian_centuries(jde)
         w = 35999.373 * tc - 2.47
@@ -595,7 +595,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     #direction
     #arctan
 
-    def zone_from_longitude(self, phi):
+    def zone_from_longitude(self, phi:float) -> float:
         """
         used
 

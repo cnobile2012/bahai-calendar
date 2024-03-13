@@ -212,6 +212,52 @@ class TestGregorianCalendar(unittest.TestCase):
                 msg.format(expected_result, expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_jd_from_gregorian_date(self):
+        """
+        Test that the jd_from_gregorian_date method returns a
+        Julian day from a Gregorian date.
+        """
+        data = (
+            # -4712-Jan-01 12:00:00
+            ((-4712, 1, 1.5), 0.0),
+            # -4712-Jan-02 00:00:00
+            ((-4712, 1, 2.0), 0.5),
+            # 1844-Mar-21 00:00:00
+            ((1844, 3, 21), 2394646.5),
+            )
+        msg = "Expected {} for g_date {}, found {}"
+
+        for g_date, expected_result in data:
+            result = self._gc.jd_from_gregorian_date(g_date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, g_date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_gregorian_date_from_jd(self):
+        """
+        Test that the gregorian_date_from_jd method returns a
+        Gregorian date from a Julian day.
+        """
+        data = (
+            # -4712-Jan-01 12:00:00
+            (0.0, (-4712, 1, 1.5)),
+            # -4712-Jan-02 00:00:00
+            (0.5, (-4712, 1, 2.0)),
+            # 1844-Mar-21 00:00:00
+            (2394646.5, (1844, 3, 21)),
+            )
+        msg = "Expected {} for j_day {}, found {}"
+
+        for j_day, expected_result in data:
+            result = self._gc.gregorian_date_from_jd(j_day)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, j_day, result))
+
+
+
+
+
+    #@unittest.skip("Temporarily skipped")
     def test_date_from_ymdhms(self):
         """
         Test that the date_from_ymdhms method returns a
