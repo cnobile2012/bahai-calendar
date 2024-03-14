@@ -1536,9 +1536,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         assert size >= 3 and any([d.startswith(direction) for d in dirs]), (
             f"The direction argument must be one of {dirs}")
         # degrees
-        degrees = int(abs(coord))
+        degrees = math.floor(abs(coord))
         # minutes
-        minutes = int((abs(coord) - degrees) * 60)
+        minutes = math.floor((abs(coord) - degrees) * 60)
         # seconds
         seconds = (abs(coord) - degrees - (minutes / 60)) * 3600
 
@@ -1563,8 +1563,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Find the hours, minutes, and seconds from degrees.
         """
-        h = int(deg / 15)
-        m = int((deg / 15 - h) * 60)
+        h = math.floor(deg / 15)
+        m = math.floor((deg / 15 - h) * 60)
         s = (deg / 15 - h - m / 60) * 3600
         return h, m, s
 

@@ -34,9 +34,6 @@ class GregorianCalendar(BaseCalendar):
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
 
-    # The Julian day for the Gregorian epoch.
-    JD_GREGORIAN_EPOCH = 1721013.5
-
     def __init__(self):
         super().__init__()
         # [year, month, day]
@@ -308,6 +305,10 @@ class GregorianCalendar(BaseCalendar):
             (self._to_radix(approx, (4, 25, 4)), (97, 24, 1, 0)), func)
         return approx if date < start else approx + 1
 
+    #
+    # Methods from other places mostly from Jean Meeus.
+    #
+
     def jd_from_gregorian_date(self, g_date:tuple) -> float:
         """
         Convert Gregorian dates to Julian day count with the 1582 10, 15
@@ -317,6 +318,7 @@ class GregorianCalendar(BaseCalendar):
 
            See Astronomical Formulae for Calculators Enlarged & Revised,
            by Jean Meeus ch3 p23-25
+           See: https://core2.gsfc.nasa.gov/time/julian.html
         """
         t_len = len(g_date)
         year = g_date[0]
@@ -327,20 +329,18 @@ class GregorianCalendar(BaseCalendar):
         second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
         self._check_valid_gregorian_month_day(g_date)
 
-        if month > 2:
-            y = year
-            m = month
-        elif month <= 2:
-            y = year - 1
-            m = month + 12
+        if month <= 2:
+            year -= 1
+            month += 12
 
         h = self.HR(hour) + self.MN(minute) + self.SEC(second)
         day += h if h > 0 else 0
-        jd =  int(365.25 * y) + int(30.6001 * (m + 1)) + day + 1720994.5
+        jd =  (math.floor(365.25 * year) + math.floor(30.6001 * (month + 1)) +
+               day + 1720994.5)
 
         if g_date >= (1582, 10, 15):
-            a = int(y / 100)
-            b = 2 - a + int(a / 4)
+            a = math.floor(year / 100)
+            b = 2 - a + math.floor(a / 4)
             jd += b
 
         return jd
@@ -355,20 +355,20 @@ class GregorianCalendar(BaseCalendar):
            by Jean Meeus ch3 p26-29
         """
         j_day = jd + 0.5
-        z = int(j_day)
+        z = math.floor(j_day)
         f = j_day % 1
 
         if z >= 2299161:
-            alpha = int((z - 1867216.25) / 36524.25)
-            a = z + 1 + alpha - int(alpha / 4)
+            alpha = math.floor((z - 1867216.25) / 36524.25)
+            a = z + 1 + alpha - math.floor(alpha / 4)
         else:
             a = z
 
         b = a + 1524
-        c = int((b - 122.1) / 365.25)
-        d = int(365.25 * c)
-        e = int((b - d) / 30.6001)
-        day = b - d - int(30.6001 * e) + f
+        c = math.floor((b - 122.1) / 365.25)
+        d = math.floor(365.25 * c)
+        e = math.floor((b - d) / 30.6001)
+        day = b - d - math.floor(30.6001 * e) + f
         month = 0
         year = 0
 
@@ -388,7 +388,7 @@ class GregorianCalendar(BaseCalendar):
         """
         Find the Gregorian year from a Julian Period day.
         """
-        return int((jde - self.JD_GREGORIAN_EPOCH) / 367)
+        return self.gregorian_date_from_jd(jde)[0]
 
     def date_from_ymdhms(self, date:tuple) -> tuple:
         """
@@ -440,7 +440,8 @@ class GregorianCalendar(BaseCalendar):
             days -= 0 if self.GREGORIAN_LEAP_YEAR(year) else 1
 
         assert 1 <= day <= days, (
-            f"Invalid day '{day}' for month '{month}' should be 1 - {days}.")
+            f"Invalid day '{day}' for month '{month}' and year '{year}' "
+            f"should be 1 - {days}.")
 
         assert hour < 24, f"Invalid hour '{hour}' it must be < 24"
         assert minute < 60, f"Invalid minute '{minute}' should be < 60."

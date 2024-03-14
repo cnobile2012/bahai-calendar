@@ -222,8 +222,14 @@ class TestGregorianCalendar(unittest.TestCase):
             ((-4712, 1, 1.5), 0.0),
             # -4712-Jan-02 00:00:00
             ((-4712, 1, 2.0), 0.5),
+            # Meeus AA ch 7 p61 ex7.b
+            ((333, 1, 27, 12), 1842713.0),
+            # Meeus AA ch 7 p61 ex7.a
+            ((1957, 10, 4.81), 2436116.31),
             # 1844-Mar-21 00:00:00
             ((1844, 3, 21), 2394646.5),
+            # 2451545.0 as per https://aa.usno.navy.mil/data/JulianDate
+            ((2000, 1, 1.5), 2451545.0)
             )
         msg = "Expected {} for g_date {}, found {}"
 
@@ -243,8 +249,16 @@ class TestGregorianCalendar(unittest.TestCase):
             (0.0, (-4712, 1, 1.5)),
             # -4712-Jan-02 00:00:00
             (0.5, (-4712, 1, 2.0)),
+            # Meeus AA ch 7 p64 ex7.d
+            (2418781.5, (1910, 4, 20)),
+            # Meeus AA ch 7 p64 ex7.c
+            (2436116.31, (1957, 10, 4.810000000055879)),
+            # Meeus AA ch 7 p64 ex7.d
+            (2446470.5, (1986, 2, 9)),
             # 1844-Mar-21 00:00:00
             (2394646.5, (1844, 3, 21)),
+            (2451544.5, (2000, 1, 1)),
+            (2451545.0, (2000, 1, 1.5)),
             )
         msg = "Expected {} for j_day {}, found {}"
 
@@ -253,9 +267,23 @@ class TestGregorianCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, j_day, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_gregorian_year_from_jd(self):
+        """
+        Test that the gregorian_year_from_jd method returns a
+        Gregorian year from a Julian day.
+        """
+        data = (
+            (2394646.5, 1844),
+            (2451544.5, 2000), # Start of day 12 noon
+            (2451545.0, 2000), # Middle of day 12 midnight
+            )
+        msg = "Expected {} for Julian day {}, found {}"
 
-
-
+        for j_day, expected_result in data:
+            result = self._gc.gregorian_year_from_jd(j_day)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, j_day, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_date_from_ymdhms(self):
@@ -300,19 +328,56 @@ class TestGregorianCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test__check_valid_gregorian_month_day(self):
         """
-        Check that the month and day in a gregorian date are in bounds.
+        Check that the year, month, day, hour, minute, and second in a
+        gregorian date are in bounds. Also check that if a decimal number
+        is used there are no succeeding number at all.
         """
-        year = 2024
+        data = (
+            ((1, 1, 1), True),
+            ((2024, 1, 1), True),
+            ((2024, 1, 1.1, 1), False),
+            ((2024, 1, 1.1, 0, 1), False),
+            ((2024, 1, 1.1, 0, 0, 1), False),
+            )
 
-        # Test correct dates
-        for month in range(1, 13):
-            for days in range(self._gc._MONTHS[month - 1]):
-                if month == 2: # Subtract 0 or 1 from Febuary if leap year.
-                    days -= 0 if self._gc.GREGORIAN_LEAP_YEAR(year) else 1
+        for g_date, validity in data:
+            year = g_date[0]
+            month = g_date[1]
+            day = g_date[2]
 
-                for day in range(1, days+1):
-                    date = (2024, month, day)
-                    self._gc._check_valid_gregorian_month_day(date)
+            if validity:
+                msg = ("Invalid day '{}' for month '{}' and year '{}' "
+                       "should be 1 - {}.")
+
+                # Test correct dates
+                for m in range(1, 13):
+                    for days in range(self._gc._MONTHS[m - 1]):
+                        if m == 2: # Subtract 0 or 1 from Febuary if leap year.
+                            days -= (0 if self._gc.GREGORIAN_LEAP_YEAR(year)
+                                     else 1)
+
+                        for d in range(1, days + 1):
+                            date = (year, m, d)
+                            self._gc._check_valid_gregorian_month_day(date)
+            else:
+                t_len = len(g_date)
+                msg = "If there is a part day then there can be no {}."
+                hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
+                mint = g_date[4] if t_len > 4 and g_date[4] is not None else 0
+                secs = g_date[5] if t_len > 5 and g_date[5] is not None else 0
+
+                if secs > 0:
+                    err_msg = msg.format('seconds')
+                elif mint > 0:
+                    err_msg = msg.format('minutes')
+                elif hour > 0:
+                    err_msg = msg.format('hours')
+
+                with self.assertRaises(AssertionError) as cm:
+                    self._gc._check_valid_gregorian_month_day(g_date)
+
+                message = str(cm.exception)
+                self.assertEqual(err_msg, message)
 
         # Test invalid month
         month = 14
@@ -324,17 +389,3 @@ class TestGregorianCalendar(unittest.TestCase):
 
         message = str(cm.exception)
         self.assertEqual(msg, message)
-
-        # Test invalid dates
-        day = 32
-        msg = "Invalid day '{}' for month '{}' should be 1 - {}."
-
-        for month in range(1, 13):
-            date = (year, month, day)
-            err_msg = msg.format(day, month, self._gc._MONTHS[month - 1])
-
-            with self.assertRaises(AssertionError) as cm:
-                self._gc._check_valid_gregorian_month_day(date)
-
-            message = str(cm.exception)
-            self.assertEqual(err_msg, message)
