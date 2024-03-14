@@ -278,7 +278,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _sun_apparent_longitude(self, tc:float) -> float:
         """
-        Meeus--AA p164 eq
+        Meeus--AA p164
         """
         sol = self._sun_true_longitude(tc)
         om = self._moon_ascending_node_longitude(tc)
@@ -286,6 +286,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _sun_true_longitude(self, tc:float) -> float:
         """
+        The true geometric longitude referred to the mean equinox of the
+        date. This longitude is the quantity required for instance in the
+        calculation of geocentric planetary positions.
+
         Meeus--AA p164
         """
         l0 = self._sun_mean_longitude(tc)
@@ -294,7 +298,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _sun_mean_longitude(self, tc:float) -> float:
         """
-        Meeus--AA ch25 p163 eq25.2
+        The geometric mean longitude of the Sun, referred to the mean
+        equinox of the date.
+
+        :param tc: Time in Julian centuries.
+        :type tc: float
+        :return: Mean longitude of the sun in degrees.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch25 p163 eq25.2
         """
         return self.coterminal_angle(self._poly(
             tc, (280.46646, 36000.76983, 0.0003032)))

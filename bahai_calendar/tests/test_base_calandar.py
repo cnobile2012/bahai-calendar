@@ -250,31 +250,72 @@ class TestBaseCalandar(unittest.TestCase):
         """
 
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_sun_apparent_declination(self):
         """
         Test that the apparent_declination method returns the proper
-        apparent declination measured (from 0° to +90°) from the equator,
+        apparent declination measured (from 0° to 90°) from the equator,
         positive to the north, negative to the south.
         """
         data = (
-            ((), ),
+            ((2000, 1, 1), -23.77290572337925), # *** TODO *** Is this correct?
             )
         msg = "Expected {}, found {}."
 
         for g_date, expected_result in data:
-            fixed = self._gc.fixed_from_gregorian(g_date)
-            jde = self._gc.jd_from_fixed(fixed)
+            jde = self._gc.jd_from_gregorian_date(g_date)
+            result = self._bc.sun_apparent_declination(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__sun_apparent_longitude(self):
         """
+        Test that the _sun_apparent_longitude returns the proper
         """
+        data = (
+            (2448908.5, 199.90893644078398), # 1992-10-13T00:00:00 TD From AA
+            )
+        msg = "Expected {} for jde {}, found {}."
 
-    @unittest.skip("Temporarily skipped")
+        for jde, expected_result in data:
+            tc = self._bc.julian_centuries(jde)
+            result = self._bc._sun_apparent_longitude(tc)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result,))
+
+    #@unittest.skip("Temporarily skipped")
     def test__sun_true_longitude(self):
         """
+        Test that the _sun_true_longitude returns the proper
         """
+        data = (
+            (2448908.5, 199.90986720840868), # 1992-10-13T00:00:00 TD From AA
+            )
+        msg = "Expected {} for jde {}, found {}."
+
+        for jde, expected_result in data:
+            tc = self._bc.julian_centuries(jde)
+            result = self._bc._sun_true_longitude(tc)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result,))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__sun_mean_longitude(self):
+        """
+        Test that the _sun_mean_longitude returns the proper angle
+        from the sun.
+        """
+        data = (
+            (2448908.5, 201.80719650670744), # 1992-10-13T00:00:00 TD From AA
+            )
+        msg = "Expected {} for jde {}, found {}."
+
+        for jde, expected_result in data:
+            tc = self._bc.julian_centuries(jde)
+            result = self._bc._sun_mean_longitude(tc)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result,))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_equation_of_center(self):
@@ -283,6 +324,7 @@ class TestBaseCalandar(unittest.TestCase):
         correct values.
         """
         data = (
+            (2448908.5, -1.8973292982987633),  # 1992-10-13T00:00:00 TD From AA
             (2394646.5, 1.8902065487119648),   # 1844-03-21
             (2451544.5, -0.10114766650438385), # 2000-01-01
             )
@@ -636,6 +678,7 @@ class TestBaseCalandar(unittest.TestCase):
             jde = self._gc.jd_from_gregorian_date(date)
             result = self._bc.find_moment_of_equinoxes_or_solstices(
                 jde, lam=season)
+            #result = self._gc.fixed_from_jd(result)
             result = self._gc.gregorian_from_fixed(result)
             result = self._gc.ymdhms_from_date(result)
             self.assertEqual(
