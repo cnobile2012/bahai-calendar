@@ -678,7 +678,7 @@ class TestBaseCalandar(unittest.TestCase):
             jde = self._gc.jd_from_gregorian_date(date)
             result = self._bc.find_moment_of_equinoxes_or_solstices(
                 jde, lam=season)
-            #result = self._gc.fixed_from_jd(result)
+            result = self._gc.moment_from_jd(result)
             result = self._gc.gregorian_from_fixed(result)
             result = self._gc.ymdhms_from_date(result)
             self.assertEqual(

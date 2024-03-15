@@ -342,8 +342,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Find the heliocentric ecliptical longitude.
 
-        :param t: The moment in time referenced to J2000 millennia.
-        :type t: float
+        :param tm: The moment in time referenced to J2000 millennia.
+        :type tm: float
         :return: Longitude in radians.
         :rtype: float
         """
@@ -586,7 +586,16 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         With the rd moment and time of year find an equinoxe or solstice.
 
-        Meeus--AA ch27 p177
+        :param jde: Julian day.
+        :type jde: float
+        :param lam: Lambda is the season as in (SPRING, SUMMER, AUTUMN, WINTER)
+        :type lam: int
+        :return: The Julian day of the equinoxe or solstice.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch27 p177
         """
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
@@ -598,7 +607,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         s = self._sigma(
             (self.EQ_SO_A, self.EQ_SO_B, self.EQ_SO_C),
             lambda a, b, c: a * self.cos_degrees(b + c * tc))
-        return self.moment_from_jd(jde + (0.00001 * s) / dl)
+        return jde + (0.00001 * s) / dl
 
     #
     # Time and Astronomy (Time)
