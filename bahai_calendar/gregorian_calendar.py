@@ -309,41 +309,6 @@ class GregorianCalendar(BaseCalendar):
     # Methods from other places mostly from Jean Meeus.
     #
 
-    def alt_jd_from_gregorian_date(self, g_date):
-        # Julian day calculation formula
-        year = g_date[0]
-        month = g_date[1]
-        day = g_date[2]
-        hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
-        minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
-        second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
-        return (367 * year - 7 * (year + (month + 9) // 12) // 4 + 275 *
-                month // 9 + day + 1721013.5 + (hour + minute / 60 +
-                                                second / 3600) / 24)
-
-    def alt_gregorian_date_from_je(self, jd):
-        # Calculate year
-        Y = math.floor((jd - 1721013.5) / 367)
-        # Calculate day of year
-        Z = jd - 1721013.5 - (365 * Y + (Y + 3) // 4)
-        # Calculate month
-        W = math.floor(Z / 30.6)
-        # Calculate day
-        D = math.floor(Z - (30.6 * W))
-
-        # Adjust month and year
-        if W < 14:
-            month = W - 1
-        else:
-            month = W - 13
-            Y += 1
-
-        return Y, month, D
-
-    #def julian_to_gregorian_year(self, jd):
-    #    # Julian day calculation formula
-    #    return math.floor((jd - 1721013.5) / 367)
-
     def jd_from_gregorian_date(self, g_date:tuple) -> float:
         """
         Convert Gregorian dates to Julian day count with the 1582 10, 15
@@ -354,6 +319,7 @@ class GregorianCalendar(BaseCalendar):
            See Astronomical Formulae for Calculators Enlarged & Revised,
            by Jean Meeus ch3 p23-25
            See: https://core2.gsfc.nasa.gov/time/julian.html
+                https://www.fourmilab.ch/documents/calendar/
         """
         t_len = len(g_date)
         year = g_date[0]
@@ -383,7 +349,6 @@ class GregorianCalendar(BaseCalendar):
         day += h if h > 0 else 0
         jd =  (math.floor(365.25 * year) + math.floor(30.6001 * (month + 1)) +
                day + 1720994.5)
-        print(jd)
 
         if g_date >= (1582, 10, 15):
             a = math.floor(year / 100)

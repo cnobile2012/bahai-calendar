@@ -552,7 +552,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             y = g_year / 1000
 
             if lam == self.SPRING:
-                jde = self._poly(y, (1721139.29189, 365242.13740, 0.06134,
+                jde = self._poly(y, (1721139.29189, 365242.1374, 0.06134,
                                      0.00111, -0.00071))
             elif lam == self.SUMMER:
                 jde = self._poly(y, (1721233.25401, 365241.72562, -0.05323,
@@ -571,7 +571,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                      -0.00411, -0.00057))
             elif lam == self.SUMMER:
                 jde = self._poly(y, (2451716.56767, 365241.62603, 0.00325,
-                                     0.00888, -0.00030))
+                                     0.00888, -0.0003))
             elif lam == self.AUTUMN:
                 jde = self._poly(y, (2451810.21715, 365242.01767, -0.11575,
                                      0.00337, 0.00078))
@@ -579,6 +579,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                 jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
                                      -0.00823, 0.00032))
 
+        #print(f"year: {g_year}, Y: {y}")
         return jde
 
     def find_moment_of_equinoxes_or_solstices(self, jde:float,
@@ -600,14 +601,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
         year = gc.gregorian_year_from_jd(jde)
-        jde = self.approx_julian_day_for_equinoxes_or_solstices(year, lam)
-        tc = self.julian_centuries(jde)
+        jde0 = self.approx_julian_day_for_equinoxes_or_solstices(year, lam)
+        tc = self.julian_centuries(jde0)
         w = 35999.373 * tc - 2.47
         dl = 1 + 0.0334 * self.cos_degrees(w + 0.0007) * self.cos_degrees(2*w)
         s = self._sigma(
             (self.EQ_SO_A, self.EQ_SO_B, self.EQ_SO_C),
             lambda a, b, c: a * self.cos_degrees(b + c * tc))
-        return jde + (0.00001 * s) / dl
+        #print(f"jde0: {jde0}, T: {tc}, dl: {dl}, S: {s} ")
+        return jde0 + (0.00001 * s) / dl
 
     #
     # Time and Astronomy (Time)

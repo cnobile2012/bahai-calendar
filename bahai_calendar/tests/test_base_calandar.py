@@ -623,7 +623,7 @@ class TestBaseCalandar(unittest.TestCase):
         data = (
             # Vernal Equinoxe
             ((900, 3, 1), SP,
-             (900, 3, 20, 18, 19, 15.643359571695328)),
+             (900, 3, 15, 18, 19, 15.643359571695328)),
             ((1788, 3, 19, 22, 16), SP,
              (1788, 3, 19, 22, 16, 44.93229478597641)),
             ((1844, 3, 20, 11, 53), SP,
@@ -663,13 +663,13 @@ class TestBaseCalandar(unittest.TestCase):
             ((2211, 3, 21, 10, 38), SP,
              (2211, 3, 21, 10, 45, 29.954682290554047)),
             # Summer Solstice
-            ((900, 6, 1), SM, (900, 6, 22, 6, 32, 44.23422619700432)),
+            ((900, 6, 1), SM, (900, 6, 17, 6, 32, 44.23422619700432)),
             ((2000, 6, 1), SM, (2000, 6, 21, 1, 48, 45.353220105171204)),
             # Autumn Equinox
-            ((900, 9, 1), AU, (900, 9, 23, 8, 35, 1.4366135001182556)),
+            ((900, 9, 1), AU, (900, 9, 18, 8, 35, 1.4366135001182556)),
             ((2000, 9, 1), AU, (2000, 9, 22, 17, 28, 41.678222715854645)),
             # Winter Solstice
-            ((900, 12, 1), WN, (900, 12, 21, 11, 38, 22.260328084230423)),
+            ((900, 12, 1), WN, (900, 12, 16, 11, 38, 22.260328084230423)),
             ((2000, 12, 1), WN, (2000, 12, 21, 13, 38, 47.16909795999527)),
             )
         msg = "Expected '{}' during the {}, found '{}'"
@@ -678,8 +678,7 @@ class TestBaseCalandar(unittest.TestCase):
             jde = self._gc.jd_from_gregorian_date(date)
             result = self._bc.find_moment_of_equinoxes_or_solstices(
                 jde, lam=season)
-            result = self._gc.moment_from_jd(result)
-            result = self._gc.gregorian_from_fixed(result)
+            result = self._gc.gregorian_date_from_jd(result)
             result = self._gc.ymdhms_from_date(result)
             self.assertEqual(
                 expected_result, result,
