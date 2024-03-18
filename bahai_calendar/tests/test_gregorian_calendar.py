@@ -332,18 +332,27 @@ class TestGregorianCalendar(unittest.TestCase):
         gregorian date are in bounds. Also check that if a decimal number
         is used there are no succeeding number at all.
         """
+        msg1 = ("If there is a part day then there can be no hours, minutes, "
+                "or seconds.")
+        msg2 = ("If there is a part hour then there can be no minutes or "
+                "seconds.")
+        msg3 = "If there is a part minute then there can be no seconds."
         data = (
-            ((1, 1, 1), True),
-            ((2024, 1, 1), True),
-            ((2024, 1, 1.1, 1), False),
-            ((2024, 1, 1.1, 0, 1), False),
-            ((2024, 1, 1.1, 0, 0, 1), False),
+            ((1, 1, 1), True, ''),
+            ((2024, 1, 1), True, ''),
+            ((2024, 1, 1.5, 1, 0, 0), False, msg1),
+            ((2024, 1, 1.5, 0, 1, 0), False, msg1),
+            ((2024, 1, 1.5, 0, 0, 1), False, msg1),
+            ((2024, 1, 1, 1.5, 1, 0), False, msg2),
+            ((2024, 1, 1, 1.5, 0, 1), False, msg2),
+            ((2024, 1, 1, 0, 1.5, 1), False, msg3),
             )
 
-        for g_date, validity in data:
+        for g_date, validity, err_msg in data:
             year = g_date[0]
             month = g_date[1]
             day = g_date[2]
+            #print(g_date)
 
             if validity:
                 msg = ("Invalid day '{}' for month '{}' and year '{}' "
@@ -360,19 +369,6 @@ class TestGregorianCalendar(unittest.TestCase):
                             date = (year, m, d)
                             self._gc._check_valid_gregorian_month_day(date)
             else:
-                t_len = len(g_date)
-                msg = "If there is a part day then there can be no {}."
-                hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
-                mint = g_date[4] if t_len > 4 and g_date[4] is not None else 0
-                secs = g_date[5] if t_len > 5 and g_date[5] is not None else 0
-
-                if secs > 0:
-                    err_msg = msg.format('seconds')
-                elif mint > 0:
-                    err_msg = msg.format('minutes')
-                elif hour > 0:
-                    err_msg = msg.format('hours')
-
                 with self.assertRaises(AssertionError) as cm:
                     self._gc._check_valid_gregorian_month_day(g_date)
 

@@ -309,6 +309,41 @@ class GregorianCalendar(BaseCalendar):
     # Methods from other places mostly from Jean Meeus.
     #
 
+    def alt_jd_from_gregorian_date(self, g_date):
+        # Julian day calculation formula
+        year = g_date[0]
+        month = g_date[1]
+        day = g_date[2]
+        hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
+        minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
+        second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
+        return (367 * year - 7 * (year + (month + 9) // 12) // 4 + 275 *
+                month // 9 + day + 1721013.5 + (hour + minute / 60 +
+                                                second / 3600) / 24)
+
+    def alt_gregorian_date_from_je(self, jd):
+        # Calculate year
+        Y = math.floor((jd - 1721013.5) / 367)
+        # Calculate day of year
+        Z = jd - 1721013.5 - (365 * Y + (Y + 3) // 4)
+        # Calculate month
+        W = math.floor(Z / 30.6)
+        # Calculate day
+        D = math.floor(Z - (30.6 * W))
+
+        # Adjust month and year
+        if W < 14:
+            month = W - 1
+        else:
+            month = W - 13
+            Y += 1
+
+        return Y, month, D
+
+    #def julian_to_gregorian_year(self, jd):
+    #    # Julian day calculation formula
+    #    return math.floor((jd - 1721013.5) / 367)
+
     def jd_from_gregorian_date(self, g_date:tuple) -> float:
         """
         Convert Gregorian dates to Julian day count with the 1582 10, 15
@@ -329,6 +364,17 @@ class GregorianCalendar(BaseCalendar):
         second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
         self._check_valid_gregorian_month_day(g_date)
 
+        a = day % 1
+
+        if a:
+            hour = a * 24
+            b = hour % 1
+            hour = math.floor(hour)
+            minute = b * 60
+            c = minute % 1
+            minute = math.floor(minute)
+            second = c * 60
+
         if month <= 2:
             year -= 1
             month += 12
@@ -337,6 +383,7 @@ class GregorianCalendar(BaseCalendar):
         day += h if h > 0 else 0
         jd =  (math.floor(365.25 * year) + math.floor(30.6001 * (month + 1)) +
                day + 1720994.5)
+        print(jd)
 
         if g_date >= (1582, 10, 15):
             a = math.floor(year / 100)
@@ -372,14 +419,14 @@ class GregorianCalendar(BaseCalendar):
         month = 0
         year = 0
 
-        if e < 13.5:
+        if e < 14:
             month = e - 1
-        elif e > 13.5:
+        elif e in (14, 15):
             month = e - 13
 
-        if month > 2.5:
+        if month > 2:
             year = c - 4716
-        elif month < 2.5:
+        elif month in (1, 2):
             year = c - 4715
 
         return year, month, day
@@ -442,16 +489,18 @@ class GregorianCalendar(BaseCalendar):
         assert 1 <= day <= days, (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "
             f"should be 1 - {days}.")
-
         assert hour < 24, f"Invalid hour '{hour}' it must be < 24"
         assert minute < 60, f"Invalid minute '{minute}' should be < 60."
-        dp = day % 1
-        hp = hour > 0
-        mp = minute > 0
-        sp = second > 0
-        assert (hp and dp == 0) or not hp, (
-            "If there is a part day then there can be no hours.")
-        assert (mp and dp == 0) or not mp, (
-            "If there is a part day then there can be no minutes.")
-        assert (sp and dp == 0) or not sp, (
-            "If there is a part day then there can be no seconds.")
+
+        if any((hour, minute, second)):
+            assert not day % 1, ("If there is a part day then there can be no "
+                                 "hours, minutes, or seconds.")
+
+        if any((minute, second)):
+            assert not hour % 1, (
+                "If there is a part hour then there can be no minutes or "
+                "seconds.")
+
+        if second:
+            assert not minute % 1, (
+                "If there is a part minute then there can be no seconds.")
