@@ -20,18 +20,19 @@ class JulianPeriod:
     See https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
     See https://www.tondering.dk/claus/cal/julperiod.php
     """
-    #(defconstant j2000
-    #  ;; TYPE moment
-    #  ;; Noon at start of Gregorian year 2000.
-    #  (+ (hr 12L0) (gregorian-new-year 2000)))
-    RD_J2000 = 730120.5
-
     # January 1, 2000, at 12:00 TT (Terrestrial Time)
     # TAI = TT - 32.184 seconds
     # January 1, 2000, 11:59:27.816 TAI (International Atomic Time)
     # January 1, 2000, 11:58:55.816 UTC (Coordinated Universal Time)
     # See: https://aa.usno.navy.mil/faq/sun_approx
-    J2000 = 2451545.0
+    JULIAN_EPOCH = 0 # This is the actual Julian Epoch
+    J2000 = 2451545.0 # TDT
+    # Modified Julian day
+    MJD = 2400000.5
+
+    # 28 (solar cycle) × 19 (lunar cycle) × 15 (indiction cycle) = 7980 years
+    JULIAN_PERIOD = 7980
+    JULIAN_YEAR = 365.25
 
     #(defconstant julian-epoch
     #  ;; TYPE fixed-date
@@ -39,11 +40,12 @@ class JulianPeriod:
     #  (fixed-from-gregorian (gregorian-date 0 december 30)))
     # The above seems to be off by one day.
     RD_JULIAN_EPOCH = -1 # This is the R.D. Julian Epoch
-    JULIAN_EPOCH = 0 # This is the actual Julian Epoch
 
-    # 28 (solar cycle) × 19 (lunar cycle) × 15 (indiction cycle) = 7980 years
-    JULIAN_PERIOD = 7980
-    JULIAN_YEAR = 365.25
+    #(defconstant j2000
+    #  ;; TYPE moment
+    #  ;; Noon at start of Gregorian year 2000.
+    #  (+ (hr 12L0) (gregorian-new-year 2000)))
+    RD_J2000 = 730120.5
     JD_EPOCH = -1721424.5
     MJD_EPOCH = 678576
 

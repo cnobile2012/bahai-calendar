@@ -14,11 +14,14 @@ class GregorianCalendar(BaseCalendar):
     """
     Implementation of the Gregorian Calendar.
     """
+    # Julian date for the gregorian epoch
+    GREGORIAN_EPOCH = 1721425.5
+
     #(defconstant gregorian-epoch
     #  ;; TYPE fixed-date
     #  ;; Fixed date of start of the (proleptic) Gregorian calendar.
     #  (rd 1))
-    GREGORIAN_EPOCH = 1  # See BaseCalender notes.
+    RD_GREGORIAN_EPOCH = 1  # See BaseCalender notes.
     _MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
     #(defun gregorian-leap-year? (g-year)
@@ -79,17 +82,9 @@ class GregorianCalendar(BaseCalendar):
                    -2))
                day)))                 ; Days so far this month.
         """
-        self._check_valid_gregorian_month_day(g_date)
-        t_len = len(g_date)
-        year = g_date[0]
-        month = g_date[1]
-        day = g_date[2]
+        year, month, day = self.date_from_ymdhms(g_date)
         year_1 = year - 1
-        hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
-        minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
-        second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
-        day += self.HR(hour) + self.MN(minute) + self.SEC(second)
-        result = (self.GREGORIAN_EPOCH - 1 + 365 * year_1 +
+        result = (self.RD_GREGORIAN_EPOCH - 1 + 365 * year_1 +
                   self.QUOTIENT(year_1, 4) - self.QUOTIENT(year_1, 100) +
                   self.QUOTIENT(year_1, 400) +
                   self.QUOTIENT(367 * month - 362, 12))
@@ -144,7 +139,7 @@ class GregorianCalendar(BaseCalendar):
               (1+ year))))       ; Date is ordinal day (1+ (mod d3 365))
                                  ; in (1+ year).
         """
-        d0 = date - self.GREGORIAN_EPOCH
+        d0 = date - self.RD_GREGORIAN_EPOCH
         n400 = self.QUOTIENT(d0, 146097)
         d1 = d0 % 146097
         n100 = self.QUOTIENT(d1, 36524)
@@ -241,7 +236,7 @@ class GregorianCalendar(BaseCalendar):
         m_prime = (month - 3) % 12
         y_prime = year - self.QUOTIENT(m_prime, 10)
         func = lambda y, a: y * a
-        return (self.GREGORIAN_EPOCH - 1 - 306 + 365 * y_prime +
+        return (self.RD_GREGORIAN_EPOCH - 1 - 306 + 365 * y_prime +
                 self._sigma(
                     (self._to_radix(y_prime, (4, 25, 4)), (97, 24, 1, 0)),
                     func) + self.QUOTIENT(3 * m_prime + 2, 5) +
@@ -274,7 +269,7 @@ class GregorianCalendar(BaseCalendar):
            (gregorian-date year month day)))
         """
         y = self.gregorian_year_from_fixed(
-            self.GREGORIAN_EPOCH - 1 + date + 306)
+            self.RD_GREGORIAN_EPOCH - 1 + date + 306)
         prior_days = date - self.fixed_from_gregorian((y - 1, self.MARCH, 1))
         month = self.AMOD(self.QUOTIENT(5 * prior_days + 2, 153) + 3, 12)
         year = y - self.QUOTIENT(month + 9, 12)
@@ -299,9 +294,9 @@ class GregorianCalendar(BaseCalendar):
                 approx
               (1+ approx))))
         """
-        approx = self.QUOTIENT(date - self.GREGORIAN_EPOCH + 2, 365.2425)
+        approx = self.QUOTIENT(date - self.RD_GREGORIAN_EPOCH + 2, 365.2425)
         func = lambda y, a: y * a
-        start = self.GREGORIAN_EPOCH + 365 * approx + self._sigma(
+        start = self.RD_GREGORIAN_EPOCH + 365 * approx + self._sigma(
             (self._to_radix(approx, (4, 25, 4)), (97, 24, 1, 0)), func)
         return approx if date < start else approx + 1
 
@@ -317,45 +312,27 @@ class GregorianCalendar(BaseCalendar):
         .. note::
 
            See Astronomical Formulae for Calculators Enlarged & Revised,
-           by Jean Meeus ch3 p23-25
-           See: https://core2.gsfc.nasa.gov/time/julian.html
-                https://www.fourmilab.ch/documents/calendar/
+           by Jean Meeus ch3 p24-25
+           See: https://www.fourmilab.ch/documents/calendar/
+                https://core2.gsfc.nasa.gov/time/julian.html
         """
-        t_len = len(g_date)
-        year = g_date[0]
-        month = g_date[1]
-        day = g_date[2]
-        hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
-        minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
-        second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
-        self._check_valid_gregorian_month_day(g_date)
-
-        a = day % 1
-
-        if a:
-            hour = a * 24
-            b = hour % 1
-            hour = math.floor(hour)
-            minute = b * 60
-            c = minute % 1
-            minute = math.floor(minute)
-            second = c * 60
+        year, month, day = self.date_from_ymdhms(g_date)
 
         if month <= 2:
             year -= 1
             month += 12
 
-        h = self.HR(hour) + self.MN(minute) + self.SEC(second)
-        day += h if h > 0 else 0
         jd =  (math.floor(365.25 * year) + math.floor(30.6001 * (month + 1)) +
                day + 1720994.5)
 
-        if g_date >= (1582, 10, 15):
+        if (year, month, day) >= (1582, 10, 15):
             a = math.floor(year / 100)
             b = 2 - a + math.floor(a / 4)
-            jd += b
+        else:
+            b = 0
 
-        return jd
+        return (math.floor(365.25 * year) + math.floor(30.6001 * (month + 1)) +
+                day + b + 1720994.5)
 
     def gregorian_date_from_jd(self, jd:float) -> tuple:
         """
@@ -370,7 +347,7 @@ class GregorianCalendar(BaseCalendar):
         z = math.floor(j_day)
         f = j_day % 1
 
-        if z >= 2299161:
+        if z >= 2299161: # 1582-10-15 Julian and Gregorian crossover.
             alpha = math.floor((z - 1867216.25) / 36524.25)
             a = z + 1 + alpha - math.floor(alpha / 4)
         else:
@@ -384,14 +361,14 @@ class GregorianCalendar(BaseCalendar):
         month = 0
         year = 0
 
-        if e < 14:
-            month = e - 1
-        elif e in (14, 15):
+        if e > 13:
             month = e - 13
+        else:
+            month = e - 1
 
         if month > 2:
             year = c - 4716
-        elif month in (1, 2):
+        else:
             year = c - 4715
 
         return year, month, day

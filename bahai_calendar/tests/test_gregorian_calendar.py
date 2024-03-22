@@ -231,7 +231,7 @@ class TestGregorianCalendar(unittest.TestCase):
             # 2451545.0 as per https://aa.usno.navy.mil/data/JulianDate
             ((2000, 1, 1.5), 2451545.0)
             )
-        msg = "Expected {} for g_date {}, found {}"
+        msg = "Expected '{}' for g_date '{}', found '{}'"
 
         for g_date, expected_result in data:
             result = self._gc.jd_from_gregorian_date(g_date)
@@ -260,7 +260,7 @@ class TestGregorianCalendar(unittest.TestCase):
             (2451544.5, (2000, 1, 1)),
             (2451545.0, (2000, 1, 1.5)),
             )
-        msg = "Expected {} for j_day {}, found {}"
+        msg = "Expected '{}' for j_day '{}', found '{}'"
 
         for j_day, expected_result in data:
             result = self._gc.gregorian_date_from_jd(j_day)

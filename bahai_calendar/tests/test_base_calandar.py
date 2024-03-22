@@ -168,9 +168,40 @@ class TestBaseCalandar(unittest.TestCase):
                                         self._bc.time_representation)]), msg)
 
     #@unittest.skip("Temporarily skipped")
+    def test_delta_t(self):
+        """
+        Test that the delta_t method returns the correct delta T value
+        for converting between UT and DT time.
+        """
+        data = (
+            ((-600, 1, 1), 18719.834672222227),
+            ((0, 1, 1), 35070.9007027559),
+            ((900, 3, 15, 18, 19, 15.643359571695328), 2198.842046841268),
+            ((1650, 1, 1), 50.13316097312479),
+            ((1750, 1, 1), 13.375979008768493),
+            ((1830, 1, 1), 7.6550062338922995),
+            ((1885, 1, 1), -5.65258999265227),
+            ((1910, 1, 1), 10.445380968083992),
+            ((1935, 1, 1), 23.81634451255787),
+            ((1951, 1, 1), 29.48974515233175),
+            ((1977, 2, 18, 3, 37, 40), 47.686642722506434),
+            ((2000, 1, 1), 63.873832810959236),
+            ((2020, 1, 1), 71.62174845312504),
+            ((2100, 1, 1), 202.8381222222219),
+            ((2200, 1, 1), 482.18133888888855),
+            )
+        msg = "Expected {}, found {}."
+
+        for g_date, expected_result in data:
+            jde = self._gc.jd_from_gregorian_date(g_date)
+            result = self._bc.delta_t(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
+
+    #@unittest.skip("Temporarily skipped")
     def test_mean_sidereal_time_greenwich(self):
         """
-        Test that the alt_mean_sidereal_time_greenwich method returns the
+        Test that the mean_sidereal_time_greenwich method returns the
         correct mean sidereal time.
         """
         data = (
@@ -233,16 +264,23 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result,))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_approx_local_hour_angle(self):
         """
         Test that the approx_local_hour_angle methoid returns the correct
         angle based on the jde.
         """
+        offset = self._bc.SUN_OFFSET
         data = (
-            (),
+            ((1844, 3, 20), self._bc.latitude, offset, 90.88348439807763),
             )
+        msg = "Expected {}, found {}."
 
+        for g_date, lat, offset, expected_result in data:
+            jed = self._gc.jd_from_gregorian_date(g_date)
+            result = self._bc.approx_local_hour_angle(jed, lat, offset)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result,))
 
     @unittest.skip("Temporarily skipped")
     def test_right_ascension(self):

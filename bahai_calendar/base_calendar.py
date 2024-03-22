@@ -26,7 +26,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
              day a “moment.”
 
     Transformations between Time Systems:
-    https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems
+   https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems
     """
     #(defun hr (x)
     #  ;; TYPE real -> duration
@@ -137,6 +137,79 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # Meeus Astronomical Algorithms
     #
 
+    def delta_t(self, jde:float) -> float:
+        """
+        Calculate the value of ΔT=TT−UT.
+
+        :param jde: Julian day.
+        :type jde: float
+        :return: The delta t.
+        :rtype: float
+
+        .. note::
+
+           see: http://eclipse.gsfc.nasa.gov/SEcat5/deltatpoly.html
+        """
+        from .gregorian_calendar import GregorianCalendar
+        gc = GregorianCalendar()
+        g_date = gc.gregorian_date_from_jd(jde)
+        year = g_date[0] + (g_date[1] - 0.5) / 12
+
+        if year < -500:
+            u = (year - 1820) / 100
+            dt = -20 + 32 * u**2
+        elif year < 500:
+            u = (year - 1000) / 100
+            dt = self._poly(u, (10583.6, -1014.41, 33.78311, -5.952053,
+                                -0.1798452, 0.022174192, 0.0090316521))
+        elif year < 1600:
+            u = (year - 1000) / 100
+            dt = self._poly(u, (1574.2, -556.01, 71.23472, 0.319781,
+                                -0.8503463, -0.005050998, 0.0083572073))
+        elif year < 1700:
+            u = year - 1600
+            dt = self._poly(u, (120, -0.9808, -0.01532, 1 / 7129))
+        elif year < 1800:
+            u = year - 1700
+            dt = self._poly(u, (8.83, 0.1603, -0.0059285, 0.00013336,
+                                -1 / 1174000))
+        elif year < 1860:
+            u = year - 1800
+            dt = self._poly(u, (13.72, -0.332447, 0.0068612, 0.0041116,
+                                -0.00037436, 0.0000121272, -0.0000001699,
+                                0.000000000875))
+        elif year < 1900:
+            u = year - 1860
+            dt = self._poly(u, (7.62, 0.5737, -0.251754, 0.01680668,
+                                -0.0004473624, 1 / 233174))
+        elif year < 1920:
+            u = year - 1900
+            dt = self._poly(u, (-2.79, 1.494119, -0.0598939, 0.0061966,
+                                -0.000197))
+        elif year < 1941:
+            u = year - 1920
+            dt = self._poly(u, (21.20, 0.84493, -0.076100, 0.0020936))
+        elif year < 1961:
+            u = year - 1950
+            dt = self._poly(u, (29.07, 0.407, -1 / 233, 1 / 2547))
+        elif year < 1986:
+            u = year - 1975
+            dt = self._poly(u, (45.45, 1.067, -1 / 260, -1 / 718))
+        elif year < 2005:
+            u = year - 2000
+            dt = self._poly(u, (63.86, 0.3345, -0.060374, 0.0017275,
+                                0.000651814, 0.00002373599))
+        elif year < 2050:
+            u = year - 2000
+            dt = self._poly(u, (62.92, 0.32217, 0.005589))
+        elif year < 2150:
+            dt = -20 + 32 * ((year - 1820) / 100)**2 - 0.5628 * (2150 - year)
+        else: # 2150 >= year
+            u = (year - 1820) / 100
+            dt = 20 + 32 * u**2
+
+        return dt
+
     def mean_sidereal_time_greenwich(self, jde:float,
                                      reduce:bool=True) -> float:
         """
@@ -210,22 +283,29 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Approximate local hour angle, measured westwards from the South
         in degrees.
 
+        Hour angle, in astronomy, the angle between an observer’s meridian
+        (a great circle passing over his head and through the celestial
+        poles) and the hour circle (any other great circle passing through
+        the poles) on which some celestial body lies. This angle, when
+        expressed in hours and minutes, is the time elapsed since the
+        celestial body’s last transit of the observer’s meridian.
+
         :param jde: Julian day.
         :type jde: float
-        :param lat: Latitude
+        :param lat: Latitude in decimal
         :type lat: float
         :param offset: A constant “standard” altitude, i.e., the geometric
                        altitude of the center of the body at the time of
                        apparent rising or setting, namely,
                        h0 = -0°34’ = -0°5667 for stars and planets;
                        h0 = -0°50' = -0°8333 for the Sun.
-        :return: The approximat local hour angle.
+        :return: The approximat local hour angle in degrees.
         :rtype: float
 
         .. note::
 
-           1. Meeus--AA p.92, 101, 102
-           2. If result of equation is negative then add 360°
+           1. Meeus--AA p101, 102
+           2. If the result of the equation is negative then add 360°
               (6.283185307179586 radians). If result is greater than
               360° then subtract 360° (6.283185307179586 radians).
               https://www.quora.com/How-do-I-calculate-the-hour-angle
@@ -237,20 +317,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         if cos_h0 < -1:
             cos_h0 -= 6.283185307179586
-        elif cosH0 > 1:
+        elif cos_h0 > 1:
             cos_h0 += 6.283185307179586
-        else:
-            cos_h0 = math.acos(cos_h0)
 
-        return math.degrees(cos_h0)
+        return math.degrees(math.acos(cos_h0))
 
-    def right_ascension(self, ):
+    def sun_apparent_right_ascension(self, ):
         """
         Right ascension is measured (from 0 to 24 hours, sometimes from 0°
         to 360°) from the vernal equinox, positive to the east, along the
         celestial equator.
 
-        Meeus--AA p.93 13.3
+        Meeus--AA ch25 p165 eq25.6
         """
         return
 
@@ -1574,19 +1652,29 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return degrees, minutes, seconds, direc
 
-    def degrees_from_hms(self, h, m, s):
+    def degrees_from_hms(self, h:int, m:int, s:float) -> float:
         """
         Find the degrees from the hours, minutes, and seconds of 360 degrees.
         Where as time zones are 15 degrees apart so 24 time zones times 15
         degrees is 360 degrees.
 
-        15*h+15*m/60+15*s/3600
+        The angle may be expressed as negative east of the meridian plane
+        and positive west of the meridian plane, or as positive westward
+        from 0° to 360°. The angle may be measured in degrees or in time,
+        with 24h = 360° exactly. So one hour is equal to (360/24)°=15°.
         """
         return 15 * h + 15 * m / 60 + 15 * s / 3600
 
-    def hms_from_degrees(self, deg):
+    def hms_from_degrees(self, deg:float) -> tuple:
         """
-        Find the hours, minutes, and seconds from degrees.
+        Find the hours, minutes, and seconds from 0 - 360 degrees. Where
+        as time zones are 15 degrees apart so 24 time zones times 15
+        degrees is 360 degrees.
+
+        The angle may be expressed as negative east of the meridian plane
+        and positive west of the meridian plane, or as positive westward
+        from 0° to 360°. The angle may be measured in degrees or in time,
+        with 24h = 360° exactly. So one hour is equal to (360/24)°=15°.
         """
         h = math.floor(deg / 15)
         m = math.floor((deg / 15 - h) * 60)
