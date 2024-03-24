@@ -115,12 +115,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     SUMMER = 90
     AUTUMN = 180
     WINTER = 270
-    SUN_OFFSET = 50/60
+    SUN_OFFSET = 0.8333333333333334
+    STARS_PLANET_OFFSET = 0.5666666666666667
 
     def __init__(self):
         self._time = None
-        self._nutation = (0, 0, False)
-        self._obliquity = (0, 0, False)
+        self._n_longitude = (0, 0, False)
+        self._n_obliquity = (0, 0, False)
 
     def parse_datetime(self, dt:datetime.datetime) -> None:
         self.time_representation = (dt.hour, dt.minute, dt.second)
@@ -210,28 +211,27 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return dt
 
-    def mean_sidereal_time_greenwich(self, jde:float,
-                                     reduce:bool=True) -> float:
+    def mean_sidereal_time_greenwich(self, jde:float, ut_time=False) -> float:
         """
         Mean sidereal time at Greenwich.
 
         :param jde: Julian day.
         :type jde: float
-        :param reduce: If True the degrees are retured reduced if False
-                       the degrees are returned not reduced. The default
-                       is to reduce.
-        :type reduce: bool
+        :param ut_time: If UT time is desired pass True, the default is for
+                        DT time which is False.
+        :type ut_time: bool
         :return: The mean sidereal time at Greenwich .
         :rtype: float
 
         .. note::
 
-           Meeus--AA p.88
+           Meeus--AA p.88 eq.12.3
         """
+        jde *= 0 if ut_time else 1.00273790935
         tc = self.julian_centuries(jde)
-        deg = (280.46061837 + 360.98564736629 * (jde - self.J2000) +
-               0.000387933 * tc**2 - tc**3 / 38710000)
-        return self.coterminal_angle(deg) if reduce else deg
+        return self._poly(
+            tc, (100.460618375, 36000.770053608336,
+                 0.00038793333333333335, -2.5833333333333333e-08))
 
     def apparent_sidereal_time_greenwich(self, jde:float) -> float:
         """
@@ -245,11 +245,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch12 p88
+           Meeus--AA ch.12 p.88 eq.
         """
         t0 = self.mean_sidereal_time_greenwich(jde)
         eps = self.true_obliquity_of_ecliptic(jde)
-        d_psi = self.astronomical_nutation(jde)
+        d_psi = self.nutation_longitude(jde)
         return self.coterminal_angle(t0 + d_psi * self.cos_degrees(eps))
 
     def true_obliquity_of_ecliptic(self, jde:float) -> float:
@@ -264,18 +264,20 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch22 p147
+           Meeus--AA ch22 p147 eq.22.3
            Convert lots of things:
            https://www.xconvert.com/unit-converter/arcseconds-to-degrees
         """
         tc = self.julian_centuries(jde)
         u = tc / 100
-        # We convert arcseconds to degrees then do the polonomial.
-        mean_ob = self._poly(u, (84381.448 / 3600, -4680.93 / 3600,
-                                 -1.55 / 3600, 1999.25 / 3600, -51.38 / 3600,
-                                 -249.67 / 3600, -39.05 / 3600, 7.12 / 3600,
-                                 27.87 / 3600, 5.79 / 3600, 2.45 / 3600))
-        return mean_ob + self.astronomical_obliquity(tc)
+        mean_ob = self._poly(u, (23.43929111111111, -1.3002583333333335,
+                                 -0.00043055555555555555, 0.5553472222222222,
+                                 -0.014272222222222223, -0.06935277777777778,
+                                 -0.010847222222222222, 0.001977777777777778,
+                                 0.007741666666666667, 0.0016083333333333334,
+                                 0.0006805555555555556))
+        print(jde, tc, u, mean_ob, self.nutation_obliquity(tc))
+        return mean_ob + self.nutation_obliquity(tc)
 
     def approx_local_hour_angle(self, jde:float, lat:float,
                                 offset:float=SUN_OFFSET) -> float:
@@ -299,6 +301,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                        apparent rising or setting, namely,
                        h0 = -0°34’ = -0°5667 for stars and planets;
                        h0 = -0°50' = -0°8333 for the Sun.
+                       Default is SUN_OFFSET, STARS_PLANET_OFFSET can also
+                       be used.
         :return: The approximat local hour angle in degrees.
         :rtype: float
 
@@ -320,6 +324,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         elif cos_h0 > 1:
             cos_h0 += 6.283185307179586
 
+        print(cos_h0)
         return math.degrees(math.acos(cos_h0))
 
     def sun_apparent_right_ascension(self, ):
@@ -480,7 +485,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         l += math.pi
         # Convert to FK5 notation
         l -= math.radians(0.000025) # -0".09033
-        l += self.astronomical_nutation(jde, degrees=False)
+        l += self.nutation_longitude(jde, degrees=False)
         # eq 25.11
         l += self._aberration(tm)
 
@@ -513,56 +518,56 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return b
 
-    def astronomical_nutation(self, jde:float, *, degrees:bool=True) -> float:
+    def nutation_longitude(self, jde:float, *, degrees:bool=True) -> float:
         """
         Nutation of the Earth's axis around it's 'mean' position.
         """
-        if jde != self._nutation[0] or degrees is not self._nutation[2]:
-            t = self.julian_centuries(jde)
-            nut_sum, obl_sum = self._nutation_and_obliquity(t, )
-            self._nutation = (jde, nut_sum, degrees)
-            self._obliquity = (jde, obl_sum, degrees)
-
-        return self._nutation[1]
-
-    def astronomical_obliquity(self, jde:float, *, degrees:bool=True) -> float:
-        """
-        """
-        if jde != self._obliquity[0] or degrees is not self._obliquity[2]:
+        if jde != self._n_longitude[0] or degrees is not self._n_longitude[2]:
             tc = self.julian_centuries(jde)
-            nut_sum, obl_sum = self._nutation_and_obliquity(
+            nut_sum, obl_sum = self._nutation_obliquity_longitude(
                 tc, degrees=degrees)
-            self._nutation = (jde, nut_sum)
-            self._obliquity = (jde, obl_sum)
+            self._n_longitude = (jde, nut_sum, degrees)
+            self._n_obliquity = (jde, obl_sum, degrees)
 
-        return self._obliquity[1]
+        return self._n_longitude[1]
 
-    def _nutation_and_obliquity(self, tc:float, degrees:bool=False) -> float:
+    def nutation_obliquity(self, jde:float, *, degrees:bool=True) -> float:
+        """
+        """
+        if jde != self._n_obliquity[0] or degrees is not self._n_obliquity[2]:
+            tc = self.julian_centuries(jde)
+            nut_sum, obl_sum = self._nutation_obliquity_longitude(
+                tc, degrees=degrees)
+            self._n_longitude = (jde, nut_sum, degrees)
+            self._n_obliquity = (jde, obl_sum, degrees)
+
+        return self._n_obliquity[1]
+
+    def _nutation_obliquity_longitude(self, tc:float,
+                                      degrees:bool=False) -> float:
         """
         Nutation of the Earth's axis around it's 'mean' position.
 
         See:
      https://articles.adsabs.harvard.edu/full/seri/CeMec/0027//0000079.000.html
         """
-        lm = self.coterminal_angle(self._poly(
-            tc, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
+        lm = self._moon_mean_anomaly(tc)
         ls = self._sun_mean_anomaly(tc)
-        ff = self.coterminal_angle(self._poly(
-            tc, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
-        dd = self.coterminal_angle(self._poly(
-            tc, (297.85036, 445267.111480, -0.0019142, 1 / 189474)))
+        ff = self._moon_latitude(tc)
+        dd = self._mean_moon_elongation(tc)
         om = self._moon_ascending_node_longitude(tc)
 
         # W = LM*lm + LS*ls + F*ff + D*dd + OM*om
-        # Where LM, LS, F, D, and OM are from the NUT periodic terms.
+        # T = tc
+        # Where LM, LS, F, D, and OM are from the nutation periodic terms.
         # The nutation in longitude is a sum of terms of the form
         # (psi_sin + sin * T) * sin(W).
-        # Where psi_sin and t_sin are from the NUT periodic terms and T is
-        # the Julian time from J2000.
+        # Where psi_sin and t_sin are from the nutation periodic terms
+        # and T is the Julian time from J2000.
         # The obliquity in latitude is a sum of terms of the form
         # (eps_cos + cos * T) * cos(W).
-        # Where eps_cos and t_cos are from the NUT periodic terms and T is
-        # the Julian time from J2000.
+        # Where eps_cos and t_cos are from the nutation periodic terms
+        # and T is the Julian time from J2000.
         nut_sum = 0
         obl_sum = 0
 
@@ -580,22 +585,53 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return nut_sum, obl_sum
 
+    def _moon_mean_anomaly(self, tc:float) -> float:
+        """
+        Meeus--AA ch22 p144
+
+        Referenced by lm (M').
+        """
+        return self.coterminal_angle(self._poly(
+            tc, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
+
+    def _sun_mean_anomaly(self, tc:float) -> float:
+        """
+        Meeus--AA ch22 p144
+
+        Referenced by ls (M).
+        """
+        return self.coterminal_angle(self._poly(
+            tc, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
+
+    def _moon_latitude(self, tc:float) -> float:
+        """
+        Meeus--AA ch22 p144
+
+        Referenced by ff (F).
+        """
+        return self.coterminal_angle(self._poly(
+            tc, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
+
+    def _mean_moon_elongation(self, tc:float) -> float:
+        """
+        Meeus--AA ch22 p144
+
+        Referenced by dd (D).
+        """
+        return self.coterminal_angle(self._poly(
+            tc, (297.85036, 445267.111480, -0.0019142, 1 / 189474)))
+
     def _moon_ascending_node_longitude(self, tc:float) -> float:
         """
         Longitude of the ascending node of the Moon’s mean orbit on the
         ecliptic, measured from the mean equinox of the date:
 
         Meeus--AA ch22 p144
+
+        Referenced by om (omega).
         """
         return self.coterminal_angle(self._poly(
             tc, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
-
-    def _sun_mean_anomaly(self, tc:float) -> float:
-        """
-        Meeus--AA ch22 p144
-        """
-        return self.coterminal_angle(self._poly(
-            tc, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
 
     def _aberration(self, tm:float, fixed:bool=True) -> float:
         """
