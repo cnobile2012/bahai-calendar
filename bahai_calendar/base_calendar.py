@@ -211,27 +211,27 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return dt
 
-    def mean_sidereal_time_greenwich(self, jde:float, ut_time=False) -> float:
+    def mean_sidereal_time_greenwich(self, jd:float, dt_time=False) -> float:
         """
         Mean sidereal time at Greenwich.
 
-        :param jde: Julian day.
-        :type jde: float
-        :param ut_time: If UT time is desired pass True, the default is for
-                        DT time which is False.
-        :type ut_time: bool
+        :param jd: Julian day.
+        :type jd: float
+        :param dt_time: If UT time is desired pass False the default. If for
+                        DT time pass True.
+        :type dt_time: bool
         :return: The mean sidereal time at Greenwich .
         :rtype: float
 
         .. note::
 
-           Meeus--AA p.88 eq.12.3
+           Meeus--AA ch.12 p.88 eq.12.3
         """
-        jde *= 0 if ut_time else 1.00273790935
-        tc = self.julian_centuries(jde)
-        return self._poly(
-            tc, (100.460618375, 36000.770053608336,
-                 0.00038793333333333335, -2.5833333333333333e-08))
+        jd *= 1.00273790935 if dt_time else 1
+        tc = self.julian_centuries(jd)
+        return self.coterminal_angle(280.46061837 + 360.98564736629 *
+                                     (jd - self.J2000) +
+                                     0.000387933 * tc**2 - tc**3 / 38710000)
 
     def apparent_sidereal_time_greenwich(self, jde:float) -> float:
         """
@@ -245,7 +245,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.12 p.88 eq.
+           Meeus--AA ch.12 p.88
         """
         t0 = self.mean_sidereal_time_greenwich(jde)
         eps = self.true_obliquity_of_ecliptic(jde)
@@ -264,7 +264,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch22 p147 eq.22.3
+           Meeus--AA ch.22 p.147 eq.22.3
            Convert lots of things:
            https://www.xconvert.com/unit-converter/arcseconds-to-degrees
         """
@@ -276,7 +276,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                  -0.010847222222222222, 0.001977777777777778,
                                  0.007741666666666667, 0.0016083333333333334,
                                  0.0006805555555555556))
-        print(jde, tc, u, mean_ob, self.nutation_obliquity(tc))
         return mean_ob + self.nutation_obliquity(tc)
 
     def approx_local_hour_angle(self, jde:float, lat:float,
@@ -324,7 +323,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         elif cos_h0 > 1:
             cos_h0 += 6.283185307179586
 
-        print(cos_h0)
         return math.degrees(math.acos(cos_h0))
 
     def sun_apparent_right_ascension(self, ):
@@ -518,27 +516,28 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return b
 
-    def nutation_longitude(self, jde:float, *, degrees:bool=True) -> float:
+    def nutation_longitude(self, jde:float, *, degrees:bool=False) -> float:
         """
-        Nutation of the Earth's axis around it's 'mean' position.
+        Nutation longitude of the Earth's axis around it's 'mean' position.
         """
-        if jde != self._n_longitude[0] or degrees is not self._n_longitude[2]:
+        if jde != self._n_longitude[0] or degrees != self._n_longitude[2]:
             tc = self.julian_centuries(jde)
-            nut_sum, obl_sum = self._nutation_obliquity_longitude(
+            lon_sum, obl_sum = self._nutation_obliquity_longitude(
                 tc, degrees=degrees)
-            self._n_longitude = (jde, nut_sum, degrees)
+            self._n_longitude = (jde, lon_sum, degrees)
             self._n_obliquity = (jde, obl_sum, degrees)
 
         return self._n_longitude[1]
 
-    def nutation_obliquity(self, jde:float, *, degrees:bool=True) -> float:
+    def nutation_obliquity(self, jde:float, *, degrees:bool=False) -> float:
         """
+        Nutation obliquity of the Earth's equator around it's 'mean' position.
         """
-        if jde != self._n_obliquity[0] or degrees is not self._n_obliquity[2]:
+        if jde != self._n_obliquity[0] or degrees != self._n_obliquity[2]:
             tc = self.julian_centuries(jde)
-            nut_sum, obl_sum = self._nutation_obliquity_longitude(
+            lon_sum, obl_sum = self._nutation_obliquity_longitude(
                 tc, degrees=degrees)
-            self._n_longitude = (jde, nut_sum, degrees)
+            self._n_longitude = (jde, lon_sum, degrees)
             self._n_obliquity = (jde, obl_sum, degrees)
 
         return self._n_obliquity[1]
@@ -568,22 +567,22 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         # (eps_cos + cos * T) * cos(W).
         # Where eps_cos and t_cos are from the nutation periodic terms
         # and T is the Julian time from J2000.
-        nut_sum = 0
+        lon_sum = 0
         obl_sum = 0
 
         for LM, LS, F, D, OM, day, psi_sin, sin, eps_cos, cos in self.NUT:
             w = LM*lm + LS*ls + F*ff + D*dd + OM*om
-            nut_sum += (psi_sin + sin * tc) * self.sin_degrees(w)
+            lon_sum += (psi_sin + sin * tc) * self.sin_degrees(w)
             obl_sum += (eps_cos + cos * tc) * self.cos_degrees(w)
 
-        nut_sum /= 36000000
+        lon_sum /= 36000000
         obl_sum /= 36000000
 
         if degrees:
-            nut_sum = self.coterminal_angle(math.degrees(nut_sum))
+            lon_sum = self.coterminal_angle(math.degrees(lon_sum))
             obl_sum = self.coterminal_angle(math.degrees(obl_sum))
 
-        return nut_sum, obl_sum
+        return lon_sum, obl_sum
 
     def _moon_mean_anomaly(self, tc:float) -> float:
         """
@@ -1716,6 +1715,21 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         m = math.floor((deg / 15 - h) * 60)
         s = (deg / 15 - h - m / 60) * 3600
         return h, m, s
+
+    def seconds_from_hms(self, hours:int, minutes:int, seconds:float) -> float:
+        """
+        Convert hours, minutes, and seconds to seconds.
+        """
+        return hours * 3600 + minutes * 60 + seconds
+
+    def hms_from_seconds(self, seconds:float) -> tuple:
+        """
+        Convert seconds into hours, minutes, and seconds.
+        """
+        hours = math.floor(seconds / 3600)
+        m = (seconds - hours * 3600) / 60
+        minutes = math.floor(m)
+        return hours, minutes, m - minutes
 
     def coterminal_angle(self, value:float) -> float:
         """

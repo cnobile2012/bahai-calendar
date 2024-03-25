@@ -205,22 +205,22 @@ class TestBaseCalandar(unittest.TestCase):
         correct mean sidereal time.
         """
         data = (
-            # 2446895.5 -- 1099864.18158 seconds
-            ((1987, 4, 10), True, -2416256.6564948936),
             # 2446895.5 -- 197.69316708333332
-            ((1987, 4, 10), True, 197.693195090862),
+            ((1987, 4, 10), False, 197.693195090862),
+            # 2446895.5 --
+            ((1987, 4, 10), True, 97.02199065580498),
             # 128.73788708333333
             ((1987, 4, 10, 19, 21), False, 128.73787324433215),
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for date {}, found {}."
 
-        for g_date, ut_time, expected_result in data:
+        for g_date, dt_time, expected_result in data:
             fixed = self._gc.fixed_from_gregorian(g_date)
             jde = self._gc.jd_from_fixed(fixed)
             result = self._gc.mean_sidereal_time_greenwich(
-                jde, ut_time=ut_time)
+                jde, dt_time=dt_time)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, g_date, result,))
 
     #@unittest.skip("Temporarily skipped")
     def test_apparent_sidereal_time_greenwich(self):
@@ -229,18 +229,19 @@ class TestBaseCalandar(unittest.TestCase):
         the correct apparent sidereal time.
         """
         data = (
-            ((1987, 4, 10), 197.69223074585653),        # 197.69224541666668
-            ((1987, 4, 10, 19, 21), 128.7368888005617), # 128.73690333333334
-            ((2000, 1, 1), 99.96424993061932),          # 99.96424875
-            ((2024, 3, 20), 178.01765697409243),        # 178.0176425
+            # 197.69222958 -- AA ch.12 p.88 Ex.12.a
+            ((1987, 4, 10), 197.69222977014664),
+            ((1987, 4, 10, 19, 21), 128.7368878045161), # 128.73690333333334
+            ((2000, 1, 1), 99.96424634274216),          # 99.96424875
+            ((2024, 3, 20), 178.01765584431695),        # 178.0176425
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for date {}, found {}."
 
         for g_date, expected_result in data:
             jde = self._gc.jd_from_gregorian_date(g_date)
             result = self._gc.apparent_sidereal_time_greenwich(jde)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, g_date, result,))
 
     #@unittest.skip("Temporarily skipped")
     def test_true_obliquity_of_ecliptic(self):
@@ -249,18 +250,17 @@ class TestBaseCalandar(unittest.TestCase):
         correct true obliquity of the ecliptic.
         """
         data = (
-            # 23.443569444444446 AA ch.22 p.148 Ex.22.a
-            ((1987, 4, 10.0), 23.576505991889043),
-            ((2000, 1, 1.5), 23.574912159710653), # 23.4392911 AA p92
-            ((1950, 1, 1.5), 23.58120292783924),  # 23.4457889 AA p92
+            ((1987, 4, 10), 23.4433122540716),    # 23.4435694 AA p.148 Ex.22.a
+            ((2000, 1, 1.5), 23.44165814494418),  # 23.4392911 AA p92
+            ((1950, 1, 1.5), 23.448155508607684), # 23.4457889 AA p92
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for date {}, found {}."
 
         for g_date, expected_result in data:
             jde = self._gc.jd_from_gregorian_date(g_date)
             result = self._gc.true_obliquity_of_ecliptic(jde)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, g_date, result,))
 
     #@unittest.skip("Temporarily skipped")
     def test_approx_local_hour_angle(self):
@@ -272,17 +272,17 @@ class TestBaseCalandar(unittest.TestCase):
         """
         offset = self._bc.SUN_OFFSET
         data = (
-            ((1844, 3, 20), self._bc.latitude, offset, 90.88348439807763),
-            ((1988, 3, 20), 42.3333, offset, 90.98807492941366), # AA Ex15.a
-            ((2024, 6, 20), self._bc.latitude, offset, 108.56416502253141),
+            ((1844, 3, 20), self._bc.latitude, offset, 90.88423495307175),
+            ((1988, 3, 20), 42.3333, offset, 90.98885343582786), # AA Ex15.a
+            ((2024, 6, 20), self._bc.latitude, offset, 108.44460844308121),
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for date {}, found {}."
 
         for g_date, lat, offset, expected_result in data:
             jed = self._gc.jd_from_gregorian_date(g_date)
             result = self._bc.approx_local_hour_angle(jed, lat, offset)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, g_date, result,))
 
     @unittest.skip("Temporarily skipped")
     def test_right_ascension(self):
@@ -298,7 +298,7 @@ class TestBaseCalandar(unittest.TestCase):
         positive to the north, negative to the south.
         """
         data = (
-            ((2000, 1, 1), -23.772905723379246), # *** TODO *** Is this correct?
+            ((2000, 1, 1), -23.642004319710644), # *** TODO *** Is this correct?
             )
         msg = "Expected {}, found {}."
 
@@ -522,14 +522,16 @@ class TestBaseCalandar(unittest.TestCase):
         correct values.
         """
         data = (
-            (2394646.5, 0.01896277724397914),  # 1844-03-21
-            (2451544.5, 0.022763702980849197), # 2000-01-01
+            # 1987-04-10T00:00:00 UT -- AA ch.22 p.148 Ex.22.a
+            # 0.001052...
+            (2446895.5, -0.001052173258783292),
+            (2394646.5, 0.004685955021135532),  # 1844-03-21
+            (2451544.5, -0.003867549921252321), # 2000-01-01
             )
         msg = "Expected {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc.nutation_longitude(t)
+            result = self._bc.nutation_longitude(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result,))
 
@@ -540,14 +542,16 @@ class TestBaseCalandar(unittest.TestCase):
         correct values.
         """
         data = (
-            (2394646.5, 0.13528310660714796), # 1844-03-21
-            (2451544.5, 0.1356210417382092),  # 2000-01-01
+            # 1987-04-10T00:00:00 UT -- AA ch.22 p.148 Ex.22.a
+            # 0.00262305...
+            (2446895.5, 0.002622907065077194),
+            (2394646.5, -0.0003313196399792),   # 1844-03-21
+            (2451544.5, -0.001601110054347824), # 2000-01-01
             )
         msg = "Expected {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc.nutation_obliquity(t)
+            result = self._bc.nutation_obliquity(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result,))
 
@@ -558,6 +562,9 @@ class TestBaseCalandar(unittest.TestCase):
         correct values.
         """
         data = (
+            # 1987-04-10T00:00:00 UT -- AA ch.22 p.148 Ex.22.a
+            # 0.001052..., 0.00262305...
+            (2446895.5, False, (-0.001052173258783292, 0.002622907065077194)),
             # 1844-03-21
             (2394646.5, True, (0.26848544569920246, 359.9810167829594)),
             # 2000-01-01
