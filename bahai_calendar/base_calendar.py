@@ -213,7 +213,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def mean_sidereal_time_greenwich(self, jd:float, dt_time=False) -> float:
         """
-        Mean sidereal time at Greenwich.
+        Mean sidereal time at Greenwich. (GMST) If the hour angle is
+        measured with respect to the mean equinox, mean sidereal time is
+        being measured.
 
         :param jd: Julian day.
         :type jd: float
@@ -225,7 +227,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.12 p.88 eq.12.3
+           Meeus--AA ch.12 p.88 Eq.12.3
         """
         jd *= 1.00273790935 if dt_time else 1
         tc = self.julian_centuries(jd)
@@ -235,8 +237,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def apparent_sidereal_time_greenwich(self, jde:float) -> float:
         """
-        The apparent sidereal time, or the Greenwich hour angle of the
-        true vernal equinox.
+        The apparent sidereal time, or the Greenwich. (GAST) If the hour
+        angle is measured with respect to the true equinox, apparent
+        sidereal time is being measured.
 
         :param jde: Julian day.
         :type jde: float
@@ -264,7 +267,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.22 p.147 eq.22.3
+           Meeus--AA ch.22 p.147 Eq.22.3
            Convert lots of things:
            https://www.xconvert.com/unit-converter/arcseconds-to-degrees
         """
@@ -307,7 +310,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           1. Meeus--AA p101, 102
+           1. Meeus--AA p.101,102
            2. If the result of the equation is negative then add 360°
               (6.283185307179586 radians). If result is greater than
               360° then subtract 360° (6.283185307179586 radians).
@@ -331,7 +334,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         to 360°) from the vernal equinox, positive to the east, along the
         celestial equator.
 
-        Meeus--AA ch25 p165 eq25.6
+        Meeus--AA ch.25 p.165 Eq.25.6
         """
         return
 
@@ -347,10 +350,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch13 p93 eq13.4
+           Meeus--AA ch.13 p.93 Eq.13.4
         """
         tc = self.julian_centuries(jde)
-        om = self._moon_ascending_node_longitude(tc)
+        om = self._moon_ascending_node_longitude(tc) # OK
         eps = (self.true_obliquity_of_ecliptic(jde) + 0.00256 -
                self.cos_degrees(om))
         lam = self._sun_apparent_longitude(tc)
@@ -359,7 +362,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _sun_apparent_longitude(self, tc:float) -> float:
         """
-        Meeus--AA p164
+        Meeus--AA p.164
         """
         sol = self._sun_true_longitude(tc)
         om = self._moon_ascending_node_longitude(tc)
@@ -371,7 +374,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         date. This longitude is the quantity required for instance in the
         calculation of geocentric planetary positions.
 
-        Meeus--AA p164
+        Meeus--AA p.164
         """
         l0 = self._sun_mean_longitude(tc)
         cen = self._sun_equation_of_center(tc)
@@ -389,14 +392,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch25 p163 eq25.2
+           Meeus--AA ch.25 p.163 Eq.25.2
         """
         return self.coterminal_angle(self._poly(
             tc, (280.46646, 36000.76983, 0.0003032)))
 
     def _sun_equation_of_center(self, tc:float) -> float:
         """
-        Meeus--AA ch25 p164
+        Meeus--AA ch.25 p.164
         """
         m = self._sun_mean_anomaly(tc)
         return ((1.914602 - 0.004817 * tc - 0.000014 * tc**2) *
@@ -407,7 +410,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Azimuth, measured westward from the Souh in degrees.
 
-        Meeus--AA p93 13.5
+        Meeus--AA p.93 Eq.13.5
         """
         return
 
@@ -415,18 +418,27 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Altitude, positive above the horizon, negative below in degrees.
 
-        Meeus--AA p93 13.6
+        Meeus--AA p.93 Eq.13.6
         """
         return
 
-    def _heliocentric_ecliptical_longitude(self, tm:float) -> float:
+    def _heliocentric_ecliptical_longitude(self, tm:float,
+                                           degrees:bool=True) -> float:
         """
         Find the heliocentric ecliptical longitude.
 
         :param tm: The moment in time referenced to J2000 millennia.
         :type tm: float
-        :return: Longitude in radians.
+        :param degrees: The results if False are radians, else True
+                        are degrees.
+        :type degrees: bool
+        :return: Longitude in degrees or radians.
         :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.25 p.166
+           Referenced by L
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
         l0 = self._sigma((self.L0_A, self.L0_B, self.L0_C), func)
@@ -435,34 +447,49 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         l3 = self._sigma((self.L3_A, self.L3_B, self.L3_C), func)
         l4 = self._sigma((self.L4_A, self.L4_B, self.L4_C), func)
         l5 = self._sigma((self.L5_A, self.L5_B, self.L5_C), func)
-        return self._poly(tm, (l0, l1, l2, l3, l4, l5)) / 10**8
+        l = self._poly(tm, (l0, l1, l2, l3, l4, l5)) / 10**8
+        return self.coterminal_angle(math.degrees(l)) if degrees else l
 
-    def _heliocentric_ecliptical_latitude(self, tm:float) -> float:
+    def _heliocentric_ecliptical_latitude(self, tm:float,
+                                          degrees:bool=True) -> float:
         """
         Find the heliocentric ecliptical latitude.
 
         :param tm: The moment in time referenced to J2000 millennia.
         :type tm: float
-        :return: Latitude in radians.
+        :param degrees: The results if False are radians, else True
+                        are degrees.
+        :type degrees: bool
+        :return: Latitude in degrees or radians.
         :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.25 p.166
+           Referenced by B
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
         b0 = self._sigma((self.B0_A, self.B0_B, self.B0_C), func)
         b1 = self._sigma((self.B1_A, self.B1_B, self.B1_C), func)
-        return self._poly(tm, (b0, b1)) / 10**8
+        b = self._poly(tm, (b0, b1)) / 10**8
+        return self.coterminal_angle(math.degrees(b)) if degrees else b
 
-    def _radius_vector(self, tm:float) -> float:
+    def _radius_vector(self, tm:float, degrees:bool=True) -> float:
         """
         Find the distance of earth to the sun.
 
         :param tm: The moment in time referenced to J2000 millennia.
         :type tm: float
-        :return: Radius vector in radians.
+        :param degrees: The results if False are radians, else True
+                        are degrees.
+        :type degrees: bool
+        :return: Radius vector in degrees or radians.
         :rtype: float
 
         .. note::
 
-           Meeus--AA ch 25 p166
+           Meeus--AA ch.25 p.166
+           Referenced by R
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
         r0 = self._sigma((self.R0_A, self.R0_B, self.R0_C), func)
@@ -470,16 +497,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         r2 = self._sigma((self.R2_A, self.R2_B, self.R2_C), func)
         r3 = self._sigma((self.R3_A, self.R3_B, self.R3_C), func)
         r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
-        return self._poly(tm, (r0, r1, r2, r3, r4)) / 10**8
+        r = self._poly(tm, (r0, r1, r2, r3, r4)) / 10**8
+        return self.coterminal_angle(math.degrees(r)) if degrees else r
 
     def apparent_solar_longitude(self, jde:float, degrees:bool=True) -> float:
         """
         Find the apparent solar longitude.
 
-        Meeus--AA ch 25 p166
+        Meeus--AA ch.25 p.166
         """
         tm = self.julian_millennia(jde)
-        l = self._heliocentric_ecliptical_longitude(tm)
+        l = self._heliocentric_ecliptical_longitude(tm, degrees=False)
         l += math.pi
         # Convert to FK5 notation
         l -= math.radians(0.000025) # -0".09033
@@ -496,7 +524,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Find the apparent solar latitude.
 
-        Meeus--AA ch 25 p166
+        Meeus--AA ch.25 p.166
         """
         tm = self.julian_millennia(jde)
         tc = tm * 10 # Convert millenna to centuries
@@ -586,7 +614,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _moon_mean_anomaly(self, tc:float) -> float:
         """
-        Meeus--AA ch22 p144
+        Meeus--AA ch.22 p.144
 
         Referenced by lm (M').
         """
@@ -595,7 +623,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _sun_mean_anomaly(self, tc:float) -> float:
         """
-        Meeus--AA ch22 p144
+        Meeus--AA ch.22 p.144
 
         Referenced by ls (M).
         """
@@ -604,7 +632,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _moon_latitude(self, tc:float) -> float:
         """
-        Meeus--AA ch22 p144
+        Meeus--AA ch.22 p.144
 
         Referenced by ff (F).
         """
@@ -632,10 +660,26 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return self.coterminal_angle(self._poly(
             tc, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
 
+    def _eccentricity_earth_orbit(self, tc:float) -> float:
+        """
+        The eccentricity of the earth's orbit.
+
+        Meeus--AA ch.25 p.163 Eq.25.4
+        """
+        return self._poly(tc, (0.016708634, -0.000042037, -0.0000001267))
+
     def _aberration(self, tm:float, fixed:bool=True) -> float:
         """
         Find the aberration of a date with respect to a fixed reference
         frame or to the mean equinox.
+
+        :param tc: The moment in time referenced to J2000 millennia.
+        :type tm: float
+        :param fixed: If True the results is to fixed reference frame, if
+                      False the results the reference is to the mean equinox.
+        :type fixed: bool
+        :return: The aberration of the date.
+        :rtype: float
         """
         if fixed:
             aberration = 3548.193
@@ -651,7 +695,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         for a, b, c in self.ABER_C:
             aberration += math.radians(a) * tm**2 * self.sin_degrees(b + c * tm)
 
-        r = self._radius_vector(tm)
+        r = self._radius_vector(tm, degrees=False)
         return self.decimal_from_dms(0, 0, -0.005775518 * r * aberration)
 
     def approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
@@ -659,7 +703,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Find the approximate Julian day for the equinoxes or solstices.
 
-        See: Astronomical Algorithms, 1998, by Jean Meeus Ch 27 p.177
+        See: A ch.27 p.177
         """
         if g_year <= 1000:
             y = g_year / 1000
@@ -709,7 +753,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch27 p177
+           Meeus--AA ch.27 p.177
         """
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()

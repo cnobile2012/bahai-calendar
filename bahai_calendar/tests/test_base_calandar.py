@@ -196,7 +196,7 @@ class TestBaseCalandar(unittest.TestCase):
             jde = self._gc.jd_from_gregorian_date(g_date)
             result = self._bc.delta_t(jde)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_mean_sidereal_time_greenwich(self):
@@ -205,7 +205,7 @@ class TestBaseCalandar(unittest.TestCase):
         correct mean sidereal time.
         """
         data = (
-            # 2446895.5 -- 197.69316708333332
+            # 2446895.5 -- 197.693195 -- AA ch.12 p.88 Ex.12.a
             ((1987, 4, 10), False, 197.693195090862),
             # 2446895.5 --
             ((1987, 4, 10), True, 97.02199065580498),
@@ -220,7 +220,7 @@ class TestBaseCalandar(unittest.TestCase):
             result = self._gc.mean_sidereal_time_greenwich(
                 jde, dt_time=dt_time)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result,))
+                             msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_apparent_sidereal_time_greenwich(self):
@@ -241,7 +241,7 @@ class TestBaseCalandar(unittest.TestCase):
             jde = self._gc.jd_from_gregorian_date(g_date)
             result = self._gc.apparent_sidereal_time_greenwich(jde)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result,))
+                             msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_true_obliquity_of_ecliptic(self):
@@ -260,7 +260,7 @@ class TestBaseCalandar(unittest.TestCase):
             jde = self._gc.jd_from_gregorian_date(g_date)
             result = self._gc.true_obliquity_of_ecliptic(jde)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result,))
+                             msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_approx_local_hour_angle(self):
@@ -282,7 +282,7 @@ class TestBaseCalandar(unittest.TestCase):
             jed = self._gc.jd_from_gregorian_date(g_date)
             result = self._bc.approx_local_hour_angle(jed, lat, offset)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result,))
+                             msg.format(expected_result, g_date, result))
 
     @unittest.skip("Temporarily skipped")
     def test_right_ascension(self):
@@ -298,15 +298,16 @@ class TestBaseCalandar(unittest.TestCase):
         positive to the north, negative to the south.
         """
         data = (
+            # 28.026183 -- AA Ex.13.a
             ((2000, 1, 1), -23.642004319710644), # *** TODO *** Is this correct?
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for date {}, found {}."
 
         for g_date, expected_result in data:
             jde = self._gc.jd_from_gregorian_date(g_date)
             result = self._bc.sun_apparent_declination(jde)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_apparent_longitude(self):
@@ -314,15 +315,16 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the _sun_apparent_longitude returns the proper
         """
         data = (
-            (2448908.5, 199.90893644078398), # 1992-10-13T00:00:00 TD From AA
+            # 1992-10-13T00:00:00 TD -- 199.9060605... AA Ex.25.b
+            (2448908.5, 199.90893644078398),
             )
-        msg = "Expected {} for jde {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             tc = self._bc.julian_centuries(jde)
             result = self._bc._sun_apparent_longitude(tc)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_true_longitude(self):
@@ -330,15 +332,16 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the _sun_true_longitude returns the proper
         """
         data = (
-            (2448908.5, 199.90986720840868), # 1992-10-13T00:00:00 TD From AA
+            # 1992-10-13T00:00:00 TD -- 199.907347 AA Ex.25.b
+            (2448908.5, 199.90986720840868),
             )
-        msg = "Expected {} for jde {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             tc = self._bc.julian_centuries(jde)
             result = self._bc._sun_true_longitude(tc)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_mean_longitude(self):
@@ -347,15 +350,16 @@ class TestBaseCalandar(unittest.TestCase):
         from the sun.
         """
         data = (
-            (2448908.5, 201.80719650670744), # 1992-10-13T00:00:00 TD From AA
+            # 1992-10-13T00:00:00 TD -- 201.80720 AA Ex.25.a
+            (2448908.5, 201.80719650670744),
             )
-        msg = "Expected {} for jde {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             tc = self._bc.julian_centuries(jde)
             result = self._bc._sun_mean_longitude(tc)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_equation_of_center(self):
@@ -364,17 +368,18 @@ class TestBaseCalandar(unittest.TestCase):
         correct values.
         """
         data = (
-            (2448908.5, -1.8973292982987633),  # 1992-10-13T00:00:00 TD From AA
+            # 1992-10-13T00:00:00 TD -- -1.89732 AA Ex.25.a
+            (2448908.5, -1.8973292982987633),
             (2394646.5, 1.8902065487119648),   # 1844-03-21
             (2451544.5, -0.10114766650438385), # 2000-01-01
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             t = self._bc.julian_centuries(jde)
             result = self._bc._sun_equation_of_center(t)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     @unittest.skip("Temporarily skipped")
     def test_azimuth(self):
@@ -393,16 +398,18 @@ class TestBaseCalandar(unittest.TestCase):
         the correct values.
         """
         data = (
-            (2394646.5, -9786.34099384954), # 1844-03-21
-            (2451544.5, 1.6629862162861813), # 2000-01-01
+            (2394646.5, 180.5014202623206), # 1844-03-21
+            # 1992-10-13T00:00:00 -- 19.907372 AA Ex.25.b
+            (2448908.5, 19.907371990723732),
+            (2451544.5, 99.8680724573845), # 2000-01-01
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._heliocentric_ecliptical_longitude(t)
+            tm = self._bc.julian_millennia(jde)
+            result = self._bc._heliocentric_ecliptical_longitude(tm)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__heliocentric_ecliptical_latitude(self):
@@ -411,16 +418,18 @@ class TestBaseCalandar(unittest.TestCase):
         the correct values.
         """
         data = (
-            (2394646.5, -3.3690570920741025e-06), # 1844-03-21
-            (2451544.5, -1.8963922136076773e-06), # 2000-01-01
+            (2394646.5, 359.9998594594096), # 1844-03-21
+            # 1992-10-13T00:00:00 -- -0.000179 AA Ex.25.b
+            (2448908.5, 359.9998209874959),
+            (2451544.5, 359.9998100279164), # 2000-01-01
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
+            t = self._bc.julian_millennia(jde)
             result = self._bc._heliocentric_ecliptical_latitude(t)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__radius_vector(self):
@@ -428,17 +437,18 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the _radius_vector method returns the correct values.
         """
         data = (
-            (2448908.5, 0.9939803723953938), # 1992-10-13
-            (2394646.5, 0.999007019370847),  # 1844-03-21
-            (2451544.5, 0.983424096551254),  # 2000-01-01
+            (2394646.5, 57.116215635928334),  # 1844-03-21
+            # 1992-10-13T00:00:00 -- 0.99760775 (57.15871368454215) AA Ex.25.b
+            (2448908.5, 57.158713656750486),
+            (2451544.5, 56.34076223912779),  # 2000-01-01
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
+            t = self._bc.julian_millennia(jde)
             result = self._bc._radius_vector(t)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_apparent_solar_longitude(self):
@@ -467,53 +477,53 @@ class TestBaseCalandar(unittest.TestCase):
         """
         data = (
             # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
-            (2460389.759722222, 359.7409460372346),   # 0
+            (2460389.759722222, 359.7409391024212),   # 0
             # (2024, 6, 20) Summer solstice 2024-06-20T20:50:23 UTC
-            (2460483.2388888886, 90.44982358000743),  # 90
+            (2460483.2388888886, 90.44982257807715),  # 90
             # (2024, 9, 22) Autumnal equinox 2024-09-22T12:43:12 UTC
-            (2460576.561111111, 180.16148331519798),  # 180
+            (2460576.561111111, 180.16149734653118),  # 180
             # (2024, 12, 21) Winter solstice 2024-12-21T09:19:54 UTC
-            (2460666.279166667, 270.0741260963987),   # 270
+            (2460666.279166667, 270.07412024422774),  # 270
             # (1800, 3, 20) Vernal equinox 1800-03-20T20:11:48 UTC
-            (2378575.181944445, 359.4017521693313),   # 0
+            (2378575.181944445, 359.4017533721344),   # 0
             # (1800, 6, 21) Summer solstice 1800-06-21T17:51:29 UTC
-            (2378667.9875, 89.32042154169176),        # 90
+            (2378667.9875, 89.32041254307842),        # 90
             # (1800, 9, 23) Autumnal equinox 1800-09-23T07:25:31 UTC
-            (2378761.118055556, 178.90744945379265),  # 180
+            (2378761.118055556, 178.90744914601964),  # 180
             # (1800, 12, 22) Winter solstice 1800-12-22T00:16:24
-            (2378850.5222222223, 268.6150934379111),  # 270
+            (2378850.5222222223, 268.6150866156968),  # 270
             # (2073, 3, 20) Vernal equinox 2073-03-20T00:12:24 UTC
-            (2478286.520833333, 359.5538050153009),   # 0
+            (2478286.520833333, 359.55382417912915),  # 0
             # (2073, 6, 20) Summer solstice 2073-06-20T17:06:18 UTC
-            (2478379.927777778, 90.19737208451625),   # 90
+            (2478379.927777778, 90.19736702867522),   # 90
             # (2073, 9, 22) Autumnal equinox 2073-09-22T09:14:10 UTC
-            (2478473.2736111116, 179.87105735155274), # 180
+            (2478473.2736111116, 179.87106333948395), # 180
             # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
-            (2478563.072222222, 269.78003015783906),  # 270
+            (2478563.072222222, 269.78000861160035),  # 270
             # All the dates below are from the CC Appendix C Sample Data p452
             # (-586, 7, 24)
-            (1507231.5, 118.2074769360479),  # 118.98911336371384
+            (1507231.5, 118.20715439715423), # 118.98911336371384
             # (576, 5, 20)
-            (1931579.5, 58.475207906449214), # 59.119741
+            (1931579.5, 58.47508549853228),  # 59.119741
             # (1288, 4, 2)
-            (2191584.5, 12.816341923666187), # 13.498220
+            (2191584.5, 12.81621404417092),  # 13.498220
             # (1553, 9, 19)
-            (2288542.5, 175.00334548254614), # 176.059431
+            (2288542.5, 175.00332594895735), # 176.059431
             # (1768, 6, 19)
-            (2366978.5, 88.02762245408667),  # 88.567428
+            (2366978.5, 88.02759601677826),  # 88.567428
             # (1941, 9, 29)
-            (2430266.5, 185.09021099155143), # 185.945867
+            (2430266.5, 185.0902245414036),  # 185.945867
             # (2038, 11, 10)
-            (2465737.5, 227.07079332053763), # 228.184879
+            (2465737.5, 227.07078353595352), # 228.184879
             # (2094, 7, 18)
-            (2486076.5, 115.38120973602054), # 116.439352
+            (2486076.5, 115.38121325604152), # 116.439352
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             result = self._bc.apparent_solar_longitude(jde)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_nutation_longitude(self):
@@ -528,12 +538,12 @@ class TestBaseCalandar(unittest.TestCase):
             (2394646.5, 0.004685955021135532),  # 1844-03-21
             (2451544.5, -0.003867549921252321), # 2000-01-01
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             result = self._bc.nutation_longitude(jde)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_nutation_obliquity(self):
@@ -548,12 +558,12 @@ class TestBaseCalandar(unittest.TestCase):
             (2394646.5, -0.0003313196399792),   # 1844-03-21
             (2451544.5, -0.001601110054347824), # 2000-01-01
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             result = self._bc.nutation_obliquity(jde)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__nutation_obliquity_longitude(self):
@@ -570,13 +580,13 @@ class TestBaseCalandar(unittest.TestCase):
             # 2000-01-01
             (2451544.5, True, (359.7784057124561, 359.9082631513499)),
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, degrees, expected_result in data:
             t = self._bc.julian_centuries(jde)
             result = self._bc._nutation_obliquity_longitude(t, degrees=degrees)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__moon_mean_anomaly(self):
@@ -587,13 +597,13 @@ class TestBaseCalandar(unittest.TestCase):
             # 1987-04-10T00:00:00
             (2446895.5, 229.27841269605415), # 229.2784 AA p.148 Ex.22.a
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             t = self._bc.julian_centuries(jde)
             result = self._bc._moon_mean_anomaly(t)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__moon_latitude(self):
@@ -604,13 +614,13 @@ class TestBaseCalandar(unittest.TestCase):
             # 1987-04-10T00:00:00
             (2446895.5, 143.4079066405975), # 143.4079 AA p.148 Ex.22.a
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             t = self._bc.julian_centuries(jde)
             result = self._bc._moon_latitude(t)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_mean_anomaly(self):
@@ -620,18 +630,20 @@ class TestBaseCalandar(unittest.TestCase):
         data = (
             # 1844-03-21
             (2394646.5, 78.34963598562899),
-            # 1987-04-10T00:00:00
-            (2446895.5, 94.9792011648251), # 94.9792 AA p.148 Ex.22.a
+            # 1987-04-10T00:00:00 -- 94.9792 AA p.148 Ex.22.a
+            (2446895.5, 94.9792011648251),
+            # 1992-10-13T00:00:00 -- 278.99397 AA p.165 Ex.25.a
+            (2448908.5, 278.9925727892901),
             # 2000-01-01
             (2451544.5, 357.03491985845307),
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             t = self._bc.julian_centuries(jde)
             result = self._bc._sun_mean_anomaly(t)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__mean_moon_elongation(self):
@@ -642,13 +654,13 @@ class TestBaseCalandar(unittest.TestCase):
             # 1987-04-10T00:00:00
             (2446895.5, 136.96231182464544), # 136.9623 AA p.148 Ex.22.a
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             t = self._bc.julian_centuries(jde)
             result = self._bc._mean_moon_elongation(t)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__moon_ascending_node_longitude(self):
@@ -664,13 +676,31 @@ class TestBaseCalandar(unittest.TestCase):
             # 2000-01-01
             (2451544.5, 125.07099688242339),
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             t = self._bc.julian_centuries(jde)
             result = self._bc._moon_ascending_node_longitude(t)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__eccentricity_earth_orbit(self):
+        """
+        Test that the _eccentricity_earth_orbit method returns the
+        correct values.
+        """
+        data = (
+            # 1992-10-13T00:00:00 -- 0.016711668 AA p.165 Ex.25.a
+            (2448908.5, 0.01671166771493543),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc._eccentricity_earth_orbit(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__aberration(self):
@@ -683,13 +713,13 @@ class TestBaseCalandar(unittest.TestCase):
             (2394646.5, -0.005675213832842919), # 1844-03-21
             (2451544.5, -0.005600867033197131), # 2000-01-01
             )
-        msg = "Expected {}, found {}."
+        msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
             tm = self._bc.julian_millennia(jde)
             result = self._bc._aberration(tm)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_approx_julian_day_for_equinoxes_or_solstices(self):
@@ -815,7 +845,7 @@ class TestBaseCalandar(unittest.TestCase):
         for phi, expected_result in data:
             result = self._bc.zone_from_longitude(phi)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result,))
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_universal_from_local(self):
