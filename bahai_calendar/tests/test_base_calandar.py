@@ -398,16 +398,16 @@ class TestBaseCalandar(unittest.TestCase):
         the correct values.
         """
         data = (
-            (2394646.5, 180.5014202623206), # 1844-03-21
+            (2394646.5, True, 180.5014202623206), # 1844-03-21
             # 1992-10-13T00:00:00 -- 19.907372 AA Ex.25.b
-            (2448908.5, 19.907371990723732),
-            (2451544.5, 99.8680724573845), # 2000-01-01
+            (2448908.5, True, 19.907371990723732),
+            (2451544.5, True, 99.8680724573845), # 2000-01-01
             )
         msg = "Expected {}, for jde {}, found {}."
 
-        for jde, expected_result in data:
+        for jde, degrees, expected_result in data:
             tm = self._bc.julian_millennia(jde)
-            result = self._bc._heliocentric_ecliptical_longitude(tm)
+            result = self._bc._heliocentric_ecliptical_longitude(tm, degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -418,16 +418,16 @@ class TestBaseCalandar(unittest.TestCase):
         the correct values.
         """
         data = (
-            (2394646.5, 359.9998594594096), # 1844-03-21
+            (2394646.5, True, 359.9998594594096), # 1844-03-21
             # 1992-10-13T00:00:00 -- -0.000179 AA Ex.25.b
-            (2448908.5, 359.9998209874959),
-            (2451544.5, 359.9998100279164), # 2000-01-01
+            (2448908.5, True, 359.9998209874959),
+            (2451544.5, True, 359.9998100279164), # 2000-01-01
             )
         msg = "Expected {}, for jde {}, found {}."
 
-        for jde, expected_result in data:
-            t = self._bc.julian_millennia(jde)
-            result = self._bc._heliocentric_ecliptical_latitude(t)
+        for jde, degrees, expected_result in data:
+            tm = self._bc.julian_millennia(jde)
+            result = self._bc._heliocentric_ecliptical_latitude(tm, degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -437,16 +437,16 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the _radius_vector method returns the correct values.
         """
         data = (
-            (2394646.5, 57.116215635928334),  # 1844-03-21
+            (2394646.5, True, 57.116215635928334),  # 1844-03-21
             # 1992-10-13T00:00:00 -- 0.99760775 (57.15871368454215) AA Ex.25.b
-            (2448908.5, 57.158713656750486),
-            (2451544.5, 56.34076223912779),  # 2000-01-01
+            (2448908.5, True, 57.158713656750486),
+            (2451544.5, True, 56.34076223912779),  # 2000-01-01
             )
         msg = "Expected {}, for jde {}, found {}."
 
-        for jde, expected_result in data:
-            t = self._bc.julian_millennia(jde)
-            result = self._bc._radius_vector(t)
+        for jde, degrees, expected_result in data:
+            tm = self._bc.julian_millennia(jde)
+            result = self._bc._radius_vector(tm, degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 

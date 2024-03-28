@@ -423,7 +423,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return
 
     def _heliocentric_ecliptical_longitude(self, tm:float,
-                                           degrees:bool=True) -> float:
+                                           degrees:bool=False) -> float:
         """
         Find the heliocentric ecliptical longitude.
 
@@ -451,7 +451,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return self.coterminal_angle(math.degrees(l)) if degrees else l
 
     def _heliocentric_ecliptical_latitude(self, tm:float,
-                                          degrees:bool=True) -> float:
+                                          degrees:bool=False) -> float:
         """
         Find the heliocentric ecliptical latitude.
 
@@ -474,7 +474,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         b = self._poly(tm, (b0, b1)) / 10**8
         return self.coterminal_angle(math.degrees(b)) if degrees else b
 
-    def _radius_vector(self, tm:float, degrees:bool=True) -> float:
+    def _radius_vector(self, tm:float, degrees:bool=False) -> float:
         """
         Find the distance of earth to the sun.
 
