@@ -328,7 +328,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return math.degrees(math.acos(cos_h0))
 
-    def sun_apparent_right_ascension(self, ):
+    def sun_apparent_right_ascension(self, jde:float) -> float:
         """
         Right ascension is measured (from 0 to 24 hours, sometimes from 0°
         to 360°) from the vernal equinox, positive to the east, along the
@@ -336,7 +336,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         Meeus--AA ch.25 p.165 Eq.25.6
         """
-        return
+        tc = self.julian_centuries(jde)
+        om = self._moon_ascending_node_longitude(tc)
+        eps = (self.true_obliquity_of_ecliptic(jde) + 0.00256 -
+               self.cos_degrees(om))
+        lam = self._sun_apparent_longitude(tc)
+        alpha = math.degrees(math.atan2(self.cos_degrees(eps) *
+                                        self.sin_degrees(lam),
+                                        self.cos_degrees(lam)))
+        return self.coterminal_angle(alpha)
 
     def sun_apparent_declination(self, jde:float) -> float:
         """
@@ -353,7 +361,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch.13 p.93 Eq.13.4
         """
         tc = self.julian_centuries(jde)
-        om = self._moon_ascending_node_longitude(tc) # OK
+        om = self._moon_ascending_node_longitude(tc)
         eps = (self.true_obliquity_of_ecliptic(jde) + 0.00256 -
                self.cos_degrees(om))
         lam = self._sun_apparent_longitude(tc)
@@ -430,7 +438,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param tm: The moment in time referenced to J2000 millennia.
         :type tm: float
         :param degrees: The results if False are radians, else True
-                        are degrees.
+                        are degrees. Default is False.
         :type degrees: bool
         :return: Longitude in degrees or radians.
         :rtype: float
@@ -458,7 +466,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param tm: The moment in time referenced to J2000 millennia.
         :type tm: float
         :param degrees: The results if False are radians, else True
-                        are degrees.
+                        are degrees. Default is False.
         :type degrees: bool
         :return: Latitude in degrees or radians.
         :rtype: float
@@ -481,7 +489,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param tm: The moment in time referenced to J2000 millennia.
         :type tm: float
         :param degrees: The results if False are radians, else True
-                        are degrees.
+                        are degrees. Default is False.
         :type degrees: bool
         :return: Radius vector in degrees or radians.
         :rtype: float
@@ -646,7 +654,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Referenced by dd (D).
         """
         return self.coterminal_angle(self._poly(
-            tc, (297.85036, 445267.111480, -0.0019142, 1 / 189474)))
+            tc, (297.85036, 445267.11148, -0.0019142, 1 / 189474)))
 
     def _moon_ascending_node_longitude(self, tc:float) -> float:
         """
@@ -675,11 +683,16 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param tc: The moment in time referenced to J2000 millennia.
         :type tm: float
-        :param fixed: If True the results is to fixed reference frame, if
+        :param fixed: If True the results is to a fixed reference frame, if
                       False the results the reference is to the mean equinox.
+                      Default is True.
         :type fixed: bool
-        :return: The aberration of the date.
+        :return: The aberration of the date in degrees.
         :rtype: float
+
+        .. note::
+
+           AA p.167 Eq.25.11, p.168
         """
         if fixed:
             aberration = 3548.193

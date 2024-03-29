@@ -250,7 +250,8 @@ class TestBaseCalandar(unittest.TestCase):
         correct true obliquity of the ecliptic.
         """
         data = (
-            ((1987, 4, 10), 23.4433122540716),    # 23.4435694 AA p.148 Ex.22.a
+            # 2446895.5 -- 23.4435694... AA p.148 Ex.22.a
+            ((1987, 4, 10), 23.4433122540716),
             ((2000, 1, 1.5), 23.44165814494418),  # 23.4392911 AA p92
             ((1950, 1, 1.5), 23.448155508607684), # 23.4457889 AA p92
             )
@@ -265,7 +266,7 @@ class TestBaseCalandar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_approx_local_hour_angle(self):
         """
-        Test that the approx_local_hour_angle methoid returns the correct
+        Test that the approx_local_hour_angle method returns the correct
         angle based on the jde.
 
         The variable 'self._bc.latitude' is the latitude in Tehran Iran.
@@ -284,11 +285,22 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test_right_ascension(self):
+    #@unittest.skip("Temporarily skipped")
+    def test_sun_apparent_right_ascension(self):
         """
+        Test that the sun_apparent_right_ascension method returns the correct
+        angle based on the jde.
         """
+        data = (
+            # 1992-10-13T00:00:00 TD -- 198.378178 AA Ex.25.b
+            (2448908.5, 198.36804284777782),
+            )
+        msg = "Expected {}, for jde {}, found {}."
 
+        for jde, expected_result in data:
+            result = self._bc.sun_apparent_right_ascension(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_sun_apparent_declination(self):
@@ -517,6 +529,8 @@ class TestBaseCalandar(unittest.TestCase):
             (2465737.5, 227.07078353595352), # 228.184879
             # (2094, 7, 18)
             (2486076.5, 115.38121325604152), # 116.439352
+            # 1992-10-13T00:00:00 DT -- 199.9060605... AA Ex.25.b
+            (2448908.5, 199.83513402927247),
             )
         msg = "Expected {}, for jde {}, found {}."
 
@@ -532,8 +546,7 @@ class TestBaseCalandar(unittest.TestCase):
         correct values.
         """
         data = (
-            # 1987-04-10T00:00:00 UT -- AA ch.22 p.148 Ex.22.a
-            # 0.001052...
+            # 1987-04-10T00:00:00 UT -- 0.001052... AA ch.22 p.148 Ex.22.a
             (2446895.5, -0.001052173258783292),
             (2394646.5, 0.004685955021135532),  # 1844-03-21
             (2451544.5, -0.003867549921252321), # 2000-01-01
@@ -552,8 +565,7 @@ class TestBaseCalandar(unittest.TestCase):
         correct values.
         """
         data = (
-            # 1987-04-10T00:00:00 UT -- AA ch.22 p.148 Ex.22.a
-            # 0.00262305...
+            # 1987-04-10T00:00:00 UT -- 0.00262305... AA ch.22 p.148 Ex.22.a
             (2446895.5, 0.002622907065077194),
             (2394646.5, -0.0003313196399792),   # 1844-03-21
             (2451544.5, -0.001601110054347824), # 2000-01-01
