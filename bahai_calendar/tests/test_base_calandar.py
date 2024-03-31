@@ -184,6 +184,7 @@ class TestBaseCalandar(unittest.TestCase):
             ((1910, 1, 1), 10.445380968083992),
             ((1935, 1, 1), 23.81634451255787),
             ((1951, 1, 1), 29.48974515233175),
+            # 2443192.6511574076 JD DT -- 48 AA Ex.10.a
             ((1977, 2, 18, 3, 37, 40), 47.686642722506434),
             ((2000, 1, 1), 63.873832810959236),
             ((2020, 1, 1), 71.62174845312504),
@@ -243,6 +244,70 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
+    @unittest.skip("Temporarily skipped")
+    def test_ecliptic_longitude(self):
+        """
+        Test that the ecliptic_longitude method returns
+        the correct ecliptic latitude.
+        """
+        data = (
+            (),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            result = self._bc.ecliptic_longitude(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_ecliptic_latitude(self):
+        """
+        Test that the ecliptic_latitude method returns
+        the correct ecliptic latitude.
+        """
+        data = (
+            (),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            result = self._bc.ecliptic_latitude(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_equatorial_right_ascension(self):
+        """
+        Test that the equatorial_right_ascension method returns
+        the correct equatorial right ascension.
+        """
+        data = (
+            (),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            result = self._bc.equatorial_right_ascension(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_equatorial_declination(self):
+        """
+        Test that the equatorial_declination method returns
+        the correct equatorial declination.
+        """
+        data = (
+            (),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            result = self._bc.equatorial_declination(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
     #@unittest.skip("Temporarily skipped")
     def test_true_obliquity_of_ecliptic(self):
         """
@@ -273,8 +338,8 @@ class TestBaseCalandar(unittest.TestCase):
         """
         offset = self._bc.SUN_OFFSET
         data = (
-            ((1844, 3, 20), self._bc.latitude, offset, 90.88423495307175),
-            ((1988, 3, 20), 42.3333, offset, 90.98885343582786), # AA Ex15.a
+            ((1844, 3, 20), self._bc.latitude, offset, 90.88423495307177),
+            ((1988, 3, 20), 42.3333, offset, 90.98885343582783), # AA Ex15.a
             ((2024, 6, 20), self._bc.latitude, offset, 108.44460844308121),
             )
         msg = "Expected {}, for date {}, found {}."
@@ -282,6 +347,24 @@ class TestBaseCalandar(unittest.TestCase):
         for g_date, lat, offset, expected_result in data:
             jed = self._gc.jd_from_gregorian_date(g_date)
             result = self._bc.approx_local_hour_angle(jed, lat, offset)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, g_date, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_transit(self):
+        """
+        Test that the test_transit method returns the correct transition
+        based on the jde.
+        """
+        data = (
+            # 2447240.5 -- 41.73129 AA Ex.15.a
+            ((1988, 3, 20), 42.3333, 71.0833, 40.26198211827278),
+            )
+        msg = "Expected {}, for g_date {}, found {}."
+
+        for g_date, lat, lon, expected_result in data:
+            jde = self._gc.jd_from_gregorian_date(g_date)
+            result = self._bc.transit(jde, lat, lon)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
@@ -311,7 +394,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         data = (
             # 28.026183 -- AA Ex.13.a
-            ((2000, 1, 1), -23.642004319710644), # *** TODO *** Is this correct?
+            ((2000, 1, 1), 336.3579956802894), # *** TODO *** Is this correct?
             )
         msg = "Expected {}, for date {}, found {}."
 
@@ -1417,37 +1500,37 @@ class TestBaseCalandar(unittest.TestCase):
                              msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_sin_degrees(self):
+    def test_sin_deg(self):
         """
-        Test that the sin_degrees method returns the sine of theta
+        Test that the sin_deg method returns the sine of theta
         (given in degrees).
         """
         theta = 90.0
-        result = self._bc.sin_degrees(theta)
+        result = self._bc.sin_deg(theta)
         expected_result = 1.0
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_cos_degrees(self):
+    def test_cos_deg(self):
         """
-        Test that the cos_degrees method returns the cosine of theta
+        Test that the cos_deg method returns the cosine of theta
         (given in degrees).
         """
         theta = 90.0
-        result = self._bc.cos_degrees(theta)
+        result = self._bc.cos_deg(theta)
         expected_result = 6.123233995736766e-17 # is 0?
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_tan_degrees(self):
+    def test_tan_deg(self):
         """
-        Test that the tan_degrees method returns the tangent of theta
+        Test that the tan_deg method returns the tangent of theta
         (given in degrees).
         """
         theta = 90.0
-        result = self._bc.tan_degrees(theta)
+        result = self._bc.tan_deg(theta)
         expected_result = 1.633123935319537e+16
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
