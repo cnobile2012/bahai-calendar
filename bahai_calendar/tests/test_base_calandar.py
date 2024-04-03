@@ -244,89 +244,79 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
+    ## @unittest.skip("Temporarily skipped")
+    ## def test_ecliptic_longitude(self):
+    ##     """
+    ##     Test that the ecliptic_longitude method returns
+    ##     the correct ecliptic latitude.
+    ##     """
+    ##     data = (
+    ##         (self._bc.J2000, 214.15716590411967),
+    ##         )
+    ##     msg = "Expected {}, for jde {}, found {}."
+
+    ##     for jde, expected_result in data:
+    ##         result = self._bc.ecliptic_longitude(jde)
+    ##         self.assertEqual(expected_result, result,
+    ##                          msg.format(expected_result, jde, result))
+
+    ## @unittest.skip("Temporarily skipped")
+    ## def test_ecliptic_latitude(self):
+    ##     """
+    ##     Test that the ecliptic_latitude method returns
+    ##     the correct ecliptic latitude.
+    ##     """
+    ##     data = (
+    ##         (),
+    ##         )
+    ##     msg = "Expected {}, for jde {}, found {}."
+
+    ##     for jde, expected_result in data:
+    ##         result = self._bc.ecliptic_latitude(jde)
+    ##         self.assertEqual(expected_result, result,
+    ##                          msg.format(expected_result, jde, result))
+
+    ## @unittest.skip("Temporarily skipped")
+    ## def test_equatorial_right_ascension(self):
+    ##     """
+    ##     Test that the equatorial_right_ascension method returns
+    ##     the correct equatorial right ascension.
+    ##     """
+    ##     data = (
+    ##         (),
+    ##         )
+    ##     msg = "Expected {}, for jde {}, found {}."
+
+    ##     for jde, expected_result in data:
+    ##         result = self._bc.equatorial_right_ascension(jde)
+    ##         self.assertEqual(expected_result, result,
+    ##                          msg.format(expected_result, jde, result))
+
+    ## @unittest.skip("Temporarily skipped")
+    ## def test_equatorial_declination(self):
+    ##     """
+    ##     Test that the equatorial_declination method returns
+    ##     the correct equatorial declination.
+    ##     """
+    ##     data = (
+    ##         (),
+    ##         )
+    ##     msg = "Expected {}, for jde {}, found {}."
+
+    ##     for jde, expected_result in data:
+    ##         result = self._bc.equatorial_declination(jde)
+    ##         self.assertEqual(expected_result, result,
+    ##                          msg.format(expected_result, jde, result))
+
     @unittest.skip("Temporarily skipped")
-    def test_ecliptic_longitude(self):
+    def test_azimuth(self):
         """
-        Test that the ecliptic_longitude method returns
-        the correct ecliptic latitude.
         """
-        data = (
-            (),
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            result = self._bc.ecliptic_longitude(jde)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
 
     @unittest.skip("Temporarily skipped")
-    def test_ecliptic_latitude(self):
+    def test_altitude(self):
         """
-        Test that the ecliptic_latitude method returns
-        the correct ecliptic latitude.
         """
-        data = (
-            (),
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            result = self._bc.ecliptic_latitude(jde)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    @unittest.skip("Temporarily skipped")
-    def test_equatorial_right_ascension(self):
-        """
-        Test that the equatorial_right_ascension method returns
-        the correct equatorial right ascension.
-        """
-        data = (
-            (),
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            result = self._bc.equatorial_right_ascension(jde)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    @unittest.skip("Temporarily skipped")
-    def test_equatorial_declination(self):
-        """
-        Test that the equatorial_declination method returns
-        the correct equatorial declination.
-        """
-        data = (
-            (),
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            result = self._bc.equatorial_declination(jde)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_true_obliquity_of_ecliptic(self):
-        """
-        Test that the true_obliquity_of_ecliptic method returns the
-        correct true obliquity of the ecliptic.
-        """
-        data = (
-            # 2446895.5 -- 23.4435694... AA p.148 Ex.22.a
-            ((1987, 4, 10), 23.4433122540716),
-            ((2000, 1, 1.5), 23.44165814494418),  # 23.4392911 AA p92
-            ((1950, 1, 1.5), 23.448155508607684), # 23.4457889 AA p92
-            )
-        msg = "Expected {}, for date {}, found {}."
-
-        for g_date, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            result = self._gc.true_obliquity_of_ecliptic(jde)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_approx_local_hour_angle(self):
@@ -338,8 +328,8 @@ class TestBaseCalandar(unittest.TestCase):
         """
         offset = self._bc.SUN_OFFSET
         data = (
-            ((1844, 3, 20), self._bc.latitude, offset, 90.88423495307177),
-            ((1988, 3, 20), 42.3333, offset, 90.98885343582783), # AA Ex15.a
+            ((1844, 3, 20), self._bc.latitude, offset, 90.88423495307175),
+            ((1988, 3, 20), 42.3333, offset, 90.98885343582786), # AA Ex15.a
             ((2024, 6, 20), self._bc.latitude, offset, 108.44460844308121),
             )
         msg = "Expected {}, for date {}, found {}."
@@ -349,6 +339,11 @@ class TestBaseCalandar(unittest.TestCase):
             result = self._bc.approx_local_hour_angle(jed, lat, offset)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_sunrise(self):
+        """
+        """
 
     @unittest.skip("Temporarily skipped")
     def test_transit(self):
@@ -368,257 +363,23 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
-    #@unittest.skip("Temporarily skipped")
-    def test_sun_apparent_right_ascension(self):
-        """
-        Test that the sun_apparent_right_ascension method returns the correct
-        angle based on the jde.
-        """
-        data = (
-            # 1992-10-13T00:00:00 TD -- 198.378178 AA Ex.25.b
-            (2448908.5, 198.36804284777782),
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            result = self._bc.sun_apparent_right_ascension(jde)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_sun_apparent_declination(self):
-        """
-        Test that the apparent_declination method returns the proper
-        apparent declination measured (from 0° to 90°) from the equator,
-        positive to the north, negative to the south.
-        """
-        data = (
-            # 28.026183 -- AA Ex.13.a
-            ((2000, 1, 1), 336.3579956802894), # *** TODO *** Is this correct?
-            )
-        msg = "Expected {}, for date {}, found {}."
-
-        for g_date, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            result = self._bc.sun_apparent_declination(jde)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__sun_apparent_longitude(self):
-        """
-        Test that the _sun_apparent_longitude returns the proper
-        """
-        data = (
-            # 1992-10-13T00:00:00 TD -- 199.9060605... AA Ex.25.b
-            (2448908.5, 199.90893644078398),
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._sun_apparent_longitude(tc)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__sun_true_longitude(self):
-        """
-        Test that the _sun_true_longitude returns the proper
-        """
-        data = (
-            # 1992-10-13T00:00:00 TD -- 199.907347 AA Ex.25.b
-            (2448908.5, 199.90986720840868),
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._sun_true_longitude(tc)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__sun_mean_longitude(self):
-        """
-        Test that the _sun_mean_longitude returns the proper angle
-        from the sun.
-        """
-        data = (
-            # 1992-10-13T00:00:00 TD -- 201.80720 AA Ex.25.a
-            (2448908.5, 201.80719650670744),
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._sun_mean_longitude(tc)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__sun_equation_of_center(self):
-        """
-        Test that the _sun_equation_of_center method returns the
-        correct values.
-        """
-        data = (
-            # 1992-10-13T00:00:00 TD -- -1.89732 AA Ex.25.a
-            (2448908.5, -1.8973292982987633),
-            (2394646.5, 1.8902065487119648),   # 1844-03-21
-            (2451544.5, -0.10114766650438385), # 2000-01-01
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._sun_equation_of_center(t)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
     @unittest.skip("Temporarily skipped")
-    def test_azimuth(self):
-        """
-        """
-
-    @unittest.skip("Temporarily skipped")
-    def test_altitude(self):
+    def test_sunset(self):
         """
         """
 
     #@unittest.skip("Temporarily skipped")
-    def test__heliocentric_ecliptical_longitude(self):
+    def test__transit_rising_setting(self):
         """
-        Test that the _heliocentric_ecliptical_longitude method returns
-        the correct values.
         """
         data = (
-            (2394646.5, True, 180.5014202623206), # 1844-03-21
-            # 1992-10-13T00:00:00 -- 19.907372 AA Ex.25.b
-            (2448908.5, True, 19.907371990723732),
-            (2451544.5, True, 99.8680724573845), # 2000-01-01
+            # 1988-03-20T00:00:00 -- 0.5766, 0.8198, 0.1213 AA Ex.15.a
+            (2447240.5, 42.3333, -71.0833, (0, 0, 0)),
             )
         msg = "Expected {}, for jde {}, found {}."
 
-        for jde, degrees, expected_result in data:
-            tm = self._bc.julian_millennia(jde)
-            result = self._bc._heliocentric_ecliptical_longitude(tm, degrees)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__heliocentric_ecliptical_latitude(self):
-        """
-        Test that the _heliocentric_ecliptical_latitude method returns
-        the correct values.
-        """
-        data = (
-            (2394646.5, True, 359.9998594594096), # 1844-03-21
-            # 1992-10-13T00:00:00 -- -0.000179 AA Ex.25.b
-            (2448908.5, True, 359.9998209874959),
-            (2451544.5, True, 359.9998100279164), # 2000-01-01
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, degrees, expected_result in data:
-            tm = self._bc.julian_millennia(jde)
-            result = self._bc._heliocentric_ecliptical_latitude(tm, degrees)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__radius_vector(self):
-        """
-        Test that the _radius_vector method returns the correct values.
-        """
-        data = (
-            (2394646.5, True, 57.116215635928334),  # 1844-03-21
-            # 1992-10-13T00:00:00 -- 0.99760775 (57.15871368454215) AA Ex.25.b
-            (2448908.5, True, 57.158713656750486),
-            (2451544.5, True, 56.34076223912779),  # 2000-01-01
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, degrees, expected_result in data:
-            tm = self._bc.julian_millennia(jde)
-            result = self._bc._radius_vector(tm, degrees)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_apparent_solar_longitude(self):
-        """
-        Test that the apparent_solar_longitude method returns the
-        longitude of sun at moment tee.
-
-        Equinox & Solstice Calculator
-        https://stellafane.org/misc/equinox.html
-
-        Solar Position Calculator
-        https://gml.noaa.gov/grad/solcalc/
-        Greenwich lat: 51, 29, 36.24 N (51.4934)
-                  lon: 00, 00, 00.00 E (0.0)
-
-        Data from the book pages 225, 446 and 452
-        ===============================================================
-                                  Solar     Approximate      Season
-        Name
-                                  longitude date             length
-        ---------------------------------------------------------------
-        Vernal (spring) equinox     0◦      March 20         92.76 days
-        Summer solstice            90◦      June 21          93.65 days
-        Autumnal (fall) equinox   180◦      September 22−23  89.84 days
-        Winter solstice           270◦      December 21−22   88.99 days
-        """
-        data = (
-            # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
-            (2460389.759722222, 359.7409391024212),   # 0
-            # (2024, 6, 20) Summer solstice 2024-06-20T20:50:23 UTC
-            (2460483.2388888886, 90.44982257807715),  # 90
-            # (2024, 9, 22) Autumnal equinox 2024-09-22T12:43:12 UTC
-            (2460576.561111111, 180.16149734653118),  # 180
-            # (2024, 12, 21) Winter solstice 2024-12-21T09:19:54 UTC
-            (2460666.279166667, 270.07412024422774),  # 270
-            # (1800, 3, 20) Vernal equinox 1800-03-20T20:11:48 UTC
-            (2378575.181944445, 359.4017533721344),   # 0
-            # (1800, 6, 21) Summer solstice 1800-06-21T17:51:29 UTC
-            (2378667.9875, 89.32041254307842),        # 90
-            # (1800, 9, 23) Autumnal equinox 1800-09-23T07:25:31 UTC
-            (2378761.118055556, 178.90744914601964),  # 180
-            # (1800, 12, 22) Winter solstice 1800-12-22T00:16:24
-            (2378850.5222222223, 268.6150866156968),  # 270
-            # (2073, 3, 20) Vernal equinox 2073-03-20T00:12:24 UTC
-            (2478286.520833333, 359.55382417912915),  # 0
-            # (2073, 6, 20) Summer solstice 2073-06-20T17:06:18 UTC
-            (2478379.927777778, 90.19736702867522),   # 90
-            # (2073, 9, 22) Autumnal equinox 2073-09-22T09:14:10 UTC
-            (2478473.2736111116, 179.87106333948395), # 180
-            # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
-            (2478563.072222222, 269.78000861160035),  # 270
-            # All the dates below are from the CC Appendix C Sample Data p452
-            # (-586, 7, 24)
-            (1507231.5, 118.20715439715423), # 118.98911336371384
-            # (576, 5, 20)
-            (1931579.5, 58.47508549853228),  # 59.119741
-            # (1288, 4, 2)
-            (2191584.5, 12.81621404417092),  # 13.498220
-            # (1553, 9, 19)
-            (2288542.5, 175.00332594895735), # 176.059431
-            # (1768, 6, 19)
-            (2366978.5, 88.02759601677826),  # 88.567428
-            # (1941, 9, 29)
-            (2430266.5, 185.0902245414036),  # 185.945867
-            # (2038, 11, 10)
-            (2465737.5, 227.07078353595352), # 228.184879
-            # (2094, 7, 18)
-            (2486076.5, 115.38121325604152), # 116.439352
-            # 1992-10-13T00:00:00 DT -- 199.9060605... AA Ex.25.b
-            (2448908.5, 199.83513402927247),
-            )
-        msg = "Expected {}, for jde {}, found {}."
-
-        for jde, expected_result in data:
-            result = self._bc.apparent_solar_longitude(jde)
+        for jde, lat, lon, expected_result in data:
+            result = self._bc._transit_rising_setting(jde, lat, lon)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -780,6 +541,45 @@ class TestBaseCalandar(unittest.TestCase):
                              msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_true_obliquity_of_ecliptic(self):
+        """
+        Test that the true_obliquity_of_ecliptic method returns the
+        correct true obliquity of the ecliptic.
+        """
+        data = (
+            # 2446895.5 -- 23.4435694... AA p.148 Ex.22.a
+            ((1987, 4, 10), 23.4433122540716),
+            ((1992, 10, 13), 23.44259609781837),  # 23.44023 AA Ex.25.a
+            ((2000, 1, 1.5), 23.44165814494418),  # 23.4392911 AA p92
+            ((1950, 1, 1.5), 23.448155508607684), # 23.4457889 AA p92
+            )
+        msg = "Expected {}, for date {}, found {}."
+
+        for g_date, expected_result in data:
+            jde = self._gc.jd_from_gregorian_date(g_date)
+            result = self._gc.true_obliquity_of_ecliptic(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, g_date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__sun_mean_longitude(self):
+        """
+        Test that the _sun_mean_longitude returns the proper angle
+        from the sun.
+        """
+        data = (
+            # 1992-10-13T00:00:00 TD -- 201.80720 AA Ex.25.a
+            (2448908.5, 201.80719650670744),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            tc = self._bc.julian_centuries(jde)
+            result = self._bc._sun_mean_longitude(tc)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__eccentricity_earth_orbit(self):
         """
         Test that the _eccentricity_earth_orbit method returns the
@@ -796,6 +596,249 @@ class TestBaseCalandar(unittest.TestCase):
             result = self._bc._eccentricity_earth_orbit(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__sun_apparent_longitude(self):
+        """
+        Test that the _sun_apparent_longitude returns the proper
+        """
+        data = (
+            # 1992-10-13T00:00:00 TD -- 199.9060605... AA Ex.25.b
+            (2448908.5, 199.90893644078398),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            tc = self._bc.julian_centuries(jde)
+            result = self._bc._sun_apparent_longitude(tc)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__sun_equation_of_center(self):
+        """
+        Test that the _sun_equation_of_center method returns the
+        correct values.
+        """
+        data = (
+            # 1992-10-13T00:00:00 TD -- -1.89732 AA Ex.25.a
+            (2448908.5, -1.8973292982987633),
+            (2394646.5, 1.8902065487119648),   # 1844-03-21
+            (2451544.5, -0.10114766650438385), # 2000-01-01
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            t = self._bc.julian_centuries(jde)
+            result = self._bc._sun_equation_of_center(t)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__sun_true_longitude(self):
+        """
+        Test that the _sun_true_longitude returns the proper
+        """
+        data = (
+            # 1992-10-13T00:00:00 TD -- 199.907347 AA Ex.25.b
+            (2448908.5, 199.90986720840868),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            tc = self._bc.julian_centuries(jde)
+            result = self._bc._sun_true_longitude(tc)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_sun_apparent_right_ascension(self):
+        """
+        Test that the sun_apparent_right_ascension method returns the correct
+        angle based on the jde.
+        """
+        data = (
+            # 1988-03-19T00:00:00 -- 40.68021 AA Ex.15.a
+            (2447239.5, 358.713720047607),
+            # 1988-03-20T00:00:00 -- 41.73129 AA Ex.15.a
+            (2447240.5, 359.63225968399684),
+            # 1988-03-21T00:00:00 -- 42.78204 AA Ex.15.a
+            (2447241.5, 0.5502491977150128),
+            # 1992-10-13T00:00:00 TD -- 198.378178 AA Ex.25.b
+            (2448908.5, 198.36804284777782),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            result = self._bc.sun_apparent_right_ascension(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_sun_apparent_declination(self):
+        """
+        Test that the apparent_declination method returns the proper
+        apparent declination measured (from 0° to 90°) from the equator,
+        positive to the north, negative to the south.
+        """
+        data = (
+            # 1988-03-19T00:00:00 -- 18.04761 AA Ex.15.a
+            #(2447239.5, 359.4684977578814),
+            # 1988-03-20T00:00:00 -- 18.44092 AA Ex.15.a
+            #(2447240.5, 359.8480298854421),
+            # 1988-03-21T00:00:00 -- 18.82742 AA Ex.15.a
+            #(2447241.5, 0.2273912943419768),
+            # 1992-10-13T00:00:00 -- -7.78507 -- AA Ex.25.a
+            (2448908.5, -7.816048262710848),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            result = self._bc.sun_apparent_declination(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__heliocentric_ecliptical_longitude(self):
+        """
+        Test that the _heliocentric_ecliptical_longitude method returns
+        the correct values.
+        """
+        data = (
+            (2394646.5, True, 180.5014202623206), # 1844-03-21
+            # 1992-10-13T00:00:00 -- 19.907372 AA Ex.25.b
+            (2448908.5, True, 19.907371990723732),
+            (2451544.5, True, 99.8680724573845), # 2000-01-01
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, degrees, expected_result in data:
+            tm = self._bc.julian_millennia(jde)
+            result = self._bc._heliocentric_ecliptical_longitude(tm, degrees)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__heliocentric_ecliptical_latitude(self):
+        """
+        Test that the _heliocentric_ecliptical_latitude method returns
+        the correct values.
+        """
+        data = (
+            (2394646.5, True, 359.9998594594096), # 1844-03-21
+            # 1992-10-13T00:00:00 -- -0.000179 AA Ex.25.b
+            (2448908.5, True, 359.9998209874959),
+            (2451544.5, True, 359.9998100279164), # 2000-01-01
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, degrees, expected_result in data:
+            tm = self._bc.julian_millennia(jde)
+            result = self._bc._heliocentric_ecliptical_latitude(tm, degrees)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__radius_vector(self):
+        """
+        Test that the _radius_vector method returns the correct values.
+        """
+        data = (
+            (2394646.5, True, 57.116215635928334),  # 1844-03-21
+            # 1992-10-13T00:00:00 -- 0.99760775 (57.15871368454215) AA Ex.25.b
+            (2448908.5, True, 57.158713656750486),
+            (2451544.5, True, 56.34076223912779),  # 2000-01-01
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, degrees, expected_result in data:
+            tm = self._bc.julian_millennia(jde)
+            result = self._bc._radius_vector(tm, degrees)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_apparent_solar_longitude(self):
+        """
+        Test that the apparent_solar_longitude method returns the
+        longitude of sun at moment tee.
+
+        Equinox & Solstice Calculator
+        https://stellafane.org/misc/equinox.html
+
+        Solar Position Calculator
+        https://gml.noaa.gov/grad/solcalc/
+        Greenwich lat: 51, 29, 36.24 N (51.4934)
+                  lon: 00, 00, 00.00 E (0.0)
+
+        Data from the book pages 225, 446 and 452
+        ===============================================================
+                                  Solar     Approximate      Season
+        Name
+                                  longitude date             length
+        ---------------------------------------------------------------
+        Vernal (spring) equinox     0◦      March 20         92.76 days
+        Summer solstice            90◦      June 21          93.65 days
+        Autumnal (fall) equinox   180◦      September 22−23  89.84 days
+        Winter solstice           270◦      December 21−22   88.99 days
+        """
+        data = (
+            # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
+            (2460389.759722222, 359.7409391024212),   # 0
+            # (2024, 6, 20) Summer solstice 2024-06-20T20:50:23 UTC
+            (2460483.2388888886, 90.44982257807715),  # 90
+            # (2024, 9, 22) Autumnal equinox 2024-09-22T12:43:12 UTC
+            (2460576.561111111, 180.16149734653118),  # 180
+            # (2024, 12, 21) Winter solstice 2024-12-21T09:19:54 UTC
+            (2460666.279166667, 270.07412024422774),  # 270
+            # (1800, 3, 20) Vernal equinox 1800-03-20T20:11:48 UTC
+            (2378575.181944445, 359.4017533721344),   # 0
+            # (1800, 6, 21) Summer solstice 1800-06-21T17:51:29 UTC
+            (2378667.9875, 89.32041254307842),        # 90
+            # (1800, 9, 23) Autumnal equinox 1800-09-23T07:25:31 UTC
+            (2378761.118055556, 178.90744914601964),  # 180
+            # (1800, 12, 22) Winter solstice 1800-12-22T00:16:24
+            (2378850.5222222223, 268.6150866156968),  # 270
+            # (2073, 3, 20) Vernal equinox 2073-03-20T00:12:24 UTC
+            (2478286.520833333, 359.55382417912915),  # 0
+            # (2073, 6, 20) Summer solstice 2073-06-20T17:06:18 UTC
+            (2478379.927777778, 90.19736702867522),   # 90
+            # (2073, 9, 22) Autumnal equinox 2073-09-22T09:14:10 UTC
+            (2478473.2736111116, 179.87106333948395), # 180
+            # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
+            (2478563.072222222, 269.78000861160035),  # 270
+            # All the dates below are from the CC Appendix C Sample Data p452
+            # (-586, 7, 24)
+            (1507231.5, 118.20715439715423), # 118.98911336371384
+            # (576, 5, 20)
+            (1931579.5, 58.47508549853228),  # 59.119741
+            # (1288, 4, 2)
+            (2191584.5, 12.81621404417092),  # 13.498220
+            # (1553, 9, 19)
+            (2288542.5, 175.00332594895735), # 176.059431
+            # (1768, 6, 19)
+            (2366978.5, 88.02759601677826),  # 88.567428
+            # (1941, 9, 29)
+            (2430266.5, 185.0902245414036),  # 185.945867
+            # (2038, 11, 10)
+            (2465737.5, 227.07078353595352), # 228.184879
+            # (2094, 7, 18)
+            (2486076.5, 115.38121325604152), # 116.439352
+            # 1992-10-13T00:00:00 DT -- 199.9060605... AA Ex.25.b
+            (2448908.5, 199.83513402927247),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            result = self._bc.apparent_solar_longitude(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_apparent_solar_latitude(self):
+        """
+        Test that the apparent_solar_latitudemethod returns the correct values.
+        """
 
     #@unittest.skip("Temporarily skipped")
     def test__aberration(self):
@@ -914,10 +957,6 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(
                 expected_result, result,
                 msg.format(expected_result, seasons[season], result))
-
-
-
-
 
     #
     # Calandarical Calculations
