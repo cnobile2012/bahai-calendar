@@ -627,14 +627,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         return self._poly(tc, (0.016708634, -0.000042037, -0.0000001267))
 
-    def _sun_apparent_longitude(self, tc:float) -> float:
-        """
-        Meeus--AA p.164
-        """
-        sol = self._sun_true_longitude(tc)
-        om = self._moon_ascending_node_longitude(tc)
-        return sol - 0.00569 - 0.00478 * self.sin_deg(om)
-
     def _sun_equation_of_center(self, tc:float) -> float:
         """
         Meeus--AA ch.25 p.164
@@ -656,6 +648,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         cen = self._sun_equation_of_center(tc)
         return l0 + cen
 
+    def _sun_apparent_longitude(self, tc:float) -> float:
+        """
+        Meeus--AA p.164
+        """
+        sol = self._sun_true_longitude(tc)
+        om = self._moon_ascending_node_longitude(tc)
+        return sol - 0.00569 - 0.00478 * self.sin_deg(om)
+
     def sun_apparent_right_ascension(self, jde:float, app:bool=True) -> float:
         """
         Right ascension is measured (from 0 to 24 hours, sometimes from 0°
@@ -666,9 +666,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         tc = self.julian_centuries(jde)
         om = self._moon_ascending_node_longitude(tc)
-        eps = (self.true_obliquity_of_ecliptic(jde) + 0.00256 -
-               self.cos_deg(om))
-        lam = self._sun_apparent_longitude(tc)
+
+        if app:
+            lam = self._sun_apparent_longitude(tc)
+            eps_cor = 0.00256 - self.cos_deg(om)
+        else:
+            lam = self._sun_true_longitude(tc)
+            eps_cor = 0
+
+        eps = self.true_obliquity_of_ecliptic(jde) + eps_cor
         alpha = math.degrees(math.atan2(self.cos_deg(eps) * self.sin_deg(lam),
                                         self.cos_deg(lam)))
         return self.coterminal_angle(alpha)
