@@ -374,7 +374,8 @@ class TestBaseCalandar(unittest.TestCase):
         """
         data = (
             # 1988-03-20T00:00:00 -- 0.5766, 0.8198, 0.1213 AA Ex.15.a
-            (2447240.5, 42.3333, -71.0833, # *** TODO *** Needs to be fixed
+            # JDE       Latitude Longitude
+            (2447240.5, 42.3333, 71.0833, # *** TODO *** Needs to be fixed
              (7.101063701185129, 0.7005618380255844, 13.899552781347815)),
             )
         msg = "Expected {}, for jde {}, found {}."
@@ -480,9 +481,10 @@ class TestBaseCalandar(unittest.TestCase):
                              msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__sun_mean_anomaly(self):
+    def test__sun_earth_mean_anomaly(self):
         """
-        Test that the _sun_mean_anomaly method returns the correct values.
+        Test that the _sun_earth_mean_anomaly method returns the
+        correct values.
         """
         data = (
             # 1844-03-21
@@ -498,7 +500,7 @@ class TestBaseCalandar(unittest.TestCase):
 
         for jde, expected_result in data:
             t = self._bc.julian_centuries(jde)
-            result = self._bc._sun_mean_anomaly(t)
+            result = self._bc._sun_earth_mean_anomaly(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -665,7 +667,7 @@ class TestBaseCalandar(unittest.TestCase):
             (2447240.5, 359.63225968399684),
             # 1988-03-21T00:00:00 -- 42.78204 AA Ex.15.a
             (2447241.5, 0.5502491977150128),
-            # 1992-10-13T00:00:00 TD -- 198.378178 AA Ex.25.b
+            # 1992-10-13T00:00:00 TD -- 198.37817916... AA Ex.25.b
             (2448908.5, 198.3680428477778),
             )
         msg = "Expected {}, for jde {}, found {}."
@@ -689,7 +691,7 @@ class TestBaseCalandar(unittest.TestCase):
             #(2447240.5, 359.8480298854421),
             # 1988-03-21T00:00:00 -- 18.82742 AA Ex.15.a
             #(2447241.5, 0.2273912943419768),
-            # 1992-10-13T00:00:00 -- -7.78507 -- AA Ex.25.a
+            # 1992-10-13T00:00:00 -- -7.783872 -- AA Ex.25.b
             (2448908.5, -7.816048262710848),
             )
         msg = "Expected {}, for jde {}, found {}."
@@ -835,11 +837,21 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_apparent_solar_latitude(self):
         """
         Test that the apparent_solar_latitudemethod returns the correct values.
         """
+        data = (
+            # 1992-10-13T00:00:00 DT -- 0.000172 AA Ex.25.b
+            (2448908.5, 0.0001739059352758293),
+            )
+        msg = "Expected {}, for jde {}, found {}."
+
+        for jde, expected_result in data:
+            result = self._bc.apparent_solar_latitude(jde)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__aberration(self):

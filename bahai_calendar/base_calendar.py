@@ -211,7 +211,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return dt
 
-    def mean_sidereal_time_greenwich(self, jd:float, dt_time=False) -> float:
+    def mean_sidereal_time_greenwich(self, jd:float) -> float:
         """
         Mean sidereal time at Greenwich. (GMST) If the hour angle is
         measured with respect to the mean equinox, mean sidereal time is
@@ -219,9 +219,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param jd: Julian day.
         :type jd: float
-        :param dt_time: If UT time is desired pass False the default. If for
-                        DT time pass True.
-        :type dt_time: bool
         :return: The mean sidereal time at Greenwich .
         :rtype: float
 
@@ -229,7 +226,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus--AA ch.12 p.88 Eq.12.3
         """
-        jd *= 1.00273790935 if dt_time else 1
         tc = self.julian_centuries(jd)
         return self.coterminal_angle(280.46061837 + 360.98564736629 *
                                      (jd - self.J2000) +
@@ -294,6 +290,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     ##     Right ascension is measured (from 0 to 24 hours, sometimes from 0°
     ##     to 360°) from the vernal equinox, positive to the east, along the
     ##     celestial equator.
+
+    ##     Meeus--AA ch.13 p.93 Eq.13.3
     ##     """
     ##     lam = self.ecliptic_longitude(jde)
     ##     beta = self.ecliptic_latitude(jde)
@@ -308,6 +306,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     ##     """
     ##     Declination is measured (from 0° to +90°) from the equator, positive
     ##     to the north, negative to the south.
+
+    ##     Meeus--AA ch.13 p.93 Eq.13.4
     ##     """
     ##     beta = self.ecliptic_latitude(jde)
     ##     lam = self.ecliptic_longitude(jde)
@@ -422,7 +422,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         dt = self.delta_t(jde)
         h0 = self.approx_local_hour_angle(jde, lat)
         ast = self.apparent_sidereal_time_greenwich(jde)
-        msrtg = self.mean_sidereal_time_greenwich(jde, dt_time=True)
+        msrtg = self.mean_sidereal_time_greenwich(jde)
         # Transit
         ra0 = self.sun_apparent_right_ascension(jde - 1)
         ra1 = self.sun_apparent_right_ascension(jde)
@@ -491,11 +491,21 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Nutation of the Earth's axis around it's 'mean' position.
 
-        See:
-     https://articles.adsabs.harvard.edu/full/seri/CeMec/0027//0000079.000.html
+        :param tc: Time in Julian centuries.
+        :type tc: float
+        :param degrees: If True units of degrees is returned, if False
+                        units of radians is returned.
+        :type degrees: float
+        :return: Moon latitude.
+        :rtype: float
+
+        .. note::
+
+           See:
+      https://articles.adsabs.harvard.edu/full/seri/CeMec/0027/0000079.000.html
         """
         lm = self._moon_mean_anomaly(tc)
-        ls = self._sun_mean_anomaly(tc)
+        ls = self._sun_earth_mean_anomaly(tc)
         ff = self._moon_latitude(tc)
         dd = self._mean_moon_elongation(tc)
         om = self._moon_ascending_node_longitude(tc)
@@ -530,36 +540,64 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _moon_mean_anomaly(self, tc:float) -> float:
         """
-        Meeus--AA ch.22 p.144
 
-        Referenced by lm (M').
+        :param tc: Time in Julian centuries.
+        :type tc: float
+        :return: Moon mean anomaly.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.22 p.144
+           Referenced by lm (M').
         """
         return self.coterminal_angle(self._poly(
             tc, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
 
-    def _sun_mean_anomaly(self, tc:float) -> float:
+    def _sun_earth_mean_anomaly(self, tc:float) -> float:
         """
-        Meeus--AA ch.22 p.144
 
-        Referenced by ls (M).
+        :param tc: Time in Julian centuries.
+        :type tc: float
+        :return: Sun and earth mean anomaly.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.22 p.144
+           Referenced by ls (M).
         """
         return self.coterminal_angle(self._poly(
             tc, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
 
     def _moon_latitude(self, tc:float) -> float:
         """
-        Meeus--AA ch.22 p.144
 
-        Referenced by ff (F).
+        :param tc: Time in Julian centuries.
+        :type tc: float
+        :return: Moon latitude.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.22 p.144
+           Referenced by ff (F).
         """
         return self.coterminal_angle(self._poly(
             tc, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
 
     def _mean_moon_elongation(self, tc:float) -> float:
         """
-        Meeus--AA ch22 p144
 
-        Referenced by dd (D).
+        :param tc: Time in Julian centuries.
+        :type tc: float
+        :return: Mean moon elongation.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch22 p144
+           Referenced by dd (D).
         """
         return self.coterminal_angle(self._poly(
             tc, (297.85036, 445267.11148, -0.0019142, 1 / 189474)))
@@ -569,9 +607,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Longitude of the ascending node of the Moon’s mean orbit on the
         ecliptic, measured from the mean equinox of the date:
 
-        Meeus--AA ch22 p144
+        :param tc: Time in Julian centuries.
+        :type tc: float
+        :return: Moon ascending node longitude.
+        :rtype: float
 
-        Referenced by om (omega).
+        .. note::
+
+           Meeus--AA ch22 p144
+           Referenced by om (omega).
         """
         return self.coterminal_angle(self._poly(
             tc, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
@@ -615,6 +659,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         .. note::
 
            Meeus--AA ch.25 p.163 Eq.25.2
+           References by L0
         """
         return self.coterminal_angle(self._poly(
             tc, (280.46646, 36000.76983, 0.0003032)))
@@ -631,7 +676,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Meeus--AA ch.25 p.164
         """
-        m = self._sun_mean_anomaly(tc)
+        m = self._sun_earth_mean_anomaly(tc)
         return ((1.914602 - 0.004817 * tc - 0.000014 * tc**2) *
                 self.sin_deg(m) + (0.019993 - 0.000101 * tc) *
                 self.sin_deg(2 * m) + 0.000290 * self.sin_deg(3 * m))
@@ -651,6 +696,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _sun_apparent_longitude(self, tc:float) -> float:
         """
         Meeus--AA p.164
+        This has a less accurate result.
+        apparent_solar_longitude() should be more acurate.
         """
         sol = self._sun_true_longitude(tc)
         om = self._moon_ascending_node_longitude(tc)
@@ -662,7 +709,16 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         to 360°) from the vernal equinox, positive to the east, along the
         celestial equator.
 
-        Meeus--AA ch.25 p.165 Eq.25.6
+        :param jde: Julian day.
+        :type jde: float
+        :param app: If True the apparent right ascension is returned, if False 
+        :type, app: bool
+        :return: The apparent declination of the sun in radians.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.25 p.165 Eq.25.6
         """
         tc = self.julian_centuries(jde)
         om = self._moon_ascending_node_longitude(tc)
@@ -686,6 +742,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param jde: Julian day.
         :type jde: float
+        :param app: If True the apparent declination is returned, if
+        :type, app: bool
         :return: The apparent declination of the sun in radians.
         :rtype: float
 
@@ -695,8 +753,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         tc = self.julian_centuries(jde)
         om = self._moon_ascending_node_longitude(tc)
-        eps = (self.true_obliquity_of_ecliptic(jde) + 0.00256 -
-               self.cos_deg(om))
+        eps = self.true_obliquity_of_ecliptic(jde) + 0.00256 - self.cos_deg(om)
         lam = self._sun_apparent_longitude(tc)
         return math.degrees(math.asin(self.sin_deg(eps) * self.sin_deg(lam)))
 
@@ -788,7 +845,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         l = self._heliocentric_ecliptical_longitude(tm, degrees=False)
         l += math.pi
         # Convert to FK5 notation
-        l -= math.radians(0.000025) # -0".09033
+        l -= math.radians(2.5091666666666666e-05) # -0".09033
         l += self.nutation_longitude(jde, degrees=False)
         # eq 25.11
         l += self._aberration(tm)
@@ -810,9 +867,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         b *= -1 # Invert the result
         # Convert to FK5 notation
         l = self.apparent_solar_longitude(jde, degrees=False)
-        #b1 = self._poly(tc, (l, -1.397, -0.00031))
-        b1 = self._poly(tc, (l, -0.024382249650360784,
-                             -0.000005410520681182421))
+        b1 = self._poly(tc, (l, -1.397, -0.00031))
         bd = (math.radians(0.000010877777777777778) *
               (math.cos(b1) - math.sin(b1)))
         b += bd
