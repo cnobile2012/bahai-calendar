@@ -138,12 +138,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # Meeus Astronomical Algorithms
     #
 
-    def delta_t(self, jde:float) -> float:
+    def delta_t(self, jd:float) -> float:
         """
         Calculate the value of ΔT=TT−UT.
+        Only the year and month are considered, days, hoursm minutes, and
+        seconds are ignored.
 
-        :param jde: Julian day.
-        :type jde: float
+        :param jd: Julian day.
+        :type jd: float
         :return: The delta t.
         :rtype: float
 
@@ -153,14 +155,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
-        g_date = gc.gregorian_date_from_jd(jde)
+        g_date = gc.gregorian_date_from_jd(jd)
         year = g_date[0] + (g_date[1] - 0.5) / 12
+        func = lambda year: -20 + 32 * ((year - 1820) / 100)**2
 
         if year < -500:
-            u = (year - 1820) / 100
-            dt = -20 + 32 * u**2
+            dt = func(year)
         elif year < 500:
-            u = (year - 1000) / 100
+            u = year / 100
             dt = self._poly(u, (10583.6, -1014.41, 33.78311, -5.952053,
                                 -0.1798452, 0.022174192, 0.0090316521))
         elif year < 1600:
@@ -189,7 +191,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                 -0.000197))
         elif year < 1941:
             u = year - 1920
-            dt = self._poly(u, (21.20, 0.84493, -0.076100, 0.0020936))
+            dt = self._poly(u, (21.20, 0.84493, -0.0761, 0.0020936))
         elif year < 1961:
             u = year - 1950
             dt = self._poly(u, (29.07, 0.407, -1 / 233, 1 / 2547))
@@ -206,8 +208,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         elif year < 2150:
             dt = -20 + 32 * ((year - 1820) / 100)**2 - 0.5628 * (2150 - year)
         else: # 2150 >= year
-            u = (year - 1820) / 100
-            dt = 20 + 32 * u**2
+            dt = func(year)
 
         return dt
 
