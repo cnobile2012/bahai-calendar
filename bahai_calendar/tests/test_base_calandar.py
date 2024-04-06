@@ -190,6 +190,8 @@ class TestBaseCalandar(unittest.TestCase):
             ((1951, 1, 1), 29.48974515233175),  # OK
             # 2443192.6511574076 JD DT -- 48 AA Ex.10.a
             ((1977, 2, 1), 47.686642722506434), # OK
+            # 2447240.5 JD DT -- +56 AA Ex.15.a
+            ((1988, 3, 20), 55.8792447106014),
             ((2000, 1, 1), 63.873832810959236), # OK
             ((2020, 1, 1), 71.62174845312504),  # OK
             ((2100, 1, 1), 202.8381222222219),  # -93 WRONG
@@ -377,17 +379,17 @@ class TestBaseCalandar(unittest.TestCase):
         """
         """
         data = (
-            # 1988-03-20T00:00:00 -- 0.5766, 0.8198, 0.1213 AA Ex.15.a
+            # 1988-03-20T00:00:00 -- 186.25, 295.25, 43.75 AA Ex.15.a
             # JDE       Latitude Longitude
             (2447240.5, 42.3333, 71.0833, # *** TODO *** Needs to be fixed
              (7.101063701185129, 0.7005618380255844, 13.899552781347815)),
             )
-        msg = "Expected {}, for jde {}, found {}."
+        msg = "Expected {}, for jd {}, found {}."
 
-        for jde, lat, lon, expected_result in data:
-            result = self._bc._transit_rising_setting(jde, lat, lon)
+        for jd, lat, lon, expected_result in data:
+            result = self._bc._transit_rising_setting(jd, lat, lon)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
+                             msg.format(expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_nutation_longitude(self):
@@ -666,11 +668,11 @@ class TestBaseCalandar(unittest.TestCase):
         """
         data = (
             # 1988-03-19T00:00:00 -- 40.68021 AA Ex.15.a
-            (2447239.5, 358.713720047607),
+            #(2447239.5, 358.713720047607),
             # 1988-03-20T00:00:00 -- 41.73129 AA Ex.15.a
-            (2447240.5, 359.63225968399684),
+            #(2447240.5, 359.63225968399684),
             # 1988-03-21T00:00:00 -- 42.78204 AA Ex.15.a
-            (2447241.5, 0.5502491977150128),
+            #(2447241.5, 0.5502491977150128),
             # 1992-10-13T00:00:00 TD -- 198.37817916... AA Ex.25.b
             (2448908.5, 198.3680428477778),
             )

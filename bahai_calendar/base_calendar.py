@@ -399,14 +399,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         return
 
-    def _transit_rising_setting(self, jde:float, lat:float,
-                                lon:float) -> float:
+    def _transit_rising_setting(self, jd:float, lat:float, lon:float) -> float:
         """
         The transit is when the body crosses the local maridian at upper
         culmination.
 
-        :param jde: Julian day.
-        :type jde: float
+        :param jd: Julian day in UT.
+        :type jd: float
         :param lat: Geographic latitude positive north negative south.
         :type lat: float
         :param lon: Geographic longitude positive east negative west.
@@ -420,10 +419,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         func1 = lambda t, m: t + 360.98564736629 * m
-        dt = self.delta_t(jde)
-        h0 = self.approx_local_hour_angle(jde, lat)
-        ast = self.apparent_sidereal_time_greenwich(jde)
-        msrtg = self.mean_sidereal_time_greenwich(jde)
+        dt = self.delta_t(jd)
+        h0 = self.approx_local_hour_angle(jd, lat)
+        ast = self.apparent_sidereal_time_greenwich(jd)
+        msrtg = self.mean_sidereal_time_greenwich(jd)
+        jde = jd + dt # Convert to TD time.
         # Transit
         ra0 = self.sun_apparent_right_ascension(jde - 1)
         ra1 = self.sun_apparent_right_ascension(jde)
@@ -432,7 +432,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         srtg0 = func1(msrtg, m0)
         ha = srtg0 - lon - ra0
         srt0 = ast + 360.985647 * m0
-        tt0 = self.interpolation_from_three(ra0, ra1, ra2, m0 * dt / 86400)
+        tt0 = self.interpolation_from_three(ra0, ra1, ra2, m0 * dt / 86400,
+                                            norm=True)
         h = srt0 + lon - tt0
         d0 = - h / 360
         # Rising
@@ -448,13 +449,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         # Setting
         m2 = func0(m0 + h0 / 360)
         srtg2 = func1(msrtg, m2)
-        srt1 = ast + 360.985647 * m2
+        srt2 = ast + 360.985647 * m2
         tt2 = self.interpolation_from_three(de0, de1, de2, m2 * dt / 86400)
         h = srt1 + lon - tt1
         d2 = (h - h0) / (360 * math.cos(tt1) * math.cos(lat) * math.sin(h))
+        print('Ap Sidereal', ast)
         print('Alpha', ra0, ra1, ra2)
         print('Delta', de0, de1, de2)
-        print(m0, d0, m1, d1, m2, d2)
+        print('M', m1, m0, m2)
+        print('Sidreal', srt1, srt0, srt2)
+        print('D', d1, d0, d2)
+        print('Interpol', tt1, tt0, tt2)
         return m1 + d1, m0 + d0, m2 + d2
 
     def nutation_longitude(self, jde:float, *, degrees:bool=False) -> float:
@@ -1997,11 +2002,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         value = math.fmod(value, 360)
         return value + 360 if value < 0 else value
 
-    def interpolation_from_three(self, y1, y2, y3, n):
+    def interpolation_from_three(self, y1, y2, y3, n, norm=False):
         """
         Interpolate from three terms with a factor.
         """
         a = y2 - y1
         b = y3 - y2
+        a += 360 if norm and a < 0 else 0
+        b += 360 if norm and b < 0 else 0
         c = b - a
         return y2 + (n / 2) * (a + b + n * c)
