@@ -213,19 +213,15 @@ class TestBaseCalandar(unittest.TestCase):
         """
         data = (
             # 2446895.5 -- 197.693195 -- AA ch.12 p.88 Ex.12.a
-            ((1987, 4, 10), False, 197.693195090862),
-            # 2446895.5 --
-            ((1987, 4, 10), True, 97.02199065580498),
+            ((1987, 4, 10), 197.693195090862),
             # 128.73788708333333
-            ((1987, 4, 10, 19, 21), False, 128.73787324433215),
+            ((1987, 4, 10, 19, 21), 128.73787324433215),
             )
         msg = "Expected {}, for date {}, found {}."
 
-        for g_date, dt_time, expected_result in data:
-            fixed = self._gc.fixed_from_gregorian(g_date)
-            jde = self._gc.jd_from_fixed(fixed)
-            result = self._gc.mean_sidereal_time_greenwich(
-                jde, dt_time=dt_time)
+        for g_date, expected_result in data:
+            jde = self._gc.jd_from_gregorian_date(g_date)
+            result = self._gc.mean_sidereal_time_greenwich(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
@@ -350,6 +346,17 @@ class TestBaseCalandar(unittest.TestCase):
     def test_sunrise(self):
         """
         """
+        data = (
+            # 2447240.5 -- 12h25m 186.25 AA Ex.15.a
+            ((1988, 3, 20), 42.3333, 71.0833, 0),
+            )
+        msg = "Expected {}, for g_date {}, found {}."
+
+        for g_date, lat, lon, expected_result in data:
+            jde = self._gc.jd_from_gregorian_date(g_date)
+            result = self._bc.rising(jde, lat, lon)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, g_date, result))
 
     @unittest.skip("Temporarily skipped")
     def test_transit(self):
@@ -358,8 +365,8 @@ class TestBaseCalandar(unittest.TestCase):
         based on the jde.
         """
         data = (
-            # 2447240.5 -- 41.73129 AA Ex.15.a
-            ((1988, 3, 20), 42.3333, 71.0833, 40.26198211827278),
+            # 2447240.5 -- 19h41m 295.26 AA Ex.15.a
+            ((1988, 3, 20), 42.3333, 71.0833, 0),
             )
         msg = "Expected {}, for g_date {}, found {}."
 
@@ -373,6 +380,17 @@ class TestBaseCalandar(unittest.TestCase):
     def test_sunset(self):
         """
         """
+        data = (
+            # 2447240.5 -- 2h55m 43.75 AA Ex.15.a
+            ((1988, 3, 20), 42.3333, 71.0833, 0),
+            )
+        msg = "Expected {}, for g_date {}, found {}."
+
+        for g_date, lat, lon, expected_result in data:
+            jde = self._gc.jd_from_gregorian_date(g_date)
+            result = self._bc.setting(jde, lat, lon)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__transit_rising_setting(self):
@@ -674,7 +692,7 @@ class TestBaseCalandar(unittest.TestCase):
             # 1988-03-21T00:00:00 -- 42.78204 AA Ex.15.a
             #(2447241.5, 0.5502491977150128),
             # 1992-10-13T00:00:00 TD -- 198.37817916... AA Ex.25.b
-            (2448908.5, 198.3680428477778),
+            (2448908.5, 198.36804284777782),
             )
         msg = "Expected {}, for jde {}, found {}."
 
@@ -793,48 +811,48 @@ class TestBaseCalandar(unittest.TestCase):
         """
         data = (
             # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
-            (2460389.759722222, 359.7409391024212),   # 0
+            (2460389.759722222, 359.7409390107532),   # 0
             # (2024, 6, 20) Summer solstice 2024-06-20T20:50:23 UTC
-            (2460483.2388888886, 90.44982257807715),  # 90
+            (2460483.2388888886, 90.44982248640918),  # 90
             # (2024, 9, 22) Autumnal equinox 2024-09-22T12:43:12 UTC
-            (2460576.561111111, 180.16149734653118),  # 180
+            (2460576.561111111, 180.1614972548632),  # 180
             # (2024, 12, 21) Winter solstice 2024-12-21T09:19:54 UTC
-            (2460666.279166667, 270.07412024422774),  # 270
+            (2460666.279166667, 270.0741201525616),  # 270
             # (1800, 3, 20) Vernal equinox 1800-03-20T20:11:48 UTC
-            (2378575.181944445, 359.4017533721344),   # 0
+            (2378575.181944445, 359.4017532804719),   # 0
             # (1800, 6, 21) Summer solstice 1800-06-21T17:51:29 UTC
-            (2378667.9875, 89.32041254307842),        # 90
+            (2378667.9875, 89.3204124514159),        # 90
             # (1800, 9, 23) Autumnal equinox 1800-09-23T07:25:31 UTC
-            (2378761.118055556, 178.90744914601964),  # 180
+            (2378761.118055556, 178.90744905435713),  # 180
             # (1800, 12, 22) Winter solstice 1800-12-22T00:16:24
-            (2378850.5222222223, 268.6150866156968),  # 270
+            (2378850.5222222223, 268.61508652403427),  # 270
             # (2073, 3, 20) Vernal equinox 2073-03-20T00:12:24 UTC
-            (2478286.520833333, 359.55382417912915),  # 0
+            (2478286.520833333, 359.553824087463),  # 0
             # (2073, 6, 20) Summer solstice 2073-06-20T17:06:18 UTC
-            (2478379.927777778, 90.19736702867522),   # 90
+            (2478379.927777778, 90.19736693700906),   # 90
             # (2073, 9, 22) Autumnal equinox 2073-09-22T09:14:10 UTC
-            (2478473.2736111116, 179.87106333948395), # 180
+            (2478473.2736111116, 179.8710632478178), # 180
             # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
-            (2478563.072222222, 269.78000861160035),  # 270
+            (2478563.072222222, 269.7800085199342),  # 270
             # All the dates below are from the CC Appendix C Sample Data p452
             # (-586, 7, 24)
-            (1507231.5, 118.20715439715423), # 118.98911336371384
+            (1507231.5, 118.20715430541895), # 118.98911336371384
             # (576, 5, 20)
-            (1931579.5, 58.47508549853228),  # 59.119741
+            (1931579.5, 58.475085406855214),  # 59.119741
             # (1288, 4, 2)
-            (2191584.5, 12.81621404417092),  # 13.498220
+            (2191584.5, 12.81621395246475),  # 13.498220
             # (1553, 9, 19)
-            (2288542.5, 175.00332594895735), # 176.059431
+            (2288542.5, 175.0033258572803), # 176.059431
             # (1768, 6, 19)
-            (2366978.5, 88.02759601677826),  # 88.567428
+            (2366978.5, 88.02759592511575),  # 88.567428
             # (1941, 9, 29)
-            (2430266.5, 185.0902245414036),  # 185.945867
+            (2430266.5, 185.0902244497338),  # 185.945867
             # (2038, 11, 10)
-            (2465737.5, 227.07078353595352), # 228.184879
+            (2465737.5, 227.07078344428737), # 228.184879
             # (2094, 7, 18)
-            (2486076.5, 115.38121325604152), # 116.439352
+            (2486076.5, 115.381213164379), # 116.439352
             # 1992-10-13T00:00:00 DT -- 199.9060605... AA Ex.25.b
-            (2448908.5, 199.83513402927247),
+            (2448908.5, 199.8351339376054),
             )
         msg = "Expected {}, for jde {}, found {}."
 

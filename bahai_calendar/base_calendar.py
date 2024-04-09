@@ -424,6 +424,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         ast = self.apparent_sidereal_time_greenwich(jd)
         msrtg = self.mean_sidereal_time_greenwich(jd)
         jde = jd + dt # Convert to TD time.
+        h0 = self.approx_local_hour_angle(jde, lat)
         # Transit
         ra0 = self.sun_apparent_right_ascension(jde - 1)
         ra1 = self.sun_apparent_right_ascension(jde)
@@ -453,6 +454,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         tt2 = self.interpolation_from_three(de0, de1, de2, m2 * dt / 86400)
         h = srt1 + lon - tt1
         d2 = (h - h0) / (360 * math.cos(tt1) * math.cos(lat) * math.sin(h))
+        print('h0', h0)
         print('Ap Sidereal', ast)
         print('Alpha', ra0, ra1, ra2)
         print('Delta', de0, de1, de2)
@@ -709,7 +711,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         om = self._moon_ascending_node_longitude(tc)
         return sol - 0.00569 - 0.00478 * self.sin_deg(om)
 
-    def sun_apparent_right_ascension(self, jde:float, app:bool=True) -> float:
+    def sun_apparent_right_ascension(self, jde:float) -> float:
         """
         Right ascension is measured (from 0 to 24 hours, sometimes from 0°
         to 360°) from the vernal equinox, positive to the east, along the
@@ -717,8 +719,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param jde: Julian day.
         :type jde: float
-        :param app: If True the apparent right ascension is returned, if False 
-        :type, app: bool
         :return: The apparent declination of the sun in radians.
         :rtype: float
 
@@ -728,20 +728,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         tc = self.julian_centuries(jde)
         om = self._moon_ascending_node_longitude(tc)
-
-        if app:
-            lam = self._sun_apparent_longitude(tc)
-            eps_cor = 0.00256 - self.cos_deg(om)
-        else:
-            lam = self._sun_true_longitude(tc)
-            eps_cor = 0
-
-        eps = self.true_obliquity_of_ecliptic(jde) + eps_cor
+        eps = self.true_obliquity_of_ecliptic(jde) + 0.00256 - self.cos_deg(om)
+        lam = self._sun_apparent_longitude(tc)
         alpha = math.degrees(math.atan2(self.cos_deg(eps) * self.sin_deg(lam),
                                         self.cos_deg(lam)))
         return self.coterminal_angle(alpha)
 
-    def sun_apparent_declination(self, jde:float, app:bool=True) -> float:
+    def sun_apparent_declination(self, jde:float) -> float:
         """
         Declination is measured (from 0° to +90°) from the equator, positive
         to the north, negative to the south.
