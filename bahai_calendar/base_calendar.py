@@ -212,14 +212,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return dt
 
-    def mean_sidereal_time_greenwich(self, jd:float) -> float:
+    def _mean_sidereal_time_greenwich(self, tc:float) -> float:
         """
         Mean sidereal time at Greenwich. (GMST) If the hour angle is
         measured with respect to the mean equinox, mean sidereal time is
         being measured.
 
-        :param jd: Julian day.
-        :type jd: float
+        :param tc: Julian century.
+        :type tc: float
         :return: The mean sidereal time at Greenwich .
         :rtype: float
 
@@ -227,19 +227,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus--AA ch.12 p.88 Eq.12.3
         """
-        tc = self.julian_centuries(jd)
         return self.coterminal_angle(280.46061837 + 360.98564736629 *
-                                     (jd - self.J2000) +
-                                     0.000387933 * tc**2 - tc**3 / 38710000)
+                                     (tc * 36525) + 0.000387933 *
+                                     tc**2 - tc**3 / 38710000)
 
-    def apparent_sidereal_time_greenwich(self, jde:float) -> float:
+    def _apparent_sidereal_time_greenwich(self, tc:float) -> float:
         """
         The apparent sidereal time, or the Greenwich. (GAST) If the hour
         angle is measured with respect to the true equinox, apparent
         sidereal time is being measured.
 
-        :param jde: Julian day.
-        :type jde: float
+        :param tc: Julian century.
+        :type tc: float
         :return: The apparent sidereal time at Greenwich.
         :rtype: float
 
@@ -247,12 +246,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus--AA ch.12 p.88
         """
-        t0 = self.mean_sidereal_time_greenwich(jde)
-        eps = self.true_obliquity_of_ecliptic(jde)
-        d_psi = self.nutation_longitude(jde)
+        t0 = self._mean_sidereal_time_greenwich(tc)
+        eps = self._true_obliquity_of_ecliptic(tc)
+        d_psi = self._nutation_longitude(tc)
         return self.coterminal_angle(t0 + d_psi * self.cos_deg(eps))
 
-    ## def ecliptic_longitude(self, jde:float) -> float:
+    ## def ecliptic_longitude(self, tc:float) -> float:
     ##     """
     ##     Celestial longitude, or ecliptical longitude, often called simply
     ##     longitude, is measured (from 0° to 360°) from the vernal equinox,
@@ -260,9 +259,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     ##     Meeus--AA ch.13 p.93 Eq.13.1
     ##     """
-    ##     alpha = self.sun_apparent_right_ascension(jde)
-    ##     delta = self.sun_apparent_declination(jde)
-    ##     epsilon = self.true_obliquity_of_ecliptic(jde)
+    ##     alpha = self._sun_apparent_right_ascension(tc)
+    ##     delta = self._sun_apparent_declination(tc)
+    ##     epsilon = self._true_obliquity_of_ecliptic(tc)
     ##     lam = math.degrees(
     ##         math.atan2(self.sin_deg(alpha) * self.cos_deg(epsilon) +
     ##                    math.tan(delta) * self.cos_deg(epsilon),
@@ -270,7 +269,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     ##     print(alpha, delta, epsilon, lam)
     ##     return self.coterminal_angle(lam)
 
-    ## def ecliptic_latitude(self, jde:float) -> float:
+    ## def ecliptic_latitude(self, tc:float) -> float:
     ##     """
     ##     Celestial latitude, or ecliptical latitude, or simply latitude,
     ##     is measured (from 0° to +90° or to —90°) from the ecliptic,
@@ -278,9 +277,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     ##     Meeus--AA ch.13 p.93 Eq.13.2
     ##     """
-    ##     alpha = self.sun_apparent_right_ascension(jde)
-    ##     delta = self.sun_apparent_declination(jde)
-    ##     epsilon = self.true_obliquity_of_ecliptic(jde)
+    ##     alpha = self._sun_apparent_right_ascension(tc)
+    ##     delta = self._sun_apparent_declination(tc)
+    ##     epsilon = self._true_obliquity_of_ecliptic(tc)
     ##     beta = math.degrees((self.sin_deg(delta) * self.cos_deg(epsilon) -
     ##                          self.cos_deg(delta) * self.sin_deg(epsilon) *
     ##                          cos_deg(alpha)))
@@ -319,26 +318,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     ##         self.sin_deg())
     ##     return self.coterminal_angle(delta)
 
-    def azimuth(self, ):
-        """
-        Azimuth, measured westward from the Souh in degrees.
-
-        Meeus--AA p.93 Eq.13.5
-        """
-        return
-
     def altitude(self, phi, delta, h):
         """
         Altitude, positive above the horizon, negative below in degrees.
 
         Meeus--AA p.93 Eq.13.6
         """
-        return (math.degrees(math.asin(
+        return math.degrees(math.asin(
             self.sin_deg(phi) * self.sin_deg(delta) + self.cos_deg(phi) *
-            self.cos_deg(delta) * self.cos_deg(h))))
+            self.cos_deg(delta) * self.cos_deg(h)))
 
-    def approx_local_hour_angle(self, jde:float, lat:float,
-                                offset:float=SUN_OFFSET) -> float:
+    def _approx_local_hour_angle(self, tc:float, lat:float,
+                                 offset:float=SUN_OFFSET) -> float:
         """
         Approximate local hour angle, measured westwards from the South
         in degrees.
@@ -350,8 +341,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         expressed in hours and minutes, is the time elapsed since the
         celestial body’s last transit of the observer’s meridian.
 
-        :param jde: Julian day.
-        :type jde: float
+        :param tc: Julian century.
+        :type tc: float
         :param lat: Latitude in decimal
         :type lat: float
         :param offset: A constant “standard” altitude, i.e., the geometric
@@ -372,7 +363,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
               360° then subtract 360° (6.283185307179586 radians).
               https://www.quora.com/How-do-I-calculate-the-hour-angle
         """
-        delta = self.sun_apparent_declination(jde)
+        delta = self._sun_apparent_declination(tc)
         cos_h0 = ((self.sin_deg(-offset) - self.sin_deg(lat) *
                    self.sin_deg(delta)) / (self.cos_deg(lat) *
                                            self.cos_deg(delta)))
@@ -419,78 +410,107 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         func1 = lambda t, m: t + 360.98564736629 * m
-        dt = self.delta_t(jd)
-        h0 = self.approx_local_hour_angle(jd, lat)
-        ast = self.apparent_sidereal_time_greenwich(jd)
-        msrtg = self.mean_sidereal_time_greenwich(jd)
-        jde = jd + dt # Convert to TD time.
-        h0 = self.approx_local_hour_angle(jde, lat)
-        # Transit
-        ra0 = self.sun_apparent_right_ascension(jde - 1)
-        ra1 = self.sun_apparent_right_ascension(jde)
-        ra2 = self.sun_apparent_right_ascension(jde + 1)
-        m0 = func0((ra0 - lon - ast) / 360)
-        srtg0 = func1(msrtg, m0)
-        ha = srtg0 - lon - ra0
-        srt0 = ast + 360.985647 * m0
-        tt0 = self.interpolation_from_three(ra0, ra1, ra2, m0 * dt / 86400,
-                                            norm=True)
-        h = srt0 + lon - tt0
-        d0 = - h / 360
-        # Rising
-        de0 = self.sun_apparent_declination(jde - 1)
-        de1 = self.sun_apparent_declination(jde)
-        de2 = self.sun_apparent_declination(jde + 1)
-        m1 = func0(m0 - h0 / 360)
-        srtg1 = func1(msrtg, m1)
-        srt1 = ast + 360.985647 * m1
-        tt1 = self.interpolation_from_three(de0, de1, de2, m1 * dt / 86400)
-        h = srt1 + lon - tt1
-        d1 = (h - h0) / (360 * math.cos(tt1) * math.cos(lat) * math.sin(h))
-        # Setting
-        m2 = func0(m0 + h0 / 360)
-        srtg2 = func1(msrtg, m2)
-        srt2 = ast + 360.985647 * m2
-        tt2 = self.interpolation_from_three(de0, de1, de2, m2 * dt / 86400)
-        h = srt1 + lon - tt1
-        d2 = (h - h0) / (360 * math.cos(tt1) * math.cos(lat) * math.sin(h))
-        print('h0', h0)
-        print('Ap Sidereal', ast)
-        print('Alpha', ra0, ra1, ra2)
-        print('Delta', de0, de1, de2)
-        print('M', m1, m0, m2)
-        print('Sidreal', srt1, srt0, srt2)
-        print('D', d1, d0, d2)
-        print('Interpol', tt1, tt0, tt2)
-        return m1 + d1, m0 + d0, m2 + d2
 
-    def nutation_longitude(self, jde:float, *, degrees:bool=False) -> float:
+        tc = self.julian_centuries(jd)
+        ast = self._apparent_sidereal_time_greenwich(tc)
+        dt = self.delta_t(jd)
+        tc_td = tc - (dt / (3600 * 24 * 36525))  # Convert to TD time.
+        h0 = self._approx_local_hour_angle(tc, lat)
+        # Transit
+        ra = self._sun_apparent_right_ascension(tc_td)
+        m0 = func0((ra - lon - ast) / 360)
+        print(m0)
+        m0d = self._transit_correction(tc, ast, dt, lon, m0)
+        m0 += m0d
+        # Rising
+
+        ## de0 = self._sun_apparent_declination(jde - 1)
+        ## de1 = self._sun_apparent_declination(jde)
+        ## de2 = self._sun_apparent_declination(jde + 1)
+        ## m1 = func0(m0 - h0 / 360)
+        ## srtg1 = func1(msrtg, m1)
+        ## srt1 = ast + 360.985647 * m1
+        ## tt1 = self.interpolation_from_three(de0, de1, de2, m1 * dt / 86400)
+        ## h = srt1 + lon - tt1
+        ## d1 = (h - h0) / (360 * math.cos(tt1) * math.cos(lat) * math.sin(h))
+        ## # Setting
+
+        ## m2 = func0(m0 + h0 / 360)
+        ## srtg2 = func1(msrtg, m2)
+        ## srt2 = ast + 360.985647 * m2
+        ## tt2 = self.interpolation_from_three(de0, de1, de2, m2 * dt / 86400)
+        ## h = srt1 + lon - tt1
+        ## d2 = (h - h0) / (360 * math.cos(tt1) * math.cos(lat) * math.sin(h))
+        print('jd', jd, 'tc', tc, 'dt', dt, 'tc_td', tc_td, 'h0', h0)
+        print('ast', ast, 'ra', ra)
+        #print('Delta', de0, de1, de2)
+        print('m0d', m0d)
+        #print('Sidereal', srt1, srt0, srt2)
+        #print('Interpol', tt1, tt0, tt2)
+        return 0, m0, 0
+
+    def _transit_correction(self, tc, ast, dt, lon, m):
+        """
+        """
+        ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
+        ra1 = self._sun_apparent_right_ascension(tc)
+        ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
+        srt = ast + 360.98564736629 * m
+        alpha = self.interpolation_from_three(ra0, ra1, ra2, m * dt / 86400)
+        h = self.local_hour_angle(srt, lon, alpha)
+        print('Alpha', ra0, ra1, ra2, alpha)
+        print('Sidreal', srt, 'h', h)
+        return -h / 360
+
+    def _rise_set_correction(self, jde, ast, dt, msrtg, lon, m):
+        """
+        """
+        ra0 = self._sun_apparent_right_ascension(jde - 1)
+        ra1 = self._sun_apparent_right_ascension(jde)
+        ra2 = self._sun_apparent_right_ascension(jde + 1)
+        de0 = self._sun_apparent_declination(jde - 1)
+        de1 = self._sun_apparent_declination(jde)
+        de2 = self._sun_apparent_declination(jde + 1)
+        srtg = msrtg + 360.98564736629 * m
+        srt = ast + 360.98564736629 * m
+        alpha0 = self.interpolation_from_three(ra0, ra1, ra2, m * dt / 86400)
+        alpha1 = self.interpolation_from_three(de0, de1, de2, m * dt / 86400)
+        h = self.local_hour_angle(srt, lon, alpha1)
+        alt = self.altitude(srtg, lon, h)
+        return 
+
+    def local_hour_angle(self, srt, lon, alpha):
+        """
+        Meeus-AA p.103
+        """
+        h = self.coterminal_angle(srt + lon - alpha)
+        return h if h <= 180 else h - 360
+
+    def _nutation_longitude(self, tc:float, *, degrees:bool=False) -> float:
         """
         Nutation longitude of the Earth's axis around it's 'mean' position.
         """
-        day, lon_sum, deg = self._nutation['lon']
+        tc_day, lon_sum, deg = self._nutation['lon']
 
-        if jde != day or degrees != deg:
-            tc = self.julian_centuries(jde)
+        if tc != tc_day or degrees != deg:
             lon_sum, obl_sum = self._nutation_obliquity_longitude(
                 tc, degrees=degrees)
-            self._nutation['lon'] = (jde, lon_sum, degrees)
-            self._nutation['obl'] = (jde, obl_sum, degrees)
+            self._nutation['lon'] = (tc, lon_sum, degrees)
+            self._nutation['obl'] = (tc, obl_sum, degrees)
 
         return self._nutation['lon'][1]
 
-    def nutation_obliquity(self, jde:float, *, degrees:bool=False) -> float:
+    def _nutation_obliquity(self, tc:float, *, degrees:bool=False) -> float:
         """
         Nutation obliquity of the Earth's equator around it's 'mean' position.
         """
-        day, obj_sum, deg = self._nutation['obl']
+        tc_day , obj_sum, deg = self._nutation['obl']
 
-        if jde != day or degrees != deg:
-            tc = self.julian_centuries(jde)
+        if tc != tc_day or degrees != deg:
             lon_sum, obl_sum = self._nutation_obliquity_longitude(
                 tc, degrees=degrees)
-            self._nutation['lon'] = (jde, lon_sum, degrees)
-            self._nutation['obl'] = (jde, obl_sum, degrees)
+            self._nutation['lon'] = (tc, lon_sum, degrees)
+            self._nutation['obl'] = (tc, obl_sum, degrees)
 
         return self._nutation['obl'][1]
 
@@ -628,12 +648,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return self.coterminal_angle(self._poly(
             tc, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
 
-    def true_obliquity_of_ecliptic(self, jde:float) -> float:
+    def _true_obliquity_of_ecliptic(self, tc:float) -> float:
         """
         The obliquity of the ecliptic, or inclination of the Earth’s axis
         of rotation, is the angle between the equator and the ecliptic.
 
-        :param jde: Julian day.
+        :param jde: Julian century.
         :type jde: float
         :return: The obliquity of the ecliptic in degrees as a decimal.
         :rtype: float
@@ -644,7 +664,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Convert lots of things:
            https://www.xconvert.com/unit-converter/arcseconds-to-degrees
         """
-        tc = self.julian_centuries(jde)
         u = tc / 100
         mean_ob = self._poly(u, (23.43929111111111, -1.3002583333333335,
                                  -0.00043055555555555555, 0.5553472222222222,
@@ -652,7 +671,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                  -0.010847222222222222, 0.001977777777777778,
                                  0.007741666666666667, 0.0016083333333333334,
                                  0.0006805555555555556))
-        return mean_ob + self.nutation_obliquity(tc)
+        return mean_ob + self._nutation_obliquity(tc)
 
     def _sun_mean_longitude(self, tc:float) -> float:
         """
@@ -711,14 +730,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         om = self._moon_ascending_node_longitude(tc)
         return sol - 0.00569 - 0.00478 * self.sin_deg(om)
 
-    def sun_apparent_right_ascension(self, jde:float) -> float:
+    def _sun_apparent_right_ascension(self, tc:float) -> float:
         """
         Right ascension is measured (from 0 to 24 hours, sometimes from 0°
         to 360°) from the vernal equinox, positive to the east, along the
         celestial equator.
 
-        :param jde: Julian day.
-        :type jde: float
+        :param tc: Julian century.
+        :type tc: float
         :return: The apparent declination of the sun in radians.
         :rtype: float
 
@@ -726,21 +745,20 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus--AA ch.25 p.165 Eq.25.6
         """
-        tc = self.julian_centuries(jde)
         om = self._moon_ascending_node_longitude(tc)
-        eps = self.true_obliquity_of_ecliptic(jde) + 0.00256 - self.cos_deg(om)
+        eps = self._true_obliquity_of_ecliptic(tc) + 0.00256 - self.cos_deg(om)
         lam = self._sun_apparent_longitude(tc)
         alpha = math.degrees(math.atan2(self.cos_deg(eps) * self.sin_deg(lam),
                                         self.cos_deg(lam)))
         return self.coterminal_angle(alpha)
 
-    def sun_apparent_declination(self, jde:float) -> float:
+    def _sun_apparent_declination(self, tc:float) -> float:
         """
         Declination is measured (from 0° to +90°) from the equator, positive
         to the north, negative to the south.
 
-        :param jde: Julian day.
-        :type jde: float
+        :param tc: Julian century.
+        :type tc: float
         :param app: If True the apparent declination is returned, if
         :type, app: bool
         :return: The apparent declination of the sun in radians.
@@ -750,9 +768,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus--AA ch.25 p165 Eq25.7
         """
-        tc = self.julian_centuries(jde)
         om = self._moon_ascending_node_longitude(tc)
-        eps = self.true_obliquity_of_ecliptic(jde) + 0.00256 - self.cos_deg(om)
+        eps = self._true_obliquity_of_ecliptic(tc) + 0.00256 - self.cos_deg(om)
         lam = self._sun_apparent_longitude(tc)
         return math.degrees(math.asin(self.sin_deg(eps) * self.sin_deg(lam)))
 
@@ -845,7 +862,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         l += math.pi
         # Convert to FK5 notation
         l -= math.radians(2.5091666666666666e-05) # -0".09033
-        l += self.nutation_longitude(jde, degrees=False)
+        # Convert to centuries
+        l += self._nutation_longitude(tm * 10, degrees=False)
         # eq 25.11
         l += self._aberration(tm)
 
@@ -1918,8 +1936,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param coord: The decimal coordinant.
         :type coord: float
         :param direction: The direction part of the coordinate which can be
-                          any of the following N, S, E, W in upper or lower
-                          case.
+                          either of the following 'LAT' or 'LON' in upper
+                          or lower case.
         :type direction: str
         :return: The degree, minute, second, and direction for of the
                  coordinate.
@@ -1995,13 +2013,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         value = math.fmod(value, 360)
         return value + 360 if value < 0 else value
 
-    def interpolation_from_three(self, y1, y2, y3, n, norm=False):
+    def interpolation_from_three(self, y1, y2, y3, n):
         """
         Interpolate from three terms with a factor.
         """
         a = y2 - y1
         b = y3 - y2
-        a += 360 if norm and a < 0 else 0
-        b += 360 if norm and b < 0 else 0
         c = b - a
         return y2 + (n / 2) * (a + b + n * c)
