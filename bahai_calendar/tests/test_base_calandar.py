@@ -383,7 +383,7 @@ class TestBaseCalandar(unittest.TestCase):
                              msg.format(expected_result, g_date, result))
 
     @unittest.skip("Temporarily skipped")
-    def test_sunrise(self):
+    def test__sun_sunrise(self):
         """
         """
         data = (
@@ -394,30 +394,30 @@ class TestBaseCalandar(unittest.TestCase):
 
         for g_date, lat, lon, expected_result in data:
             jde = self._gc.jd_from_gregorian_date(g_date)
-            result = self._bc.rising(jde, lat, lon)
+            result = self._bc._sun_rising(jde, lat, lon)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test_transit(self):
+    #@unittest.skip("Temporarily skipped")
+    def test__sun_transit(self):
         """
         Test that the test_transit method returns the correct transition
         based on the jde.
         """
         data = (
-            # 2447240.5 -- 19h41m 295.26 AA Ex.15.a
-            ((1988, 3, 20), 42.3333, 71.0833, 0),
+            # 1988-03-20T00:00:00 -- AA Ex.15.a 186.25, 295.25, 43.75
+            # JD        Longitude
+            (2447240.5, -71.0833, 16.81329689668822),
             )
-        msg = "Expected {}, for g_date {}, found {}."
+        msg = "Expected {}, for jd {}, found {}."
 
-        for g_date, lat, lon, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            result = self._bc.transit(jde, lat, lon)
+        for jd, lon, expected_result in data:
+            result = self._bc._sun_transit(jd, lon)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result))
+                             msg.format(expected_result, jd, result))
 
     @unittest.skip("Temporarily skipped")
-    def test_sunset(self):
+    def test__sun_sunset(self):
         """
         """
         data = (
@@ -428,28 +428,26 @@ class TestBaseCalandar(unittest.TestCase):
 
         for g_date, lat, lon, expected_result in data:
             jde = self._gc.jd_from_gregorian_date(g_date)
-            result = self._bc.setting(jde, lat, lon)
+            result = self._bc._sun_setting(jde, lat, lon)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__transit_rising_setting(self):
+    def test__rising_setting(self):
         """
         """
         data = (
             # 1988-03-20T00:00:00 -- AA Ex.15.a 186.25, 295.25, 43.75
-            # deltaT=55.8792447106014, T=-0.1178507871321013,
-            # Theta0=177.74206503597088, TD=-0.11785080483916544,
-            # alpha=359.63435850814983, m=0.5054770344517455,
-            # DeltaM=-0.00010244990650423662
-            # JDE       Latitude Longitude
-            (2447240.5, 42.3333, -71.0833,
-             (7.101063701185129, 0.7005540373620093, 13.899552781347815)),
+            # JD        Latitude Longitude
+            (2447240.5, 42.3333, -71.0833, self._bc.STARS_PLANET_OFFSET,
+             (-0.04575891806252641, 0.9908854381803585)),
             )
         msg = "Expected {}, for jd {}, found {}."
 
-        for jd, lat, lon, expected_result in data:
-            result = self._bc._transit_rising_setting(jd, lat, lon)
+        for jd, lat, lon, offset, expected_result in data:
+            result0 = self._bc._rising_setting(jd, lat, lon, offset, 'rise')
+            result1 = self._bc._rising_setting(jd, lat, lon, offset, 'set')
+            result = (result0, result1)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, result))
 
