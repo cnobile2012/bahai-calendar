@@ -419,17 +419,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         tc_td = tc - (dt / (3600 * 24 * 36525))  # Convert to TD time.
         alpha = self._sun_apparent_right_ascension(tc_td)
         m = func0((alpha - lon - ast) / 360)
-        #print(m0)
         md = self._transit_correction(tc, ast, dt, lon, m)
-        return (m + md) * 24
+        print('ast', ast, 'alpha', alpha, 'm', m, 'md', md)
+        return m + md
 
     def _transit_correction(self, tc, ast, dt, lon, m):
         """
         """
+        srt = ast + 360.98564736629 * m
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
-        srt = ast + 360.98564736629 * m
         alpha = self.interpolation_from_three(ra0, ra1, ra2, m * dt / 86400)
         h = self.local_hour_angle(srt, lon, alpha)
         print('Alpha', ra0, ra1, ra2, alpha)
@@ -509,18 +509,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         #print('m0d', m0d)
         #print('Sidereal', srt1, srt0, srt2)
         #print('Interpol', tt1, tt0, tt2)
-        return m * 24
+        return m
 
     def _rise_set_correction(self, tc, ast, dt, lat, lon, m, offset):
         """
         """
+        srt = ast + 360.98564736629 * m
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
         de0 = self._sun_apparent_declination(tc - (1 / 36525))
         de1 = self._sun_apparent_declination(tc)
         de2 = self._sun_apparent_declination(tc + (1 / 36525))
-        srt = ast + 360.98564736629 * m
         alpha = self.interpolation_from_three(ra0, ra1, ra2, m * dt / 86400)
         delta = self.interpolation_from_three(de0, de1, de2, m * dt / 86400)
         h = self.local_hour_angle(srt, lon, alpha)
@@ -2054,6 +2054,16 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         m = (seconds - hours * 3600) / 60
         minutes = math.floor(m)
         return hours, minutes, m - minutes
+
+    def decimal_from_hms(self, hours, minutes, seconds):
+        """
+        """
+        return self.seconds_from_hms(hours, minutes, seconds) / 86400
+
+    def hms_from_decimal(self, dec):
+        """
+        """
+        return self.hms_from_seconds(dec * 86400)
 
     def coterminal_angle(self, value:float) -> float:
         """
