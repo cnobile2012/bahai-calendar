@@ -405,19 +405,27 @@ class TestBaseCalandar(unittest.TestCase):
         based on the jde.
         """
         data = (
-            # 1988-03-20T00:00:00 -- AA Ex.15.a 0.8198
+            # 1988-03-20T00:00:00 -- 0.5354166666666667 = 12:51 pm Alt 48 deg
+            # AA Ex.15.a 0.8198 at Boston, US
             # JD        Longitude
-            (2447240.5, -71.0833, 0.8198),
+            (2447240.5, -71.0833, -5.0, False, 0.4942390759493929),
+            # 2024-03-20T00:00:00 -- 0.5048611111111111 = 12:07 pm, Alt 39 deg
+            # Transit in Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
+            (2460389.5, -0.001545, 0, False, 0.5050898094694989),
             # 2024-03-20T00:00:00 -- 0.5076388888888889 = 12:11 pm, Alt 54 deg
-            # Vernal Equinox was at 2024-03-20T03:07:32 TD in Tehran
-            (2460389.5, 51.423056, 0),
+            # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
+            (2460389.5, 51.423056, 3.5, False, 0.5081038693636459),
+            # 2024-03-20T00:00:00 -- 0.5051123582525348 = 12:07:0.36179588
+            # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
+            (2460389.5, 51.423056, 0, True, 0.5051123582525348),
             )
-        msg = "Expected {}, for jd {}, found {}."
+        msg = "Expected {}, for jd {}, zone {}, and exact {}, found {}."
 
-        for jd, lon, expected_result in data:
-            result = self._bc._sun_transit(jd, lon)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jd, result))
+        for jd, lon, zone, exact, expected_result in data:
+            result = self._bc._sun_transit(jd, lon, zone=zone, exact=exact)
+            self.assertEqual(
+                expected_result, result,
+                msg.format(expected_result, jd, zone, exact, result))
 
     @unittest.skip("Temporarily skipped")
     def test__sun_sunset(self):
@@ -438,26 +446,45 @@ class TestBaseCalandar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test__rising_setting(self):
         """
+        https://www.timeanddate.com/sun/usa/boston?month=3&year=1988
+        rise=5.47 am, set=5.56 pm
+        lat 42.364506, lon -71.038887
+        (2447240.5, -71.0833, -5.0, 0),
         """
         data = (
-            # 1988-03-20T00:00:00 -- AA Ex.15.a 0.51766, 0.1213
-            # JD        Latitude Longitude
-            #(2447240.5, 42.3333, -71.0833, self._bc.STARS_PLANET_OFFSET,
-            # (0.51766, 0.1213)),
-            # 2024-03-20T00:00:00 -- (06:07 am, 18:16)
+            # 1988-03-20T00:00:00 -- 0.51766, 0.1213
+            # AA Ex.15.a  at Boston, US
+            # JD        Latitude Longitude zone  exact
+            #(2447240.5, 42.3333, -71.0833, -5.0, False,
+            # self._bc.STARS_PLANET_OFFSET, (0.51766, 0.1213)),
+            # 2024-03-20T00:00:00 -- (0.250694 = 6:01 am, 0.759027 = 6:13 pm)
+          # https://www.timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
+            # In Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
+            (2460389.5, 51.477928, -0.001545, 0, False, self._bc.SUN_OFFSET,
+             ()),
+            # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
             # https://www.timeanddate.com/sun/@112931?month=3&year=2024
-            # VE was at 2024-03-20T03:07:32 TD in Tehran
-            (2460389.5, 35.696111, 51.423056, self._bc.SUN_OFFSET,
+            # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
+            (2460389.5, 35.696111, 51.423056, 3.5, False, self._bc.SUN_OFFSET,
+             ()),
+            # 2024-03-20T00:00:00 -- ()
+            # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
+            (2460389.5, 35.696111, 51.423056, 0, True, self._bc.SUN_OFFSET,
              ()),
             )
-        msg = "Expected {}, for jd {}, found {}."
+        msg = "Expected {}, for jd {}, zone {}, exact {}, found {}."
 
-        for jd, lat, lon, offset, expected_result in data:
-            result0 = self._bc._rising_setting(jd, lat, lon, offset, 'rise')
-            result1 = self._bc._rising_setting(jd, lat, lon, offset, 'set')
+        for jd, lat, lon, zone, exact, offset, expected_result in data:
+            result0 = self._bc._rising_setting(
+                jd, lat, lon, zone=zone, exact=exact, offset=offset,
+                sr_ss='rise')
+            result1 = self._bc._rising_setting(
+                jd, lat, lon, zone=zone, exact=exact, offset=offset,
+                sr_ss='set')
             result = (result0, result1)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jd, result))
+            self.assertEqual(
+                expected_result, result,
+                msg.format(expected_result, jd, zone, exact, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__nutation_longitude(self):

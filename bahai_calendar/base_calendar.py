@@ -394,17 +394,22 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         return
 
-    def _sun_transit(self, jd:float, lon:float) -> float:
+    def _sun_transit(self, jd:float, lon:float, zone:float=0.0,
+                     exact:bool=False) -> float:
         """
         The transit is when the body crosses the local maridian at upper
         culmination.
 
         :param jd: Julian day in UT.
         :type jd: float
-        :param lat: Geographic latitude positive north negative south.
-        :type lat: float
         :param lon: Geographic longitude positive east negative west.
         :type lon: float
+        :param zone: This is the political timezone.
+        :type zone: float
+        :param exact: Derive the timezone from the longitude. The 'zone'
+                      parameter is not used if this is True, Default is
+                      False.
+        :type exact: bool
         :return:
         :rtype: float
 
@@ -412,6 +417,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
+        assert (-180 <= zone <= 180 and not exact) or (zone == 0 and exact), (
+            f"If exact is True then zone must be 0, found zone: {zone} "
+            f"and exact: {exact}.")
+        zone = zone if not exact else lon / 15
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self.julian_centuries(jd)
         ast = self._apparent_sidereal_time_greenwich(tc)
@@ -420,20 +429,19 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         alpha = self._sun_apparent_right_ascension(tc_td)
         m = func0((alpha - lon - ast) / 360)
         md = self._transit_correction(tc, ast, dt, lon, m)
-        print('ast', ast, 'alpha', alpha, 'm', m, 'md', md)
-        return m + md
+        m += md + self.decimal_from_hms(zone, 0, 0)
+        return m
 
     def _transit_correction(self, tc, ast, dt, lon, m):
         """
         """
         srt = ast + 360.98564736629 * m
+        n = m + dt / 864000
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
-        alpha = self.interpolation_from_three(ra0, ra1, ra2, m * dt / 86400)
-        h = self.local_hour_angle(srt, lon, alpha)
-        print('Alpha', ra0, ra1, ra2, alpha)
-        print('Sidreal', srt, 'h', h)
+        alpha = self.interpolation_from_three(ra0, ra1, ra2, n, True)
+        h = self._local_hour_angle(srt, lon, alpha)
         return -h / 360
 
     def _sun_setting(self, jd:float, lat:float, lon:float) -> float:
@@ -454,8 +462,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         return
 
-    def _rising_setting(self, jd:float, lat:float, lon:float,
-                        offset:float=SUN_OFFSET, sr_ss:str='RISE') -> float:
+    def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0,
+                        exact:bool=False, offset:float=SUN_OFFSET,
+                        sr_ss:str='RISE') -> float:
         """
 
         :param jd: Julian day in UT.
@@ -464,6 +473,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lat: float
         :param lon: Geographic longitude positive east negative west.
         :type lon: float
+        :param zone: This is the political timezone.
+        :type zone: float
+        :param exact: Derive the timezone from the longitude. The 'zone'
+                      parameter is not used if this is True, Default is
+                      False.
+        :type exact: bool
         :param offset: A constant “standard” altitude, i.e., the geometric
                        altitude of the center of the body at the time of
                        apparent rising or setting, namely,
@@ -481,12 +496,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
+        assert (-180 <= zone <= 180 and not exact) or (zone == 0 and exact), (
+            f"If exact is True then zone must be 0, found zone: {zone} "
+            f"and exact: {exact}.")
+        zone = zone if not exact else lon / 15
         flags = ('RISE', 'SET')
         sr_ss = sr_ss.upper()
         assert sr_ss in flags, (
             f"Invalid value, should be one of '{flag}' found '{sr_ss}'.")
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
-        func1 = lambda t, m: t + 360.98564736629 * m
         tc = self.julian_centuries(jd)
         ast = self._apparent_sidereal_time_greenwich(tc)
         dt = self.delta_t(jd)
@@ -496,44 +514,46 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         h0 = self._approx_local_hour_angle(tc, lat, offset=offset)
         m0 = func0((alpha - lon - ast) / 360)
         m = m0 - h0 / 360 if sr_ss == 'RISE' else m0 + h0 / 360
+
         print(m0, m, sr_ss)
 
-        for i in range(3):
-            dm = self._rise_set_correction(tc, ast, dt, lat, lon, m, offset)
-            m += dm
-            print(m, dm, sr_ss)
+        #for i in range(3):
+        dm = self._rise_set_correction(tc, ast, dt, lat, lon, m, offset)
+        m += dm
+        print(m, dm, sr_ss)
 
-        #print('jd', jd, 'tc', tc, 'dt', dt, 'tc_td', tc_td, 'h0', h0)
-        #print('ast', ast, 'ra', ra)
-        #print('Delta', de0, de1, de2)
-        #print('m0d', m0d)
-        #print('Sidereal', srt1, srt0, srt2)
-        #print('Interpol', tt1, tt0, tt2)
+        print('jd', jd, 'tc', tc, 'dt', dt, 'tc_td', tc_td)
+        print('ast', ast, 'alpha', alpha, 'delta', delta, 'h0', h0, 'm0', m0)
+        print('m', m, 'dm', dm)
+        m += self.decimal_from_hms(zone, 0, 0)
         return m
 
     def _rise_set_correction(self, tc, ast, dt, lat, lon, m, offset):
         """
         """
         srt = ast + 360.98564736629 * m
+        n = m + dt / 864000
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
         de0 = self._sun_apparent_declination(tc - (1 / 36525))
         de1 = self._sun_apparent_declination(tc)
         de2 = self._sun_apparent_declination(tc + (1 / 36525))
-        alpha = self.interpolation_from_three(ra0, ra1, ra2, m * dt / 86400)
-        delta = self.interpolation_from_three(de0, de1, de2, m * dt / 86400)
-        h = self.local_hour_angle(srt, lon, alpha)
+        alpha = self.interpolation_from_three(ra0, ra1, ra2, n, True)
+        delta = self.interpolation_from_three(de0, de1, de2, n)
+        print('Alpha', ra0, ra1, ra2, alpha, n)
+        print('Delta', de0, de1, de2, delta, n)
+        h = self._local_hour_angle(srt, lon, alpha)
         alt = self.altitude(srt, lon, h)
-        return (h - offset) / (360 * self.cos_deg(delta) *
-                               self.cos_deg(lat) * self.sin_deg(h))
+        return (alt - offset) / (360 * self.cos_deg(delta) *
+                                 self.cos_deg(lat) * self.sin_deg(alt))
 
-    def local_hour_angle(self, srt, lon, alpha):
+    def _local_hour_angle(self, srt, lon, alpha):
         """
         Meeus-AA p.103
         """
         h = self.coterminal_angle(srt + lon - alpha)
-        return h if h <= 180 else h - 360
+        return h - 360 if h > 180 else h
 
     def _nutation_longitude(self, tc:float, *, degrees:bool=False) -> float:
         """
@@ -2072,11 +2092,16 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         value = math.fmod(value, 360)
         return value + 360 if value < 0 else value
 
-    def interpolation_from_three(self, y1, y2, y3, n):
+    def interpolation_from_three(self, y1, y2, y3, n, normalize=False):
         """
         Interpolate from three terms with a factor.
         """
         a = y2 - y1
         b = y3 - y2
+
+        if normalize:
+            a += 360 if a < 0 else 0
+            b += 360 if b < 0 else 0
+
         c = b - a
         return y2 + (n / 2) * (a + b + n * c)
