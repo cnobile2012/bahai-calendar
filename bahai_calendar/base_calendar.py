@@ -436,7 +436,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         """
         srt = ast + 360.98564736629 * m
-        n = m + dt / 864000
+        n = m + dt / 86400
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
@@ -514,7 +514,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         h0 = self._approx_local_hour_angle(tc, lat, offset=offset)
         m0 = func0((alpha - lon - ast) / 360)
         m = m0 - h0 / 360 if sr_ss == 'RISE' else m0 + h0 / 360
-
         print(m0, m, sr_ss)
 
         #for i in range(3):
@@ -532,7 +531,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         """
         srt = ast + 360.98564736629 * m
-        n = m + dt / 864000
+        n = m + dt / 86400
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
@@ -541,10 +540,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         de2 = self._sun_apparent_declination(tc + (1 / 36525))
         alpha = self.interpolation_from_three(ra0, ra1, ra2, n, True)
         delta = self.interpolation_from_three(de0, de1, de2, n)
-        print('Alpha', ra0, ra1, ra2, alpha, n)
-        print('Delta', de0, de1, de2, delta, n)
+        print('srt', srt, 'n', n)
+        print('Alpha', ra0, ra1, ra2, alpha)
+        print('Delta', de0, de1, de2, delta)
         h = self._local_hour_angle(srt, lon, alpha)
         alt = self.altitude(srt, lon, h)
+        print('h', h, 'alt', alt)
         return (alt - offset) / (360 * self.cos_deg(delta) *
                                  self.cos_deg(lat) * self.sin_deg(alt))
 
@@ -815,7 +816,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch.25 p.165 Eq.25.6
         """
         om = self._moon_ascending_node_longitude(tc)
-        eps = self._true_obliquity_of_ecliptic(tc) + 0.00256 - self.cos_deg(om)
+        eps = self._true_obliquity_of_ecliptic(tc) + 0.00256 * self.cos_deg(om)
         lam = self._sun_apparent_longitude(tc)
         alpha = math.degrees(math.atan2(self.cos_deg(eps) * self.sin_deg(lam),
                                         self.cos_deg(lam)))
@@ -838,7 +839,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch.25 p165 Eq25.7
         """
         om = self._moon_ascending_node_longitude(tc)
-        eps = self._true_obliquity_of_ecliptic(tc) + 0.00256 - self.cos_deg(om)
+        eps = self._true_obliquity_of_ecliptic(tc) + 0.00256 * self.cos_deg(om)
         lam = self._sun_apparent_longitude(tc)
         return math.degrees(math.asin(self.sin_deg(eps) * self.sin_deg(lam)))
 

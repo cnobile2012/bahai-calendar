@@ -408,16 +408,16 @@ class TestBaseCalandar(unittest.TestCase):
             # 1988-03-20T00:00:00 -- 0.5354166666666667 = 12:51 pm Alt 48 deg
             # AA Ex.15.a 0.8198 at Boston, US
             # JD        Longitude
-            (2447240.5, -71.0833, -5.0, False, 0.4942390759493929),
+            (2447240.5, -71.0833, -5.0, False, 0.4942349168152792),
             # 2024-03-20T00:00:00 -- 0.5048611111111111 = 12:07 pm, Alt 39 deg
             # Transit in Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
-            (2460389.5, -0.001545, 0, False, 0.5050898094694989),
+            (2460389.5, -0.001545, 0, False, 0.5050849704586308),
             # 2024-03-20T00:00:00 -- 0.5076388888888889 = 12:11 pm, Alt 54 deg
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 51.423056, 3.5, False, 0.5081038693636459),
+            (2460389.5, 51.423056, 3.5, False, 0.5081016015083972),
             # 2024-03-20T00:00:00 -- 0.5051123582525348 = 12:07:0.36179588
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 51.423056, 0, True, 0.5051123582525348),
+            (2460389.5, 51.423056, 0, True, 0.5051100903972862),
             )
         msg = "Expected {}, for jd {}, zone {}, and exact {}, found {}."
 
@@ -455,8 +455,8 @@ class TestBaseCalandar(unittest.TestCase):
             # 1988-03-20T00:00:00 -- 0.51766, 0.1213
             # AA Ex.15.a  at Boston, US
             # JD        Latitude Longitude zone  exact
-            #(2447240.5, 42.3333, -71.0833, -5.0, False,
-            # self._bc.STARS_PLANET_OFFSET, (0.51766, 0.1213)),
+            (2447240.5, 42.3333, -71.0833, -5.0, False,
+             self._bc.STARS_PLANET_OFFSET, (0.51766, 0.1213)),
             # 2024-03-20T00:00:00 -- (0.250694 = 6:01 am, 0.759027 = 6:13 pm)
           # https://www.timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
             # In Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
