@@ -318,14 +318,25 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     ##         self.sin_deg())
     ##     return self.coterminal_angle(delta)
 
-    def altitude(self, phi, delta, h):
+    def _altitude(self, delta:float, lat:float, h:float) -> float:
         """
         Altitude, positive above the horizon, negative below in degrees.
 
-        Meeus--AA p.93 Eq.13.6
+        :param delta: Declination in sidereal time.
+        :type delta: float
+        :param lat: Geographic latitude.
+        :type lat: float
+        :param h: Local hour angle.
+        :type h: float
+        :return: 
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA p.93 Eq.13.6
         """
         return math.degrees(math.asin(
-            self.sin_deg(phi) * self.sin_deg(delta) + self.cos_deg(phi) *
+            self.sin_deg(lat) * self.sin_deg(delta) + self.cos_deg(lat) *
             self.cos_deg(delta) * self.cos_deg(h)))
 
     def _approx_local_hour_angle(self, tc:float, lat:float,
@@ -375,24 +386,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             cos_h0 += 6.283185307179586
 
         return math.degrees(math.acos(cos_h0))
-
-    def _sun_rising(self, jd:float, lat:float, lon:float) -> float:
-        """
-
-        :param jd: Julian day in UT.
-        :type jd: float
-        :param lat: Geographic latitude positive north negative south.
-        :type lat: float
-        :param lon: Geographic longitude positive east negative west.
-        :type lon: float
-        :return:
-        :rtype: float
-
-        .. note::
-
-           Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
-        """
-        return
 
     def _sun_transit(self, jd:float, lon:float, zone:float=0.0,
                      exact:bool=False) -> float:
@@ -444,7 +437,27 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         h = self._local_hour_angle(srt, lon, alpha)
         return -h / 360
 
-    def _sun_setting(self, jd:float, lat:float, lon:float) -> float:
+    def _sun_rising(self, jd:float, lat:float, lon:float, zone:float=0,
+                    exact:bool=False, offset:float=SUN_OFFSET) -> float:
+        """
+
+        :param jd: Julian day in UT.
+        :type jd: float
+        :param lat: Geographic latitude positive north negative south.
+        :type lat: float
+        :param lon: Geographic longitude positive east negative west.
+        :type lon: float
+        :return:
+        :rtype: float
+
+        .. note::
+
+           Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
+        """
+        return
+
+    def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0,
+                     exact:bool=False, offset:float=SUN_OFFSET) -> float:
         """
 
         :param jd: Julian day in UT.
@@ -514,16 +527,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         h0 = self._approx_local_hour_angle(tc, lat, offset=offset)
         m0 = func0((alpha - lon - ast) / 360)
         m = m0 - h0 / 360 if sr_ss == 'RISE' else m0 + h0 / 360
-        print(m0, m, sr_ss)
+        dm = 1
+        #print(m0, m, sr_ss)
 
-        #for i in range(3):
-        dm = self._rise_set_correction(tc, ast, dt, lat, lon, m, offset)
-        m += dm
-        print(m, dm, sr_ss)
+        for i in range(5):
+            if abs(dm) > 0.0001: break
+            dm = self._rise_set_correction(tc, ast, dt, lat, lon, m, offset)
+            #print('before-m', m, 'dm', dm, 'sr_ss', sr_ss)
+            m += dm
 
-        print('jd', jd, 'tc', tc, 'dt', dt, 'tc_td', tc_td)
-        print('ast', ast, 'alpha', alpha, 'delta', delta, 'h0', h0, 'm0', m0)
-        print('m', m, 'dm', dm)
+        #print('jd', jd, 'tc', tc, 'dt', dt, 'tc_td', tc_td)
+        #print('ast', ast, 'alpha', alpha, 'delta', delta, 'h0', h0, 'm0', m0)
+        #print('after-m', m, 'i', i)
         m += self.decimal_from_hms(zone, 0, 0)
         return m
 
@@ -540,14 +555,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         de2 = self._sun_apparent_declination(tc + (1 / 36525))
         alpha = self.interpolation_from_three(ra0, ra1, ra2, n, True)
         delta = self.interpolation_from_three(de0, de1, de2, n)
-        print('srt', srt, 'n', n)
-        print('Alpha', ra0, ra1, ra2, alpha)
-        print('Delta', de0, de1, de2, delta)
+        #print('srt', srt, 'n', n)
+        #print('Alpha', ra0, ra1, ra2, alpha)
+        #print('Delta', de0, de1, de2, delta)
         h = self._local_hour_angle(srt, lon, alpha)
-        alt = self.altitude(srt, lon, h)
-        print('h', h, 'alt', alt)
-        return (alt - offset) / (360 * self.cos_deg(delta) *
-                                 self.cos_deg(lat) * self.sin_deg(alt))
+        alt = self._altitude(delta, lat, h)
+        #print('h', h, 'alt', alt)
+        return (alt + offset) / (360 * self.cos_deg(delta) *
+                                 self.cos_deg(lat) * self.sin_deg(h))
 
     def _local_hour_angle(self, srt, lon, alpha):
         """
