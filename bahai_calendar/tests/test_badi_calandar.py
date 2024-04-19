@@ -101,11 +101,11 @@ class TestBadiCalandar(unittest.TestCase):
         # All dates are sunset on the beginning of the Baha'i year.
         data = (
             # (1844, 3, 20, 18, 11) -> (1844, 3, 20, 14, 33, 18.275475203990936)
-            (673221, 673221.6100181836),
+            ((1, 1, 1, 1, 1), 673221.6100181836),
             # (2024, 3, 19, 18, 16) -> (2024, 3, 19, 14, 33, 14.83555220067501)
-            (738964, 738964.6099793108),
+            #((), 738964.6099793108),
             # (2064, 3, 19, 18, 15) -> (2064, 3, 19, 14, 33, 14.920333474874496)
-            (753574, 753574.6099802253),
+            #((), 753574.6099802253),
             )
         msg = "Expected {}, found {}"
 
@@ -244,3 +244,92 @@ class TestBadiCalandar(unittest.TestCase):
             result = self._bc._is_leap_year(day)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, day, result))
+
+
+    #@unittest.skip("Temporarily skipped")
+    def test__check_valid_badi_month_day(self):
+        """
+        Test that the _check_valid_badi_month_day method returns the
+        correct boolean for valid and invalid dates.
+        """
+        msg0 = ("The maximum number if Váḥids in a Kull-i-Shay’ are 19, "
+                "found {}")
+        msg1 = "The maximum number if years in a Váḥid are 19, found {}"
+        msg2 = "Invalid month '{}', should be 0 - 19."
+        msg3 = ("Invalid day '{}' for month '{}' and year '{}' "
+                "should be 1 - 19.")
+        msg4 = "Invalid hour '{}' it must be 0 <= {} < 24"
+        msg5 = "Invalid minute '{}' should be 0 <= {} < 60."
+        msg6 = ("If there is a part day then there can be no hours, "
+                "minutes, or seconds.")
+        msg7 = ("If there is a part hour then there can be no minutes or "
+                "seconds.")
+        msg8 = "If there is a part minute then there can be no seconds."
+        data = (
+            ((1, 1, 1, 1, 1), True, ''),  # Non leap year
+            ((1, 10, 3, 1, 1), True, ''), # Known leap year
+            # Invalid Váḥid
+            ((1, 0, 1, 1, 1, 1, 1, 1), False, msg0.format(0)),
+            ((1, 20, 1, 1, 1, 1, 1, 1), False, msg0.format(20)),
+            # Invalid year
+            ((1, 10, 0, 1, 1, 1, 0, 0 ), False, msg1.format(0)),
+            ((1, 10, 20, 1, 1, 1, 0, 0 ), False, msg1.format(20)),
+            # Invalid month
+            ((1, 10, 10, -1, 1, 1, 0, 0 ), False, msg2.format(-1)),
+            ((1, 10, 10, 20, 1, 1, 0, 0 ), False, msg2.format(20)),
+            # Invalid Ayyám-i-Há day
+            ## ((1, 10, 3, 0, 0, 1, 1, 1), False, msg3.format(0, 0, 3)),
+            ## ((1, 10, 3, 0, 4, 1, 1, 1), False, msg3.format(4, 0, 3)),
+            ## ((1, 10, 3, 0, 6, 1, 1, 1), False, msg3.format(6, 0, 3)),
+            # Invalid normal day
+            ((1, 10, 3, 2, 0, 1, 1, 1), False, msg3.format(0, 2, 3)),
+            ((1, 10, 3, 2, 20, 1, 1, 1), False, msg3.format(20, 2, 3)),
+            # Invalid hour
+            ((1, 10, 3, 2, 1, -1, 1, 1), False, msg4.format(-1, -1)),
+            ((1, 10, 3, 2, 1, 24, 1, 1), False, msg4.format(24, 24)),
+            # Invalid minute
+            ((1, 10, 3, 2, 1, 1, -1, 1), False, msg5.format(-1, -1)),
+            ((1, 10, 3, 2, 1, 1, 60, 1), False, msg5.format(60, 60)),
+            # Invalid partial day
+            ((1, 10, 3, 2, 1.5, 1, 0, 0), False, msg6),
+            ((1, 10, 3, 2, 1.5, 0, 1, 0), False, msg6),
+            ((1, 10, 3, 2, 1.5, 0, 0, 1), False, msg6),
+            # Invalid partial hour
+            ((1, 10, 3, 2, 1, 1.5, 1, 0), False, msg7),
+            ((1, 10, 3, 2, 1, 1.5, 0, 1), False, msg7),
+            # Invalid partial minute
+            ((1, 10, 3, 2, 1, 1, 1.5, 1), False, msg8),
+            )
+
+        for b_date, validity, err_msg in data:
+            t_len = len(b_date)
+            kull_i_shay = b_date[0]
+            vahid = b_date[1]
+            year = b_date[2]
+            month = b_date[3]
+            day = b_date[4]
+            hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
+            minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
+            second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
+
+            if validity:
+                # Test correct dates
+                for m in range(20):
+                    if m == 0:
+                        pass # *** TODO *** Test for leap years
+
+                    for d in range(1, 20):
+                        date = (kull_i_shay, vahid, year, m, d)
+                        self._bc._check_valid_badi_month_day(date)
+            else:
+                try:
+                    with self.assertRaises(AssertionError) as cm:
+                        self._bc._check_valid_badi_month_day(b_date)
+                except AssertionError as e:
+                    raise AssertionError(
+                        f"Váḥid {vahid}, year {year}, month {month}, "
+                        f"day {day}, hour {hour}, minute {minute}, "
+                        f"second {second}, {e}")
+                else:
+                    message = str(cm.exception)
+                    self.assertEqual(err_msg, message)

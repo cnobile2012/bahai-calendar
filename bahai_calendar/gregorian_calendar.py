@@ -413,7 +413,7 @@ class GregorianCalendar(BaseCalendar):
 
     def _check_valid_gregorian_month_day(self, g_date:tuple) -> bool:
         """
-        Check that the monmth and day values are valid.
+        Check that the month and day values are valid.
         """
         t_len = len(g_date)
         year = g_date[0]

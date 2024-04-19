@@ -38,14 +38,22 @@ class BahaiCalendar(BaseCalendar):
     #  (fixed-from-gregorian (gregorian-date 1844 march 21)))
     BAHAI_EPOCH = 673222
 
+    BADI_MONTHS = (
+        (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
+        (6, 'Raḥmat'), (7, 'Kalimát'), (8, 'Kamál'), (9, "Asmá'"),
+        (10, "'Izzat"), (11, 'Mashíyyat'), (12, "'Ilm"), (13, 'Qudrat'),
+        (14, 'Qawl'), (15, 'Masá’il'), (16, 'Sharaf'), (17, 'Sulṭán'),
+        (18, 'Mulk'), (0, 'Ayyám-i-Há'), (19, "'Alá'")
+        )
+
     def __init__(self):
         super().__init__()
-        # major: 361-year (19^2) cycle (integer)
-        # cycle: (integer) 19-year cycle
+        # kull_i_shay: 361-year (19^2) vahid (integer)
+        # vahid: (integer) 19-year vahid
         # year: (integer) 1 - 19
         # month: (integer) 1 - 19 plus 0 for Ayyām-i-Hā
         # day: (integer) 1 - 19
-        # Baha'i date: [major, cycle, year, month, day]
+        # Baha'i date: [kull_i_shay, vahid, year, month, day]
         self._bahai_date = None
         self._gc = GregorianCalendar()
 
@@ -65,18 +73,20 @@ class BahaiCalendar(BaseCalendar):
 
         self._bahai_date = representation
 
-    def bahai_sunset(self, date:float) -> float:
+    def bahai_sunset(self, b_date:tuple) -> float:
         """
-        The UTC time is returned not the standard time in Tehran.
+        Return the sunset for the given Badi Day.
 
-        (defun bahai-sunset (date)
-          ;; TYPE fixed-date -> moment
-          ;; Universal time of sunset on fixed date in Bahai-Location.
-          (universal-from-standard
-           (sunset date bahai-location)
-           bahai-location))
+        *** TODO *** Change name to sunset later on.
         """
-        return self.universal_from_standard(self.sunset(date))
+        kull_i_shay = b_date[0]
+        vahid = b_date[1]
+        year = b_date[2]
+        month = b_date[3]
+        day = b_date[4]
+        years = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
+
+        return 
 
     def astro_bahai_new_year_on_or_before(self, date:int) -> float:
         """
@@ -131,12 +141,12 @@ class BahaiCalendar(BaseCalendar):
                         (* (1- month) 19)
                         day -1)))))
         """
-        major = b_date[0]
-        cycle = b_date[1]
+        kull_i_shay = b_date[0]
+        vahid = b_date[1]
         year = b_date[2]
         month = b_date[3]
         day = b_date[4]
-        years = (major - 1) * 361 + (cycle - 1) * 19 + year
+        years = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
 
         if month == 19:
             result = self.find_moment_of_equinoxes_or_solstices(
@@ -187,22 +197,23 @@ class BahaiCalendar(BaseCalendar):
         new_year = self.find_moment_of_equinoxes_or_solstices(date)
         #new_year = self.astro_bahai_new_year_on_or_before(date)
         years = round((new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR)
-        major = self.QUOTIENT(years, 361) + 1
-        cycle = self.QUOTIENT(years % 361, 19) + 1
+        kull_i_shay = self.QUOTIENT(years, 361) + 1
+        vahid = self.QUOTIENT(years % 361, 19) + 1
         year = (years % 19) + 1
         days = date - new_year
 
-        if date >= self.fixed_from_astro_bahai((major, cycle, year, 19, 1)):
+        if date >= self.fixed_from_astro_bahai(
+            (kull_i_shay, vahid, year, 19, 1)):
             month = 19
         elif date >= self.fixed_from_astro_bahai(
-            (major, cycle, year, self.AYYAM_I_HA, 1)):
+            (kull_i_shay, vahid, year, self.AYYAM_I_HA, 1)):
             month = self.AYYAM_I_HA
         else:
             month = self.QUOTIENT(days, 19) + 1
 
         day = date + 1 - self.fixed_from_astro_bahai(
-            (major, cycle, year, month, 1))
-        return (major, cycle, year, month, day)
+            (kull_i_shay, vahid, year, month, 1))
+        return (kull_i_shay, vahid, year, month, day)
 
     def nam_ruz(self, b_year):
         """
@@ -211,13 +222,13 @@ class BahaiCalendar(BaseCalendar):
         tee = self.BAHAI_EPOCH + b_year - 1
         new_year = self.find_moment_of_equinoxes_or_solstices(tee)
         years = round((new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR)
-        major = self.QUOTIENT(years, 361) + 1
-        cycle = self.QUOTIENT(years % 361, 19) + 1
+        kull_i_shay = self.QUOTIENT(years, 361) + 1
+        vahid = self.QUOTIENT(years % 361, 19) + 1
         year = (years % 19) + 1
         days = tee - new_year
 
         #print(tee, new_year, years, days)
-        return (major, cycle, year, 0, 0)
+        return (kull_i_shay, vahid, year, 0, 0)
 
     def nam_ruz_from_gregorian_year(self, g_year):
         """
@@ -281,6 +292,81 @@ class BahaiCalendar(BaseCalendar):
         prev_ss = self.sunset(prev_year)
         curr_ss = self.sunset(tee)
         return 367 > (curr_ss - prev_ss) >= 366
+
+    def jd_from_badi_date(self, b_date:tuple) -> float:
+        """
+        Convert Badi dates to Julian day count with the 1582 10, 15
+        correction.
+        """
+
+
+
+
+    def date_from_ymdhms(self, b_date:tuple) -> tuple:
+        """
+        Convert (year, month, day, hour, minute, second) into a
+        (year, month, day.partial) date.
+        """
+        self._check_valid_gregorian_month_day(b_date)
+        t_len = len(b_date)
+        year = b_date[0]
+        month = b_date[1]
+        day = b_date[2]
+        hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
+        minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
+        second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
+        day += self.HR(hour) + self.MN(minute) + self.SEC(second)
+        return (year, month, day)
+
+
+
+    def _check_valid_badi_month_day(self, b_date:tuple) -> bool:
+        """
+        Check that the month and day values are valid.
+        """
+        cycle = 19
+        t_len = len(b_date)
+        kull_i_shay = b_date[0] # 361 years (19 * 19)
+        vahid = b_date[1] # 19 years
+        year = b_date[2]
+        month = b_date[3]
+        day = b_date[4]
+        hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
+        minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
+        second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
+        assert 1 <= vahid <= cycle, (
+            f"The maximum number if Váḥids in a Kull-i-Shay’ are 19, "
+            f"found {vahid}")
+        assert 1 <= year <= cycle, (
+            f"The maximum number if years in a Váḥid are 19, found {year}")
+        assert 0 <= month <= cycle, (
+            f"Invalid month '{month}', should be 0 - 19.")
+
+        # This is Ayyām-i-Hā and could be 4 or 5 days depending on leap year.
+        if month == 0:
+            pass # *** TODO *** Test for a valid Badi leap year.
+            #cycle -= 14 if self._is_leap_year(year) else 15
+
+        assert 1 <= day <= cycle, (
+            f"Invalid day '{day}' for month '{month}' and year '{year}' "
+            f"should be 1 - {cycle}.")
+        assert 0 <= hour < 24, (f"Invalid hour '{hour}' it must be "
+                                f"0 <= {hour} < 24")
+        assert 0 <= minute < 60, (f"Invalid minute '{minute}' should be "
+                                  f"0 <= {minute} < 60.")
+
+        if any((hour, minute, second)):
+            assert not day % 1, ("If there is a part day then there can be no "
+                                 "hours, minutes, or seconds.")
+
+        if any((minute, second)):
+            assert not hour % 1, (
+                "If there is a part hour then there can be no minutes or "
+                "seconds.")
+
+        if second:
+            assert not minute % 1, (
+                "If there is a part minute then there can be no seconds.")
 
     @property
     def latitude(self):

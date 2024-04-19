@@ -355,9 +355,6 @@ class TestGregorianCalendar(unittest.TestCase):
             #print(g_date)
 
             if validity:
-                msg = ("Invalid day '{}' for month '{}' and year '{}' "
-                       "should be 1 - {}.")
-
                 # Test correct dates
                 for m in range(1, 13):
                     for days in range(self._gc._MONTHS[m - 1]):
