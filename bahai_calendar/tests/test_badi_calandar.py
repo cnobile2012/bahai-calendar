@@ -4,7 +4,6 @@
 #
 __docformat__ = "restructuredtext en"
 
-import os
 import unittest
 import datetime
 
@@ -62,14 +61,14 @@ class TestBadiCalandar(unittest.TestCase):
             # World Centre update (Vernal Equinox 2015-03-20T22:46:16 DT)
             ((2015, 3, 21), (1, 10, 1, 1, 1)),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {} with g_date {}, found {}"
 
         for g_date, expected_result in data:
             dt = datetime.datetime(*g_date)
             self._bc.parse_datetime(dt)
             result = self._bc.date_representation
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, g_date, result))
 
     @unittest.skip("Temporarily skipped")
     def test_date_representation(self):
@@ -99,18 +98,19 @@ class TestBadiCalandar(unittest.TestCase):
         =1844-03-20T18:11:00
         """
         # All dates are sunset on the beginning of the Baha'i year.
+        lat, lon, alt, zone = self._bc.BAHAI_LOCATION
         data = (
             # (1844, 3, 20, 18, 11) -> (1844, 3, 20, 14, 33, 18.275475203990936)
-            ((1, 1, 1, 1, 1), 673221.6100181836),
+            ((1, 1, 1, 1, 1), lat, lon, zone, 0),
             # (2024, 3, 19, 18, 16) -> (2024, 3, 19, 14, 33, 14.83555220067501)
-            #((), 738964.6099793108),
+            #((), 0),
             # (2064, 3, 19, 18, 15) -> (2064, 3, 19, 14, 33, 14.920333474874496)
-            #((), 753574.6099802253),
+            #((), 0),
             )
         msg = "Expected {}, found {}"
 
-        for date, expected_result in data:
-            result = self._bc.bahai_sunset(date)
+        for date, lat, lon, zone, expected_result in data:
+            result = self._bc.bahai_sunset(date, lat, lon, zone)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
 
@@ -193,7 +193,7 @@ class TestBadiCalandar(unittest.TestCase):
                              msg.format(expected_result, fixed_day, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_nam_ruz(self):
+    def test_naw_ruz(self):
         """
         Test that the nam_ruz method returns the correct Badi date.
         """
@@ -203,12 +203,12 @@ class TestBadiCalandar(unittest.TestCase):
         msg = "Expected {} for date {}, found {}"
 
         for year, expected_result in data:
-            result = self._bc.nam_ruz(year)
+            result = self._bc.naw_ruz(year)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_nam_ruz_from_gregorian_year(self):
+    def test_naw_ruz_from_gregorian_year(self):
         """
         Test that the nam_ruz_from_gregorian_year method returns the
         correct Gregorian dates.
@@ -220,7 +220,7 @@ class TestBadiCalandar(unittest.TestCase):
 
         for year, date in data:
             expected_result = self._gc.fixed_from_gregorian(date)
-            result = self._bc.nam_ruz_from_gregorian_year(year)
+            result = self._bc.naw_ruz_from_gregorian_year(year)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, result))
 

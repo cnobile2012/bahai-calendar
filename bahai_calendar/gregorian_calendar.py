@@ -428,7 +428,7 @@ class GregorianCalendar(BaseCalendar):
         if month == 2: # Subtract 0 or 1 from Febuary if leap year.
             days -= 0 if self.GREGORIAN_LEAP_YEAR(year) else 1
 
-        assert 1 <= day <= days, (
+        assert 1 <= math.floor(day) <= days, (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "
             f"should be 1 - {days}.")
         assert hour < 24, f"Invalid hour '{hour}' it must be < 24"

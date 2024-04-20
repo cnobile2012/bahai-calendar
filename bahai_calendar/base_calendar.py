@@ -454,7 +454,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        return
+        return self._rising_setting(jd, lat, lon, zone, sr_ss='RISE')
 
     def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0,
                      exact:bool=False, offset:float=SUN_OFFSET) -> float:
@@ -473,7 +473,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        return
+        return self._rising_setting(jd, lat, lon, zone, sr_ss='SET')
 
     def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0,
                         exact:bool=False, offset:float=SUN_OFFSET,
@@ -1055,13 +1055,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         #print(f"year: {g_year}, Y: {y}")
         return jde
 
-    def find_moment_of_equinoxes_or_solstices(self, jde:float,
+    def find_moment_of_equinoxes_or_solstices(self, jd:float,
                                               lam:int=SPRING) -> float:
         """
-        With the rd moment and time of year find an equinoxe or solstice.
+        With the jd and time of year find an equinoxe or solstice.
 
-        :param jde: Julian day.
-        :type jde: float
+        :param jd: Julian day.
+        :type jd: float
         :param lam: Lambda is the season as in (SPRING, SUMMER, AUTUMN, WINTER)
         :type lam: int
         :return: The Julian day of the equinoxe or solstice.
@@ -1073,16 +1073,16 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
-        year = gc.gregorian_year_from_jd(jde)
-        jde0 = self.approx_julian_day_for_equinoxes_or_solstices(year, lam)
-        tc = self.julian_centuries(jde0)
+        year = gc.gregorian_year_from_jd(jd)
+        jde = self.approx_julian_day_for_equinoxes_or_solstices(year, lam)
+        tc = self.julian_centuries(jde)
         w = 35999.373 * tc - 2.47
         dl = 1 + 0.0334 * self.cos_deg(w + 0.0007) * self.cos_deg(2*w)
         s = self._sigma(
             (self.EQ_SO_A, self.EQ_SO_B, self.EQ_SO_C),
             lambda a, b, c: a * self.cos_deg(b + c * tc))
         #print(f"jde0: {jde0}, T: {tc}, dl: {dl}, S: {s} ")
-        return jde0 + (0.00001 * s) / dl
+        return jde + (0.00001 * s) / dl
 
     #
     # Time and Astronomy (Time)
