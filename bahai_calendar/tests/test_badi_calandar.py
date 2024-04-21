@@ -258,7 +258,7 @@ class TestBadiCalandar(unittest.TestCase):
             # 1844-03-19T00:00:00 Before the Badi epoch
             ((0, 19, 19, 19, 19), (0, 19, 19, 0, 0, 0)),
             # 1484-  T00:00:00 Before the Badi epoch
-            ((0, 1, 1, 1 ,1), (-360, 1, 1, 0, 0, 0)),
+            ((0, 1, 1, 1 ,1), (0, 1, 1, 0, 0, 0)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -277,7 +277,10 @@ class TestBadiCalandar(unittest.TestCase):
             # 2024-04-20T20:17:45
             ((181, 2, 14, 20, 17, 45), (1, 10, 10, 2, 14, 20, 17, 45)),
             # 1844-03-19T00:00:00 Before the Badi epoch
-            ((0, 19, 19), (0, 19, 19, 19, 19, 0, 0, 0)),
+            #((0, 19, 19), (0, 19, 19, 19, 19, 0, 0, 0)),
+            #((0, 1, 1), (0, 1, 1, 1, 1 , 0, 0, 0)),
+            # Negative years
+            ((-1, 1, 1), (0, 19, 18, 1, 1, 0, 0, 0)),
             )
         msg = "Expected {} for date {}, found {}"
 

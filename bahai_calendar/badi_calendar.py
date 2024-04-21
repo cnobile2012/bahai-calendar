@@ -306,8 +306,6 @@ class BahaiCalendar(BaseCalendar):
         # 4. If the number of days is 366 it's a leap year
 
 
-
-
         return 
 
     def jd_from_badi_date(self, date:tuple) -> float:
@@ -358,18 +356,23 @@ class BahaiCalendar(BaseCalendar):
         hour = date[3] if t_len > 3 and date[3] is not None else 0
         minute = date[4] if t_len > 4 and date[4] is not None else 0
         second = date[5] if t_len > 5 and date[5] is not None else 0
-        kull_i_shay = math.ceil(year / 361)
 
         if year > 0:
+            kull_i_shay = math.ceil(year / 361)
             vahid = math.ceil(year / 19)
+            y = year - (vahid - 1) * 19
+            print('POOP0', kull_i_shay, vahid, y)
         elif year == 0:
+            kull_i_shay = 0
             vahid = 19
-            year = 19
+            y = 19
+            print('POOP1', vahid, year)
         else:
             vahid = 0
+            print('POOP2', vahid)
 
-        y = year - (vahid - 1) * 19
         b_date = (kull_i_shay, vahid, y, month, day, hour, minute, second)
+        print('POOP3', y, b_date)
         self._check_valid_badi_month_day(b_date)
         return b_date
 
