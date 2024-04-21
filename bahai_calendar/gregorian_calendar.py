@@ -322,17 +322,14 @@ class GregorianCalendar(BaseCalendar):
             year -= 1
             month += 12
 
-        jd =  (math.floor(365.25 * year) + math.floor(30.6001 * (month + 1)) +
-               day + 1720994.5)
-
         if (year, month, day) >= (1582, 10, 15):
             a = math.floor(year / 100)
             b = 2 - a + math.floor(a / 4)
         else:
             b = 0
 
-        return (math.floor(365.25 * year) + math.floor(30.6001 * (month + 1)) +
-                day + b + 1720994.5)
+        return math.floor(self.JULIAN_YEAR * year) + math.floor(
+            30.6001 * (month + 1)) + day + b + 1720994.5
 
     def gregorian_date_from_jd(self, jd:float) -> tuple:
         """

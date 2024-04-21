@@ -251,73 +251,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         d_psi = self._nutation_longitude(tc)
         return self.coterminal_angle(t0 + d_psi * self.cos_deg(eps))
 
-    ## def ecliptic_longitude(self, tc:float) -> float:
-    ##     """
-    ##     Celestial longitude, or ecliptical longitude, often called simply
-    ##     longitude, is measured (from 0° to 360°) from the vernal equinox,
-    ##     positive to the east, along the ecliptic.
-
-    ##     Meeus--AA ch.13 p.93 Eq.13.1
-    ##     """
-    ##     alpha = self._sun_apparent_right_ascension(tc)
-    ##     delta = self._sun_apparent_declination(tc)
-    ##     epsilon = self._true_obliquity_of_ecliptic(tc)
-    ##     lam = math.degrees(
-    ##         math.atan2(self.sin_deg(alpha) * self.cos_deg(epsilon) +
-    ##                    math.tan(delta) * self.cos_deg(epsilon),
-    ##                    self.sin_deg(alpha)))
-    ##     print(alpha, delta, epsilon, lam)
-    ##     return self.coterminal_angle(lam)
-
-    ## def ecliptic_latitude(self, tc:float) -> float:
-    ##     """
-    ##     Celestial latitude, or ecliptical latitude, or simply latitude,
-    ##     is measured (from 0° to +90° or to —90°) from the ecliptic,
-    ##     positive to the north, negative to the south.
-
-    ##     Meeus--AA ch.13 p.93 Eq.13.2
-    ##     """
-    ##     alpha = self._sun_apparent_right_ascension(tc)
-    ##     delta = self._sun_apparent_declination(tc)
-    ##     epsilon = self._true_obliquity_of_ecliptic(tc)
-    ##     beta = math.degrees((self.sin_deg(delta) * self.cos_deg(epsilon) -
-    ##                          self.cos_deg(delta) * self.sin_deg(epsilon) *
-    ##                          cos_deg(alpha)))
-    ##     return self.coterminal_angle(beta)
-
-    ## def equatorial_right_ascension(self, jde:float) -> float:
-    ##     """
-    ##     Right ascension is measured (from 0 to 24 hours, sometimes from 0°
-    ##     to 360°) from the vernal equinox, positive to the east, along the
-    ##     celestial equator.
-
-    ##     Meeus--AA ch.13 p.93 Eq.13.3
-    ##     """
-    ##     lam = self.ecliptic_longitude(jde)
-    ##     beta = self.ecliptic_latitude(jde)
-    ##     epsilon = self.true_obliquity_of_ecliptic(jde)
-    ##     alpha = math.degrees(
-    ##         math.atan2(self.sin_deg(lam) * self.cos_deg(epsilon) -
-    ##                    self.tan_deg(beta) * self.sin_deg(epsilon),
-    ##                    self.cos_deg(lam)))
-    ##     return self.coterminal_angle(alpha)
-
-    ## def equatorial_declination(self, jde:float) -> float:
-    ##     """
-    ##     Declination is measured (from 0° to +90°) from the equator, positive
-    ##     to the north, negative to the south.
-
-    ##     Meeus--AA ch.13 p.93 Eq.13.4
-    ##     """
-    ##     beta = self.ecliptic_latitude(jde)
-    ##     lam = self.ecliptic_longitude(jde)
-    ##     epsilon = self.true_obliquity_of_ecliptic(jde)
-    ##     delta = math.degrees(
-    ##         self.sin_deg(beta) * self.cos_deg(epsilon) +
-    ##         self.cos_deg(beta) * self.sin_deg(epsilon) *
-    ##         self.sin_deg())
-    ##     return self.coterminal_angle(delta)
-
     def _altitude(self, delta:float, lat:float, h:float) -> float:
         """
         Altitude, positive above the horizon, negative below in degrees.
@@ -528,17 +461,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         m0 = func0((alpha - lon - ast) / 360)
         m = m0 - h0 / 360 if sr_ss == 'RISE' else m0 + h0 / 360
         dm = 1
-        #print(m0, m, sr_ss)
 
         for i in range(5):
             if abs(dm) > 0.0001: break
             dm = self._rise_set_correction(tc, ast, dt, lat, lon, m, offset)
-            #print('before-m', m, 'dm', dm, 'sr_ss', sr_ss)
             m += dm
 
-        #print('jd', jd, 'tc', tc, 'dt', dt, 'tc_td', tc_td)
-        #print('ast', ast, 'alpha', alpha, 'delta', delta, 'h0', h0, 'm0', m0)
-        #print('after-m', m, 'i', i)
         m += self.decimal_from_hms(zone, 0, 0)
         return m
 
@@ -555,12 +483,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         de2 = self._sun_apparent_declination(tc + (1 / 36525))
         alpha = self.interpolation_from_three(ra0, ra1, ra2, n, True)
         delta = self.interpolation_from_three(de0, de1, de2, n)
-        #print('srt', srt, 'n', n)
-        #print('Alpha', ra0, ra1, ra2, alpha)
-        #print('Delta', de0, de1, de2, delta)
         h = self._local_hour_angle(srt, lon, alpha)
         alt = self._altitude(delta, lat, h)
-        #print('h', h, 'alt', alt)
         return (alt + offset) / (360 * self.cos_deg(delta) *
                                  self.cos_deg(lat) * self.sin_deg(h))
 

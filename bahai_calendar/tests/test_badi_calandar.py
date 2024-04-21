@@ -78,7 +78,7 @@ class TestBadiCalandar(unittest.TestCase):
         """
         pass
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_bahai_sunset(self):
         """
         Test that the bahai_sunset method returns the universal time of
@@ -97,7 +97,6 @@ class TestBadiCalandar(unittest.TestCase):
         =673221.75763888888888888889
         =1844-03-20T18:11:00
         """
-        # All dates are sunset on the beginning of the Baha'i year.
         lat, lon, alt, zone = self._bc.BAHAI_LOCATION
         data = (
             # (1844, 3, 20, 18, 11) -> (1844, 3, 20, 14, 33, 18.275475203990936)
@@ -238,13 +237,54 @@ class TestBadiCalandar(unittest.TestCase):
             (736774, False), # (2018, 3, 21) start 175
             (737138, False), # (2019, 3, 20) end 175
             )
-        msg = "Expected {} for date {}, found {}"
+        msg = "Expected {} for day {}, found {}"
 
         for day, expected_result in data:
             result = self._bc._is_leap_year(day)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, day, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_date_from_b_date(self):
+        """
+        Test that the date_from_b_date returns the correct (year, month, day)
+        date.
+        """
+        data = (
+            # 1844-03-20T00:00:00
+            ((1, 1, 1, 1, 1), (1, 1, 1, 0, 0, 0)),
+            # 2024-04-20T20:17:45
+            ((1, 10, 10, 2, 14, 20, 17, 45), (181, 2, 14, 20, 17, 45)),
+            # 1844-03-19T00:00:00 Before the Badi epoch
+            ((0, 19, 19, 19, 19), (0, 19, 19, 0, 0, 0)),
+            # 1484-  T00:00:00 Before the Badi epoch
+            ((0, 1, 1, 1 ,1), (-360, 1, 1, 0, 0, 0)),
+            )
+        msg = "Expected {} for date {}, found {}"
+
+        for date, expected_result in data:
+            result = self._bc.date_from_b_date(date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_b_date_from_date(self):
+        """
+        """
+        data = (
+            # 1844-03-20T00:00:00
+            ((1, 1, 1), (1, 1, 1, 1, 1, 0, 0, 0)),
+            # 2024-04-20T20:17:45
+            ((181, 2, 14, 20, 17, 45), (1, 10, 10, 2, 14, 20, 17, 45)),
+            # 1844-03-19T00:00:00 Before the Badi epoch
+            ((0, 19, 19), (0, 19, 19, 19, 19, 0, 0, 0)),
+            )
+        msg = "Expected {} for date {}, found {}"
+
+        for date, expected_result in data:
+            result = self._bc.b_date_from_date(date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__check_valid_badi_month_day(self):
@@ -252,9 +292,10 @@ class TestBadiCalandar(unittest.TestCase):
         Test that the _check_valid_badi_month_day method returns the
         correct boolean for valid and invalid dates.
         """
-        msg0 = ("The maximum number if Váḥids in a Kull-i-Shay’ are 19, "
+        msg0 = ("The number if Váḥids in a Kull-i-Shay’ should be >= 1 or "
+                "<= 19, found {}")
+        msg1 = ("The number if years in a Váḥid should be >= 1 or <= 19, "
                 "found {}")
-        msg1 = "The maximum number if years in a Váḥid are 19, found {}"
         msg2 = "Invalid month '{}', should be 0 - 19."
         msg3 = ("Invalid day '{}' for month '{}' and year '{}' "
                 "should be 1 - 19.")
@@ -268,6 +309,8 @@ class TestBadiCalandar(unittest.TestCase):
         data = (
             ((1, 1, 1, 1, 1), True, ''),  # Non leap year
             ((1, 10, 3, 1, 1), True, ''), # Known leap year
+            ((0, 1, 1, 1, 1), True, ''),  # Before Badi epoch
+            ((-1, 1, 1, 1, 1), True, ''), # Before Badi epoch
             # Invalid Váḥid
             ((1, 0, 1, 1, 1, 1, 1, 1), False, msg0.format(0)),
             ((1, 20, 1, 1, 1, 1, 1, 1), False, msg0.format(20)),
