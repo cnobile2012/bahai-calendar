@@ -356,23 +356,27 @@ class BahaiCalendar(BaseCalendar):
         hour = date[3] if t_len > 3 and date[3] is not None else 0
         minute = date[4] if t_len > 4 and date[4] is not None else 0
         second = date[5] if t_len > 5 and date[5] is not None else 0
+        k = year / 361
+        kull_i_shay = math.floor(k)
+        vahid = math.floor(abs(year / 19)) + 1
+        y = math.floor(year / 19) + 1
 
-        if year > 0:
-            kull_i_shay = math.ceil(year / 361)
-            vahid = math.ceil(year / 19)
-            y = year - (vahid - 1) * 19
-            print('POOP0', kull_i_shay, vahid, y)
-        elif year == 0:
-            kull_i_shay = 0
-            vahid = 19
-            y = 19
-            print('POOP1', vahid, year)
+        if k > 0:
+            print('POOP0')
+            kull_i_shay += 1
+        elif k < 0:
+            print('POOP1--k', k, 'k', kull_i_shay, 'v', vahid, 'y', y)
+            kull_i_shay += 1
+            v = k % 1
+            vahid = math.ceil(v / 19 * 361)
+            y0 = v % 1
+            y = math.floor(y0 * 19)
         else:
-            vahid = 0
-            print('POOP2', vahid)
+            print('POOP2--v', vahid, 'y', y)
+            vahid += 18
+            y += 18
 
         b_date = (kull_i_shay, vahid, y, month, day, hour, minute, second)
-        print('POOP3', y, b_date)
         self._check_valid_badi_month_day(b_date)
         return b_date
 
@@ -429,10 +433,10 @@ class BahaiCalendar(BaseCalendar):
         minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
         second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
         assert 1 <= vahid <= cycle, (
-            f"The number if Váḥids in a Kull-i-Shay’ should be >= 1 or <= 19, "
+            f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or <= 19, "
             f"found {vahid}")
         assert 1 <= year <= cycle, (
-            f"The number if years in a Váḥid should be >= 1 or <= 19, "
+            f"The number of years in a Váḥid should be >= 1 or <= 19, "
             f"found {year}")
         assert 0 <= month <= cycle, (
             f"Invalid month '{month}', should be 0 - 19.")

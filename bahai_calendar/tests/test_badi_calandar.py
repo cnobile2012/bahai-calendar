@@ -276,11 +276,12 @@ class TestBadiCalandar(unittest.TestCase):
             ((1, 1, 1), (1, 1, 1, 1, 1, 0, 0, 0)),
             # 2024-04-20T20:17:45
             ((181, 2, 14, 20, 17, 45), (1, 10, 10, 2, 14, 20, 17, 45)),
-            # 1844-03-19T00:00:00 Before the Badi epoch
+            # 1844-03-19T00:00:00 Day before the Badi epoch
             #((0, 19, 19), (0, 19, 19, 19, 19, 0, 0, 0)),
             #((0, 1, 1), (0, 1, 1, 1, 1 , 0, 0, 0)),
             # Negative years
             ((-1, 1, 1), (0, 19, 18, 1, 1, 0, 0, 0)),
+            ((-400, 5, 17), (-1, 17, 16, 5, 17, 0, 0, 0)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -295,9 +296,9 @@ class TestBadiCalandar(unittest.TestCase):
         Test that the _check_valid_badi_month_day method returns the
         correct boolean for valid and invalid dates.
         """
-        msg0 = ("The number if Váḥids in a Kull-i-Shay’ should be >= 1 or "
+        msg0 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
                 "<= 19, found {}")
-        msg1 = ("The number if years in a Váḥid should be >= 1 or <= 19, "
+        msg1 = ("The number of years in a Váḥid should be >= 1 or <= 19, "
                 "found {}")
         msg2 = "Invalid month '{}', should be 0 - 19."
         msg3 = ("Invalid day '{}' for month '{}' and year '{}' "
