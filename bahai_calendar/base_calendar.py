@@ -2045,3 +2045,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         c = b - a
         return y2 + (n / 2) * (a + b + n * c)
+
+    def truncate_decimal(self, n, places):
+        """
+        Trucate a decimal to a number of places.
+        """
+        p = int('1' + '0' * places)
+        return math.floor(n * p) / p

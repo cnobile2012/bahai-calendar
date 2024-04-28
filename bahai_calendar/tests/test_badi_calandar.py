@@ -10,7 +10,7 @@ import datetime
 from ..badi_calendar import BahaiCalendar, GregorianCalendar
 
 
-class TestBadiCalandar(unittest.TestCase):
+class TestBadiCalendar(unittest.TestCase):
     """
     Some sunrise and sunset calculations done with my SunriseSunset package.
     Sunrise and Sunset for 1844-03
@@ -245,10 +245,25 @@ class TestBadiCalandar(unittest.TestCase):
                              msg.format(expected_result, day, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_jd_from_badi_date(self):
+        """
+        Test that the jd_from_badi_date method returns the correct jd day.
+        """
+        data = (
+            ((1, 1, 1), 0),
+            )
+        msg = "Expected {} for date {}, found {}"
+
+        for date, expected_result in data:
+            result = self._bc.jd_from_badi_date(date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test_date_from_b_date(self):
         """
-        Test that the date_from_b_date returns the correct (year, month, day)
-        date.
+        Test that the date_from_b_date method returns the correct
+        (year, month, day) date.
         """
         data = (
             # 1844-03-20T00:00:00
@@ -257,8 +272,15 @@ class TestBadiCalandar(unittest.TestCase):
             ((1, 10, 10, 2, 14, 20, 17, 45), (181, 2, 14, 20, 17, 45)),
             # 1844-03-19T00:00:00 Before the Badi epoch
             ((0, 19, 19, 19, 19), (0, 19, 19, 0, 0, 0)),
-            # 1484-  T00:00:00 Before the Badi epoch
-            ((0, 1, 1, 1 ,1), (0, 1, 1, 0, 0, 0)),
+            # 1484-03-11T00:00:00 Before the Badi epoch
+            ((0, 1, 1, 1 ,1), (-360, 1, 1, 0, 0, 0)),
+            # 1843-03-21T00:00:00
+            ((0, 19, 18, 1, 1), (-1, 1, 1, 0, 0, 0)),
+            # 1444-05-17T00:00:00
+            ((-1, 17, 18, 4, 3), (-400, 4, 3, 0, 0, 0)),
+            # 1483-03-12T00:00:00
+            ((-1, 19, 19, 1, 1), (-361, 1, 1, 0, 0, 0)),
+            ((-2, 19, 19, 1, 1), (-722, 1, 1, 0, 0, 0)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -277,11 +299,16 @@ class TestBadiCalandar(unittest.TestCase):
             # 2024-04-20T20:17:45
             ((181, 2, 14, 20, 17, 45), (1, 10, 10, 2, 14, 20, 17, 45)),
             # 1844-03-19T00:00:00 Day before the Badi epoch
-            #((0, 19, 19), (0, 19, 19, 19, 19, 0, 0, 0)),
-            #((0, 1, 1), (0, 1, 1, 1, 1 , 0, 0, 0)),
-            # Negative years
+            ((0, 19, 19), (0, 19, 19, 19, 19, 0, 0, 0)),
+            ((0, 10, 10), (0, 19, 19, 10, 10, 0, 0, 0)),
+            ((0, 1, 1), (0, 19, 19, 1, 1 , 0, 0, 0)),
+            # 1843-03-21T00:00:00
             ((-1, 1, 1), (0, 19, 18, 1, 1, 0, 0, 0)),
-            ((-400, 5, 17), (-1, 17, 16, 5, 17, 0, 0, 0)),
+            # 1444-05-17T00:00:00
+            ((-400, 4, 3), (-1, 17, 18, 4, 3, 0, 0, 0)),
+            # 1483-03-12T00:00:00
+            ((-361, 1, 1), (-1, 19, 19, 1, 1, 0, 0, 0)),
+            ((-722, 1, 1), (-2, 19, 19, 1, 1, 0, 0, 0)),
             )
         msg = "Expected {} for date {}, found {}"
 

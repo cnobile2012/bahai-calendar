@@ -294,8 +294,8 @@ class BahaiCalendar(BaseCalendar):
         :rtype: bool
         """
         if isinstance(date, tuple):
-            assert len(date) >= 3, ("If tuple it must be the Kull-i-Shay, "
-                                    f"Vahid, and year, found {date}")
+            assert len(date) >= 3, ("If tuple it must be the Kull-i-Shay', "
+                                    f"Váḥid, and year, found {date}")
             year = (date[0] - 1) * 361 + (date[1] - 1) * 19 + date[2]
         else:
             year = date
@@ -306,7 +306,7 @@ class BahaiCalendar(BaseCalendar):
         # 4. If the number of days is 366 it's a leap year
 
 
-        return 
+        return
 
     def jd_from_badi_date(self, date:tuple) -> float:
         """
@@ -321,11 +321,9 @@ class BahaiCalendar(BaseCalendar):
         minute = date[4] if t_len > 4 and date[4] is not None else 0
         second = date[5] if t_len > 5 and date[5] is not None else 0
 
+        #if (year, month, day) >= (-262, 12, 2): # Gregorian (1582, 10, 15)
 
-
-
-
-        return
+        return 
 
     def date_from_b_date(self, b_date:tuple) -> tuple:
         """
@@ -357,24 +355,17 @@ class BahaiCalendar(BaseCalendar):
         minute = date[4] if t_len > 4 and date[4] is not None else 0
         second = date[5] if t_len > 5 and date[5] is not None else 0
         k = year / 361
+        k0 = self.truncate_decimal(k % 1, 6)
+        v = k0 / 19 * 361
         kull_i_shay = math.floor(k)
-        vahid = math.floor(abs(year / 19)) + 1
-        y = math.floor(year / 19) + 1
 
-        if k > 0:
-            print('POOP0')
-            kull_i_shay += 1
-        elif k < 0:
-            print('POOP1--k', k, 'k', kull_i_shay, 'v', vahid, 'y', y)
-            kull_i_shay += 1
-            v = k % 1
-            vahid = math.ceil(v / 19 * 361)
-            y0 = v % 1
-            y = math.floor(y0 * 19)
+        if v == 0: # If there is no fraction in v
+            vahid = 19
+            y = 19
         else:
-            print('POOP2--v', vahid, 'y', y)
-            vahid += 18
-            y += 18
+            kull_i_shay += 1
+            vahid = math.ceil(v)
+            y = math.ceil(self.truncate_decimal(v % 1, 6) * 19)
 
         b_date = (kull_i_shay, vahid, y, month, day, hour, minute, second)
         self._check_valid_badi_month_day(b_date)
