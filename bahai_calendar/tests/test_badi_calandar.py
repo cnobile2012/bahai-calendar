@@ -250,7 +250,10 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the jd_from_badi_date method returns the correct jd day.
         """
         data = (
-            ((1, 1, 1), 0),
+            ((1, 1, 1), self._bc.BADI_EPOCH), # 1844-03-20T00:00:00
+            #((19, 19, 19), 2395374.5), # 2401583.5
+            ((180, 19, 19), 2460387.5), # 2460388.5
+            ((181, 3, 2), 2460428.5),         # 2024-04-28T00:00:00
             )
         msg = "Expected {} for date {}, found {}"
 

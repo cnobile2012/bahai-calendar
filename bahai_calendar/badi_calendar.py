@@ -320,10 +320,18 @@ class BahaiCalendar(BaseCalendar):
         hour = date[3] if t_len > 3 and date[3] is not None else 0
         minute = date[4] if t_len > 4 and date[4] is not None else 0
         second = date[5] if t_len > 5 and date[5] is not None else 0
-
         #if (year, month, day) >= (-262, 12, 2): # Gregorian (1582, 10, 15)
 
-        return 
+        if month == 0: # Ayyam-i-Ha
+            d = 18 * 19 + day
+        elif month < 19:
+            d = (month - 1) * 19 + day
+        else: # month == 19:
+            d = 18 * 19 + 4 + day
+
+        print(date, self.JULIAN_YEAR * (year - 1), d)
+        return self.BADI_EPOCH - 1 + math.floor(
+            self.JULIAN_YEAR * (year - 1)) + d
 
     def date_from_b_date(self, b_date:tuple) -> tuple:
         """
@@ -355,7 +363,7 @@ class BahaiCalendar(BaseCalendar):
         minute = date[4] if t_len > 4 and date[4] is not None else 0
         second = date[5] if t_len > 5 and date[5] is not None else 0
         k = year / 361
-        k0 = self.truncate_decimal(k % 1, 6)
+        k0 = self._truncate_decimal(k % 1, 6)
         v = k0 / 19 * 361
         kull_i_shay = math.floor(k)
 
@@ -365,7 +373,7 @@ class BahaiCalendar(BaseCalendar):
         else:
             kull_i_shay += 1
             vahid = math.ceil(v)
-            y = math.ceil(self.truncate_decimal(v % 1, 6) * 19)
+            y = math.ceil(self._truncate_decimal(v % 1, 6) * 19)
 
         b_date = (kull_i_shay, vahid, y, month, day, hour, minute, second)
         self._check_valid_badi_month_day(b_date)
