@@ -309,6 +309,11 @@ class GregorianCalendar(BaseCalendar):
         Convert Gregorian dates to Julian day count with the 1582 10, 15
         correction.
 
+        :param g_date: A Gregorinan date in the (year, month, day) format.
+        :type g_date: tuple
+        :return: A Julian day.
+        :rtype: float
+
         .. note::
 
            See Astronomical Formulae for Calculators Enlarged & Revised,
@@ -334,6 +339,11 @@ class GregorianCalendar(BaseCalendar):
     def gregorian_date_from_jd(self, jd:float) -> tuple:
         """
         Convert Julian day to Gregorian date.
+
+        :param jd: A Julian period day.
+        :type jd: float
+        :return: A Gregorian date in the (year, month, day) format.
+        :rtype: tuple
 
         .. note::
 

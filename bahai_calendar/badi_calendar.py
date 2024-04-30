@@ -214,20 +214,27 @@ class BahaiCalendar(BaseCalendar):
             (kull_i_shay, vahid, year, month, 1))
         return (kull_i_shay, vahid, year, month, day)
 
-    def naw_ruz(self, b_year):
+    def naw_ruz(self, year, short=True):
         """
         Return the Badi date for Naw-Ruz from the given Badi year.
-        """
-        tee = self.BAHAI_EPOCH + b_year - 1
-        new_year = self.find_moment_of_equinoxes_or_solstices(tee)
-        years = round((new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR)
-        kull_i_shay = self.QUOTIENT(years, 361) + 1
-        vahid = self.QUOTIENT(years % 361, 19) + 1
-        year = (years % 19) + 1
-        days = tee - new_year
 
-        #print(tee, new_year, years, days)
-        return (kull_i_shay, vahid, year, 0, 0)
+        .. note::
+
+           1. Find the Vernal Equinox for the year.
+           2. Find the sunset in Tehran on the same day as the Vernal Equinox.
+           3. If the sunset is after the Vernal Equinox you're done.
+           4. if the sunset is before the Vernal Equinox get the sunset for
+              the next day.
+        """
+        jd = self.jd_from_badi_date((year, 3, 1))
+        ve = self.find_moment_of_equinoxes_or_solstices(jd)
+        ss = self._sun_setting(ve)
+
+        if ss < ve:
+            ss = self._sun_setting(ve + 1)
+
+        b_date = self.badi_date_from_jd(ss)
+        return self.date_from_b_date if short else b_date
 
     def naw_ruz_from_gregorian_year(self, g_year):
         """
@@ -332,6 +339,15 @@ class BahaiCalendar(BaseCalendar):
         print(date, self.JULIAN_YEAR * (year - 1), d)
         return self.BADI_EPOCH - 1 + math.floor(
             self.JULIAN_YEAR * (year - 1)) + d
+
+    def badi_date_from_jd(self, jd:float) -> tuple:
+        """
+
+        """
+        b_jd = jd - self.BADI_EPOCH
+
+
+        return
 
     def date_from_b_date(self, b_date:tuple) -> tuple:
         """
