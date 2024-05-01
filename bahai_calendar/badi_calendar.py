@@ -345,9 +345,12 @@ class BahaiCalendar(BaseCalendar):
 
         """
         b_jd = jd - self.BADI_EPOCH
+        y = b_jd / self.JULIAN_YEAR
 
 
-        return
+        print(b_jd, y)
+
+        return 
 
     def date_from_b_date(self, b_date:tuple) -> tuple:
         """

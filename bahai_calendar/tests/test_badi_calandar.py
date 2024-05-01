@@ -263,6 +263,24 @@ class TestBadiCalendar(unittest.TestCase):
                              msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_badi_date_from_jd(self):
+        """
+        Test that the jd_from_badi_date method returns the correct jd day.
+        """
+        data = (
+            #(self._bc.BADI_EPOCH, (1, 1, 1, 1 , 1)), # 1844-03-20T00:00:00
+            #(2395374.5, (19, 19, 19)),
+            #(2460387.5, (180, 19, 19)),
+            (2460428.5, (1, 10, 10, 3, 4)),          # 2024-04-29T00:00:00
+            )
+        msg = "Expected {} for jd {}, found {}"
+
+        for jd, expected_result in data:
+            result = self._bc.badi_date_from_jd(jd)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jd, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test_date_from_b_date(self):
         """
         Test that the date_from_b_date method returns the correct

@@ -3,7 +3,6 @@
 import os
 import sys
 import math
-import pprint
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
@@ -165,23 +164,56 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
 
         return data
 
+    def number_of_days(self):
+        for year, item in self.WC_DATA.items():
+            wc_naw_ruz, vernal_equinox = item
+
+
+
+
 
 if __name__ == "__main__":
+    import pprint
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description=("Find Vernal Equinox and sunset."))
+    parser.add_argument(
+        '-v', '--ve-ss', action='store_true', default=False, dest='ve_ss',
+        help="Find the Vernal Equinox and sunset.")
+    parser.add_argument(
+        '-d', '--days-in-years', action='store_true', default=False,
+        dest='days_in_years',
+        help="Find the number of days in each of 50 years.")
+
+    options = parser.parse_args()
+    exclusive_error = (options.ve_ss, options.days_in_years)
+    assert exclusive_error.count(True) <= 1, (
+        "Options -v and -d  are exclusive.")
+
     cfmes = DumpFindMomentOfEquinoxesOrSolstices()
-    data = [f"{year} "
-            f"{str(wc_ss):<13} "
-            f"{str(my_g_ss):<41} "
-            f"{diff:<19} "
-            f"{str(my_ve):<43}"
-            f"{str(dt_ve):<26} "
-            for (year,
-                 wc_ss,
-                 my_g_ss,
-                 diff,
-                 my_ve,
-                 dt_ve,
-                 ) in cfmes.dump()]
+
+    if options.ve_ss:
+        data = [f"{year} "
+                f"{str(wc_ss):<13} "
+                f"{str(my_g_ss):<41} "
+                f"{diff:<19} "
+                f"{str(my_ve):<43}"
+                f"{str(dt_ve):<26} "
+                for (year,
+                     wc_ss,
+                     my_g_ss,
+                     diff,
+                     my_ve,
+                     dt_ve,
+                     ) in cfmes.dump()]
+        [print(line) for line in data]
+
+    if options.days_in_years:
+        data = cfmes.number_of_days()
+
+
     #data = cfmes.determine_year_length()
     #data = cfmes.find_coefficients()
-    [print(line) for line in data]
+    #[print(line) for line in data]
     #pprint.pprint(data) # Raw data
