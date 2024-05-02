@@ -2027,7 +2027,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def coterminal_angle(self, value:float) -> float:
         """
-        Find a Coterminal Angle.
+        Find the Coterminal Angle.
         """
         value = math.fmod(value, 360)
         return value + 360 if value < 0 else value

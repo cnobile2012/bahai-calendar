@@ -252,7 +252,7 @@ class TestBadiCalendar(unittest.TestCase):
         data = (
             ((1, 1, 1), self._bc.BADI_EPOCH), # 1844-03-20T00:00:00
             #((19, 19, 19), 2395374.5), # 2401583.5
-            ((180, 19, 19), 2460387.5), # 2460388.5
+            ((180, 19, 19), 2460388.5), # 2460388.5
             ((181, 3, 2), 2460428.5),         # 2024-04-28T00:00:00
             )
         msg = "Expected {} for date {}, found {}"
@@ -281,9 +281,9 @@ class TestBadiCalendar(unittest.TestCase):
                              msg.format(expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_date_from_b_date(self):
+    def test_short_date_from_long_date(self):
         """
-        Test that the date_from_b_date method returns the correct
+        Test that the short_date_from_long_date method returns the correct
         (year, month, day) date.
         """
         data = (
@@ -306,12 +306,12 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {} for date {}, found {}"
 
         for date, expected_result in data:
-            result = self._bc.date_from_b_date(date)
+            result = self._bc.short_date_from_long_date(date)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_b_date_from_date(self):
+    def test_long_date_from_short_date(self):
         """
         """
         data = (
@@ -334,9 +334,19 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {} for date {}, found {}"
 
         for date, expected_result in data:
-            result = self._bc.b_date_from_date(date)
+            result = self._bc.long_date_from_short_date(date)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_date_from_kvymdhms(self):
+        """
+        """
+
+    @unittest.skip("Temporarily skipped")
+    def test_ymdhms_from_b_date(self):
+        """
+        """
 
     #@unittest.skip("Temporarily skipped")
     def test__check_valid_badi_month_day(self):

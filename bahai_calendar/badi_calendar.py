@@ -22,7 +22,7 @@ class BahaiCalendar(BaseCalendar):
     # WGS84:          35.689252, 51.3896 1595m 3.5
     # WGS84--https://coordinates-converter.com/
     # https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-
-    # https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
+# https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
     BAHAI_LOCATION = (35.696111, 51.423056, 0, 3.5)
     #BAHAI_LOCATION = (36.176768, 52.709659, 0, 3.5) # Northeast of Tehran
 
@@ -38,7 +38,7 @@ class BahaiCalendar(BaseCalendar):
     #  (fixed-from-gregorian (gregorian-date 1844 march 21)))
     BAHAI_EPOCH = 673222
 
-    BADI_EPOCH = 2394645.5
+    BADI_EPOCH = 2394646.5 # 2394646.257639
 
     BADI_MONTHS = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -82,7 +82,7 @@ class BahaiCalendar(BaseCalendar):
 
         *** TODO *** Change name to sunset later on.
         """
-        b_date = self.b_date_from_date(date)
+        b_date = self.long_date_from_short_date(date)
         jd = self.jd_from_badi_date(b_date)
         ss_coff = self._sun_rising(jd, lat, lon, zone)
         return self.date_from_jd(jd + ss_coff)
@@ -234,7 +234,7 @@ class BahaiCalendar(BaseCalendar):
             ss = self._sun_setting(ve + 1)
 
         b_date = self.badi_date_from_jd(ss)
-        return self.date_from_b_date if short else b_date
+        return self.short_date_from_long_date if short else b_date
 
     def naw_ruz_from_gregorian_year(self, g_year):
         """
@@ -307,6 +307,9 @@ class BahaiCalendar(BaseCalendar):
         else:
             year = date
 
+        d0 = self.naw_ruz(year)
+        d1 = self.naw_ruz(year + 1)
+
         # 1. Find the day of Naw-Ruz for the current year
         # 2. Find the day of Naw-Ruz for the next year
         # 3. Calculate the difference between the two days found above.
@@ -336,9 +339,9 @@ class BahaiCalendar(BaseCalendar):
         else: # month == 19:
             d = 18 * 19 + 4 + day
 
-        print(date, self.JULIAN_YEAR * (year - 1), d)
+        print(date, self.MEAN_TROPICAL_YEAR * (year - 1), d)
         return self.BADI_EPOCH - 1 + math.floor(
-            self.JULIAN_YEAR * (year - 1)) + d
+            self.MEAN_TROPICAL_YEAR * (year - 1)) + d
 
     def badi_date_from_jd(self, jd:float) -> tuple:
         """
@@ -350,11 +353,11 @@ class BahaiCalendar(BaseCalendar):
 
         print(b_jd, y)
 
-        return 
+        return
 
-    def date_from_b_date(self, b_date:tuple) -> tuple:
+    def short_date_from_long_date(self, b_date:tuple) -> tuple:
         """
-        Convert a b_date to a (year, month, day, hour, minute, second) day.
+        Convert a long date (kvymdhms) to a short date (ymdhms)
         """
         self._check_valid_badi_month_day(b_date)
         t_len = len(b_date)
@@ -369,10 +372,9 @@ class BahaiCalendar(BaseCalendar):
         y = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
         return y, month, day, hour, minute, second
 
-    def b_date_from_date(self, date:tuple) -> tuple:
+    def long_date_from_short_date(self, date:tuple) -> tuple:
         """
-        Convert a date to a
-        (kull_i_shay, vahid, year, month, day, hour, minute, second) day.
+        Convert a date to a short date (ymdhms) to a long date (kvymdhms).
         """
         t_len = len(date)
         year = date[0]
@@ -398,43 +400,45 @@ class BahaiCalendar(BaseCalendar):
         self._check_valid_badi_month_day(b_date)
         return b_date
 
-    ## def date_from_kvymdhms(self, b_date:tuple) -> tuple:
-    ##     """
-    ##     Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second)
-    ##     into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
-    ##     """
-    ##     self._check_valid_badi_month_day(b_date)
-    ##     t_len = len(b_date)
-    ##     kull_i_shay = b_date[0] # 361 years (19 * 19)
-    ##     vahid = b_date[1] # 19 years
-    ##     year = b_date[2]
-    ##     month = b_date[3]
-    ##     day = b_date[4]
-    ##     hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
-    ##     minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
-    ##     second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
-    ##     day += self.HR(hour) + self.MN(minute) + self.SEC(second)
-    ##     return (kull_i_shay, vahid, year, month, day)
+    def date_from_kvymdhms(self, b_date:tuple, short:bool=False) -> tuple:
+        """
+        Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second)
+        into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
+        """
+        self._check_valid_badi_month_day(b_date)
+        t_len = len(b_date)
+        kull_i_shay = b_date[0] # 361 years (19 * 19)
+        vahid = b_date[1] # 19 years
+        year = b_date[2]
+        month = b_date[3]
+        day = b_date[4]
+        hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
+        minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
+        second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
+        day += self.HR(hour) + self.MN(minute) + self.SEC(second)
+        date = (kull_i_shay, vahid, year, month, day)
+        return self.short_date_from_long_date(date) if short else date
 
-    ## def kvymdhms_from_date(self, b_date:tuple) -> tuple:
-    ##     """
-    ##     Convert ((Kull-i-Shay, Váḥid, year, month, day.partial) into
-    ##     (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
-    ##     """
-    ##     self._check_valid_badi_month_day(date)
-    ##     t_len = len(b_date)
-    ##     kull_i_shay = b_date[0] # 361 years (19 * 19)
-    ##     vahid = b_date[1] # 19 years
-    ##     year = b_date[2]
-    ##     month = b_date[3]
-    ##     day = b_date[4]
-    ##     hd = self.PARTIAL_DAY_TO_HOURS(day)
-    ##     hour = math.floor(hd)
-    ##     md = self.PARTIAL_HOUR_TO_MINUTE(hd)
-    ##     minute = math.floor(md)
-    ##     second = self.PARTIAL_MINUTE_TO_SECOND(md)
-    ##     return (kull_i_shay, vahid, year, month, math.floor(day),
-    ##             hour, minute, second)
+    def ymdhms_from_b_date(self, b_date:tuple, short:bool=False) -> tuple:
+        """
+        Convert ((Kull-i-Shay, Váḥid, year, month, day.partial) into
+        (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
+        """
+        self._check_valid_badi_month_day(date)
+        t_len = len(b_date)
+        kull_i_shay = b_date[0] # 361 years (19 * 19)
+        vahid = b_date[1] # 19 years
+        year = b_date[2]
+        month = b_date[3]
+        day = b_date[4]
+        hd = self.PARTIAL_DAY_TO_HOURS(day)
+        hour = math.floor(hd)
+        md = self.PARTIAL_HOUR_TO_MINUTE(hd)
+        minute = math.floor(md)
+        second = self.PARTIAL_MINUTE_TO_SECOND(md)
+        date = (kull_i_shay, vahid, year, month, math.floor(day),
+                hour, minute, second)
+        return self.short_date_from_long_date(date) if short else date
 
     def _check_valid_badi_month_day(self, b_date:tuple) -> bool:
         """
