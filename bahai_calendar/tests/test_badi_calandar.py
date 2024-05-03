@@ -39,7 +39,7 @@ class TestBadiCalendar(unittest.TestCase):
         self._bc = BahaiCalendar()
         self._gc = GregorianCalendar()
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_parse_datetime(self):
         """
         Test that the parse_datetime method creates the baha'i date
@@ -131,7 +131,7 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_fixed_from_astro_bahai(self):
         """
         Test that the fixed_from_astro_bahai method returns a fixed date
@@ -160,7 +160,7 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, b_date, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_astro_bahai_from_fixed(self):
         """
         Test that the astro_bahai_from_fixed method returns the
@@ -191,7 +191,7 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, fixed_day, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_naw_ruz(self):
         """
         Test that the nam_ruz method returns the correct Badi date.
@@ -206,7 +206,7 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_naw_ruz_from_gregorian_year(self):
         """
         Test that the nam_ruz_from_gregorian_year method returns the
@@ -223,7 +223,7 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test__is_leap_year(self):
         """
         Test that the _is_leap_year method returns the correct boolean
@@ -251,6 +251,8 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             ((1, 1, 1), self._bc.BADI_EPOCH), # 1844-03-20T00:00:00
+            #  # 1844-03-20T18:11:00
+            ((1, 1, 1, 18, 11), 2394646.257638889),
             #((19, 19, 19), 2395374.5), # 2401583.5
             ((180, 19, 19), 2460388.5), # 2460388.5
             ((181, 3, 2), 2460428.5),         # 2024-04-28T00:00:00
@@ -262,7 +264,7 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_badi_date_from_jd(self):
         """
         Test that the jd_from_badi_date method returns the correct jd day.

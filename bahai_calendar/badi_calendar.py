@@ -320,17 +320,10 @@ class BahaiCalendar(BaseCalendar):
 
     def jd_from_badi_date(self, date:tuple) -> float:
         """
-        Convert a Badi date to Julian day count with the 1582 10, 15
-        correction.
+        Convert a Badi date to Julian period day.
         """
-        t_len = len(date)
-        year = date[0]
-        month = date[1]
-        day = date[2]
-        hour = date[3] if t_len > 3 and date[3] is not None else 0
-        minute = date[4] if t_len > 4 and date[4] is not None else 0
-        second = date[5] if t_len > 5 and date[5] is not None else 0
-        #if (year, month, day) >= (-262, 12, 2): # Gregorian (1582, 10, 15)
+        year, month, day, h, m, s = self.date_from_kvymdhms(
+            self.long_date_from_short_date(date), short=True)
 
         if month == 0: # Ayyam-i-Ha
             d = 18 * 19 + day
@@ -339,13 +332,13 @@ class BahaiCalendar(BaseCalendar):
         else: # month == 19:
             d = 18 * 19 + 4 + day
 
-        print(date, self.MEAN_TROPICAL_YEAR * (year - 1), d)
+        #print(date, self.MEAN_TROPICAL_YEAR * (year - 1), d)
         return self.BADI_EPOCH - 1 + math.floor(
             self.MEAN_TROPICAL_YEAR * (year - 1)) + d
 
     def badi_date_from_jd(self, jd:float) -> tuple:
         """
-
+        Convert a Julian period day to a Badi date.
         """
         b_jd = jd - self.BADI_EPOCH
         y = b_jd / self.JULIAN_YEAR
@@ -361,25 +354,19 @@ class BahaiCalendar(BaseCalendar):
         """
         self._check_valid_badi_month_day(b_date)
         t_len = len(b_date)
-        kull_i_shay = b_date[0] # 361 years (19 * 19)
-        vahid = b_date[1] # 19 years
-        year = b_date[2]
-        month = b_date[3]
-        day = b_date[4]
+        kull_i_shay, vahid, year, month, day = b_date[:5]
         hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
         minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
         second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
         y = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
-        return y, month, day, hour, minute, second
+        return (y, month, day, hour, minute, second)
 
     def long_date_from_short_date(self, date:tuple) -> tuple:
         """
         Convert a date to a short date (ymdhms) to a long date (kvymdhms).
         """
         t_len = len(date)
-        year = date[0]
-        month = date[1]
-        day = date[2]
+        year, month, day = date[:3]
         hour = date[3] if t_len > 3 and date[3] is not None else 0
         minute = date[4] if t_len > 4 and date[4] is not None else 0
         second = date[5] if t_len > 5 and date[5] is not None else 0
@@ -407,11 +394,7 @@ class BahaiCalendar(BaseCalendar):
         """
         self._check_valid_badi_month_day(b_date)
         t_len = len(b_date)
-        kull_i_shay = b_date[0] # 361 years (19 * 19)
-        vahid = b_date[1] # 19 years
-        year = b_date[2]
-        month = b_date[3]
-        day = b_date[4]
+        kull_i_shay, vahid, year, month, day = b_date[:5]
         hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
         minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
         second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
@@ -426,11 +409,7 @@ class BahaiCalendar(BaseCalendar):
         """
         self._check_valid_badi_month_day(date)
         t_len = len(b_date)
-        kull_i_shay = b_date[0] # 361 years (19 * 19)
-        vahid = b_date[1] # 19 years
-        year = b_date[2]
-        month = b_date[3]
-        day = b_date[4]
+        kull_i_shay, vahid, year, month, day = b_date[:5]
         hd = self.PARTIAL_DAY_TO_HOURS(day)
         hour = math.floor(hd)
         md = self.PARTIAL_HOUR_TO_MINUTE(hd)
@@ -446,11 +425,7 @@ class BahaiCalendar(BaseCalendar):
         """
         cycle = 19
         t_len = len(b_date)
-        kull_i_shay = b_date[0] # 361 years (19 * 19)
-        vahid = b_date[1] # 19 years
-        year = b_date[2]
-        month = b_date[3]
-        day = b_date[4]
+        kull_i_shay, vahid, year, month, day = b_date[:5]
         hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
         minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
         second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
