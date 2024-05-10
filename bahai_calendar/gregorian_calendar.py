@@ -323,6 +323,10 @@ class GregorianCalendar(BaseCalendar):
         """
         year, month, day = self.date_from_ymdhms(g_date)
 
+        if (year, month) == (1582, 10):
+            assert day not in (5, 6, 7, 8, 9, 10, 11, 12, 13, 14), (
+                f"The days 5-14 in 1582-10 are invalid, found day '{day}'.")
+
         if month <= 2:
             year -= 1
             month += 12
