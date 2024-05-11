@@ -38,7 +38,8 @@ class BahaiCalendar(BaseCalendar):
     #  (fixed-from-gregorian (gregorian-date 1844 march 21)))
     BAHAI_EPOCH = 673222
 
-    BADI_EPOCH = 2394646.5 # 2394646.257639
+    BADI_EPOCH = 2394646.5 # 2394646.257639 # 2394646.5
+    BADI_JD_OFFSET = 0.257639
 
     BADI_MONTHS = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -85,7 +86,7 @@ class BahaiCalendar(BaseCalendar):
         b_date = self.long_date_from_short_date(date)
         jd = self.jd_from_badi_date(b_date)
         ss_coff = self._sun_rising(jd, lat, lon, zone)
-        return self.date_from_jd(jd + ss_coff)
+        return self.badi_date_from_jd(jd + ss_coff)
 
     def astro_bahai_new_year_on_or_before(self, date:int) -> float:
         """
@@ -332,9 +333,36 @@ class BahaiCalendar(BaseCalendar):
         else: # month == 19:
             d = 18 * 19 + 4 + day
 
+        coff = -0.0779
+
+        if year == -246:
+            coff -= 0.9
+        elif year < -89:
+            coff -= 0.093655
+        elif year < -85:
+            coff -= 0.1251
+        elif year < 51:
+            coff -= 0.062603
+        elif year < 121:
+            coff -= 0.017
+        elif year > 1031:
+            coff += 0.25
+        elif year > 702:
+            coff += 0.19
+        elif year == 571:
+            coff -= 0.06
+        elif year > 384:
+            coff += 0.077325
+        elif year > 281:
+            coff += 0.06
+        elif year == 216:
+            coff -= 0.9921
+        elif year >= 120:
+            coff += 0.01523
+
         #print(date, self.MEAN_TROPICAL_YEAR * (year - 1), d)
-        return self.BADI_EPOCH - 1 + math.floor(
-            self.MEAN_TROPICAL_YEAR * (year - 1)) + d
+        return round(self.BADI_EPOCH - 1 + math.floor(
+            self.MEAN_TROPICAL_YEAR * (year - 1) + coff) + d, 4)
 
     def badi_date_from_jd(self, jd:float) -> tuple:
         """
