@@ -337,8 +337,8 @@ class GregorianCalendar(BaseCalendar):
         else:
             b = 0
 
-        return math.floor(self.JULIAN_YEAR * year) + math.floor(
-            30.6001 * (month + 1)) + day + b + 1720994.5
+        return round(math.floor(self.JULIAN_YEAR * year) + math.floor(
+            30.6001 * (month + 1)) + day + b + 1720994.5, self.ROUNDING_PLACES)
 
     def gregorian_date_from_jd(self, jd:float) -> tuple:
         """

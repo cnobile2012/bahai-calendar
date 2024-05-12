@@ -117,6 +117,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     WINTER = 270
     SUN_OFFSET = 0.8333333333333334
     STARS_PLANET_OFFSET = 0.5666666666666667
+    ROUNDING_PLACES = 6
 
     def __init__(self):
         self._time = None

@@ -248,14 +248,17 @@ class TestBadiCalendar(unittest.TestCase):
     def test_jd_from_badi_date(self):
         """
         Test that the jd_from_badi_date method returns the correct jd day.
+
+        See: https://aa.usno.navy.mil/data/RS_OneYear
         """
         data = (
-            ((1, 1, 1), self._bc.BADI_EPOCH), # 1844-03-20T00:00:00
-            #  # 1844-03-20T18:11:00
-            ((1, 1, 1, 18, 11), 2394646.257638889),
-            #((19, 19, 19), 2395374.5), # 2401583.5
-            ((180, 19, 19), 2460388.5), # 2460388.5
-            ((181, 3, 2), 2460428.5),         # 2024-04-28T00:00:00
+            ((1, 1, 1), 2394645.5),                 # 1844-03-20T00:00:00
+            # Real epoch at sunset 01-01-01T18:16:00 B.E.
+            ((1, 1, 1, 18, 16), 2394646.261111),    # 1844-03-20T18:16:00
+            ((19, 19, 19), 2401584.5),              # 1863-03-20T00:00:00
+            ((180, 19, 19), 2460388.5),             # 2024-03-19T00:00:00
+            ((181, 3, 2), 2460428.5),               # 2024-04-28T00:00:00
+            ((-260, 1, 1, 18, 16), 2299318.261111), # 1583-03-21T18:16:00
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -264,16 +267,19 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_badi_date_from_jd(self):
         """
         Test that the jd_from_badi_date method returns the correct jd day.
         """
         data = (
-            #(self._bc.BADI_EPOCH, (1, 1, 1, 1 , 1)), # 1844-03-20T00:00:00
-            #(2395374.5, (19, 19, 19)),
-            #(2460387.5, (180, 19, 19)),
-            (2460428.5, (1, 10, 10, 3, 4)),          # 2024-04-29T00:00:00
+            (2394645.5, (1, 1, 1)),                 # 1844-03-20T00:00:00
+            # Real epoch at sunset 01-01-01T18:16:00 B.E.
+            (2394646.261111, (1, 1, 1, 18, 16)),    # 1844-03-20T18:16:00
+            (2395374.5, (19, 19, 19)),              # 1863-03-20T00:00:00
+            (2460388.5, (180, 19, 19)),             # 2024-03-19T00:00:00
+            (2460428.5, (181, 3, 2)),               # 2024-04-28T00:00:00
+            (2299318.261111, (-260, 1, 1, 18, 16)), # 1583-03-21T18:16:00
             )
         msg = "Expected {} for jd {}, found {}"
 

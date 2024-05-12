@@ -18,7 +18,8 @@ class JulianPeriod:
     same.
 
     See https://quasar.as.utexas.edu/BillInfo/JulianDatesG.html
-    See https://www.tondering.dk/claus/cal/julperiod.php
+        https://core2.gsfc.nasa.gov/time/julian.html
+        https://www.tondering.dk/claus/cal/julperiod.php
     """
     # January 1, 2000, at 12:00 TT (Terrestrial Time)
     # TAI = TT - 32.184 seconds

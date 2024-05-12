@@ -38,8 +38,8 @@ class BahaiCalendar(BaseCalendar):
     #  (fixed-from-gregorian (gregorian-date 1844 march 21)))
     BAHAI_EPOCH = 673222
 
-    BADI_EPOCH = 2394646.5 # 2394646.257639 # 2394646.5
-    BADI_JD_OFFSET = 0.257639
+    BADI_EPOCH = 2394646.5 # 2394646.261111 # 2394646.5
+    BADI_JD_OFFSET = 0.261111
 
     BADI_MONTHS = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -360,21 +360,26 @@ class BahaiCalendar(BaseCalendar):
         elif year >= 120:
             coff += 0.01523
 
-        #print(date, self.MEAN_TROPICAL_YEAR * (year - 1), d)
-        return round(self.BADI_EPOCH - 1 + math.floor(
-            self.MEAN_TROPICAL_YEAR * (year - 1) + coff) + d, 4)
+        return round(self.BADI_EPOCH - 1 +
+                     math.floor(self.MEAN_TROPICAL_YEAR * (year - 1) + coff) +
+                     d, self.ROUNDING_PLACES)
 
-    def badi_date_from_jd(self, jd:float) -> tuple:
+    def badi_date_from_jd(self, jd:float, short:bool=False) -> tuple:
         """
         Convert a Julian period day to a Badi date.
         """
-        b_jd = jd - self.BADI_EPOCH
-        y = b_jd / self.JULIAN_YEAR
+        a = jd - (self.BADI_EPOCH - 1)
+        y = a / self.MEAN_TROPICAL_YEAR
+        year = math.floor(y) + 1
+        m = (y % 1) * self.MEAN_TROPICAL_YEAR
+        m1 = math.floor(m / 19)
+        month = m1 + 1
+        day = math.floor(m) - m1 * 19 + 1
+        day += round(a, self.ROUNDING_PLACES) % 1
 
-
-        print(b_jd, y)
-
-        return
+        print(a, y, m, m1)
+        date = (year, month, day)
+        return self.short_date_from_long_date(date) if short else date
 
     def short_date_from_long_date(self, b_date:tuple) -> tuple:
         """
@@ -411,7 +416,8 @@ class BahaiCalendar(BaseCalendar):
             vahid = math.ceil(v)
             y = math.ceil(self._truncate_decimal(v % 1, 6) * 19)
 
-        b_date = (kull_i_shay, vahid, y, month, day, hour, minute, second)
+        hms = () + tuple([v for v in (second, minute, hour) if v != 0])
+        b_date = (kull_i_shay, vahid, y, month, day) + hms
         self._check_valid_badi_month_day(b_date)
         return b_date
 
@@ -435,14 +441,14 @@ class BahaiCalendar(BaseCalendar):
         Convert ((Kull-i-Shay, Váḥid, year, month, day.partial) into
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
         """
-        self._check_valid_badi_month_day(date)
+        self._check_valid_badi_month_day(b_date)
         t_len = len(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hd = self.PARTIAL_DAY_TO_HOURS(day)
         hour = math.floor(hd)
         md = self.PARTIAL_HOUR_TO_MINUTE(hd)
         minute = math.floor(md)
-        second = self.PARTIAL_MINUTE_TO_SECOND(md)
+        second = round(self.PARTIAL_MINUTE_TO_SECOND(md), self.ROUNDING_PLACES)
         date = (kull_i_shay, vahid, year, month, math.floor(day),
                 hour, minute, second)
         return self.short_date_from_long_date(date) if short else date
