@@ -273,18 +273,19 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the jd_from_badi_date method returns the correct jd day.
         """
         data = (
-            (2394645.5, (1, 1, 1)),                 # 1844-03-20T00:00:00
-            # Real epoch at sunset 01-01-01T18:16:00 B.E.
-            (2394646.261111, (1, 1, 1, 18, 16)),    # 1844-03-20T18:16:00
-            (2395374.5, (19, 19, 19)),              # 1863-03-20T00:00:00
-            (2460388.5, (180, 19, 19)),             # 2024-03-19T00:00:00
-            (2460428.5, (181, 3, 2)),               # 2024-04-28T00:00:00
-            (2299318.261111, (-260, 1, 1, 18, 16)), # 1583-03-21T18:16:00
+            #(2394645.5, True, (1, 1, 1)),                 # 1844-03-20T00:00:00
+            # Real epoch at sunset 01-01-01T18:16:00 B.E. 1844-03-20T18:16:00
+            #(2394646.261111, True, (1, 1, 1, 18, 15, 59.9904)),
+            (2395374.5, True, (19, 19, 19)),              # 1863-03-20T00:00:00
+            (2460388.5, True, (180, 19, 19)),             # 2024-03-19T00:00:00
+            (2460428.5, True, (181, 3, 2)),               # 2024-04-28T00:00:00
+            # 1583-03-21T18:16:00
+            (2299318.261111, True, (-260, 1, 1, 18, 15, 59.9904)),
             )
         msg = "Expected {} for jd {}, found {}"
 
-        for jd, expected_result in data:
-            result = self._bc.badi_date_from_jd(jd)
+        for jd, short, expected_result in data:
+            result = self._bc.badi_date_from_jd(jd, short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, result))
 
@@ -296,20 +297,20 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # 1844-03-20T00:00:00
-            ((1, 1, 1, 1, 1), (1, 1, 1, 0, 0, 0)),
+            ((1, 1, 1, 1, 1), (1, 1, 1)),
             # 2024-04-20T20:17:45
             ((1, 10, 10, 2, 14, 20, 17, 45), (181, 2, 14, 20, 17, 45)),
             # 1844-03-19T00:00:00 Before the Badi epoch
-            ((0, 19, 19, 19, 19), (0, 19, 19, 0, 0, 0)),
+            ((0, 19, 19, 19, 19), (0, 19, 19)),
             # 1484-03-11T00:00:00 Before the Badi epoch
-            ((0, 1, 1, 1 ,1), (-360, 1, 1, 0, 0, 0)),
+            ((0, 1, 1, 1 ,1), (-360, 1, 1)),
             # 1843-03-21T00:00:00
-            ((0, 19, 18, 1, 1), (-1, 1, 1, 0, 0, 0)),
+            ((0, 19, 18, 1, 1), (-1, 1, 1)),
             # 1444-05-17T00:00:00
-            ((-1, 17, 18, 4, 3), (-400, 4, 3, 0, 0, 0)),
+            ((-1, 17, 18, 4, 3), (-400, 4, 3)),
             # 1483-03-12T00:00:00
-            ((-1, 19, 19, 1, 1), (-361, 1, 1, 0, 0, 0)),
-            ((-2, 19, 19, 1, 1), (-722, 1, 1, 0, 0, 0)),
+            ((-1, 19, 19, 1, 1), (-361, 1, 1)),
+            ((-2, 19, 19, 1, 1), (-722, 1, 1)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -324,20 +325,20 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # 1844-03-20T00:00:00
-            ((1, 1, 1), (1, 1, 1, 1, 1, 0, 0, 0)),
+            ((1, 1, 1), (1, 1, 1, 1, 1)),
             # 2024-04-20T20:17:45
             ((181, 2, 14, 20, 17, 45), (1, 10, 10, 2, 14, 20, 17, 45)),
             # 1844-03-19T00:00:00 Day before the Badi epoch
-            ((0, 19, 19), (0, 19, 19, 19, 19, 0, 0, 0)),
-            ((0, 10, 10), (0, 19, 19, 10, 10, 0, 0, 0)),
-            ((0, 1, 1), (0, 19, 19, 1, 1 , 0, 0, 0)),
+            ((0, 19, 19), (0, 19, 19, 19, 19)),
+            ((0, 10, 10), (0, 19, 19, 10, 10)),
+            ((0, 1, 1), (0, 19, 19, 1, 1)),
             # 1843-03-21T00:00:00
-            ((-1, 1, 1), (0, 19, 18, 1, 1, 0, 0, 0)),
+            ((-1, 1, 1), (0, 19, 18, 1, 1)),
             # 1444-05-17T00:00:00
-            ((-400, 4, 3), (-1, 17, 18, 4, 3, 0, 0, 0)),
+            ((-400, 4, 3), (-1, 17, 18, 4, 3)),
             # 1483-03-12T00:00:00
-            ((-361, 1, 1), (-1, 19, 19, 1, 1, 0, 0, 0)),
-            ((-722, 1, 1), (-2, 19, 19, 1, 1, 0, 0, 0)),
+            ((-361, 1, 1), (-1, 19, 19, 1, 1)),
+            ((-722, 1, 1), (-2, 19, 19, 1, 1)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -346,15 +347,43 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_date_from_kvymdhms(self):
         """
+        Test that the date_from_kvymdhms method correctly converts
+        ((Kull-i-Shay, Váḥid, year, month, day.partial) into
+        (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
         """
+        data = (
+            ((1, 1, 1, 1, 1, 18, 16), False, (1, 1, 1, 1, 1.761111)),
+            ((1, 1, 1, 1, 1, 18, 16), True, (1, 1, 1.761111)),
+            ((0, 6, 6, 1, 1), True, (-260, 1, 1)),
+            )
+        msg = "Expected {} for date {}, found {}"
 
-    @unittest.skip("Temporarily skipped")
-    def test_ymdhms_from_b_date(self):
+        for date, short, expected_result in data:
+            result = self._bc.date_from_kvymdhms(date, short)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_kvymdhms_from_b_date(self):
         """
+        Test that the kvymdhms_from_b_date method correctly converts
+        ((Kull-i-Shay, Váḥid, year, month, day.partial) into
+        (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
         """
+        data = (
+            ((1, 1, 1, 1, 1.761111), False, (1, 1, 1, 1, 1, 18, 15, 59.9904)),
+            ((1, 1, 1, 1, 1.761111), True, (1, 1, 1, 18, 15, 59.9904)),
+            ((0, 6, 6, 1, 1, 1), True, (-260, 1, 1)),
+            )
+        msg = "Expected {} for date {}, found {}"
+
+        for date, short, expected_result in data:
+            result = self._bc.kvymdhms_from_b_date(date, short)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__check_valid_badi_month_day(self):

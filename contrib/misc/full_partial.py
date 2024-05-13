@@ -404,8 +404,9 @@ class DateTests(BahaiCalendar):
         return data
 
     def _jd_from_badi_date(self, b_date, options):
-        year, month, day, h, m, s = self.date_from_kvymdhms(
+        date = self.date_from_kvymdhms(
             self.long_date_from_short_date(b_date), short=True)
+        year, month, day = date[:3]
 
         if month == 0: # Ayyam-i-Ha
             d = 18 * 19 + day

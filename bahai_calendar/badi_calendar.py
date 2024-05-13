@@ -319,12 +319,13 @@ class BahaiCalendar(BaseCalendar):
 
         return
 
-    def jd_from_badi_date(self, date:tuple) -> float:
+    def jd_from_badi_date(self, b_date:tuple) -> float:
         """
         Convert a Badi date to Julian period day.
         """
-        year, month, day, h, m, s = self.date_from_kvymdhms(
-            self.long_date_from_short_date(date), short=True)
+        date = self.date_from_kvymdhms(
+            self.long_date_from_short_date(b_date), short=True)
+        year, month, day = date[:3]
 
         if month == 0: # Ayyam-i-Ha
             d = 18 * 19 + day
@@ -377,9 +378,27 @@ class BahaiCalendar(BaseCalendar):
         day = math.floor(m) - m1 * 19 + 1
         day += round(a, self.ROUNDING_PLACES) % 1
 
-        print(a, y, m, m1)
-        date = (year, month, day)
-        return self.short_date_from_long_date(date) if short else date
+        if month > 18:
+            ay_years = {365: 4, 366: 5}
+            ytd = 18 * 19
+            jd_n0 = self.jd_from_badi_date((year, 1, 1))
+            jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
+            days_in_year = jd_n1 - jd_n0
+            ay_days = ay_years.get(days_in_year)
+            assert days_in_year in ay_years.keys(), (
+                "Programming error, incorrect number of days in any "
+                f"year, found {days}.")
+
+
+            #month -= 1
+
+            print('POOP0', jd, year, month, day, ytd, ay_days)
+
+
+        print('POOP1', a, y, m, m1, year, month, day)
+
+        date = self.long_date_from_short_date((year, month, day))
+        return self.kvymdhms_from_b_date(date, short)
 
     def short_date_from_long_date(self, b_date:tuple) -> tuple:
         """
@@ -392,7 +411,7 @@ class BahaiCalendar(BaseCalendar):
         minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
         second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
         y = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
-        return (y, month, day, hour, minute, second)
+        return (y, month, day) + self._trim_hms((hour, minute, second))
 
     def long_date_from_short_date(self, date:tuple) -> tuple:
         """
@@ -416,7 +435,7 @@ class BahaiCalendar(BaseCalendar):
             vahid = math.ceil(v)
             y = math.ceil(self._truncate_decimal(v % 1, 6) * 19)
 
-        hms = () + tuple([v for v in (second, minute, hour) if v != 0])
+        hms = self._trim_hms((hour, minute, second))
         b_date = (kull_i_shay, vahid, y, month, day) + hms
         self._check_valid_badi_month_day(b_date)
         return b_date
@@ -432,11 +451,12 @@ class BahaiCalendar(BaseCalendar):
         hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
         minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
         second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
-        day += self.HR(hour) + self.MN(minute) + self.SEC(second)
+        day += round(self.HR(hour) + self.MN(minute) + self.SEC(second),
+                     self.ROUNDING_PLACES)
         date = (kull_i_shay, vahid, year, month, day)
         return self.short_date_from_long_date(date) if short else date
 
-    def ymdhms_from_b_date(self, b_date:tuple, short:bool=False) -> tuple:
+    def kvymdhms_from_b_date(self, b_date:tuple, short:bool=False) -> tuple:
         """
         Convert ((Kull-i-Shay, Váḥid, year, month, day.partial) into
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
@@ -449,9 +469,26 @@ class BahaiCalendar(BaseCalendar):
         md = self.PARTIAL_HOUR_TO_MINUTE(hd)
         minute = math.floor(md)
         second = round(self.PARTIAL_MINUTE_TO_SECOND(md), self.ROUNDING_PLACES)
-        date = (kull_i_shay, vahid, year, month, math.floor(day),
-                hour, minute, second)
+        hms = self._trim_hms((hour, minute, second))
+        date = (kull_i_shay, vahid, year, month, math.floor(day)) + hms
         return self.short_date_from_long_date(date) if short else date
+
+    def _trim_hms(self, hms:tuple) -> tuple:
+        """
+        Trim the hours, minutes, or seconds off if zero unless a lower
+        value was not zero.
+        """
+        items = []
+        has = False
+
+        for v in reversed(hms):
+            if v == 0 and not has:
+                continue
+            else:
+                items.append(v)
+                has = True
+
+        return tuple(reversed(items))
 
     def _check_valid_badi_month_day(self, b_date:tuple) -> bool:
         """
