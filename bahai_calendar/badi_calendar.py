@@ -291,7 +291,7 @@ class BahaiCalendar(BaseCalendar):
 
         return
 
-    def _is_leap_year(self, date) -> bool:
+    def _is_leap_year(self, date:tuple) -> bool:
         """
         Return a boolean True if a Badi leap year, False if not.
 
@@ -308,16 +308,8 @@ class BahaiCalendar(BaseCalendar):
         else:
             year = date
 
-        d0 = self.naw_ruz(year)
-        d1 = self.naw_ruz(year + 1)
-
-        # 1. Find the day of Naw-Ruz for the current year
-        # 2. Find the day of Naw-Ruz for the next year
-        # 3. Calculate the difference between the two days found above.
-        # 4. If the number of days is 366 it's a leap year
-
-
-        return
+        days_in_year = self._days_in_year(year)
+        return True if days_in_year == 366 else False
 
     def jd_from_badi_date(self, b_date:tuple) -> float:
         """
@@ -375,30 +367,45 @@ class BahaiCalendar(BaseCalendar):
         m = (y % 1) * self.MEAN_TROPICAL_YEAR
         m1 = math.floor(m / 19)
         month = m1 + 1
-        day = math.floor(m) - m1 * 19 + 1
-        day += round(a, self.ROUNDING_PLACES) % 1
 
         if month > 18:
             ay_years = {365: 4, 366: 5}
             ytd = 18 * 19
-            jd_n0 = self.jd_from_badi_date((year, 1, 1))
-            jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
-            days_in_year = jd_n1 - jd_n0
+            days_in_year = self._days_in_year(year)
             ay_days = ay_years.get(days_in_year)
             assert days_in_year in ay_years.keys(), (
                 "Programming error, incorrect number of days in any "
                 f"year, found {days}.")
+            d = ytd + ay_days
+            dsf = math.ceil(m)
 
+            if ytd < dsf <= d:
+                month = 0
+                day = dsf - ytd
+            else:
+                month -= 1
+                day = days_in_year - d
 
-            #month -= 1
+            #print('POOP0 ytd', ytd, 'diy', days_in_year, 'd', d,
+            #      'dsf', dsf, 'ay_days', ay_days)
+        else:
+            day = math.floor(m) - m1 * 19 + 1
 
-            print('POOP0', jd, year, month, day, ytd, ay_days)
+        day += round(a, self.ROUNDING_PLACES) % 1
 
-
-        print('POOP1', a, y, m, m1, year, month, day)
+        #print('POOP1 jd', jd, 'a', a, 'y', y, 'm', m, 'year', year,
+        #      'month', month, 'day', day)
 
         date = self.long_date_from_short_date((year, month, day))
         return self.kvymdhms_from_b_date(date, short)
+
+    def _days_in_year(self, year:int) -> int:
+        """
+        Determine the number of days in the current year.
+        """
+        jd_n0 = self.jd_from_badi_date((year, 1, 1))
+        jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
+        return int(jd_n1 - jd_n0)
 
     def short_date_from_long_date(self, b_date:tuple) -> tuple:
         """
