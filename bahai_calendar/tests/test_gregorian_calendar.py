@@ -6,7 +6,7 @@ __docformat__ = "restructuredtext en"
 
 import os
 import math
-import datetime
+from datetime import datetime
 import unittest
 
 from ..gregorian_calendar import GregorianCalendar
@@ -47,20 +47,20 @@ class TestGregorianCalendar(unittest.TestCase):
         """
         Test that the parse_datetime method sets the date and time properly.
 
-        We test using the Baha'i epoch on 1844-03-21T18:11:00
+        We test using the Baha'i epoch on 1844-03-20T18:16:00
         """
-        bahai_g_epech = datetime.datetime(year=1844, month=3, day=21,
-                                          hour=18, minute=11, second=0)
-        expected_result = ((1844, 3, 21), (18, 11, 0))
-        # Test date
-        self._gc.parse_datetime(bahai_g_epech)
-        result = self._gc.date_representation
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result[0], result, msg)
-        # Test time
-        result = self._gc.time_representation
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result[1], result, msg)
+        data = (
+            (datetime(year=1844, month=3, day=20, hour=18, minute=16),
+             (1844, 3, 20, 18, 16, 0)),
+            )
+
+        msg = "Expected result {}, found {}."
+
+        for date, expected_result in data:
+            self._gc.parse_datetime(date)
+            result = self._gc.date_representation
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_fixed_from_gregorian(self):

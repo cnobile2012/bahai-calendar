@@ -5,7 +5,7 @@
 __docformat__ = "restructuredtext en"
 
 import math
-import datetime
+from datetime import datetime
 
 from bahai_calendar.base_calendar import BaseCalendar
 
@@ -42,13 +42,13 @@ class GregorianCalendar(BaseCalendar):
         # [year, month, day]
         self._gregorian_date = None
 
-    def parse_datetime(self, dt:datetime.datetime) -> None:
+    def parse_datetime(self, dt:datetime) -> None:
         self.date_representation = (dt.year, dt.month, dt.day)
         super().parse_datetime(dt)
 
     @property
     def date_representation(self):
-        return self._gregorian_date
+        return self._gregorian_date + super().time_representation
 
     @date_representation.setter
     def date_representation(self, representation):

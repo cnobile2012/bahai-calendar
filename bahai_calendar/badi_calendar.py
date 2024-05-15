@@ -60,10 +60,21 @@ class BahaiCalendar(BaseCalendar):
         self._bahai_date = None
         self._gc = GregorianCalendar()
 
-    def parse_datetime(self, dt:datetime.datetime) -> None:
+    def parse_gregorian_datetime(self, dt:datetime.datetime) -> None:
+        """
+        Parse a Gregorian date to a long form Badi date.
+        """
         self._gc.parse_datetime(dt)
-        fixed = self._gc.fixed_from_gregorian(self._gc.date_representation)
-        self.date_representation = self.astro_bahai_from_fixed(fixed)
+        jd = self._gc.jd_from_gregorian_date(self._gc.date_representation)
+        self.date_representation = self.badi_date_from_jd(jd)
+
+    #def parse_badi_datetime(self, dt:badi_datetime) -> None:
+    #    """
+    #    Parse a Badi date to a long form Badi date.
+    #    """
+    #    self._gc.parse_datetime(dt)
+    #    jd = self._bc.jd_from_badi_date(self._gc.date_representation)
+    #    self.date_representation = self.badi_date_from_jd(jd)
 
     @property
     def date_representation(self) -> tuple:
@@ -71,9 +82,6 @@ class BahaiCalendar(BaseCalendar):
 
     @date_representation.setter
     def date_representation(self, representation:tuple=None):
-        if not representation:
-            representation = self.BAHAI_LOCATION
-
         self._bahai_date = representation
 
     def bahai_sunset(self, date:tuple, lat:float, lon:float,
@@ -83,137 +91,9 @@ class BahaiCalendar(BaseCalendar):
 
         *** TODO *** Change name to sunset later on.
         """
-        b_date = self.long_date_from_short_date(date)
-        jd = self.jd_from_badi_date(b_date)
-        ss_coff = self._sun_rising(jd, lat, lon, zone)
+        jd = self.jd_from_badi_date(date)
+        ss_coff = self._sun_setting(jd, lat, lon, zone)
         return self.badi_date_from_jd(jd + ss_coff)
-
-    def astro_bahai_new_year_on_or_before(self, date:int) -> float:
-        """
-        (defun astro-bahai-new-year-on-or-before (date)
-          ;; TYPE fixed-date -> fixed-date
-          ;; Fixed date of astronomical Bahai New Year on or before fixed
-          ;; date.
-        (let* ((approx            ; Approximate time of equinox.
-                (estimate-prior-solar-longitude spring (bahai-sunset date))))
-          (next day (1- (floor approx))
-                (<= (solar-longitude (bahai-sunset day))
-                    (+ spring (deg 2))))))
-        """
-        approx = self.find_moment_of_equinoxes_or_solstices(
-            self.sunset(date), lam=self.SPRING)
-        initial = math.floor(approx) - 1
-        condition = lambda day: (
-            self.alt_solar_longitude(self.sunset(day)) <= (self.SPRING + 2))
-        return self._next(initial, condition)
-
-    def fixed_from_astro_bahai(self, b_date:tuple) -> float:
-        """
-        (defun fixed-from-astro-bahai (b-date)
-          ;; TYPE bahai-date -> fixed-date
-          ;; Fixed date of Baha’i date b-date.
-          (let* ((major (bahai-major b-date))
-                 (cycle (bahai-cycle b-date))
-                 (year (bahai-year b-date))
-                 (month (bahai-month b-date))
-                 (day (bahai-day b-date))
-                 (years           ; Years from epoch
-                  (+ (* 361 (1- major))
-                     (* 19 (1- cycle))
-                     year)))
-            (cond ((= month 19)   ; last month of year
-                   (+ (astro-bahai-new-year-on-or-before
-                       (+ bahai-epoch
-                          (floor (* mean-tropical-year
-                                    (+ years 1/2)))))
-                      -20 day))
-                  ((= month ayyam-i-ha)
-                                  ; intercalary month, between 18th & 19th
-                   (+ (astro-bahai-new-year-on-or-before
-                       (+ bahai-epoch
-                          (floor (* mean-tropical-year
-                                    (- years 1/2)))))
-                      341 day))
-                  (t (+ (astro-bahai-new-year-on-or-before
-                         (+ bahai-epoch
-                            (floor (* mean-tropical-year
-                                      (- years 1/2)))))
-                        (* (1- month) 19)
-                        day -1)))))
-        """
-        kull_i_shay = b_date[0]
-        vahid = b_date[1]
-        year = b_date[2]
-        month = b_date[3]
-        day = b_date[4]
-        years = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
-
-        if month == 19:
-            result = self.find_moment_of_equinoxes_or_solstices(
-                self.BAHAI_EPOCH + math.floor(
-                    self.MEAN_TROPICAL_YEAR * (years + 0.5))) - 20 + day
-        elif month == self.AYYAM_I_HA:
-            result = self.find_moment_of_equinoxes_or_solstices(
-                self.BAHAI_EPOCH + math.floor(
-                    self.MEAN_TROPICAL_YEAR * (years - 0.5))) + 341 + day
-        else:
-            result = self.find_moment_of_equinoxes_or_solstices(
-                self.BAHAI_EPOCH + math.floor(
-                    self.MEAN_TROPICAL_YEAR * (years - 0.5))) + (
-                month - 1) * 19 + day - 1
-
-        return math.floor(result)
-
-    def astro_bahai_from_fixed(self, date:float) -> tuple:
-        """
-        (defun astro-bahai-from-fixed (date)
-          ;; TYPE fixed-date -> bahai-date
-          ;; Astronomical Baha’i date corresponding to fixed date.
-          (let* ((new-year (astro-bahai-new-year-on-or-before date))
-                 (years (round (/ (- new-year bahai-epoch)
-                                  mean-tropical-year)))
-                 (major (1+ (quotient years 361)))
-                 (cycle (1+ (quotient (mod years 361) 19)))
-                 (year (1+ (mod years 19)))
-                 (days        ; Since start of year
-                  (- date new-year))
-                 (month
-                  (cond
-                   ((>= date (fixed-from-astro-bahai
-                              (bahai-date major cycle year 19 1)))
-                              ; last month of year
-                    19)
-                   ((>= date
-                        (fixed-from-astro-bahai
-                         (bahai-date major cycle year ayyam-i-ha 1)))
-                              ; intercalary month
-                    ayyam-i-ha)
-                   (t (1+ (quotient days 19)))))
-                 (day (- date -1
-                         (fixed-from-astro-bahai
-                          (bahai-date major cycle year month 1)))))
-            (bahai-date major cycle year month day)))
-        """
-        new_year = self.find_moment_of_equinoxes_or_solstices(date)
-        #new_year = self.astro_bahai_new_year_on_or_before(date)
-        years = round((new_year - self.BAHAI_EPOCH) / self.MEAN_TROPICAL_YEAR)
-        kull_i_shay = self.QUOTIENT(years, 361) + 1
-        vahid = self.QUOTIENT(years % 361, 19) + 1
-        year = (years % 19) + 1
-        days = date - new_year
-
-        if date >= self.fixed_from_astro_bahai(
-            (kull_i_shay, vahid, year, 19, 1)):
-            month = 19
-        elif date >= self.fixed_from_astro_bahai(
-            (kull_i_shay, vahid, year, self.AYYAM_I_HA, 1)):
-            month = self.AYYAM_I_HA
-        else:
-            month = self.QUOTIENT(days, 19) + 1
-
-        day = date + 1 - self.fixed_from_astro_bahai(
-            (kull_i_shay, vahid, year, month, 1))
-        return (kull_i_shay, vahid, year, month, day)
 
     def naw_ruz(self, year, short=True):
         """
@@ -236,18 +116,6 @@ class BahaiCalendar(BaseCalendar):
 
         b_date = self.badi_date_from_jd(ss)
         return self.short_date_from_long_date if short else b_date
-
-    def naw_ruz_from_gregorian_year(self, g_year):
-        """
-        (defun naw-ruz (g-year)
-          ;; TYPE gregorian-year -> fixed-date
-          ;; Fixed date of Baha’i New Year (Naw-Ruz) in Gregorian
-          ;; year g-year.
-          (astro-bahai-new-year-on-or-before
-           (gregorian-new-year (1+ g-year))))
-        """
-        return self.find_moment_of_equinoxes_or_solstices(
-            self._gc.gregorian_new_year(g_year + 1))
 
     def feast_of_ridvan(self, g_year):
         """
@@ -283,14 +151,6 @@ class BahaiCalendar(BaseCalendar):
         set8 = self.bahai_sunset(day)
         return day + 1 if m8 < set8 else dat + 2
 
-    def _find_month(self, tee):
-        """
-        Find the Badi month from an R.D. moment.
-        """
-
-
-        return
-
     def _is_leap_year(self, date:tuple) -> bool:
         """
         Return a boolean True if a Badi leap year, False if not.
@@ -308,10 +168,9 @@ class BahaiCalendar(BaseCalendar):
         else:
             year = date
 
-        days_in_year = self._days_in_year(year)
-        return True if days_in_year == 366 else False
+        return True if self._days_in_year(year) == 366 else False
 
-    def jd_from_badi_date(self, b_date:tuple) -> float:
+    def jd_from_badi_date(self, b_date:tuple, short=False) -> float:
         """
         Convert a Badi date to Julian period day.
         """
@@ -335,17 +194,17 @@ class BahaiCalendar(BaseCalendar):
         elif year < -85:
             coff -= 0.1251
         elif year < 51:
-            coff -= 0.062603
+            coff -= 0.06261
         elif year < 121:
             coff -= 0.017
         elif year > 1031:
-            coff += 0.25
+            coff += 0.29
         elif year > 702:
             coff += 0.19
         elif year == 571:
             coff -= 0.06
         elif year > 384:
-            coff += 0.077325
+            coff += 0.0774
         elif year > 281:
             coff += 0.06
         elif year == 216:
@@ -412,11 +271,8 @@ class BahaiCalendar(BaseCalendar):
         Convert a long date (kvymdhms) to a short date (ymdhms)
         """
         self._check_valid_badi_month_day(b_date)
-        t_len = len(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
-        hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
-        minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
-        second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
+        hour, minute, second = self._get_hms(b_date)
         y = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
         return (y, month, day) + self._trim_hms((hour, minute, second))
 
@@ -424,11 +280,8 @@ class BahaiCalendar(BaseCalendar):
         """
         Convert a date to a short date (ymdhms) to a long date (kvymdhms).
         """
-        t_len = len(date)
         year, month, day = date[:3]
-        hour = date[3] if t_len > 3 and date[3] is not None else 0
-        minute = date[4] if t_len > 4 and date[4] is not None else 0
-        second = date[5] if t_len > 5 and date[5] is not None else 0
+        hour, minute, second = self._get_hms(date, True)
         k = year / 361
         k0 = self._truncate_decimal(k % 1, 6)
         v = k0 / 19 * 361
@@ -453,11 +306,8 @@ class BahaiCalendar(BaseCalendar):
         into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
         """
         self._check_valid_badi_month_day(b_date)
-        t_len = len(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
-        hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
-        minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
-        second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
+        hour, minute, second = self._get_hms(b_date)
         day += round(self.HR(hour) + self.MN(minute) + self.SEC(second),
                      self.ROUNDING_PLACES)
         date = (kull_i_shay, vahid, year, month, day)
@@ -469,7 +319,6 @@ class BahaiCalendar(BaseCalendar):
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
         """
         self._check_valid_badi_month_day(b_date)
-        t_len = len(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hd = self.PARTIAL_DAY_TO_HOURS(day)
         hour = math.floor(hd)
@@ -502,11 +351,8 @@ class BahaiCalendar(BaseCalendar):
         Check that the month and day values are valid.
         """
         cycle = 19
-        t_len = len(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
-        hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
-        minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
-        second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
+        hour, minute, second = self._get_hms(b_date)
         assert 1 <= vahid <= cycle, (
             f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or <= 19, "
             f"found {vahid}")
@@ -541,6 +387,40 @@ class BahaiCalendar(BaseCalendar):
         if second:
             assert not minute % 1, (
                 "If there is a part minute then there can be no seconds.")
+
+    def _get_hms(self, date:tuple, short:bool=False) -> tuple:
+        """
+        Parse the hours, minutes, and seconds correctly for either the
+        short or long form Badi date.
+
+        :param date: A short or long form Badi date.
+        :type date: tuple
+        :param short: If True then parse for a short date else if False
+                      parse for a long date.
+        :type short: bool
+        :return: The relevant hours, minutes, and seconds.
+        :rtype: tuple
+        """
+        t_len = len(date)
+        s = 3 if short else 5
+        hour = date[s] if t_len > s and date[s] is not None else 0
+        minute = date[s+1] if t_len > s+1 and date[s+1] is not None else 0
+        second = date[s+2] if t_len > s+2 and date[s+2] is not None else 0
+        return hour, minute, second
+
+    def badi_date_from_gregorian_date(self, g_date:tuple,
+                                      short:bool=False) -> tuple:
+        """
+        Get the Badi date from the Gregorian date.
+        """
+        jd = self._gc.jd_from_gregorian_date(g_date)
+        return self.badi_date_from_jd(jd, short=short)
+
+    def gregorian_date_from_badi_date(self, b_date:tuple) -> tuple:
+        """
+        Get the Gregorian date from the Badi date.
+        """
+        return self._gc.gregorian_date_from_jd(self.jd_from_badi_date(b_date))
 
     @property
     def latitude(self):

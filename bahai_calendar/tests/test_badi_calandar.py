@@ -39,11 +39,11 @@ class TestBadiCalendar(unittest.TestCase):
         self._bc = BahaiCalendar()
         self._gc = GregorianCalendar()
 
-    @unittest.skip("Temporarily skipped")
-    def test_parse_datetime(self):
+    #@unittest.skip("Temporarily skipped")
+    def test_parse_gregorian_datetime(self):
         """
-        Test that the parse_datetime method creates the baha'i date
-        representation.
+        Test that the parse_gregorian_datetime method creates the badi
+        long form date representation.
 
         Thus, for example, Monday, April 21, 1930 would be called “Kamāl
         (Monday), the day of Qudrat (the thirteenth), of the month of Jalāl,
@@ -52,8 +52,8 @@ class TestBadiCalendar(unittest.TestCase):
         [major, cycle, year, month, day]
         """
         data = (
-            # Badi epoch (Vernal Equinox 1844-03-20T11:53:51 DT)
-            ((1844, 3, 20), (1, 1, 1, 1, 1)),
+            # Badi epoch (Sunset 1844-03-20T18:53:00)
+            ((1844, 3, 20, 18, 16), (1, 1, 1, 1, 1, 18, 15, 59.9904)),
             # CC ch#16 p271 First day of Riḍván
             ((1930, 4, 21), (1, 5, 11, 2, 13)),
             # B.E. 100 (Vernal Equinox 1943-03-21T12:03:04 DT)
@@ -65,23 +65,15 @@ class TestBadiCalendar(unittest.TestCase):
 
         for g_date, expected_result in data:
             dt = datetime.datetime(*g_date)
-            self._bc.parse_datetime(dt)
+            self._bc.parse_gregorian_datetime(dt)
             result = self._bc.date_representation
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
     @unittest.skip("Temporarily skipped")
-    def test_date_representation(self):
+    def test_sunset(self):
         """
-        Test that both the setter and getter properties set and get
-        the correct location data.
-        """
-        pass
-
-    @unittest.skip("Temporarily skipped")
-    def test_bahai_sunset(self):
-        """
-        Test that the bahai_sunset method returns the universal time of
+        Test that the sunset method returns the universal time of
         sunset on fixed date. This results in the UTC time of sunset.
 
         Baha'i epoc in fixed date is 673221 (1844-03-20) at:
@@ -99,11 +91,11 @@ class TestBadiCalendar(unittest.TestCase):
         """
         lat, lon, alt, zone = self._bc.BAHAI_LOCATION
         data = (
-            # (1844, 3, 20, 18, 11) -> (1844, 3, 20, 14, 33, 18.275475203990936)
-            ((1, 1, 1, 1, 1), lat, lon, zone, 0),
-            # (2024, 3, 19, 18, 16) -> (2024, 3, 19, 14, 33, 14.83555220067501)
-            #((), 0),
-            # (2064, 3, 19, 18, 15) -> (2064, 3, 19, 14, 33, 14.920333474874496)
+            # (1844, 3, 20, 18, 16)
+            ((1, 1, 1), lat, lon, zone, (1, 1, 1, 1, 1, 18, 15, 33.0336)),
+            # (2024, 3, 19, 18, 16)
+            ((180, 19, 19), lat, lon, zone, (1, 10, 9, 19, 19, 15, 35.1072)),
+            # (2064, 3, 19, 18, 15)
             #((), 0),
             )
         msg = "Expected {}, found {}"
@@ -112,84 +104,6 @@ class TestBadiCalendar(unittest.TestCase):
             result = self._bc.bahai_sunset(date, lat, lon, zone)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
-
-    @unittest.skip("Temporarily skipped")
-    def test_astro_bahai_new_year_on_or_before(self):
-        """
-        Test that the astro_bahai_new_year_on_or_before method returns a
-        fixed date of astronomical Bahai New Year on or before fixed date.
-
-        Baha'i epoc fixed date is 673222.
-        """
-        data = (
-            (673222, 673222),
-            )
-        msg = "Expected result {} for date {}, found {}."
-
-        for date, expected_result in data:
-            result = self._bc.astro_bahai_new_year_on_or_before(date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, result))
-
-    @unittest.skip("Temporarily skipped")
-    def test_fixed_from_astro_bahai(self):
-        """
-        Test that the fixed_from_astro_bahai method returns a fixed date
-        of Baha’i date.
-        """
-        b_dates = (
-            # (2024, 2, 25) 1st day of Ayyām-i-Hā
-            ((1, 10, 9, 0, 1), 738941),
-            # (2024, 2, 29) 4th day of Ayyām-i-Hā
-            ((1, 10, 9, 0, 4), 738944),
-            # (2024, 3, 1) 1st day of last month of year 180
-            ((1, 10, 9, 19, 1), 738946),
-            # (2022, 2, 25) 1st day of Ayyām-i-Hā of year 178
-            ((1, 10, 7, 0, 1), 738211),
-            # (2022, 3, 1) 5th day of Ayyām-i-Hā of year 178
-            ((1, 10, 7, 0, 5), 738215),
-            # (2022, 3, 2) 1st day of Baha of year 178
-            ((1, 10, 7, 19, 1), 738216), # This fails but shouldn't.
-            # (2024, 1, 22) 4th day of 17th month of year 180
-            ((1, 10, 9, 17, 4), 738907),
-            )
-        msg = "Expected result {} for b_date {}, found {}."
-
-        for b_date, expected_result in b_dates:
-            result = self._bc.fixed_from_astro_bahai(b_date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, b_date, result))
-
-    @unittest.skip("Temporarily skipped")
-    def test_astro_bahai_from_fixed(self):
-        """
-        Test that the astro_bahai_from_fixed method returns the
-        astronomical Baha’i date corresponding to fixed date.
-
-        Baha'i epic date of 1844, March, 21 = 673222 in fixed date.
-        """
-        fixed_dates = (
-            # (2024, 2, 25) 1st day of Ayyām-i-Hā
-            (738941, (1, 10, 9, 0, 1)),
-            # (2024, 2, 29) 4th day of Ayyām-i-Hā
-            (738944, (1, 10, 9, 0, 4)),
-            # (2024, 3, 1) 1st day of last month of year 180
-            (738946, (1, 10, 9, 19, 1)),
-            # (2022, 2, 25) 1st day of Ayyām-i-Hā year 178
-            (738211, (1, 10, 7, 0, 1)),
-            # (2022, 3, 1) 5th day of Ayyām-i-Hā year 178
-            (738215, (1, 10, 7, 0, 5)),
-            # (2022, 3, 2) 1st day of Baha of year 178
-            (738216, (1, 10, 7, 19, 1)),
-            # (2024, 1, 22) 4th day of 17th month of year 180
-            (738907, (1, 10, 9, 17, 4)),
-            )
-        msg = "Expected {} for fixed_day {}, found {}"
-
-        for fixed_day, expected_result in fixed_dates:
-            result = self._bc.astro_bahai_from_fixed(fixed_day)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, fixed_day, result))
 
     @unittest.skip("Temporarily skipped")
     def test_naw_ruz(self):
@@ -206,36 +120,24 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test_naw_ruz_from_gregorian_year(self):
-        """
-        Test that the nam_ruz_from_gregorian_year method returns the
-        correct Gregorian dates.
-        """
-        data = (
-            (1844, (1844, 3, 20)), # (1844, 3, 20, 18, 31)
-            )
-        msg = "Expected {} for date {}, found {}"
-
-        for year, date in data:
-            expected_result = self._gc.fixed_from_gregorian(date)
-            result = self._bc.naw_ruz_from_gregorian_year(year)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, year, result))
-
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__is_leap_year(self):
         """
         Test that the _is_leap_year method returns the correct boolean
-        for the given year.
+        for the given year or long Badi date.
         """
         data = (
-            (736044, False), # (2016, 3, 21) start 173
-            (736407, False), # (2017, 3, 19) end 173
-            (736408, True),  # (2017, 3, 20) start 174
-            (736773, True),  # (2018, 3, 20) end 174
-            (736774, False), # (2018, 3, 21) start 175
-            (737138, False), # (2019, 3, 20) end 175
+            # Start of years
+            (173, False),                 # 2016
+            ((1, 10, 2, 1, 1), False),    # (2016, 3, 20)
+            (174, True),                  # 2017
+            ((1, 10, 3, 1, 1), True),     # (2017, 3, 20)
+            (175, False),                 # 2018
+            ((1, 10, 4, 1, 1), False),    # (2018, 3, 21)
+            # End of years
+            ((1, 10, 2, 19, 19), False), # (2017, 3, 19)
+            ((1, 10, 3, 19, 19), True),  # (2017, 3, 19)
+            ((1, 10, 4, 19, 19), False), # (2018, 3, 20)
             )
         msg = "Expected {} for day {}, found {}"
 
@@ -272,7 +174,7 @@ class TestBadiCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_badi_date_from_jd(self):
         """
-        Test that the jd_from_badi_date method returns the correct jd day.
+        Test that the badi_date_from_jd method returns the correct jd day.
         """
         data = (
             (2394645.5, True, (1, 1, 1)),                 # 1844-03-20T00:00:00
@@ -479,3 +381,31 @@ class TestBadiCalendar(unittest.TestCase):
                 else:
                     message = str(cm.exception)
                     self.assertEqual(err_msg, message)
+
+    @unittest.skip("Temporarily skipped")
+    def test__get_hms(self):
+        """
+        Test that the _get_hms method parses the hours, minutes, and
+        seconds correctly for either the short or long form Badi date.
+        """
+
+
+    #@unittest.skip("Temporarily skipped")
+    def test_badi_date_from_gregorian_date(self):
+        """
+        Test that the badi_date_from_gregorian_date method returns the
+        correct Badi date.
+        """
+        data = (
+            ((1844, 3, 20, 18, 16), False, (1, 1, 1, 1, 1, 18, 15, 59.9904)),
+            ((1844, 3, 20, 18, 16), True, (1, 1, 1, 18, 15, 59.9904)),
+            ((2024, 5, 14, 20), False, (1, 10, 10, 3, 19)),
+            ((2024, 5, 14, 20), True, (181, 3, 19)),
+            )
+        msg = "Expected {} for date {} and short {}, found {}"
+
+        for date, short, expected_result in data:
+            print(date, short)
+            result = self._bc.badi_date_from_gregorian_date(date, short)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, short, result))
