@@ -296,6 +296,9 @@ class TestBadiCalendar(unittest.TestCase):
         """
         Test that the _check_valid_badi_month_day method returns the
         correct boolean for valid and invalid dates.
+
+        Note: The boolean below in the data statments determines whether
+              or not the data is valid or invalid.
         """
         msg0 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
                 "<= 19, found {}")
@@ -303,7 +306,7 @@ class TestBadiCalendar(unittest.TestCase):
                 "found {}")
         msg2 = "Invalid month '{}', should be 0 - 19."
         msg3 = ("Invalid day '{}' for month '{}' and year '{}' "
-                "should be 1 - 19.")
+                "should be 1 - {{}}.")
         msg4 = "Invalid hour '{}' it must be 0 <= {} < 24"
         msg5 = "Invalid minute '{}' should be 0 <= {} < 60."
         msg6 = ("If there is a part day then there can be no hours, "
@@ -316,6 +319,8 @@ class TestBadiCalendar(unittest.TestCase):
             ((1, 10, 3, 1, 1), True, ''), # Known leap year
             ((0, 1, 1, 1, 1), True, ''),  # Before Badi epoch
             ((-1, 1, 1, 1, 1), True, ''), # Before Badi epoch
+            ((1, 10, 2, 0, 1), True, ''), # During Ayyám-i-Há non leap year
+            ((1, 10, 3, 0, 1), True, ''), # During Ayyám-i-Há leap year
             # Invalid Váḥid
             ((1, 0, 1, 1, 1, 1, 1, 1), False, msg0.format(0)),
             ((1, 20, 1, 1, 1, 1, 1, 1), False, msg0.format(20)),
@@ -326,9 +331,8 @@ class TestBadiCalendar(unittest.TestCase):
             ((1, 10, 10, -1, 1, 1, 0, 0 ), False, msg2.format(-1)),
             ((1, 10, 10, 20, 1, 1, 0, 0 ), False, msg2.format(20)),
             # Invalid Ayyám-i-Há day
-            ## ((1, 10, 3, 0, 0, 1, 1, 1), False, msg3.format(0, 0, 3)),
-            ## ((1, 10, 3, 0, 4, 1, 1, 1), False, msg3.format(4, 0, 3)),
-            ## ((1, 10, 3, 0, 6, 1, 1, 1), False, msg3.format(6, 0, 3)),
+            ((1, 10, 3, 0, 0, 1, 1, 1), False, msg3.format(0, 0, 3)),
+            ((1, 10, 3, 0, 6, 1, 1, 1), False, msg3.format(6, 0, 3)),
             # Invalid normal day
             ((1, 10, 3, 2, 0, 1, 1, 1), False, msg3.format(0, 2, 3)),
             ((1, 10, 3, 2, 20, 1, 1, 1), False, msg3.format(20, 2, 3)),
@@ -350,26 +354,22 @@ class TestBadiCalendar(unittest.TestCase):
             )
 
         for b_date, validity, err_msg in data:
-            t_len = len(b_date)
-            kull_i_shay = b_date[0]
-            vahid = b_date[1]
-            year = b_date[2]
-            month = b_date[3]
-            day = b_date[4]
-            hour = b_date[5] if t_len > 5 and b_date[5] is not None else 0
-            minute = b_date[6] if t_len > 6 and b_date[6] is not None else 0
-            second = b_date[7] if t_len > 7 and b_date[7] is not None else 0
+            kull_i_shay, vahid, year, month, day = b_date[:5]
+            hour, minute, second = self._bc._get_hms(b_date)
+            cycle = 5 if self._bc._is_leap_year(b_date) else 4
 
-            if validity:
-                # Test correct dates
-                for m in range(20):
-                    if m == 0:
-                        pass # *** TODO *** Test for leap years
+            if validity: # Test for correct dates
+                if month == 0: # Ayyám-i-Há
 
+                    for d in range(1, cycle+1):
+                        date = (kull_i_shay, vahid, year, month, d)
+                        self._bc._check_valid_badi_month_day(date)
+
+                for m in range(1, 20):
                     for d in range(1, 20):
                         date = (kull_i_shay, vahid, year, m, d)
                         self._bc._check_valid_badi_month_day(date)
-            else:
+            else: # Test for invalid dates
                 try:
                     with self.assertRaises(AssertionError) as cm:
                         self._bc._check_valid_badi_month_day(b_date)
@@ -379,8 +379,9 @@ class TestBadiCalendar(unittest.TestCase):
                         f"day {day}, hour {hour}, minute {minute}, "
                         f"second {second}, {e}")
                 else:
+                    num_days = cycle if month == 0 else 19
                     message = str(cm.exception)
-                    self.assertEqual(err_msg, message)
+                    self.assertEqual(err_msg.format(num_days), message)
 
     @unittest.skip("Temporarily skipped")
     def test__get_hms(self):

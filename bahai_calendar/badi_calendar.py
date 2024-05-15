@@ -155,8 +155,8 @@ class BahaiCalendar(BaseCalendar):
         """
         Return a boolean True if a Badi leap year, False if not.
 
-        :param date: This value can be either the Badi year or a tuple
-                     as in (Kull-i-Shay, Vahid, year).
+        :param date: This value can be either the Badi year or a long form
+                     date.
         :type date: int or tuple
         :return:
         :rtype: bool
@@ -364,8 +364,7 @@ class BahaiCalendar(BaseCalendar):
 
         # This is Ayyām-i-Hā and could be 4 or 5 days depending on leap year.
         if month == 0:
-            pass # *** TODO *** Test for a valid Badi leap year.
-            #cycle -= 14 if self._is_leap_year(year) else 15
+            cycle = 5 if self._is_leap_year(b_date) else 4
 
         assert 1 <= day <= cycle, (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "
