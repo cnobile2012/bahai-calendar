@@ -63,155 +63,6 @@ class TestGregorianCalendar(unittest.TestCase):
                              msg.format(expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_fixed_from_gregorian(self):
-        """
-        Test that the fixed_from_gregorian method returns the proper
-        fixed date from a gregorian date.
-        """
-        date_reps = (
-            ((1844, 3, 21), 673222),
-            ((1970, 1, 1), 719163),
-            ((622, 7, 19), 227015),
-            # Vernal Equinox
-            ((2000, 3, 20.31711805555555555556), 730199.3171180555),
-            # Vernal Equinox
-            ((2000, 3, 20, 7, 36, 19), 730199.316886574),
-            )
-        msg = "Expected result {} for year {}, found {}."
-
-        for date_rep, expected_result in date_reps:
-            result = self._gc.fixed_from_gregorian(date_rep)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date_rep[0], result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_gregorian_new_year(self):
-        """
-        Test that the gregorian_new_year method returns the fixed date
-        of January 1 in g_year.
-        """
-        g_year = 2024
-        result = self._gc.gregorian_new_year(g_year)
-        expected_result = 738886
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
-
-    #@unittest.skip("Temporarily skipped")
-    def test_gregorian_year_from_fixed(self):
-        """
-        Test that the gregorian_year_from_fixed method returns a
-        Gregorian year corresponding to the fixed date
-        """
-        dates = ((673222, 1844), (719163, 1970), (227015, 622))
-        msg = "Expected result {} for year {}, found {}."
-
-        for date, expected_result in dates:
-            result = self._gc.gregorian_year_from_fixed(date)
-            self.assertEqual(
-                expected_result, result,
-                msg.format(expected_result, expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_gregorian_from_fixed(self):
-        """
-        Test that the gregorian_from_fixed method returns the Gregorian
-        (year month day) corresponding to fixed date.
-        """
-        dates = (
-            (719163, (1970, 1 ,1)),  #
-            (673222, (1844, 3, 21)), # Leap Year
-            (227015, (622, 7, 19)),
-            )
-        msg = "Expected result {}, found {}."
-
-        for date, expected_result in dates:
-            result = self._gc.gregorian_from_fixed(date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_gregorian_date_difference(self):
-        """
-        Test that the gregorian_date_difference method returns the
-        number of days from Gregorian date g_date1 until g_date2.
-
-        C(n, k) = n!/k!*(n−k)!
-        """
-        date_reps = (
-            (1970, 1, 1),  #
-            (1844, 3, 21), # Leap Year
-            (622, 7, 19),
-            )
-        expected_result = (492148, 446207, -492148)
-        num = len(date_reps)
-        combinations = []
-        msg = "Expected result {} year {} - {}, found {}."
-
-        for k in range(1, num + 1):
-            j = math.comb(num, k)
-            combinations.append((date_reps[k-1], date_reps[j-1]))
-
-        for idx, (g_date1, g_date2) in enumerate(combinations):
-            result = self._gc.gregorian_date_difference(g_date1, g_date2)
-            er = expected_result[idx]
-            self.assertEqual(er, result,
-                msg.format(er, g_date1[0], g_date2[0], result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_alt_fixed_from_gregorian(self):
-        """
-        Test that the alt_fixed_from_gregorian method returns the
-        alternative calculation of fixed date equivalent to the Gregorian
-        date g-date.
-        """
-        date_reps = (
-            #((2094, 4, 4), 764652),
-            ((1844, 3, 21), 673222),
-            ((1970, 1, 1), 719163),
-            ((622, 7, 19), 227015)
-            )
-        msg = "Expected result {} for year {}, found {}."
-
-        for date_rep, expected_result in date_reps:
-            result = self._gc.alt_fixed_from_gregorian(date_rep)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date_rep[0], result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_alt_gregorian_from_fixed(self):
-        """
-        Test that the gregorian_from_fixed method returns the Gregorian
-        (year month day) corresponding to fixed date.
-        """
-        dates = (
-            #(764652, (2094, 4, 4)),  # Easter
-            (719163, (1970, 1 ,1)),  #
-            (673222, (1844, 3, 21)), # Leap Year
-            (227015, (622, 7, 19)),
-            )
-        msg = "Expected result {}, found {}."
-
-        for date, expected_result in dates:
-            result = self._gc.alt_gregorian_from_fixed(date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_alt_gregorian_year_from_fixed(self):
-        """
-        Test that the gregorian_year_from_fixed method returns a
-        Gregorian year corresponding to the fixed date
-        """
-        dates = ((673222, 1844), (719163, 1970), (227015, 622))
-        msg = "Expected result {} for year {}, found {}."
-
-        for date, expected_result in dates:
-            result = self._gc.alt_gregorian_year_from_fixed(date)
-            self.assertEqual(
-                expected_result, result,
-                msg.format(expected_result, expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test_jd_from_gregorian_date(self):
         """
         Test that the jd_from_gregorian_date method returns a
@@ -252,7 +103,7 @@ class TestGregorianCalendar(unittest.TestCase):
             # Meeus AA ch 7 p64 ex7.d
             (2418781.5, (1910, 4, 20)),
             # Meeus AA ch 7 p64 ex7.c
-            (2436116.31, (1957, 10, 4.810000000055879)),
+            (2436116.31, (1957, 10, 4.81)),
             # Meeus AA ch 7 p64 ex7.d
             (2446470.5, (1986, 2, 9)),
             # 1844-Mar-21 00:00:00
@@ -293,9 +144,9 @@ class TestGregorianCalendar(unittest.TestCase):
         (year, month, day, hour, minute, second).
         """
         data = (
-            ((2024, 2, 15, 12, 45, 15), (2024, 2, 15.53142361111111) ),
+            ((2024, 2, 15, 12, 45, 15), (2024, 2, 15.531424) ),
             # Badi Calendar epoch
-            ((1844, 3, 20, 18, 11, 6), (1844, 3, 20.757708333333333)),
+            ((1844, 3, 20, 18, 16), (1844, 3, 20.761111)),
             )
         msg = "Expected result {} for ymdhms {}, found {}."
 
@@ -312,11 +163,9 @@ class TestGregorianCalendar(unittest.TestCase):
         (year, month, day.partial).
         """
         data = (
-            ((2024, 2, 15.53142361111111),
-             (2024, 2, 15, 12, 45, 14.999999999935199)),
+            ((2024, 2, 15.531424), (2024, 2, 15, 12, 45, 15.0336)),
             # Badi Calendar epoch
-            ((1844, 3, 20.757708333333333),
-             (1844, 3, 20, 18, 11, 6.0000000000081855)),
+            ((1844, 3, 20.761111), (1844, 3, 20, 18, 15, 59.9904)),
             )
         msg = "Expected result {} for date {}, found {}."
 

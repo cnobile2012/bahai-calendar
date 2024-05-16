@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# bahai_calendar/test/test_badi_calandar.py
+# bahai_calendar/test/test_badi_calendar.py
 #
 __docformat__ = "restructuredtext en"
 
@@ -163,6 +163,8 @@ class TestBadiCalendar(unittest.TestCase):
             ((-260, 1, 1, 18, 16), 2299318.261111), # 1583-03-21T18:16:00
             # A day in Ayyám-i-Há 2022-02-25T00:00:00
             ((178, 0, 1), 2459635.5),
+            # 2024-05-14T19:59:59.9712
+            ((181, 3, 19, 19, 59, 59.9712), 2460445.333333),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -177,16 +179,20 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the badi_date_from_jd method returns the correct jd day.
         """
         data = (
-            (2394645.5, True, (1, 1, 1)),                 # 1844-03-20T00:00:00
+            (2394645.5, True, (1, 1, 1)),     # 1844-03-20T00:00:00
             # Real epoch at sunset 01-01-01T18:16:00 B.E. 1844-03-20T18:16:00
             (2394646.261111, True, (1, 1, 1, 18, 15, 59.9904)),
-            (2401584.5, True, (19, 19, 19)),              # 1863-03-20T00:00:00
-            (2460388.5, True, (180, 19, 19)),             # 2024-03-19T00:00:00
-            (2460428.5, True, (181, 3, 2)),               # 2024-04-28T00:00:00
+            (2401584.5, True, (19, 19, 19)),  # 1863-03-20T00:00:00
+            (2460388.5, True, (180, 19, 19)), # 2024-03-19T00:00:00
+            (2460428.5, True, (181, 3, 2)),   # 2024-04-28T00:00:00
             # 1583-03-21T18:16:00
             (2299318.261111, True, (-260, 1, 1, 18, 15, 59.9904)),
             # A day in Ayyám-i-Há 2022-02-25T00:00:00
-            (2459635.5, True, (178, 0, 1)),
+            (2459635.5, True, (178, 0, 1)),   # 2022-02-25T00:00:00
+            # 2024-05-14T19:59:59.9712 - long form
+            (2460445.333333, False, (1, 10, 10, 3, 19, 19, 59, 59.9712)),
+            # 2024-05-14T19:59:59.9712 - short form
+            (2460445.333333, True, (181, 3, 19, 19, 59, 59.9712)),
             )
         msg = "Expected {} for jd {}, found {}"
 
@@ -236,7 +242,9 @@ class TestBadiCalendar(unittest.TestCase):
             ((181, 2, 14, 20, 17, 45), (1, 10, 10, 2, 14, 20, 17, 45)),
             # 1844-03-19T00:00:00 Day before the Badi epoch
             ((0, 19, 19), (0, 19, 19, 19, 19)),
+            # 
             ((0, 10, 10), (0, 19, 19, 10, 10)),
+            # 
             ((0, 1, 1), (0, 19, 19, 1, 1)),
             # 1843-03-21T00:00:00
             ((-1, 1, 1), (0, 19, 18, 1, 1)),
@@ -244,7 +252,10 @@ class TestBadiCalendar(unittest.TestCase):
             ((-400, 4, 3), (-1, 17, 18, 4, 3)),
             # 1483-03-12T00:00:00
             ((-361, 1, 1), (-1, 19, 19, 1, 1)),
+            # 
             ((-722, 1, 1), (-2, 19, 19, 1, 1)),
+            # (2024, 5, 14, 20)
+            ((181, 3, 19), (1, 10, 10, 3, 19)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -306,7 +317,7 @@ class TestBadiCalendar(unittest.TestCase):
                 "found {}")
         msg2 = "Invalid month '{}', should be 0 - 19."
         msg3 = ("Invalid day '{}' for month '{}' and year '{}' "
-                "should be 1 - {{}}.")
+                "should be 1 - < {{}}.")
         msg4 = "Invalid hour '{}' it must be 0 <= {} < 24"
         msg5 = "Invalid minute '{}' should be 0 <= {} < 60."
         msg6 = ("If there is a part day then there can be no hours, "
@@ -400,13 +411,12 @@ class TestBadiCalendar(unittest.TestCase):
         data = (
             ((1844, 3, 20, 18, 16), False, (1, 1, 1, 1, 1, 18, 15, 59.9904)),
             ((1844, 3, 20, 18, 16), True, (1, 1, 1, 18, 15, 59.9904)),
-            ((2024, 5, 14, 20), False, (1, 10, 10, 3, 19)),
-            ((2024, 5, 14, 20), True, (181, 3, 19)),
+            ((2024, 5, 14, 20), False, (1, 10, 10, 3, 19, 19, 59, 59.9712)),
+            ((2024, 5, 14, 20), True, (181, 3, 19, 19, 59, 59.9712)),
             )
         msg = "Expected {} for date {} and short {}, found {}"
 
         for date, short, expected_result in data:
-            print(date, short)
             result = self._bc.badi_date_from_gregorian_date(date, short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, short, result))

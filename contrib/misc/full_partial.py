@@ -178,7 +178,8 @@ class DateTests(BahaiCalendar):
         # Start World Center dates at 2015
         (2015, 3, 21), (2016, 3, 20), (2017, 3, 20), (2018, 3, 21),
         (2019, 3, 21), (2020, 3, 20), (2021, 3, 20), (2022, 3, 21),
-        (2023, 3, 21), (2024, 3, 20), (2025, 3, 20), (2026, 3, 21),
+        (2023, 3, 21), (2024, 3, 20), (2024, 5, 14, 19, 59, 59.9712),
+        (2025, 3, 20), (2026, 3, 21),
         (2027, 3, 21), (2028, 3, 20), (2029, 3, 20), (2030, 3, 20),
         (2031, 3, 21), (2032, 3, 20), (2033, 3, 20), (2034, 3, 20),
         (2035, 3, 21), (2036, 3, 20), (2037, 3, 20), (2038, 3, 20),
@@ -413,11 +414,11 @@ class DateTests(BahaiCalendar):
         for g_date in self.TMP_ANS_DATES:
             b_date = (g_date[0] - self.TRAN_COFF, 1, 1) + (
                 g_date[3:6] if len(g_date) > 3 else ())
-            gjd = round(self.gc.jd_from_gregorian_date(g_date), 6)
+            gjd = round(self.gc.jd_from_gregorian_date(g_date),
+                        self.ROUNDING_PLACES)
             bjd, jey_y_m_o, coff, floor_jey = self._jd_from_badi_date(b_date,
                                                                       options)
             diff = bjd - gjd
-            #f = abs(jey_y_m_o) % 1 if diff else 0
             data.append((b_date, bjd, g_date, gjd, jey_y_m_o,
                          floor_jey, jey_y_m_o+coff, diff))
 
@@ -474,6 +475,22 @@ class DateTests(BahaiCalendar):
         floor_jey = math.floor(jey_y_m_o + coff)
         return round(badi_epoch_m_o + floor_jey + d, 6
                      ), jey_y_m_o, coff, floor_jey
+
+    def _alt_jd_from_badi_date(self, b_date, options):
+        date = self.date_from_kvymdhms(
+            self.long_date_from_short_date(b_date), short=True)
+        year, month, day = date[:3]
+
+        if month == 0: # Ayyam-i-Ha
+            d = 18 * 19 + day
+        elif month < 19:
+            d = (month - 1) * 19 + day
+        else: # month == 19:
+            d = 18 * 19 + 4 + day
+
+
+
+
 
 
 if __name__ == "__main__":

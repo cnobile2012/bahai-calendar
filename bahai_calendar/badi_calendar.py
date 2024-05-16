@@ -172,7 +172,15 @@ class BahaiCalendar(BaseCalendar):
 
     def jd_from_badi_date(self, b_date:tuple, short=False) -> float:
         """
-        Convert a Badi date to Julian period day.
+        Convert a Badi short form date to Julian period day.
+
+        :param b_date: A short form Badi date.
+        :type b_date: tuple
+        :param short: If True then parse for a short date else if False
+                      parse for a long date.
+        :type short: bool
+        :return: The Julian Period day.
+        :rtype: float
         """
         date = self.date_from_kvymdhms(
             self.long_date_from_short_date(b_date), short=True)
@@ -244,17 +252,10 @@ class BahaiCalendar(BaseCalendar):
             else:
                 month -= 1
                 day = days_in_year - d
-
-            #print('POOP0 ytd', ytd, 'diy', days_in_year, 'd', d,
-            #      'dsf', dsf, 'ay_days', ay_days)
         else:
             day = math.floor(m) - m1 * 19 + 1
 
         day += round(a, self.ROUNDING_PLACES) % 1
-
-        #print('POOP1 jd', jd, 'a', a, 'y', y, 'm', m, 'year', year,
-        #      'month', month, 'day', day)
-
         date = self.long_date_from_short_date((year, month, day))
         return self.kvymdhms_from_b_date(date, short)
 
@@ -350,25 +351,25 @@ class BahaiCalendar(BaseCalendar):
         """
         Check that the month and day values are valid.
         """
-        cycle = 19
+        cycle = 20
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hour, minute, second = self._get_hms(b_date)
-        assert 1 <= vahid <= cycle, (
+        assert 1 <= vahid < cycle, (
             f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or <= 19, "
             f"found {vahid}")
-        assert 1 <= year <= cycle, (
+        assert 1 <= year < cycle, (
             f"The number of years in a Váḥid should be >= 1 or <= 19, "
             f"found {year}")
-        assert 0 <= month <= cycle, (
+        assert 0 <= month < cycle, (
             f"Invalid month '{month}', should be 0 - 19.")
 
         # This is Ayyām-i-Hā and could be 4 or 5 days depending on leap year.
         if month == 0:
-            cycle = 5 if self._is_leap_year(b_date) else 4
+            cycle = 6 if self._is_leap_year(b_date) else 5
 
-        assert 1 <= day <= cycle, (
+        assert 1 <= day < (cycle), (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "
-            f"should be 1 - {cycle}.")
+            f"should be 1 - < {cycle-1}.")
         assert 0 <= hour < 24, (f"Invalid hour '{hour}' it must be "
                                 f"0 <= {hour} < 24")
         assert 0 <= minute < 60, (f"Invalid minute '{minute}' should be "
