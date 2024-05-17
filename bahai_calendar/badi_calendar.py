@@ -95,14 +95,12 @@ class BahaiCalendar(BaseCalendar):
         jd = self.jd_from_badi_date((year, 1, 1))
         ve = self.find_moment_of_equinoxes_or_solstices(jd)
         lat, lon, elev, zone = self.BAHAI_LOCATION
-        ss_coff = self._sun_setting(ve, lat, lon, zone)
-        ss = ve + ss_coff
-        print('jd', jd, 've', ve, 'ss_coff', ss_coff, 'ss', ss)
+        ss = self._sun_setting(ve, lat, lon, zone)
+        print('jd', jd, 've', ve, 'ss', ss)
 
         if ss < ve:
-            ss_coff = self._sun_setting(ve + 1, lat, lon, zone)
-            ss = ve + ss_coff
-            print('ss+coff', ss_coff, 'ss', ss)
+            ss = self._sun_setting(ve + 1, lat, lon, zone)
+            print('ss', ss)
 
         return self.badi_date_from_jd(ss, short)
 

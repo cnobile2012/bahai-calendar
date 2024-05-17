@@ -252,9 +252,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         d_psi = self._nutation_longitude(tc)
         return self.coterminal_angle(t0 + d_psi * self.cos_deg(eps))
 
-    def _altitude(self, delta:float, lat:float, h:float) -> float:
+    def _sun_altitude(self, delta:float, lat:float, h:float) -> float:
         """
-        Altitude, positive above the horizon, negative below in degrees.
+        Sun altitude, positive above the horizon, negative below in degrees.
 
         :param delta: Declination in sidereal time.
         :type delta: float

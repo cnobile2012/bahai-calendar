@@ -249,8 +249,9 @@ class TestBaseCalandar(unittest.TestCase):
                              msg.format(expected_result, g_date, result))
 
     @unittest.skip("Temporarily skipped")
-    def test__altitude(self):
+    def test__sun_altitude(self):
         """
+        Test that the _sun_altitude method is correctly determined.
         """
         func = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
 
