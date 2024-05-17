@@ -29,20 +29,34 @@ class TestJulianPeriod(unittest.TestCase):
         century in dynamical time from a Julian moment.
         """
         data = (
-            (2394646.5, -1.5577960301163587),
+            (2394646.5, -1.5577960301163587), # Badi epoch
+            (1721425.5, -19.98958247775496),
             (self._jp.J2000, 0.0),
             )
-        msg = "Expected {} for tee {}, found {}"
+        msg = "Expected {} for jd {}, found {}"
 
-        for tee, expected_result in data:
-            result = self._jp.julian_centuries(tee)
+        for jd, expected_result in data:
+            result = self._jp.julian_centuries(jd)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, tee, result))
+                             msg.format(expected_result, jd, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_julian_millennia(self):
         """
+        Test that the julian_millennis method returns the Julian
+        millennia in dynamical time from a Julian moment.
         """
+        data = (
+            (2394646.5, -0.15577960301163587),
+            (1721425.5, -1.9989582477754961),
+            (self._jp.J2000, 0.0),
+            )
+        msg = "Expected {} for jd {}, found {}"
+
+        for jd, expected_result in data:
+            result = self._jp.julian_millennia(jd)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_julian_leap_year(self):
@@ -55,7 +69,7 @@ class TestJulianPeriod(unittest.TestCase):
             (1, False),
             (4, True)
             )
-        msg = "Expected {} for {}, found {}"
+        msg = "Expected {} for year {}, found {}"
 
         for year, expected_result in data:
             result = self._jp.julian_leap_year(year)

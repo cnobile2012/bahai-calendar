@@ -381,7 +381,21 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lat: float
         :param lon: Geographic longitude positive east negative west.
         :type lon: float
-        :return:
+        :param zone: The time zone, defaults to the zero zone in Greenwich UK.
+        :type zone: float
+        :param exact: The political time zones or the exact time zone derived
+                      from the longitude (15 degrees = 360 / 24). Default is
+                      False or the political time zone.
+        :type exact: bool
+        :param offset: A constant “standard” altitude, i.e., the geometric
+                       altitude of the center of the body at the time of
+                       apparent rising or setting, namely,
+                       h0 = -0°34’ = -0°5667 for stars and planets;
+                       h0 = -0°50' = -0°8333 for the Sun.
+                       Default is SUN_OFFSET, STARS_PLANET_OFFSET can also
+                       be used.
+        :type offset: bool
+        :return: The jd moments of the sunrise.
         :rtype: float
 
         .. note::
@@ -400,14 +414,29 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lat: float
         :param lon: Geographic longitude positive east negative west.
         :type lon: float
-        :return:
+        :param zone: The time zone, defaults to the zero zone in Greenwich UK.
+        :type zone: float
+        :param exact: The political time zones or the exact time zone derived
+                      from the longitude (15 degrees = 360 / 24). Default is
+                      False or the political time zone.
+        :type exact: bool
+        :param offset: A constant “standard” altitude, i.e., the geometric
+                       altitude of the center of the body at the time of
+                       apparent rising or setting, namely,
+                       h0 = -0°34’ = -0°5667 for stars and planets;
+                       h0 = -0°50' = -0°8333 for the Sun.
+                       Default is SUN_OFFSET, STARS_PLANET_OFFSET can also
+                       be used.
+        :type offset: bool
+        :return: The jd moments of the sunset.
         :rtype: float
 
         .. note::
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        return self._rising_setting(jd, lat, lon, zone, sr_ss='SET')
+        jd = math.floor(jd) + 0.5
+        return jd - 1 + self._rising_setting(jd, lat, lon, zone, sr_ss='SET')
 
     def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0,
                         exact:bool=False, offset:float=SUN_OFFSET,
@@ -420,11 +449,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lat: float
         :param lon: Geographic longitude positive east negative west.
         :type lon: float
-        :param zone: This is the political timezone.
+        :param zone: The time zone, defaults to the zero zone in Greenwich UK.
         :type zone: float
-        :param exact: Derive the timezone from the longitude. The 'zone'
-                      parameter is not used if this is True, Default is
-                      False.
+        :param exact: The political time zones or the exact time zone derived
+                      from the longitude (15 degrees = 360 / 24). Default is
+                      False or the political time zone.
         :type exact: bool
         :param offset: A constant “standard” altitude, i.e., the geometric
                        altitude of the center of the body at the time of
@@ -436,7 +465,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type offset: float
         :param sr_ss: If 'RISE' return the sunrise else return sunset.
         :type sr_ss: str
-        :return:
+        :return: The offset that would be added to the currect date.
         :rtype: float
 
         .. note::

@@ -26,20 +26,7 @@ class BahaiCalendar(BaseCalendar):
     BAHAI_LOCATION = (35.696111, 51.423056, 0, 3.5)
     #BAHAI_LOCATION = (36.176768, 52.709659, 0, 3.5) # Northeast of Tehran
 
-    #(defconstant ayyam-i-ha
-    #  ;; TYPE bahai-month
-    #  ;; Signifies intercalary period of 4 or 5 days.
-    #  0)
-    AYYAM_I_HA = 0
-
-    #(defconstant bahai-epoch
-    #  ;; TYPE fixed-date
-    #  ;; Fixed date of start of Baha’i calendar.
-    #  (fixed-from-gregorian (gregorian-date 1844 march 21)))
-    BAHAI_EPOCH = 673222
-
-    BADI_EPOCH = 2394646.5 # 2394646.261111 # 2394646.5
-    BADI_JD_OFFSET = 0.261111
+    BADI_EPOCH = 2394646.5 # 2394646.261111
 
     BADI_MONTHS = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -84,18 +71,16 @@ class BahaiCalendar(BaseCalendar):
     def date_representation(self, representation:tuple=None):
         self._bahai_date = representation
 
-    def bahai_sunset(self, date:tuple, lat:float, lon:float,
-                     zone:float=0) -> float:
+    def sunset(self, date:tuple, lat:float, lon:float, zone:float=0) -> float:
         """
         Return the sunset for the given Badi Day.
 
-        *** TODO *** Change name to sunset later on.
         """
         jd = self.jd_from_badi_date(date)
         ss_coff = self._sun_setting(jd, lat, lon, zone)
         return self.badi_date_from_jd(jd + ss_coff)
 
-    def naw_ruz(self, year, short=True):
+    def naw_ruz(self, year, short=False):
         """
         Return the Badi date for Naw-Ruz from the given Badi year.
 
@@ -107,15 +92,19 @@ class BahaiCalendar(BaseCalendar):
            4. if the sunset is before the Vernal Equinox get the sunset for
               the next day.
         """
-        jd = self.jd_from_badi_date((year, 3, 1))
+        jd = self.jd_from_badi_date((year, 1, 1))
         ve = self.find_moment_of_equinoxes_or_solstices(jd)
-        ss = self._sun_setting(ve)
+        lat, lon, elev, zone = self.BAHAI_LOCATION
+        ss_coff = self._sun_setting(ve, lat, lon, zone)
+        ss = ve + ss_coff
+        print('jd', jd, 've', ve, 'ss_coff', ss_coff, 'ss', ss)
 
         if ss < ve:
-            ss = self._sun_setting(ve + 1)
+            ss_coff = self._sun_setting(ve + 1, lat, lon, zone)
+            ss = ve + ss_coff
+            print('ss+coff', ss_coff, 'ss', ss)
 
-        b_date = self.badi_date_from_jd(ss)
-        return self.short_date_from_long_date if short else b_date
+        return self.badi_date_from_jd(ss, short)
 
     def feast_of_ridvan(self, g_year):
         """
@@ -170,15 +159,12 @@ class BahaiCalendar(BaseCalendar):
 
         return True if self._days_in_year(year) == 366 else False
 
-    def jd_from_badi_date(self, b_date:tuple, short=False) -> float:
+    def jd_from_badi_date(self, b_date:tuple) -> float:
         """
         Convert a Badi short form date to Julian period day.
 
         :param b_date: A short form Badi date.
         :type b_date: tuple
-        :param short: If True then parse for a short date else if False
-                      parse for a long date.
-        :type short: bool
         :return: The Julian Period day.
         :rtype: float
         """
@@ -208,16 +194,18 @@ class BahaiCalendar(BaseCalendar):
         elif year > 1031:
             coff += 0.29
         elif year > 702:
-            coff += 0.19
+            coff += 0.1936
         elif year == 571:
             coff -= 0.06
+        elif year == 546:
+            coff += 0.1
         elif year > 384:
             coff += 0.0774
         elif year > 281:
             coff += 0.06
         elif year == 216:
             coff -= 0.9921
-        elif year >= 120:
+        elif year > 119:
             coff += 0.01523
 
         return round(self.BADI_EPOCH - 1 +
@@ -421,39 +409,3 @@ class BahaiCalendar(BaseCalendar):
         Get the Gregorian date from the Badi date.
         """
         return self._gc.gregorian_date_from_jd(self.jd_from_badi_date(b_date))
-
-    @property
-    def latitude(self):
-        """
-        (defun latitude (location)
-          ;; TYPE location -> half-circle
-          (first location))
-        """
-        return self.BAHAI_LOCATION[0]
-
-    @property
-    def longitude(self):
-        """
-        (defun longitude (location)
-          ;; TYPE location -> circle
-          (second location))
-        """
-        return self.BAHAI_LOCATION[1]
-
-    @property
-    def elevation(self):
-        """
-        (defun elevation (location)
-          ;; TYPE location -> distance
-          (third location))
-        """
-        return self.BAHAI_LOCATION[2]
-
-    @property
-    def zone(self):
-        """
-        (defun zone (location)
-          ;; TYPE location -> real
-          (fourth location))
-        """
-        return self.BAHAI_LOCATION[3]

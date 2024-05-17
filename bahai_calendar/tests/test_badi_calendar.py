@@ -70,7 +70,7 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_sunset(self):
         """
         Test that the sunset method returns the universal time of
@@ -91,34 +91,35 @@ class TestBadiCalendar(unittest.TestCase):
         """
         lat, lon, alt, zone = self._bc.BAHAI_LOCATION
         data = (
-            # (1844, 3, 20, 18, 16)
+            # Should be 1844-03-20T18:16:00
             ((1, 1, 1), lat, lon, zone, (1, 1, 1, 1, 1, 18, 15, 33.0336)),
-            # (2024, 3, 19, 18, 16)
-            ((180, 19, 19), lat, lon, zone, (1, 10, 9, 19, 19, 15, 35.1072)),
-            # (2064, 3, 19, 18, 15)
-            #((), 0),
+            # Should be 2024-03-19T18:16:00
+            ((180, 19, 19), lat, lon, zone, (1, 10, 10, 1, 1, 18, 14, 53.1168)),
+            # Should be 2064-03-19T18:15:00
+            ((221, 1, 1), lat, lon, zone, (1, 12, 12, 1, 2, 18, 15, 57.312)),
             )
-        msg = "Expected {}, found {}"
+        msg = "Expected {}, date {}, found {}"
 
         for date, lat, lon, zone, expected_result in data:
-            result = self._bc.bahai_sunset(date, lat, lon, zone)
+            result = self._bc.sunset(date, lat, lon, zone)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
+                             msg.format(expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_naw_ruz(self):
         """
         Test that the nam_ruz method returns the correct Badi date.
         """
         data = (
-            (1, (1, 1, 1, 1, 1)),
+            (1, False, (1, 1, 1, 1, 1, 18, 15, 57.744)),
+            (1, True, (1, 1, 1, 18, 15, 57.744))
             )
-        msg = "Expected {} for date {}, found {}"
+        msg = "Expected {} for date {} and short {}, found {}"
 
-        for year, expected_result in data:
-            result = self._bc.naw_ruz(year)
+        for year, short, expected_result in data:
+            result = self._bc.naw_ruz(year, short)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, year, result))
+                             msg.format(expected_result, year, short, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__is_leap_year(self):
@@ -163,8 +164,8 @@ class TestBadiCalendar(unittest.TestCase):
             ((-260, 1, 1, 18, 16), 2299318.261111), # 1583-03-21T18:16:00
             # A day in Ayyám-i-Há 2022-02-25T00:00:00
             ((178, 0, 1), 2459635.5),
-            # 2024-05-14T19:59:59.9712
-            ((181, 3, 19, 19, 59, 59.9712), 2460445.333333),
+            # 2024-05-14T20:00
+            ((181, 3, 19, 20), 2460446.333333),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -394,13 +395,23 @@ class TestBadiCalendar(unittest.TestCase):
                     message = str(cm.exception)
                     self.assertEqual(err_msg.format(num_days), message)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__get_hms(self):
         """
         Test that the _get_hms method parses the hours, minutes, and
         seconds correctly for either the short or long form Badi date.
+        Test both the long and short for od the Badi Date.
         """
+        data = (
+            ((1, 1, 1, 1, 1, 18, 16), False, (18, 16, 0)),
+            ((1, 1, 1, 18, 16), True, (18, 16, 0)),
+            )
+        msg = "Expected {} for date {} amd short {}, found {}"
 
+        for date, short, expected_result in data:
+            result = self._bc._get_hms(date, short)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, short, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_badi_date_from_gregorian_date(self):
@@ -414,9 +425,29 @@ class TestBadiCalendar(unittest.TestCase):
             ((2024, 5, 14, 20), False, (1, 10, 10, 3, 19, 19, 59, 59.9712)),
             ((2024, 5, 14, 20), True, (181, 3, 19, 19, 59, 59.9712)),
             )
-        msg = "Expected {} for date {} and short {}, found {}"
+        msg = "Expected {} for date {}, found {}"
 
         for date, short, expected_result in data:
             result = self._bc.badi_date_from_gregorian_date(date, short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, short, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_gregorian_date_from_badi_date(self):
+        """
+        Test that the gregorian_date_from_badi_date method returns the
+        correct Gregorian date.
+        """
+        data = (
+            ((1, 1, 1, 18, 16), (1844, 3, 20.761111)),
+            ((181, 3, 18, 20), (2024, 5, 14.833333)),
+            ((181, 3, 19, 20), (2024, 5, 15.833333)),
+            ((181, 4, 1, 17), (2024, 5, 16.708333)),
+            ((181, 4, 1, 20), (2024, 5, 16.833333)),
+            )
+        msg = "Expected {} for date {}, found {}"
+
+        for date, expected_result in data:
+            result = self._bc.gregorian_date_from_badi_date(date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))

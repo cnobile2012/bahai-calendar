@@ -42,8 +42,8 @@ class TestBaseCalandar(unittest.TestCase):
                     self.zone = location[3]
             location = property(None, location)
 
-        self._bc = FakeParent()
-        self._gc = GregorianCalendar()
+        self.bc = FakeParent()
+        self.gc = GregorianCalendar()
 
     #@unittest.skip("Temporarily skipped")
     def test_HR(self):
@@ -51,7 +51,7 @@ class TestBaseCalandar(unittest.TestCase):
         Test the HR (hour) lambda.
         """
         value = 6
-        hr = self._bc.HR(value)
+        hr = self.bc.HR(value)
         expected_hr = 0.25
         msg = f"HR should be {expected_hr}, found {hr}."
         self.assertEqual(expected_hr, hr, msg)
@@ -62,7 +62,7 @@ class TestBaseCalandar(unittest.TestCase):
         Test the MN (minute) lambda.
         """
         value = 6
-        mn = self._bc.MN(value)
+        mn = self.bc.MN(value)
         expected_mn = 0.00416666666666666667
         msg = f"MN should be {expected_mn}, found {mn}."
         self.assertEqual(expected_mn, mn, msg)
@@ -73,7 +73,7 @@ class TestBaseCalandar(unittest.TestCase):
         Test the sec (second) lambda.
         """
         value = 6
-        sec = self._bc.SEC(value)
+        sec = self.bc.SEC(value)
         expected_sec = 6.94444444444444444444e-5
         msg = f"SEC should be {expected_sec}, found {sec}."
         self.assertEqual(expected_sec, sec, msg)
@@ -84,7 +84,7 @@ class TestBaseCalandar(unittest.TestCase):
         Test the MINS (minutes) lambda.
         """
         value = 6
-        mins = self._bc.MINS(value)
+        mins = self.bc.MINS(value)
         expected_mins = 0.1
         msg = f"MINS should be {expected_mins}, found {mins}."
         self.assertEqual(expected_mins, mins, msg)
@@ -95,7 +95,7 @@ class TestBaseCalandar(unittest.TestCase):
         Test the SECS (seconds) lambda.
         """
         value = 6
-        secs = self._bc.SECS(value)
+        secs = self.bc.SECS(value)
         expected_secs = 0.00166666666666666667
         msg = f"SECS should be {expected_secs}, found {secs}."
         self.assertEqual(expected_secs, secs, msg)
@@ -106,7 +106,7 @@ class TestBaseCalandar(unittest.TestCase):
         Test the ANGLE (angle) lambda.
         """
         d, m, s = (23, 26, 21.448)
-        angle = self._bc.ANGLE(d, m ,s)
+        angle = self.bc.ANGLE(d, m ,s)
         expected_angle = 23.43929111111111
         msg = f"ANGLE should be {expected_angle}, found {angle}."
         self.assertEqual(expected_angle, angle, msg)
@@ -120,7 +120,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {} with args '{}, {}', found {}"
 
         for x, y, expected_result in data:
-            result = self._bc.AMOD(x, y)
+            result = self.bc.AMOD(x, y)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, x, y, result))
 
@@ -131,13 +131,13 @@ class TestBaseCalandar(unittest.TestCase):
         """
         # Test a == b
         x, a, b = (25, 25, 100)
-        mod3 = self._bc.MOD3(x, a ,b)
+        mod3 = self.bc.MOD3(x, a ,b)
         expected_mod3 = x if a == b else a + (x - a) % (b - a)
         msg = f"MOD3 should be {expected_mod3}, found {mod3}."
         self.assertEqual(expected_mod3, mod3, msg)
         # Test a != b
         x, a, b = (25, 10, 100)
-        mod3 = self._bc.MOD3(x, a ,b)
+        mod3 = self.bc.MOD3(x, a ,b)
         expected_mod3 = x if a == b else a + (x - a) % (b - a)
         msg = f"MOD3 should be {expected_mod3}, found {mod3}."
         self.assertEqual(expected_mod3, mod3, msg)
@@ -149,7 +149,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         m = 19
         n = 2
-        quotient = self._bc.QUOTIENT(m, n)
+        quotient = self.bc.QUOTIENT(m, n)
         expected_quotient = int(math.floor(m / n))
         msg = f"QUOTIENT should be {expected_quotient}, found {quotient}."
         self.assertEqual(expected_quotient, quotient, msg)
@@ -160,12 +160,12 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the parse_datetime method creates an instance object.
         """
         now = datetime.datetime.now()
-        self._bc.parse_datetime(now)
+        self.bc.parse_datetime(now)
         expected_dt = (now.hour, now.minute, now.second)
-        msg = f"Expected {expected_dt}, found {self._bc._time}"
+        msg = f"Expected {expected_dt}, found {self.bc._time}"
         self.assertTrue(
             all([i == j for i, j in zip(expected_dt,
-                                        self._bc.time_representation)]), msg)
+                                        self.bc.time_representation)]), msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_delta_t(self):
@@ -200,8 +200,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, found {}."
 
         for g_date, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            result = self._bc.delta_t(jde)
+            jde = self.gc.jd_from_gregorian_date(g_date)
+            result = self.bc.delta_t(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
 
@@ -220,9 +220,9 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for date {}, found {}."
 
         for g_date, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            tc = self._bc.julian_centuries(jde)
-            result = self._gc._mean_sidereal_time_greenwich(tc)
+            jde = self.gc.jd_from_gregorian_date(g_date)
+            tc = self.bc.julian_centuries(jde)
+            result = self.gc._mean_sidereal_time_greenwich(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
@@ -242,9 +242,9 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for date {}, found {}."
 
         for g_date, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            tc = self._bc.julian_centuries(jde)
-            result = self._gc._apparent_sidereal_time_greenwich(tc)
+            jde = self.gc.jd_from_gregorian_date(g_date)
+            tc = self.bc.julian_centuries(jde)
+            result = self.gc._apparent_sidereal_time_greenwich(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
@@ -255,16 +255,16 @@ class TestBaseCalandar(unittest.TestCase):
         func = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
 
         def inter_ra(tc, n):
-            a0 = self._bc._sun_apparent_right_ascension(tc - (1 / 36525))
-            a1 = self._bc._sun_apparent_right_ascension(tc)
-            a2 = self._bc._sun_apparent_right_ascension(tc + (1 / 36525))
-            return self._bc.interpolation_from_three(a0, a1, a2, n)
+            a0 = self.bc._sun_apparent_right_ascension(tc - (1 / 36525))
+            a1 = self.bc._sun_apparent_right_ascension(tc)
+            a2 = self.bc._sun_apparent_right_ascension(tc + (1 / 36525))
+            return self.bc.interpolation_from_three(a0, a1, a2, n)
 
         def inter_de(tc, n):
-            d0 = self._bc._sun_apparent_declination(tc - (1 / 36525))
-            d1 = self._bc._sun_apparent_declination(tc)
-            d2 = self._bc._sun_apparent_declination(tc + (1 / 36525))
-            return self._bc.interpolation_from_three(d0, d1, d2, n)
+            d0 = self.bc._sun_apparent_declination(tc - (1 / 36525))
+            d1 = self.bc._sun_apparent_declination(tc)
+            d2 = self.bc._sun_apparent_declination(tc + (1 / 36525))
+            return self.bc.interpolation_from_three(d0, d1, d2, n)
 
         data = (
             # 1987-04-10T19:21:00 -- 2446896.30625, lat, lon
@@ -274,24 +274,24 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for date {}, with lat {} and lon {}, found {}."
 
         for g_date, lat, lon, expected_result in data:
-            jd = self._gc.jd_from_gregorian_date(g_date)
-            tc = self._bc.julian_centuries(jd)
-            ast = self._bc._apparent_sidereal_time_greenwich(tc)
-            dt = self._gc.delta_t(jd)
+            jd = self.gc.jd_from_gregorian_date(g_date)
+            tc = self.bc.julian_centuries(jd)
+            ast = self.bc._apparent_sidereal_time_greenwich(tc)
+            dt = self.gc.delta_t(jd)
             jde = jd + dt
             # Find alpha
-            ara = self._bc._sun_apparent_right_ascension(tc)
+            ara = self.bc._sun_apparent_right_ascension(tc)
             ma = func((ara - lon - ast) / 360)
             alpha = inter_ra(tc, ma * dt / 86400)
             # Find delta
-            de = self._bc._sun_apparent_declination(tc)
+            de = self.bc._sun_apparent_declination(tc)
             md = func((de - lon - ast) / 360)
             delta = inter_de(tc, ma * dt / 86400)
             # Find the local hour angle
             #srt = ast + 360.98564736629 * 
-            h = self._bc._local_hour_angle(ast, lon, alpha)
+            h = self.bc._local_hour_angle(ast, lon, alpha)
             print(alpha, delta, ast, h)
-            result = self._bc._altitude(delta, lat, h)
+            result = self.bc._altitude(delta, lat, h)
             self.assertEqual(
                 expected_result, result,
                 msg.format(expected_result, g_date, lat, lon, result))
@@ -302,20 +302,20 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the _approx_local_hour_angle method returns the
         correct angle based on the jde.
 
-        The variable 'self._bc.latitude' is the latitude in Tehran Iran.
+        The variable 'self.bc.latitude' is the latitude in Tehran Iran.
         """
-        offset = self._bc.SUN_OFFSET
+        offset = self.bc.SUN_OFFSET
         data = (
-            ((1844, 3, 20), self._bc.latitude, offset, 90.88543421536639),
+            ((1844, 3, 20), self.bc.latitude, offset, 90.88543421536639),
             ((1988, 3, 20), 42.3333, offset, 90.98306896131454), # AA Ex15.a
-            ((2024, 6, 20), self._bc.latitude, offset, 109.3294509629815),
+            ((2024, 6, 20), self.bc.latitude, offset, 109.3294509629815),
             )
         msg = "Expected {}, for date {}, found {}."
 
         for g_date, lat, offset, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._approx_local_hour_angle(tc, lat, offset)
+            jde = self.gc.jd_from_gregorian_date(g_date)
+            tc = self.bc.julian_centuries(jde)
+            result = self.bc._approx_local_hour_angle(tc, lat, offset)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
@@ -330,15 +330,15 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for g_date {}, found {}."
 
         for g_date, lat, lon, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            result = self._bc._sun_rising(jde, lat, lon)
+            jde = self.gc.jd_from_gregorian_date(g_date)
+            result = self.bc._sun_rising(jde, lat, lon)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_transit(self):
         """
-        Test that the test_transit method returns the correct transition
+        Test that the _sun_transit method returns the correct transition
         based on the jde.
         """
         data = (
@@ -359,26 +359,34 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jd {}, zone {}, and exact {}, found {}."
 
         for jd, lon, zone, exact, expected_result in data:
-            result = self._bc._sun_transit(jd, lon, zone=zone, exact=exact)
+            result = self.bc._sun_transit(jd, lon, zone=zone, exact=exact)
             self.assertEqual(
                 expected_result, result,
                 msg.format(expected_result, jd, zone, exact, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__sun_sunset(self):
         """
+        Test that the _sun_sunset method returns the correct sunset for a
+        given date represented by a Julian Period day.
         """
         data = (
-            # 2447240.5 -- 2h55m 43.75 AA Ex.15.a
-            ((1988, 3, 20), 42.3333, -71.0833, 0),
+            # 1844-03-21T00:00:00 -> 1844-03-20T18:16:00 (2394646.261111)
+            (2394646.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             2394646.2613767292),
+            # 2024-03-19T12:00:00 -> 2024-03-19T18:15:00 (2460389.260417)
+            (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             2460389.260921127),
+            # 2024-03-20T00:00:00 -> 2024-03-20T18:16:00 (2460390.261111)
+            (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             2460390.261111),
             )
-        msg = "Expected {}, for g_date {}, found {}."
+        msg = "Expected {}, for jd {}, found {}."
 
-        for g_date, lat, lon, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            result = self._bc._sun_setting(jde, lat, lon)
+        for jd, lat, lon, zone, expected_result in data:
+            result = self.bc._sun_setting(jd, lat, lon, zone)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result))
+                             msg.format(expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__rising_setting(self):
@@ -393,30 +401,30 @@ class TestBaseCalandar(unittest.TestCase):
             # AA Ex.15.a  at Boston, US
             # JD        Latitude Longitude zone  exact
             (2447240.5, 42.3333, -71.0833, -5.0, False,
-             self._bc.STARS_PLANET_OFFSET,
+             self.bc.STARS_PLANET_OFFSET,
              (0.24264795945457443, 0.7461053367058698)),
             # 2024-03-20T00:00:00 -- (0.250694 = 6:01 am, 0.759027 = 6:13 pm)
           # https://www.timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
             # In Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
-            (2460389.5, 51.477928, -0.001545, 0, False, self._bc.SUN_OFFSET,
+            (2460389.5, 51.477928, -0.001545, 0, False, self.bc.SUN_OFFSET,
              (0.2516441995987325, 0.7587248316117255)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
             # https://www.timeanddate.com/sun/@112931?month=3&year=2024
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 35.696111, 51.423056, 3.5, False, self._bc.SUN_OFFSET,
+            (2460389.5, 35.696111, 51.423056, 3.5, False, self.bc.SUN_OFFSET,
              (0.2554223430236847, 0.7609211270756622)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 35.696111, 51.423056, 0, True, self._bc.SUN_OFFSET,
+            (2460389.5, 35.696111, 51.423056, 0, True, self.bc.SUN_OFFSET,
              (0.2524308319125736, 0.757929615964551)),
             )
         msg = "Expected {}, for jd {}, zone {}, exact {}, found {}."
 
         for jd, lat, lon, zone, exact, offset, expected_result in data:
-            result0 = self._bc._rising_setting(
+            result0 = self.bc._rising_setting(
                 jd, lat, lon, zone=zone, exact=exact, offset=offset,
                 sr_ss='rise')
-            result1 = self._bc._rising_setting(
+            result1 = self.bc._rising_setting(
                 jd, lat, lon, zone=zone, exact=exact, offset=offset,
                 sr_ss='set')
             result = (result0, result1)
@@ -439,8 +447,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._nutation_longitude(tc)
+            tc = self.bc.julian_centuries(jde)
+            result = self.bc._nutation_longitude(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -459,8 +467,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._nutation_obliquity(tc)
+            tc = self.bc.julian_centuries(jde)
+            result = self.bc._nutation_obliquity(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -482,8 +490,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, degrees, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._nutation_obliquity_longitude(t, degrees=degrees)
+            t = self.bc.julian_centuries(jde)
+            result = self.bc._nutation_obliquity_longitude(t, degrees=degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -499,8 +507,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._moon_mean_anomaly(t)
+            t = self.bc.julian_centuries(jde)
+            result = self.bc._moon_mean_anomaly(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -516,8 +524,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._moon_latitude(t)
+            t = self.bc.julian_centuries(jde)
+            result = self.bc._moon_latitude(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -540,8 +548,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._sun_earth_mean_anomaly(t)
+            t = self.bc.julian_centuries(jde)
+            result = self.bc._sun_earth_mean_anomaly(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -557,8 +565,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._mean_moon_elongation(t)
+            t = self.bc.julian_centuries(jde)
+            result = self.bc._mean_moon_elongation(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -579,8 +587,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._moon_ascending_node_longitude(t)
+            t = self.bc.julian_centuries(jde)
+            result = self.bc._moon_ascending_node_longitude(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -600,9 +608,9 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for date {}, found {}."
 
         for g_date, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(g_date)
-            tc = self._bc.julian_centuries(jde)
-            result = self._gc._true_obliquity_of_ecliptic(tc)
+            jde = self.gc.jd_from_gregorian_date(g_date)
+            tc = self.bc.julian_centuries(jde)
+            result = self.gc._true_obliquity_of_ecliptic(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
@@ -619,8 +627,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._sun_mean_longitude(tc)
+            tc = self.bc.julian_centuries(jde)
+            result = self.bc._sun_mean_longitude(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -637,8 +645,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._eccentricity_earth_orbit(t)
+            t = self.bc.julian_centuries(jde)
+            result = self.bc._eccentricity_earth_orbit(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -654,8 +662,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._sun_apparent_longitude(tc)
+            tc = self.bc.julian_centuries(jde)
+            result = self.bc._sun_apparent_longitude(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -674,8 +682,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self._bc.julian_centuries(jde)
-            result = self._bc._sun_equation_of_center(t)
+            t = self.bc.julian_centuries(jde)
+            result = self.bc._sun_equation_of_center(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -691,8 +699,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._sun_true_longitude(tc)
+            tc = self.bc.julian_centuries(jde)
+            result = self.bc._sun_true_longitude(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -715,8 +723,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self._bc.julian_centuries(jde)
-            result = self._bc._sun_apparent_right_ascension(tc)
+            tc = self.bc.julian_centuries(jde)
+            result = self.bc._sun_apparent_right_ascension(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -740,8 +748,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jd, expected_result in data:
-            tc = self._bc.julian_centuries(jd)
-            result = self._bc._sun_apparent_declination(tc)
+            tc = self.bc.julian_centuries(jd)
+            result = self.bc._sun_apparent_declination(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, result))
 
@@ -760,8 +768,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, degrees, expected_result in data:
-            tm = self._bc.julian_millennia(jde)
-            result = self._bc._heliocentric_ecliptical_longitude(tm, degrees)
+            tm = self.bc.julian_millennia(jde)
+            result = self.bc._heliocentric_ecliptical_longitude(tm, degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -780,8 +788,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, degrees, expected_result in data:
-            tm = self._bc.julian_millennia(jde)
-            result = self._bc._heliocentric_ecliptical_latitude(tm, degrees)
+            tm = self.bc.julian_millennia(jde)
+            result = self.bc._heliocentric_ecliptical_latitude(tm, degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -799,8 +807,8 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, degrees, expected_result in data:
-            tm = self._bc.julian_millennia(jde)
-            result = self._bc._radius_vector(tm, degrees)
+            tm = self.bc.julian_millennia(jde)
+            result = self.bc._radius_vector(tm, degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -877,7 +885,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            result = self._bc.apparent_solar_longitude(jde)
+            result = self.bc.apparent_solar_longitude(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -893,7 +901,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            result = self._bc.apparent_solar_latitude(jde)
+            result = self.bc.apparent_solar_latitude(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -904,19 +912,19 @@ class TestBaseCalandar(unittest.TestCase):
         returns a Julian day of the equinoxes or solstices.
         """
         data = (
-            (500, self._bc.SPRING, 1903760.376019375),
-            (500, self._bc.SUMMER, 1903854.104661875),
-            (500, self._bc.AUTUMN, 1903946.9228224999),
-            (500, self._bc.WINTER, 1904035.8380625),
-            (2000, self._bc.SPRING, 2451623.80984),
-            (2000, self._bc.SUMMER, 2451716.56767),
-            (2000, self._bc.AUTUMN, 2451810.21715),
-            (2000, self._bc.WINTER, 2451900.05952),
+            (500, self.bc.SPRING, 1903760.376019375),
+            (500, self.bc.SUMMER, 1903854.104661875),
+            (500, self.bc.AUTUMN, 1903946.9228224999),
+            (500, self.bc.WINTER, 1904035.8380625),
+            (2000, self.bc.SPRING, 2451623.80984),
+            (2000, self.bc.SUMMER, 2451716.56767),
+            (2000, self.bc.AUTUMN, 2451810.21715),
+            (2000, self.bc.WINTER, 2451900.05952),
             )
         msg = "Expected {}, for year {} at angle {}, found {}."
 
         for year, season, expected_result in data:
-            result = self._bc.approx_julian_day_for_equinoxes_or_solstices(
+            result = self.bc.approx_julian_day_for_equinoxes_or_solstices(
                 year, lam=season)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, season, result))
@@ -927,10 +935,10 @@ class TestBaseCalandar(unittest.TestCase):
         Test that the find_moment_of_equinoxes_or_solstices method returns
         the correct equinoxe and solstice R.D. moments for the given years.
         """
-        SP = self._bc.SPRING
-        SM = self._bc.SUMMER
-        AU = self._bc.AUTUMN
-        WN = self._bc.WINTER
+        SP = self.bc.SPRING
+        SM = self.bc.SUMMER
+        AU = self.bc.AUTUMN
+        WN = self.bc.WINTER
         seasons = {SP: 'SPRING', SM: 'SUMMER', AU: 'AUTUMN', WN: 'WINTER'}
         data = (
             # Vernal Equinoxe
@@ -974,11 +982,11 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected '{}' during the {}, found '{}'"
 
         for date, season, expected_result in data:
-            jde = self._gc.jd_from_gregorian_date(date)
-            result = self._bc.find_moment_of_equinoxes_or_solstices(
+            jde = self.gc.jd_from_gregorian_date(date)
+            result = self.bc.find_moment_of_equinoxes_or_solstices(
                 jde, lam=season)
-            result = self._gc.gregorian_date_from_jd(result)
-            result = self._gc.ymdhms_from_date(result)
+            result = self.gc.gregorian_date_from_jd(result)
+            result = self.gc.ymdhms_from_date(result)
             self.assertEqual(
                 expected_result, result,
                 msg.format(expected_result, seasons[season], result))
@@ -994,7 +1002,7 @@ class TestBaseCalandar(unittest.TestCase):
         (given in degrees).
         """
         theta = 90.0
-        result = self._bc.sin_deg(theta)
+        result = self.bc.sin_deg(theta)
         expected_result = 1.0
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
@@ -1006,7 +1014,7 @@ class TestBaseCalandar(unittest.TestCase):
         (given in degrees).
         """
         theta = 90.0
-        result = self._bc.cos_deg(theta)
+        result = self.bc.cos_deg(theta)
         expected_result = 6.123233995736766e-17 # is 0?
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
@@ -1018,7 +1026,7 @@ class TestBaseCalandar(unittest.TestCase):
         (given in degrees).
         """
         theta = 90.0
-        result = self._bc.tan_deg(theta)
+        result = self.bc.tan_deg(theta)
         expected_result = 1.633123935319537e+16
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
@@ -1031,7 +1039,7 @@ class TestBaseCalandar(unittest.TestCase):
         """
         x = 2.0
         y = 2.0
-        result = self._bc.arctan_degrees(x, y)
+        result = self.bc.arctan_degrees(x, y)
         expected_result = 45
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
@@ -1043,7 +1051,7 @@ class TestBaseCalandar(unittest.TestCase):
             f"The value of x '{x}' and y '{y}' must not be x == 0 == y.")
 
         with self.assertRaises(AssertionError) as cm:
-            self._bc.arctan_degrees(x, y)
+            self.bc.arctan_degrees(x, y)
 
         result = str(cm.exception)
         self.assertEqual(expected_result, result,
@@ -1062,7 +1070,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {} with {}, found {}."
 
         for x, expected_result in X:
-            result = self._bc.arcsin_degrees(x)
+            result = self.bc.arcsin_degrees(x)
             self.assertTrue(
                 math.isclose(expected_result, result, rel_tol=0.00000009),
                 msg.format(expected_result, x, result))
@@ -1075,7 +1083,7 @@ class TestBaseCalandar(unittest.TestCase):
             expected_result = f"The value of x '{x}' must be >= -1 and <= 1."
 
             with self.assertRaises(AssertionError) as cm:
-                self._bc.arcsin_degrees(x)
+                self.bc.arcsin_degrees(x)
 
             result = str(cm.exception)
             self.assertEqual(expected_result, result, msg.format(
@@ -1094,7 +1102,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {} with {}, found {}."
 
         for x, expected_result in X:
-            result = self._bc.arccos_degrees(x)
+            result = self.bc.arccos_degrees(x)
             self.assertTrue(
                 math.isclose(expected_result, result, rel_tol=0.00000009),
                 msg.format(expected_result, x, result))
@@ -1107,7 +1115,7 @@ class TestBaseCalandar(unittest.TestCase):
             expected_result = f"The value of x '{x}' must be >= -1 and <= 1."
 
             with self.assertRaises(AssertionError) as cm:
-                self._bc.arccos_degrees(x)
+                self.bc.arccos_degrees(x)
 
             result = str(cm.exception)
             self.assertEqual(expected_result, result, msg.format(
@@ -1123,7 +1131,7 @@ class TestBaseCalandar(unittest.TestCase):
                  (1, 2, 3, 4, 5, 6, 7, 8, 9, 0),
                  (2, 3, 4, 5, 6, 7, 8, 9, 0, 1))
         func = lambda x, y, z, : x * y * z
-        result = self._bc._sigma(lists, func)
+        result = self.bc._sigma(lists, func)
         expected_result = 1260
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
@@ -1136,14 +1144,14 @@ class TestBaseCalandar(unittest.TestCase):
         # Test not 'x'
         x = 10
         a = ()
-        poly = self._bc._poly(x, a)
+        poly = self.bc._poly(x, a)
         expected_poly = 0
         msg = f"POLY should be {expected_poly}, found {poly}."
         self.assertEqual(expected_poly, poly, msg)
         # Test 'a' has a value
         x = 0.1
         a = (1, 2, 3, 4)
-        poly = self._bc._poly(x, a)
+        poly = self.bc._poly(x, a)
         expected_poly = 1.234
         msg = f"POLY should be {expected_poly}, found {poly}."
         self.assertEqual(expected_poly, poly, msg)
@@ -1160,7 +1168,7 @@ class TestBaseCalandar(unittest.TestCase):
         data = ((0, 20), (6, 20), (2, 20), (15, 20), (40, 40), (100, 100))
 
         for initial, expected_result in data:
-            result = self._bc._next(initial , condition)
+            result = self.bc._next(initial , condition)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
 
@@ -1185,7 +1193,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {} with '{}, {}, {}', found {}."
 
         for x, b, c, expected_result in data:
-            result = self._bc._to_radix(x, b, c)
+            result = self.bc._to_radix(x, b, c)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, x, b, c, result))
 
@@ -1217,7 +1225,7 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {} with '{}', found {}."
 
         for args, expected_result in data:
-            result = self._bc.decimal_from_dms(*args)
+            result = self.bc.decimal_from_dms(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
@@ -1245,6 +1253,6 @@ class TestBaseCalandar(unittest.TestCase):
         msg = "Expected {} with '{}', found {}."
 
         for args, expected_result in data:
-            result = self._bc.dms_from_decimal(*args)
+            result = self.bc.dms_from_decimal(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
