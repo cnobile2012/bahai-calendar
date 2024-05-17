@@ -435,8 +435,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        jd = math.floor(jd) + 0.5
-        return jd - 1 + self._rising_setting(jd, lat, lon, zone, sr_ss='SET')
+        return jd + self._rising_setting(jd, lat, lon, zone, sr_ss='SET')
 
     def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0,
                         exact:bool=False, offset:float=SUN_OFFSET,
@@ -498,7 +497,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             m += dm
 
         m += self.decimal_from_hms(zone, 0, 0)
-        return m
+        return m % 1
 
     def _rise_set_correction(self, tc, ast, dt, lat, lon, m, offset):
         """

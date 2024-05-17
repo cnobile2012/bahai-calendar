@@ -371,15 +371,18 @@ class TestBaseCalandar(unittest.TestCase):
         given date represented by a Julian Period day.
         """
         data = (
-            # 1844-03-21T00:00:00 -> 1844-03-20T18:16:00 (2394646.261111)
-            (2394646.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2394646.2613767292),
+            # 1844-03-20T12:00:00 -> 1844-03-20T18:16:00 (2394646.261111)
+            (2394646.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             2394646.2610878865),
             # 2024-03-19T12:00:00 -> 2024-03-19T18:15:00 (2460389.260417)
             (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.260921127),
+             2460389.2606290416),
             # 2024-03-20T00:00:00 -> 2024-03-20T18:16:00 (2460390.261111)
             (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460390.261111),
+             2460390.260921127),
+            # 2024-03-20T02:00:00 -> 2024-03-20T18:16:00 (2460390.261111)
+            (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             2460390.2609697673),
             )
         msg = "Expected {}, for jd {}, found {}."
 

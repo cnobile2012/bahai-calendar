@@ -77,8 +77,8 @@ class BahaiCalendar(BaseCalendar):
 
         """
         jd = self.jd_from_badi_date(date)
-        ss_coff = self._sun_setting(jd, lat, lon, zone)
-        return self.badi_date_from_jd(jd + ss_coff)
+        ss = self._sun_setting(jd, lat, lon, zone)
+        return self.badi_date_from_jd(ss)
 
     def naw_ruz(self, year, short=False):
         """
