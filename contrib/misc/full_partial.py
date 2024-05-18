@@ -277,20 +277,26 @@ class DateTests(BahaiCalendar):
         (2403, 3, 21), (2404, 3, 20), (2405, 3, 20), (2406, 3, 21),
         (2407, 3, 21), (2408, 3, 20), (2409, 3, 20), (2410, 3, 21),
         (2411, 3, 21), (2412, 3, 20), (2413, 3, 20), (2414, 3, 20),
-
-        (2424, 3, 20),
-        (2434, 3, 20),
-
-        (2444, 3, 20),
-        (2445, 3, 20), (2446, 3, 20), (2447, 3, 21), (2448, 3, 20),
-        (2449, 3, 20), (2450, 3, 20), (2451, 3, 21), (2452, 3, 20),
-        (2453, 3, 20), (2454, 3, 20),
-
-        (2464, 3, 20),
-        (2474, 3, 20),
-        (2484, 3, 20),
-
-        (2494, 3, 20),
+        (2415, 3, 21), (2416, 3, 20), (2417, 3, 20), (2418, 3, 21),
+        (2419, 3, 21), (2420, 3, 20), (2421, 3, 20), (2422, 3, 21),
+        (2423, 3, 21), (2424, 3, 20), (2425, 3, 20), (2426, 3, 21),
+        (2427, 3, 21), (2428, 3, 20), (2429, 3, 20), (2430, 3, 20),
+        (2431, 3, 21), (2432, 3, 20), (2433, 3, 20), (2434, 3, 20),
+        (2435, 3, 21), (2436, 3, 20), (2437, 3, 20), (2438, 3, 20),
+        (2439, 3, 21), (2440, 3, 20), (2441, 3, 20), (2442, 3, 20),
+        (2443, 3, 21), (2444, 3, 20), (2445, 3, 20), (2446, 3, 20),
+        (2447, 3, 21), (2448, 3, 20), (2449, 3, 20), (2450, 3, 20),
+        (2451, 3, 21), (2452, 3, 20), (2453, 3, 20), (2454, 3, 20),
+        (2455, 3, 21), (2456, 3, 20), (2457, 3, 20), (2458, 3, 20),
+        (2459, 3, 21), (2460, 3, 20), (2461, 3, 20), (2462, 3, 20),
+        (2463, 3, 20), (2464, 3, 20), (2465, 3, 20), (2466, 3, 20),
+        (2467, 3, 20), (2468, 3, 20), (2469, 3, 20), (2470, 3, 20),
+        (2471, 3, 20), (2472, 3, 20), (2473, 3, 20), (2474, 3, 20),
+        (2475, 3, 20), (2476, 3, 20), (2477, 3, 20), (2478, 3, 20),
+        (2479, 3, 20), (2480, 3, 20), (2481, 3, 20), (2482, 3, 20),
+        (2483, 3, 20), (2484, 3, 20), (2485, 3, 20), (2486, 3, 20),
+        (2487, 3, 20), (2488, 3, 20), (2489, 3, 20), (2490, 3, 20),
+        (2491, 3, 20), (2492, 3, 19), (2493, 3, 20), (2494, 3, 20),
         (2495, 3, 20), (2496, 3, 19), (2497, 3, 20), (2498, 3, 20),
         (2499, 3, 20), (2500, 3, 20), (2501, 3, 21), (2502, 3, 21),
         (2503, 3, 21), (2504, 3, 20),
@@ -370,10 +376,13 @@ class DateTests(BahaiCalendar):
         (2914, 3, 21),
         (2924, 3, 20),
         (2934, 3, 21),
-        (2944, 3, 20),
-        (2954, 3, 21),
 
-        (2964, 3, 20), (2965, 3, 20), (2966, 3, 20),
+        (2944, 3, 20), (2945, 3, 20), (2946, 3, 21),
+        (2947, 3, 21), (2948, 3, 20), (2949, 3, 20), (2950, 3, 21),
+        (2951, 3, 21), (2952, 3, 20), (2953, 3, 20), (2954, 3, 21),
+        (2955, 3, 21), (2956, 3, 20), (2957, 3, 20), (2958, 3, 21),
+        (2959, 3, 21), (2960, 3, 20), (2961, 3, 20), (2962, 3, 20),
+        (2963, 3, 21), (2964, 3, 20), (2965, 3, 20), (2966, 3, 20),
         (2967, 3, 21), (2968, 3, 20), (2969, 3, 20), (2970, 3, 20),
         (2971, 3, 21), (2972, 3, 20), (2973, 3, 20), (2974, 3, 20),
         (2975, 3, 21), (2976, 3, 20), (2977, 3, 20), (2978, 3, 20),
@@ -434,7 +443,7 @@ class DateTests(BahaiCalendar):
     def _create_jd_for_gulian_date(self, data):
         return [self.gc.jd_from_gregorian_date(date) for date in data]
 
-    def analize_date_error(self, options):
+    def analyze_date_error(self, options):
         #g_data = self._create_gregorian_date_range()
         #jds = self._create_jd_for_gulian_date(g_data)
         #z = zip(jds, g_data)
@@ -448,9 +457,8 @@ class DateTests(BahaiCalendar):
             b_date = (g_date[0] - self.TRAN_COFF, 1, 1) + (
                 g_date[3:6] if len(g_date) > 3 else ())
             self._calculate_b_date(b_date, g_date, data)
-            dates = self._find_dates(b_date[0], inject)
 
-            for items in dates:
+            for items in self._find_dates(b_date[0], inject):
                 self._calculate_b_date(*items, data)
 
         return data
@@ -462,7 +470,7 @@ class DateTests(BahaiCalendar):
                                                                   options)
         diff = bjd - gjd
         data.append((b_date, bjd, g_date, gjd, jey_y_m_o, floor_jey,
-                     round(jey_y_m_o+coff, 6), diff))
+                     round(jey_y_m_o + coff, 6), diff))
 
     def _find_dates(self, year, inject):
         items = []
@@ -541,10 +549,6 @@ class DateTests(BahaiCalendar):
             d = 18 * 19 + 4 + day
 
 
-
-
-
-
 if __name__ == "__main__":
     import argparse
 
@@ -557,13 +561,17 @@ if __name__ == "__main__":
         '-c', '--ck-dates', action='store_true', default=False, dest='ck_dates',
         help="Check that long_date_from_short_date() works correctly.")
     parser.add_argument(
-        '-a', '--analize', action='store_true', default=False, dest='analize',
-        help="Analize Badi date errors when converting to jd.")
+        '-a', '--analyze', action='store_true', default=False, dest='analyze',
+        help="Analyze Badi date errors when converting to jd.")
     parser.add_argument(
         '-C', '--coff', action='store_true', default=False, dest='coff',
         help="Turn off all coefficents during an analysis.")
+    parser.add_argument(
+        '-G', '--graph', action='store_true', default=False, dest='graph',
+        help=("Turn off all coefficents and dump output appropriate for "
+              "graphing."))
     options = parser.parse_args()
-    exclusive_error = (options.list, options.ck_dates, options.analize)
+    exclusive_error = (options.list, options.ck_dates, options.analyze)
     assert exclusive_error.count(True) <= 1, (
         "Options -l, -c, and -a are exclusive.")
 
@@ -579,19 +587,39 @@ if __name__ == "__main__":
         bad_items = bad_items if bad_items else "All dates match."
         pprint.pprint(bad_items)
 
-    if options.analize:
-        data = dt.analize_date_error(options)
-        [print(item) for item in data]
-        diffs = []
+    if options.analyze:
+        if options.graph:
+            options.coff = True
+            data = dt.analyze_date_error(options)
+            items = []
 
-        for item in data:
-            if item[-1] != 0.0:
-                diffs.append(item[-1])
+            for item in data:
+                if item[-1] != 0.0:
+                    year, month, day = item[0][:3]
+                    h, m, s = dt._get_hms(item[0])
+                    msg = (f"{year}-{month:<02}-{day:<02}T{h:<02}:{m:<02}:"
+                           f"{s:<02} {item[1]} ")
+                    year, month, day = item[2][:3]
+                    h, m, s = dt._get_hms(item[2])
+                    msg += (f"{year}-{month:<02}-{day:<02}T{h:<02}:{m:<02}:"
+                            f"{s:<02} {item[3]} ")
+                    msg += f"{item[4]} {item[5]} {item[-1]}"
+                    items.append(msg)
 
-        print(len(data), len(diffs))
+            [print(item) for item in items]
+        else:
+            data = dt.analyze_date_error(options)
+            [print(item) for item in data]
+            diffs = []
 
-        if options.coff:
-            coff = sum(diffs) / len(diffs)
-            print(coff)
+            for item in data:
+                if item[-1] != 0.0:
+                    diffs.append(item[-1])
+
+            print(len(data), len(diffs))
+
+            if options.coff:
+                coff = sum(diffs) / len(diffs)
+                print(coff)
 
     sys.exit(0)
