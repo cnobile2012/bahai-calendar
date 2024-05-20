@@ -364,7 +364,7 @@ class DateTests(BahaiCalendar):
         (2751, 3, 21), (2752, 3, 21), (2753, 3, 21), (2754, 3, 21),
         (2755, 3, 21), (2756, 3, 21), (2757, 3, 21), (2758, 3, 21),
         (2759, 3, 21), (2760, 3, 20), (2761, 3, 21), (2762, 3, 21),
-        (2723, 3, 21), (2764, 3, 20), (2765, 3, 21), (2766, 3, 21),
+        (2763, 3, 21), (2764, 3, 20), (2765, 3, 21), (2766, 3, 21),
         (2767, 3, 21), (2768, 3, 20), (2769, 3, 21), (2770, 3, 21),
         (2771, 3, 21), (2772, 3, 20), (2773, 3, 21), (2774, 3, 21),
         (2775, 3, 21), (2776, 3, 20), (2777, 3, 21), (2778, 3, 21),
@@ -527,13 +527,16 @@ class DateTests(BahaiCalendar):
 
         # BADI_EPOCH = 2394645.5 # 2394646.257639
         badi_epoch_m_o = self.BADI_EPOCH - 1
-        # Tropical Year: 365.242189 (self.MEAN_TROPICAL_YEAR)
+        # Mean Tropical Year: 365.242189
         # Sidereal Year: 365.25636
         # Anomalistic Year: 365.25964
         jey_y_m_o = self.MEAN_TROPICAL_YEAR * (year - 1)
         coff = 0
 
         if not options.coff:
+            #if year < -159:
+            #    pass
+
             coff = -0.0779
 
             if year == -246:
@@ -568,17 +571,19 @@ class DateTests(BahaiCalendar):
         return round(badi_epoch_m_o + floor_jey + d, 6
                      ), jey_y_m_o, coff, floor_jey
 
-    def _alt_jd_from_badi_date(self, b_date, options):
-        date = self.date_from_kvymdhms(
-            self.long_date_from_short_date(b_date), short=True)
-        year, month, day = date[:3]
+    def consecutive_years(self):
+        data = []
+        py = 0
 
-        if month == 0: # Ayyam-i-Ha
-            d = 18 * 19 + day
-        elif month < 19:
-            d = (month - 1) * 19 + day
-        else: # month == 19:
-            d = 18 * 19 + 4 + day
+        for g_date in self.TMP_ANS_DATES:
+            year = g_date[0]
+
+            if py != 0 and py != year and year != (py + 1):
+                data.append(g_date)
+
+            py = year
+
+        return data
 
 
 if __name__ == "__main__":
@@ -602,10 +607,15 @@ if __name__ == "__main__":
         '-G', '--graph', action='store_true', default=False, dest='graph',
         help=("Turn off all coefficents and dump output appropriate for "
               "graphing."))
+    parser.add_argument(
+        '-k', '--consecutive', action='store_true', default=False,
+        dest='consecutive',
+        help="Check that all dates are consecutive with no holes.")
     options = parser.parse_args()
-    exclusive_error = (options.list, options.ck_dates, options.analyze)
+    exclusive_error = (options.list, options.ck_dates, options.analyze,
+                       options.consecutive)
     assert exclusive_error.count(True) <= 1, (
-        "Options -l, -c, and -a are exclusive.")
+        "Options -l, -c, -a, and -k are exclusive.")
 
     dt = DateTests()
 
@@ -642,17 +652,30 @@ if __name__ == "__main__":
             [print(item) for item in items]
         else:
             data = dt.analyze_date_error(options)
+            #print(data)
             [print(item) for item in data]
             diffs = []
+            p = 0
+            n = 0
 
             for item in data:
-                if item[-1] != 0.0:
+                if item[-1] != 0:
                     diffs.append(item[-1])
 
-            print(len(data), len(diffs))
+                if item[-1] > 0:
+                    p += 1
+                elif item[-1] < 0:
+                    n += 1
+
+            print(f"Total: {len(data)}\nPositive Errors: {p}\n"
+                  f"Negative Errors: {n}\nTotal errors: {len(diffs)}")
 
             if options.coff:
                 coff = sum(diffs) / len(diffs)
                 print(coff)
+
+    if options.consecutive:
+        data = dt.consecutive_years()
+        [print(item) for item in data]
 
     sys.exit(0)
