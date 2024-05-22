@@ -162,7 +162,7 @@ class DateTests(BahaiCalendar):
         (1951, 3, 21), (1952, 3, 21), (1953, 3, 21), (1954, 3, 21),
         (1955, 3, 21), (1956, 3, 21), (1957, 3, 21), (1958, 3, 21),
         (1959, 3, 21), (1960, 3, 20), (1961, 3, 21), (1962, 3, 21),
-        (1963, 3, 21), (1964, 3, 21), (1965, 3, 21), (1966, 3, 21),
+        (1963, 3, 21), (1964, 3, 20), (1965, 3, 21), (1966, 3, 21),
         (1967, 3, 21), (1968, 3, 20), (1969, 3, 21), (1970, 3, 21),
         (1971, 3, 21), (1972, 3, 20), (1973, 3, 21), (1974, 3, 21),
         (1975, 3, 21), (1976, 3, 20), (1977, 3, 21), (1978, 3, 21),
@@ -525,51 +525,98 @@ class DateTests(BahaiCalendar):
         else: # month == 19:
             d = 18 * 19 + 4 + day
 
+        coff = 0
+
+        if not options.coff:
+            coff = self._apply_coff(year)
+
+            ## coff = -0.0779
+
+            ## if year == -246:
+            ##     coff += 0.9
+            ## elif year < -89:
+            ##     coff += 0.093655
+            ## elif year < -85:
+            ##     coff += 0.1251
+            ## elif year < 51:
+            ##     coff += 0.06261
+            ## elif year < 121:
+            ##     coff += 0.017
+            ## elif year > 1031:
+            ##     coff -= 0.29
+            ## elif year > 702:
+            ##     coff -= 0.1936
+            ## elif year == 571:
+            ##     coff += 0.06
+            ## elif year == 546:
+            ##     coff -= 0.1
+            ## elif year > 384:
+            ##     coff -= 0.0774
+            ## elif year > 281:
+            ##     coff -= 0.06
+            ## elif year == 216:
+            ##     coff += 0.9921
+            ## elif year > 119:
+            ##     coff -= 0.01523
+
         # BADI_EPOCH = 2394645.5 # 2394646.257639
         badi_epoch_m_o = self.BADI_EPOCH - 1
         # Mean Tropical Year: 365.242189
         # Sidereal Year: 365.25636
         # Anomalistic Year: 365.25964
-        jey_y_m_o = self.MEAN_TROPICAL_YEAR * (year - 1)
-        coff = 0
-
-        if not options.coff:
-            #if year < -159:
-            #    pass
-
-            coff = -0.0779
-
-            if year == -246:
-                coff -= 0.9
-            elif year < -89:
-                coff -= 0.093655
-            elif year < -85:
-                coff -= 0.1251
-            elif year < 51:
-                coff -= 0.06261
-            elif year < 121:
-                coff -= 0.017
-            elif year > 1031:
-                coff += 0.29
-            elif year > 702:
-                coff += 0.1936
-            elif year == 571:
-                coff -= 0.06
-            elif year == 546:
-                coff += 0.1
-            elif year > 384:
-                coff += 0.0774
-            elif year > 281:
-                coff += 0.06
-            elif year == 216:
-                coff -= 0.9921
-            elif year > 119:
-                coff += 0.01523
-
-        jey_y_m_o = round(jey_y_m_o, 6)
-        floor_jey = math.floor(round(jey_y_m_o + coff, 6))
+        jey_y_m_o = round(self.MEAN_TROPICAL_YEAR * (year - 1), 6)
+        floor_jey = math.floor(round(jey_y_m_o - coff, 6))
         return round(badi_epoch_m_o + floor_jey + d, 6
                      ), jey_y_m_o, coff, floor_jey
+
+    def _apply_coff(self, year):
+        func = lambda low, y, high, v: low < y < high and y % 4 == v
+        jump = (1, 34, 67, 100)
+        coff = 0
+
+        # In [9]: for y in range(-259, -159):
+        #    ...:     print(y, (-159-y) % 4)
+        if year < -159: # -259 to -160
+            y = -159 - year
+
+            if y in jump:
+                coff = 0.04
+            elif func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
+                coff = 0.18
+        # In [11]: for y in range(-159, -64):
+        #    ...:     print(y, (-64-y) % 4)
+        elif year < -64: # -159 to -65
+            y = -64 - year
+
+            if y in jump:
+                coff = 0.04
+            elif func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
+                coff = 0.16
+        elif year < 35: # -64 to 36
+            y = 35 - year
+
+            if y in jump:
+                coff = 0.15
+            elif func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
+                coff = 0.14
+        # In [4]: for y in range(35, 134):
+        #    ...:     print(y, (134-y) % 4)
+        elif year < 134: # 36 to 133
+            y = 134 - year
+
+            if func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
+                coff = 0.1
+                #print(year, y, y%4)
+        # In [9]: for y in range(134, 233):
+        #    ...:     print(y, (233-y) % 4)
+        elif year < 233: # 134 to 133
+            y = 233 - year
+
+            if func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
+                coff = 0.07
+                #print(year, y, y%4)
+
+        return coff
 
     def consecutive_years(self):
         data = []
