@@ -187,7 +187,7 @@ class DateTests(BahaiCalendar):
         (2047, 3, 21), (2048, 3, 20), (2049, 3, 20), (2050, 3, 20),
         (2051, 3, 21), (2052, 3, 20), (2053, 3, 20), (2054, 3, 20),
         (2055, 3, 21), (2056, 3, 20), (2057, 3, 20), (2058, 3, 20),
-        (2059, 3, 21), (2060, 3, 20), (2061, 3, 20), (2062, 3, 20),
+        (2059, 3, 20), (2060, 3, 20), (2061, 3, 20), (2062, 3, 20),
         #              End World Center dates at 2064
         (2063, 3, 20), (2064, 3, 20), (2065, 3, 20), (2066, 3, 20),
         (2067, 3, 20), (2068, 3, 20), (2069, 3, 20), (2070, 3, 20),
@@ -205,7 +205,7 @@ class DateTests(BahaiCalendar):
         (2115, 3, 21), (2116, 3, 20), (2117, 3, 21), (2118, 3, 21),
         (2119, 3, 21), (2120, 3, 20), (2121, 3, 21), (2122, 3, 21),
         (2123, 3, 21), (2124, 3, 20), (2125, 3, 21), (2126, 3, 21),
-        (2127, 3, 21), (2128, 3, 20), (2129, 3, 21), (2130, 3, 21),
+        (2127, 3, 21), (2128, 3, 20), (2129, 3, 20), (2130, 3, 21),
         (2131, 3, 21), (2132, 3, 20), (2133, 3, 20), (2134, 3, 21),
         (2135, 3, 21), (2136, 3, 20), (2137, 3, 20), (2138, 3, 21),
         (2139, 3, 21), (2140, 3, 20), (2141, 3, 20), (2142, 3, 21),
@@ -271,7 +271,7 @@ class DateTests(BahaiCalendar):
         (2379, 3, 21), (2380, 3, 20), (2381, 3, 21), (2382, 3, 21),
         (2383, 3, 21), (2384, 3, 20), (2385, 3, 21), (2386, 3, 21),
         (2387, 3, 21), (2388, 3, 20), (2389, 3, 21), (2390, 3, 21),
-        (2391, 3, 21), (2392, 3, 20), (2393, 3, 20), (2394, 3, 21),
+        (2391, 3, 21), (2392, 3, 20), (2393, 3, 21), (2394, 3, 21),
         (2395, 3, 21), (2396, 3, 20), (2397, 3, 20), (2398, 3, 21),
         (2399, 3, 21), (2400, 3, 20), (2401, 3, 20), (2402, 3, 21),
         (2403, 3, 21), (2404, 3, 20), (2405, 3, 20), (2406, 3, 21),
@@ -528,36 +528,7 @@ class DateTests(BahaiCalendar):
         coff = 0
 
         if not options.coff:
-            coff = self._apply_coff(year)
-
-            ## coff = -0.0779
-
-            ## if year == -246:
-            ##     coff += 0.9
-            ## elif year < -89:
-            ##     coff += 0.093655
-            ## elif year < -85:
-            ##     coff += 0.1251
-            ## elif year < 51:
-            ##     coff += 0.06261
-            ## elif year < 121:
-            ##     coff += 0.017
-            ## elif year > 1031:
-            ##     coff -= 0.29
-            ## elif year > 702:
-            ##     coff -= 0.1936
-            ## elif year == 571:
-            ##     coff += 0.06
-            ## elif year == 546:
-            ##     coff -= 0.1
-            ## elif year > 384:
-            ##     coff -= 0.0774
-            ## elif year > 281:
-            ##     coff -= 0.06
-            ## elif year == 216:
-            ##     coff += 0.9921
-            ## elif year > 119:
-            ##     coff -= 0.01523
+            coff = self._get_coff(year)
 
         # BADI_EPOCH = 2394645.5 # 2394646.257639
         badi_epoch_m_o = self.BADI_EPOCH - 1
@@ -569,52 +540,60 @@ class DateTests(BahaiCalendar):
         return round(badi_epoch_m_o + floor_jey + d, 6
                      ), jey_y_m_o, coff, floor_jey
 
-    def _apply_coff(self, year):
-        func = lambda low, y, high, v: low < y < high and y % 4 == v
-        jump = (1, 34, 67, 100)
-        coff = 0
+    def _get_coff(self, year):
+        def process_century(y, coff1, coff2):
+            func = lambda low, y, high, v: low < y < high and y % 4 == v
+            coff = 0
 
-        # In [9]: for y in range(-259, -159):
-        #    ...:     print(y, (-159-y) % 4)
+            if coff1 and y in (1, 34, 67, 100):
+                coff = coff1
+            elif coff2 and (func(1, y, 34, 1) or func(34, y, 67, 2) or
+                          func(67, y, 100, 3)):
+                coff = coff2
+
+            return coff
+
         if year < -159: # -259 to -160
-            y = -159 - year
-
-            if y in jump:
-                coff = 0.04
-            elif func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
-                coff = 0.18
-        # In [11]: for y in range(-159, -64):
-        #    ...:     print(y, (-64-y) % 4)
+            # In [9]: for y in range(-259, -159):
+            #    ...:     print(y, (-159-y) % 4)
+            coff = process_century(-159 - year, 0.04, 0.18)
         elif year < -64: # -159 to -65
-            y = -64 - year
+            # In [11]: for y in range(-159, -64):
+            #    ...:     print(y, (-64-y) % 4)
+            coff = process_century(-64 - year, 0.04, 0.16)
+        elif year < 35: # -64 to 34
+            # In [1]: for y in range(-64, 35):
+            #    ...:     print(y, (34-y) % 4)
+            coff = process_century(35 - year, 0.15, 0.14)
+        elif year < 134: # 35 to 133
+            # In [4]: for y in range(35, 134):
+            #    ...:     print(y, (134-y) % 4)
+            coff = process_century(134 - year, 0, 0.1)
+        elif year < 233: # 134 to 233
+            # In [9]: for y in range(134, 233):
+            #    ...:     print(y, (233-y) % 4)
+            coff = process_century(233 - year, 0, 0.07)
+        elif year < 332: # 233 to 333
+            # In [6]: for y in range(233, 332):
+            #    ...:     print(y, (332-y) % 4)
+            coff = process_century(332 - year, 0, 0.035)
+        elif year < 353: # 332 to 352
+            coff = process_century(353 - year, 0.037, 0)
+        elif year < 546:
+            coff = 0
+        elif year < 617:
+            coff = process_century(617 - year, -0.054, -0.038)
+            # In [3]: for y in range(546, 617):
+            #    ...:     print(y, (617-y) % 4)
+        elif year < 716:
+            coff = process_century(716 - year, -0.065, -0.04)
+            print(year, 716 - year, (716 - year) % 4)
+            # In [3]: for y in range(617, 716):
+            #    ...:     print(y, (716-y) % 4)
 
-            if y in jump:
-                coff = 0.04
-            elif func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
-                coff = 0.16
-        elif year < 35: # -64 to 36
-            y = 35 - year
 
-            if y in jump:
-                coff = 0.15
-            elif func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
-                coff = 0.14
-        # In [4]: for y in range(35, 134):
-        #    ...:     print(y, (134-y) % 4)
-        elif year < 134: # 36 to 133
-            y = 134 - year
-
-            if func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
-                coff = 0.1
-                #print(year, y, y%4)
-        # In [9]: for y in range(134, 233):
-        #    ...:     print(y, (233-y) % 4)
-        elif year < 233: # 134 to 133
-            y = 233 - year
-
-            if func(1, y, 34, 1) or func(34, y, 67, 2) or func(67, y, 100, 3):
-                coff = 0.07
-                #print(year, y, y%4)
+        else:
+            coff = 0
 
         return coff
 
