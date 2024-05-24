@@ -23,8 +23,10 @@ class BahaiCalendar(BaseCalendar):
     # WGS84--https://coordinates-converter.com/
     # https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-
 # https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
-    BAHAI_LOCATION = (35.696111, 51.423056, 0, 3.5)
-    #BAHAI_LOCATION = (36.176768, 52.709659, 0, 3.5) # Northeast of Tehran
+    #BAHAI_LOCATION = (35.696111, 51.423056, 0, 3.5)
+    # Nur Mazandaran Province, Iran (City Center)
+# https://www.google.com/maps/place/Nur,+Mazandaran+Province,+Iran/@36.569336,52.0050234,15z/data=!3m1!4b1!4m6!3m5!1s0x3f8efdf2a3fc7385:0x1f76f83486da57be!8m2!3d36.5763485!4d52.0133073!16zL20vMGJ6cjl6?entry=ttu
+    BAHAI_LOCATION = (36.569336, 52.0050234, 0, 3.5)
 
     BADI_EPOCH = 2394646.5 # 2394646.261111
 

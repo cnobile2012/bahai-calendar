@@ -144,7 +144,7 @@ class DateTests(BahaiCalendar):
         (1879, 3, 21), (1880, 3, 20), (1881, 3, 20), (1882, 3, 21),
         (1883, 3, 21), (1884, 3, 20), (1885, 3, 20), (1886, 3, 21),
         (1887, 3, 21), (1888, 3, 20), (1889, 3, 20), (1890, 3, 21),
-        (1891, 3, 21), (1892, 3, 20), (1893, 3, 20), (1894, 3, 21),
+        (1891, 3, 21), (1892, 3, 20), (1893, 3, 20), (1894, 3, 20),
         (1895, 3, 21), (1896, 3, 20), (1897, 3, 20), (1898, 3, 20),
         (1899, 3, 21), (1900, 3, 21), (1901, 3, 21), (1902, 3, 21),
         (1903, 3, 22), (1904, 3, 21), (1905, 3, 21), (1906, 3, 21),
@@ -153,7 +153,7 @@ class DateTests(BahaiCalendar):
         (1915, 3, 22), (1916, 3, 21), (1917, 3, 21), (1918, 3, 21),
         (1919, 3, 22), (1920, 3, 21), (1921, 3, 21), (1922, 3, 21),
         (1923, 3, 22), (1924, 3, 21), (1925, 3, 21), (1926, 3, 21),
-        (1927, 3, 22), (1928, 3, 21), (1929, 3, 21), (1930, 3, 21),
+        (1927, 3, 21), (1928, 3, 21), (1929, 3, 21), (1930, 3, 21),
         (1931, 3, 21), (1932, 3, 21), (1933, 3, 21), (1934, 3, 21),
         (1935, 3, 21), (1936, 3, 21), (1937, 3, 21), (1938, 3, 21),
         (1939, 3, 21), (1940, 3, 21), (1941, 3, 21), (1942, 3, 21),
@@ -230,7 +230,7 @@ class DateTests(BahaiCalendar):
         (2215, 3, 21), (2216, 3, 21), (2217, 3, 21), (2218, 3, 21),
         (2219, 3, 21), (2220, 3, 21), (2221, 3, 21), (2222, 3, 21),
         (2223, 3, 21), (2224, 3, 21), (2225, 3, 21), (2226, 3, 21),
-        (2227, 3, 21), (2228, 3, 21), (2229, 3, 21), (2230, 3, 21),
+        (2227, 3, 21), (2228, 3, 20), (2229, 3, 21), (2230, 3, 21),
         (2231, 3, 21), (2232, 3, 20), (2233, 3, 21), (2234, 3, 21),
         (2235, 3, 21), (2236, 3, 20), (2237, 3, 21), (2238, 3, 21),
         (2239, 3, 21), (2240, 3, 20), (2241, 3, 21), (2242, 3, 21),
@@ -263,7 +263,7 @@ class DateTests(BahaiCalendar):
         (2347, 3, 21), (2348, 3, 21), (2349, 3, 21), (2350, 3, 21),
         (2351, 3, 21), (2352, 3, 21), (2353, 3, 21), (2354, 3, 21),
         (2355, 3, 21), (2356, 3, 21), (2357, 3, 21), (2358, 3, 21),
-        (2359, 3, 21), (2360, 3, 20), (2361, 3, 21), (2362, 3, 21),
+        (2359, 3, 21), (2360, 3, 21), (2361, 3, 21), (2362, 3, 21),
         (2363, 3, 21), (2364, 3, 20), (2365, 3, 21), (2366, 3, 21),
         (2367, 3, 21), (2368, 3, 20), (2369, 3, 21), (2370, 3, 21),
         (2371, 3, 21), (2372, 3, 20), (2373, 3, 21), (2374, 3, 21),
@@ -288,15 +288,15 @@ class DateTests(BahaiCalendar):
         (2447, 3, 21), (2448, 3, 20), (2449, 3, 20), (2450, 3, 20),
         (2451, 3, 21), (2452, 3, 20), (2453, 3, 20), (2454, 3, 20),
         (2455, 3, 21), (2456, 3, 20), (2457, 3, 20), (2458, 3, 20),
-        (2459, 3, 21), (2460, 3, 20), (2461, 3, 20), (2462, 3, 20),
+        (2459, 3, 20), (2460, 3, 20), (2461, 3, 20), (2462, 3, 20),
         (2463, 3, 20), (2464, 3, 20), (2465, 3, 20), (2466, 3, 20),
         (2467, 3, 20), (2468, 3, 20), (2469, 3, 20), (2470, 3, 20),
         (2471, 3, 20), (2472, 3, 20), (2473, 3, 20), (2474, 3, 20),
         (2475, 3, 20), (2476, 3, 20), (2477, 3, 20), (2478, 3, 20),
         (2479, 3, 20), (2480, 3, 20), (2481, 3, 20), (2482, 3, 20),
         (2483, 3, 20), (2484, 3, 20), (2485, 3, 20), (2486, 3, 20),
-        (2487, 3, 20), (2488, 3, 20), (2489, 3, 20), (2490, 3, 20),
-        (2491, 3, 20), (2492, 3, 19), (2493, 3, 20), (2494, 3, 20),
+        (2487, 3, 20), (2488, 3, 19), (2489, 3, 20), (2490, 3, 20),
+        (2491, 3, 20), (2492, 3, 20), (2493, 3, 20), (2494, 3, 20),
         (2495, 3, 20), (2496, 3, 19), (2497, 3, 20), (2498, 3, 20),
         (2499, 3, 20), (2500, 3, 20), (2501, 3, 21), (2502, 3, 21),
         (2503, 3, 21), (2504, 3, 20), (2505, 3, 21), (2506, 3, 21),
@@ -554,43 +554,26 @@ class DateTests(BahaiCalendar):
             return coff
 
         if year < -159: # -259 to -160
-            # In [9]: for y in range(-259, -159):
-            #    ...:     print(y, (-159-y) % 4)
             coff = process_century(-159 - year, 0.04, 0.18)
         elif year < -64: # -159 to -65
-            # In [11]: for y in range(-159, -64):
-            #    ...:     print(y, (-64-y) % 4)
             coff = process_century(-64 - year, 0.04, 0.16)
         elif year < 35: # -64 to 34
-            # In [1]: for y in range(-64, 35):
-            #    ...:     print(y, (34-y) % 4)
             coff = process_century(35 - year, 0.15, 0.14)
         elif year < 134: # 35 to 133
-            # In [4]: for y in range(35, 134):
-            #    ...:     print(y, (134-y) % 4)
-            coff = process_century(134 - year, 0, 0.1)
-        elif year < 233: # 134 to 233
-            # In [9]: for y in range(134, 233):
-            #    ...:     print(y, (233-y) % 4)
-            coff = process_century(233 - year, 0, 0.07)
-        elif year < 332: # 233 to 333
-            # In [6]: for y in range(233, 332):
-            #    ...:     print(y, (332-y) % 4)
+            coff = process_century(134 - year, 0, 0.12)
+        elif year < 233: # 134 to 232
+            coff = process_century(233 - year, 0, 0.075)
+        elif year < 332: # 234 to 331
             coff = process_century(332 - year, 0, 0.035)
-        elif year < 353: # 332 to 352
-            coff = process_century(353 - year, 0.037, 0)
-        elif year < 546:
+        elif year < 386: # 332 to 385
+            coff = process_century(386 - year, 0.037, 0)
+        elif year < 517: # 386 to 516
             coff = 0
-        elif year < 617:
-            coff = process_century(617 - year, -0.054, -0.038)
-            # In [3]: for y in range(546, 617):
-            #    ...:     print(y, (617-y) % 4)
-        elif year < 716:
-            coff = process_century(716 - year, -0.065, -0.04)
-            print(year, 716 - year, (716 - year) % 4)
-            # In [3]: for y in range(617, 716):
-            #    ...:     print(y, (716-y) % 4)
-
+        elif year < 617: # 517 to 616
+            coff = process_century(617 - year, -0.02, -0.035)
+        #elif year < 716:
+        #    coff = process_century(716 - year, -0.065, -0.04)
+            #print(year, 716 - year, (716 - year) % 4)
 
         else:
             coff = 0
@@ -608,6 +591,22 @@ class DateTests(BahaiCalendar):
                 data.append(g_date)
 
             py = year
+
+        return data
+
+    def get_range(self, end):
+        valid_dates = (-159, -64, 35, 134, 233, 332, 386, 617)
+        seq = {-159: -259, -64: -159, 35: -64, 134: 35, 233: 134, 332: 233,
+               386: 332, 617: 517}
+        start = seq.get(end)
+        assert start is not None, (f"You must use valid dates, found {end}, "
+                                   f"Valid dates are {valid_dates}.")
+        data = []
+
+        for y in range(start, end):
+            yj = end - y
+            jump = yj if yj in (1, 34, 67, 100) else 0
+            data.append((y, (end - y) % 4, jump))
 
         return data
 
@@ -637,11 +636,14 @@ if __name__ == "__main__":
         '-k', '--consecutive', action='store_true', default=False,
         dest='consecutive',
         help="Check that all dates are consecutive with no holes.")
+    parser.add_argument(
+        '-r', '--range', type=int, default=0, dest='range',
+        help="Dump an analysis of date ranges. Takes an integer value.")
     options = parser.parse_args()
     exclusive_error = (options.list, options.ck_dates, options.analyze,
-                       options.consecutive)
+                       options.consecutive, options.range != 0)
     assert exclusive_error.count(True) <= 1, (
-        "Options -l, -c, -a, and -k are exclusive.")
+        "Options -l, -c, -a, -k, and -r are exclusive.")
 
     dt = DateTests()
 
@@ -703,5 +705,10 @@ if __name__ == "__main__":
     if options.consecutive:
         data = dt.consecutive_years()
         [print(item) for item in data]
+
+    if options.range != 0:
+        data = dt.get_range(options.range)
+        [print(item) for item in data]
+        print(f"Total years: {len(data)}")
 
     sys.exit(0)
