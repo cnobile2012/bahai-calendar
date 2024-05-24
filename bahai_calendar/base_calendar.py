@@ -84,22 +84,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     #  29.530588861L0)
     MEAN_SYNODIC_MONTH = 29.530588861
 
-    #(defun time-from-moment (tee)
-    #  ;; TYPE moment -> time
-    #  ;; Time from moment tee.
-    #  (mod tee 1))
-    TIME_FROM_MOMENT = lambda self, tee: math.fmod(tee, 1)
-
-    # (defun rd (tee)
-    #  ;; TYPE moment -> moment
-    #  ;; Identity function for fixed dates/moments. If internal timekeeping
-    #  ;; is shifted, change epoch to be RD date of origin of internal count.
-    #  ;; epoch should be an integer.
-    #  (let* ((epoch 0))
-    #    (- tee epoch)))
-    # Unless the epoch is changed to something other than 0 there is no need
-    # to implement this function.
-    #RD = tee - 0
+    # (defun quotient (m n)
+    #   ;; TYPE (real nonzero-real) -> integer
+    #   ;; Whole part of m/n.
+    #   (floor m n))
+    QUOTIENT = lambda self, m, n: math.floor(m / n)
 
     PARTIAL_DAY_TO_HOURS = lambda self, x: (x % 1) * 24
     PARTIAL_HOUR_TO_MINUTE = lambda self, x: (x % 1) * 60
@@ -252,27 +241,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         d_psi = self._nutation_longitude(tc)
         return self.coterminal_angle(t0 + d_psi * self.cos_deg(eps))
 
-    def _sun_altitude(self, delta:float, lat:float, h:float) -> float:
-        """
-        Sun altitude, positive above the horizon, negative below in degrees.
-
-        :param delta: Declination in sidereal time.
-        :type delta: float
-        :param lat: Geographic latitude.
-        :type lat: float
-        :param h: Local hour angle.
-        :type h: float
-        :return: 
-        :rtype: float
-
-        .. note::
-
-           Meeus--AA p.93 Eq.13.6
-        """
-        return math.degrees(math.asin(
-            self.sin_deg(lat) * self.sin_deg(delta) + self.cos_deg(lat) *
-            self.cos_deg(delta) * self.cos_deg(h)))
-
     def _approx_local_hour_angle(self, tc:float, lat:float,
                                  offset:float=SUN_OFFSET) -> float:
         """
@@ -402,7 +370,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        return self._rising_setting(jd, lat, lon, zone, sr_ss='RISE')
+        jd += self._rising_setting(jd, lat, lon, zone, sr_ss='RISE')
+        return round(jd, self.ROUNDING_PLACES)
 
     def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0,
                      exact:bool=False, offset:float=SUN_OFFSET) -> float:
@@ -435,7 +404,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        return jd + self._rising_setting(jd, lat, lon, zone, sr_ss='SET')
+        jd += self._rising_setting(jd, lat, lon, zone, sr_ss='SET')
+        return round(jd, self.ROUNDING_PLACES)
 
     def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0,
                         exact:bool=False, offset:float=SUN_OFFSET,
@@ -1171,19 +1141,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             initial += 1
 
         return initial
-
-    def _final(self, initial:int, func:object) -> int:
-        """
-        (defmacro final (index initial condition)
-          ;; TYPE (* integer (integer->boolean)) -> integer
-          ;; Last integer greater or equal to initial such that
-          ;; condition holds.
-          `(loop for ,index from ,initial
-                 when (not ,condition)
-                 return (1- ,index)))
-        """
-        return (initial - 1 if not func(initial)
-                else self._final(initial + 1, func))
 
     def _to_radix(self, x:int, b:tuple, c:tuple=()):
         """

@@ -248,55 +248,6 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test__sun_altitude(self):
-        """
-        Test that the _sun_altitude method is correctly determined.
-        """
-        func = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
-
-        def inter_ra(tc, n):
-            a0 = self.bc._sun_apparent_right_ascension(tc - (1 / 36525))
-            a1 = self.bc._sun_apparent_right_ascension(tc)
-            a2 = self.bc._sun_apparent_right_ascension(tc + (1 / 36525))
-            return self.bc.interpolation_from_three(a0, a1, a2, n)
-
-        def inter_de(tc, n):
-            d0 = self.bc._sun_apparent_declination(tc - (1 / 36525))
-            d1 = self.bc._sun_apparent_declination(tc)
-            d2 = self.bc._sun_apparent_declination(tc + (1 / 36525))
-            return self.bc.interpolation_from_three(d0, d1, d2, n)
-
-        data = (
-            # 1987-04-10T19:21:00 -- 2446896.30625, lat, lon
-            # AA Ex.13.b alpha=347.3193, delta=  +15.1249
-            ((1987, 4, 10, 19, 21), 38.921388, -77.065416, 0),
-            )
-        msg = "Expected {}, for date {}, with lat {} and lon {}, found {}."
-
-        for g_date, lat, lon, expected_result in data:
-            jd = self.gc.jd_from_gregorian_date(g_date)
-            tc = self.bc.julian_centuries(jd)
-            ast = self.bc._apparent_sidereal_time_greenwich(tc)
-            dt = self.gc.delta_t(jd)
-            jde = jd + dt
-            # Find alpha
-            ara = self.bc._sun_apparent_right_ascension(tc)
-            ma = func((ara - lon - ast) / 360)
-            alpha = inter_ra(tc, ma * dt / 86400)
-            # Find delta
-            de = self.bc._sun_apparent_declination(tc)
-            md = func((de - lon - ast) / 360)
-            delta = inter_de(tc, ma * dt / 86400)
-            # Find the local hour angle
-            #srt = ast + 360.98564736629 * 
-            h = self.bc._local_hour_angle(ast, lon, alpha)
-            print(alpha, delta, ast, h)
-            result = self.bc._altitude(delta, lat, h)
-            self.assertEqual(
-                expected_result, result,
-                msg.format(expected_result, g_date, lat, lon, result))
-
     #@unittest.skip("Temporarily skipped")
     def test__approx_local_hour_angle(self):
         """
@@ -320,21 +271,30 @@ class TestBaseCalandar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__sun_sunrise(self):
         """
         """
         data = (
-            # 2447240.5 -- 12h25m 186.25 AA Ex.15.a
-            ((1988, 3, 20), 42.3333, 71.0833, 0),
+            # 1844-03-20T12:00:00 -> 1844-03-21T06:06:00 (2394645.754167)
+            (2394646.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             2394646.755381),
+            # 2024-03-19T12:00:00 -> 2024-03-20T07:07:00 (2460389.795139)
+            (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             2460389.755919),
+            # 2024-03-20T00:00:00 -> 2024-03-20T07:05:00 (2460389.795139)
+            (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             2460389.755422),
+            # 2024-03-20T02:00:00 -> 2024-03-20T07:05:00 (2460389.795139)
+            (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             2460389.755339),
             )
-        msg = "Expected {}, for g_date {}, found {}."
+        msg = "Expected {}, for jd {}, found {}."
 
-        for g_date, lat, lon, expected_result in data:
-            jde = self.gc.jd_from_gregorian_date(g_date)
-            result = self.bc._sun_rising(jde, lat, lon)
+        for jd, lat, lon, zone, expected_result in data:
+            result = self.bc._sun_rising(jd, lat, lon, zone)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result))
+                             msg.format(expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_transit(self):
@@ -366,24 +326,24 @@ class TestBaseCalandar(unittest.TestCase):
                 msg.format(expected_result, jd, zone, exact, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__sun_sunset(self):
+    def test__sun_setting(self):
         """
-        Test that the _sun_sunset method returns the correct sunset for a
+        Test that the _sun_setting method returns the correct sunset for a
         given date represented by a Julian Period day.
         """
         data = (
             # 1844-03-20T12:00:00 -> 1844-03-20T18:16:00 (2394646.261111)
             (2394646.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2394646.2610878865),
+             2394646.261088),
             # 2024-03-19T12:00:00 -> 2024-03-19T18:15:00 (2460389.260417)
             (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.2606290416),
+             2460389.260629),
             # 2024-03-20T00:00:00 -> 2024-03-20T18:16:00 (2460390.261111)
             (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460390.260921127),
+             2460390.260921),
             # 2024-03-20T02:00:00 -> 2024-03-20T18:16:00 (2460390.261111)
             (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460390.2609697673),
+             2460390.26097),
             )
         msg = "Expected {}, for jd {}, found {}."
 
@@ -1175,14 +1135,6 @@ class TestBaseCalandar(unittest.TestCase):
             result = self.bc._next(initial , condition)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, result))
-
-    @unittest.skip("Temporarily skipped")
-    def test__final(self):
-        """
-        Test that the _final method returns the last integer greater
-        or equal to initial such that condition holds.
-        """
-        pass
 
     #@unittest.skip("Temporarily skipped")
     def test__to_radix(self):

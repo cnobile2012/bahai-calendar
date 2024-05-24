@@ -168,6 +168,23 @@ class BahaiCalendar(BaseCalendar):
         :return: The Julian Period day.
         :rtype: float
         """
+        def process_century(y, coff1, coff2, onoff=0):
+            first = False if onoff == 1 else True
+            second = False if onoff == 2 else True
+            third = False if onoff == 3 else True
+            func = lambda low, y, high, v: low < y < high and y % 4 == v
+            coff = 0
+
+            if coff1 and y in (1, 34, 67, 100):
+                coff = coff1
+            # Only one can be turned off at a time.
+            elif coff2 and (first and func(1, y, 34, 1) or
+                            second and func(34, y, 67, 2) or
+                            third and func(67, y, 100, 3)):
+                coff = coff2
+
+            return coff
+
         date = self.date_from_kvymdhms(
             self.long_date_from_short_date(b_date), short=True)
         year, month, day = date[:3]
@@ -177,39 +194,45 @@ class BahaiCalendar(BaseCalendar):
         elif month < 19:
             d = (month - 1) * 19 + day
         else: # month == 19:
+            # Because we have to use 4 days without knowing the leap year
+            # it's necessary fix for the leap year using coefficients below.
             d = 18 * 19 + 4 + day
 
-        coff = -0.0779
-
-        if year == -246:
-            coff -= 0.9
-        elif year < -89:
-            coff -= 0.093655
-        elif year < -85:
-            coff -= 0.1251
-        elif year < 51:
-            coff -= 0.06261
-        elif year < 121:
-            coff -= 0.017
-        elif year > 1031:
-            coff += 0.29
-        elif year > 702:
-            coff += 0.1936
-        elif year == 571:
-            coff -= 0.06
-        elif year == 546:
-            coff += 0.1
-        elif year > 384:
-            coff += 0.0774
-        elif year > 281:
-            coff += 0.06
-        elif year == 216:
-            coff -= 0.9921
-        elif year > 119:
-            coff += 0.01523
+        if year < -159: # -259 to -160
+            coff = process_century(-159 - year, 0.04, 0.18)
+        elif year < -64: # -159 to -65
+            coff = process_century(-64 - year, 0.04, 0.16)
+        elif year < 35: # -64 to 34
+            coff = process_century(35 - year, 0.15, 0.14)
+        elif year < 134: # 35 to 133
+            coff = process_century(134 - year, 0, 0.12)
+        elif year < 233: # 134 to 232
+            coff = process_century(233 - year, 0, 0.075)
+        elif year < 332: # 234 to 331
+            coff = process_century(332 - year, 0, 0.035)
+        elif year < 386: # 332 to 385
+            coff = process_century(386 - year, 0.037, 0)
+        elif year < 517: # 386 to 516
+            coff = 0
+        elif year < 617: # 517 to 616
+            coff = process_century(617 - year, -0.047, -0.023)
+        elif year < 716: # 617 to 715
+            coff = process_century(716 - year, -0.078, -0.046, onoff=3)
+        elif year < 815: # 716 to 814
+            coff = process_century(815 - year, -0.11, -0.07)
+        elif year < 914: # 815 to 913
+            coff = process_century(914 - year, -0.13, -0.093)
+        elif year < 1013: # 915 to 1012
+            coff = process_century(1013 - year, -0.15, -0.181)
+        elif year < 1112: # 1013 to 1111
+            coff = process_century(1112 - year, -0.171, -0.195)
+        elif year < 1211: # 1112 to 1210
+            coff = process_century(1211 - year, -0.18, -0.21)
+        else:
+            coff = 0
 
         return round(self.BADI_EPOCH - 1 +
-                     math.floor(self.MEAN_TROPICAL_YEAR * (year - 1) + coff) +
+                     math.floor(self.MEAN_TROPICAL_YEAR * (year - 1) - coff) +
                      d, self.ROUNDING_PLACES)
 
     def badi_date_from_jd(self, jd:float, short:bool=False) -> tuple:

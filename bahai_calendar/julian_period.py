@@ -52,17 +52,6 @@ class JulianPeriod:
     DECEMBER = 12
     JULIAN_MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 
-    # (defun quotient (m n)
-    #   ;; TYPE (real nonzero-real) -> integer
-    #   ;; Whole part of m/n.
-    #   (floor m n))
-    QUOTIENT = lambda self, m, n: math.floor(m / n)
-
-    def __init__(self):
-        super().__init__()
-        # (year, month, day)
-        self._julian_date = None
-
     def julian_centuries(self, jde):
         """
         Calculate the Julian centuries from the Julian day.
@@ -74,13 +63,3 @@ class JulianPeriod:
         Calculate the Julian millennia from the Julian day.
         """
         return (jde - self.J2000) / 365250
-
-    def julian_leap_year(self, j_year:float) -> bool:
-        """
-        (defun julian-leap-year? (j-year)
-          ;; TYPE julian-year -> boolean
-          ;; True if $j-year$ is a leap year on the Julian calendar.
-          (= (mod j-year 4) (if (> j-year 0) 0 3)))
-        """
-        #return (j_year % 4) == 0 if j_year > 0 else 3
-        return not j_year % 4
