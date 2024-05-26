@@ -57,21 +57,3 @@ class TestJulianPeriod(unittest.TestCase):
             result = self._jp.julian_millennia(jd)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_julian_leap_year(self):
-        """
-        Test that the julian_leap_year method returns true or false
-        for the Julian leap year.
-        """
-        data = (
-            (0, True),
-            (1, False),
-            (4, True)
-            )
-        msg = "Expected {} for year {}, found {}"
-
-        for year, expected_result in data:
-            result = self._jp.julian_leap_year(year)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, year, result))

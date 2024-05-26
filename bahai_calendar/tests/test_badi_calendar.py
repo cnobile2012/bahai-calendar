@@ -92,17 +92,24 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, alt, zone = self._bc.BAHAI_LOCATION
         data = (
             # Should be 1844-03-20T18:13:00
-            ((1, 1, 1), lat, lon, zone, (1, 1, 1, 1, 1, 18, 13, 14.9664)),
+            ((1, 1, 1), lat, lon, zone, False,
+             (1, 1, 1, 1, 1, 18, 13, 14.9664)),
+            ((1, 1, 1), lat, lon, zone, True, (1, 1, 1, 18, 13, 14.9664)),
             # Should be 2024-03-19T18:13:00
-            ((180, 19, 19), lat, lon, zone,
+            ((180, 19, 19), lat, lon, zone, False,
              (1, 10, 10, 1, 1, 18, 12, 33.667201)),
             # Should be 2064-03-19T18:13:00
-            ((221, 1, 1), lat, lon, zone, (1, 12, 12, 1, 2, 18, 13, 40.8)),
+            ((221, 1, 1), lat, lon, zone, False,
+             (1, 12, 12, 1, 2, 18, 13, 40.8)),
+            # Should be 2024-04-19T20:17:00 DST in Raligh NC
+            # 2460419.5 -> 2460420.345139
+            ((181, 2, 13), 35.7796, -78.6382, -4, False,
+             (1, 10, 10, 2, 13, 19, 51, 47.318399)),
             )
         msg = "Expected {}, date {}, found {}"
 
-        for date, lat, lon, zone, expected_result in data:
-            result = self._bc.sunset(date, lat, lon, zone)
+        for date, lat, lon, zone, short, expected_result in data:
+            result = self._bc.sunset(date, lat, lon, zone, short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
@@ -115,6 +122,8 @@ class TestBadiCalendar(unittest.TestCase):
             (1, False, (1, 1, 1, 1, 1, 18, 13, 40.8864)), # 1844-03-20T18:13:00
             (1, True, (1, 1, 1, 18, 13, 40.8864)),        # 1844-03-20T18:13:00
             (182, True, (182, 1, 1, 18, 13, 33.5424)),    # 2025-03-20T18:13:00
+            # 2026-03-21T18:14:00
+            (183, False, (1, 10, 12, 1, 1, 18, 13, 33.455999)),
             # The following years are the ones that had errors.
             (178, True, (178, 1, 1, 18, 13, 33.1104)),    # 2021-03-20T18:14:00
             (187, True, (187, 1, 1, 18, 13, 33.110401)),  # 2030-03-20T18:14:00
@@ -128,6 +137,27 @@ class TestBadiCalendar(unittest.TestCase):
 
         for year, short, expected_result in data:
             result = self._bc.naw_ruz(year, short)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, short, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_first_day_of_ridvan(self):
+        """
+        Test that the first_day_of_ridvan method returns Jalál 13th in
+        any year.
+        """
+        lat, lon, elv, zone = self._bc.BAHAI_LOCATION
+        data = (
+            # 1-02-13T18:40:00 (1844-04-20T18:40:00)
+            (1, lat, lon, zone, False, (1, 1, 1, 2, 13, 18, 39, 49.7376)),
+            (1, lat, lon, zone, True, (1, 2, 13, 18, 39, 49.7376)),
+            # 181-02-13T19:41:00 DST at Raleigh NC, USA
+            (181, 35.7796, -78.6382, -4, False, (1, 10, 10, 2, 13, 19, 40)),
+            )
+        msg = "Expected {} for short {}, found {}"
+
+        for year, lat, lon, zone, short, expected_result in data:
+            result = self._bc.first_day_of_ridvan(year, lat, lon, zone, short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, short, result))
 

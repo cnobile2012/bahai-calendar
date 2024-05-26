@@ -73,72 +73,51 @@ class BahaiCalendar(BaseCalendar):
     def date_representation(self, representation:tuple=None):
         self._bahai_date = representation
 
-    def sunset(self, date:tuple, lat:float, lon:float, zone:float=0) -> float:
+    def sunset(self, date:tuple, lat:float, lon:float, zone:float=0,
+               short:bool=False) -> float:
         """
-        Return the sunset for the given Badi Day.
+        Return the sunset for the given Badi Day in either the long or
+        short form date.
+
+        :param date: Short form Badi date.
+        :type date: tuple
 
         """
         jd = self.jd_from_badi_date(date)
         ss = self._sun_setting(jd, lat, lon, zone)
-        return self.badi_date_from_jd(ss)
+        print(date, jd, ss)
+        return self.badi_date_from_jd(ss, short=short)
 
-    def naw_ruz(self, year, short=False):
+    def naw_ruz(self, year:int, short:bool=False) -> tuple:
         """
         Return the Badi date for Naw-Ruz from the given Badi year.
 
-        .. note::
-
-           1. Find the Vernal Equinox for the year.
-           2. Find the sunset in Tehran on the same day as the Vernal Equinox.
-           3. If the sunset is after the Vernal Equinox you're done.
-           4. if the sunset is before the Vernal Equinox get the sunset for
-              the next day.
         """
         jd = self.jd_from_badi_date((year, 1, 1))
         ve = self.find_moment_of_equinoxes_or_solstices(jd)
         lat, lon, elev, zone = self.BAHAI_LOCATION
         ss = self._sun_setting(ve, lat, lon, zone)
-        print('jd', jd, 've', ve, 'ss', ss)
-
-        if ss < ve:
-            ss = self._sun_setting(ve + 1, lat, lon, zone)
-            print('ss', ss)
-
         return self.badi_date_from_jd(ss, short)
 
-    def feast_of_ridvan(self, g_year):
+    def first_day_of_ridvan(self, year:int, lat:float=0, lon:float=0,
+                            zone:float=0, short:bool=False) -> tuple:
         """
-        (defun feast-of-ridvan (g-year)
-          ;; TYPE gregorian-year -> fixed-date
-          ;; Fixed date of Feast of Ridvan in Gregorian year g-year.
-          (+ (naw-ruz g-year) 31))
+        Find the first day of Riḍván in either the long or short form date.
+        If the latitude, longitude, and time zone are not given Riḍván time
+        of day is determined for the city of Nur in Iran.
         """
-        return self.nam_ruz(g_year) + 31
+        naw_ruz = self.naw_ruz(year, short=True)
 
-    def birth_of_the_bab(self, g_year):
-        """
-        (defun birth-of-the-bab (g-year)
-          ;; TYPE gregorian-year -> fixed-date
-          ;; Fixed date of the Birthday of the Bab
-          ;; in Gregorian year g-year.
-          (let* ((ny              ; Beginning of Baha’i year.
-                  (naw-ruz g-year))
-                 (set1 (bahai-sunset ny))
-                 (m1 (new-moon-at-or-after set1))
-                 (m8 (new-moon-at-or-after (+ m1 190)))
-                 (day (fixed-from-moment m8))
-                 (set8 (bahai-sunset day)))
-            (if (< m8 set8)
-                (1+ day)
-              (+ day 2))))
-        """
-        ny = self.naw_ruz(g_year)
-        set1 = self.bahai_sunset(ny)
-        m1 = self.new_moon_at_or_after(set1)
-        m8 = self.new_moon_at_or_after(m1 + 190)
-        day = self.fixed_from_moment(m8)
-        set8 = self.bahai_sunset(day)
-        return day + 1 if m8 < set8 else dat + 2
+        if lat == 0 and lon == 0 and zone == 0:
+            lat, lon, elv, zone = self.BAHAI_LOCATION
+
+        year, month, day = naw_ruz[:3]
+        ss_date = self.sunset((year, 2, 13), lat, lon, zone)
+        kull_i_shay, vahid, year, month, day = ss_date[:5]
+        hour, minute, second = self._get_hms(ss_date)
+        b_date = (kull_i_shay, vahid, year, month, day, hour, minute, second)
+        print(ss_date, b_date)
+        return self.short_date_from_long_date(b_date) if short else b_date
 
     def _is_leap_year(self, date:tuple) -> bool:
         """
