@@ -427,6 +427,7 @@ class DateTests(BahaiCalendar):
         (3003, 3, 21), (3004, 3, 21),
         )
     INJECT = (
+        ((181, 2, 13), (2024, 4, 19)),
         ((181, 3, 18, 20), (2024, 5, 14, 20)),
         ((181, 3, 19, 20), (2024, 5, 15, 20)),
         ((181, 4, 1, 17), (2024, 5, 16, 17)),
@@ -435,6 +436,12 @@ class DateTests(BahaiCalendar):
 
 
     def __init__(self):
+        #self.BADI_EPOCH = 2394646.259722
+        # https://qr.ae/psZONa
+        # https://www.someweekendreading.blog/leap-year-revised/
+        # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
+        # 365.2421897
+        self.MEAN_TROPICAL_YEAR = 365.242189
         self.gc = GregorianCalendar()
 
     def _calc_kvymd(self, days, k, v, y, m, data):
@@ -502,7 +509,7 @@ class DateTests(BahaiCalendar):
                                                                   options)
         diff = bjd - gjd
         data.append((b_date, bjd, g_date, gjd, jey_y_m_o, floor_jey,
-                     round(jey_y_m_o + coff, 6), diff))
+                     round(jey_y_m_o + coff, 6), round(diff, 6)))
 
     def _find_dates(self, year, inject):
         items = []
@@ -666,14 +673,12 @@ if __name__ == "__main__":
     if options.list:
         data = dt.create_date_lists()
         pprint.pprint(data)
-
-    if options.ck_dates:
+    elif options.ck_dates:
         data = dt.create_date_lists()
         bad_items = dt.check_long_date_from_short_date(data)
         bad_items = bad_items if bad_items else "All dates match."
         pprint.pprint(bad_items)
-
-    if options.analyze:
+    elif options.analyze:
         if options.graph:
             options.coff = True
             data = dt.analyze_date_error(options)
@@ -717,14 +722,14 @@ if __name__ == "__main__":
             if options.coff:
                 coff = sum(diffs) / len(diffs)
                 print(coff)
-
-    if options.consecutive:
+    elif options.consecutive:
         data = dt.consecutive_years()
         [print(item) for item in data]
-
-    if options.range != 0:
+    elif options.range != 0:
         data = dt.get_range(options.range)
         [print(item) for item in data]
         print(f"Total years: {len(data)}")
+    else:
+        parser.print_help()
 
     sys.exit(0)

@@ -15,25 +15,8 @@ class GregorianCalendar(BaseCalendar):
     Implementation of the Gregorian Calendar.
     """
     # Julian date for the gregorian epoch
-    GREGORIAN_EPOCH = 1721425.5
-
-    #(defconstant gregorian-epoch
-    #  ;; TYPE fixed-date
-    #  ;; Fixed date of start of the (proleptic) Gregorian calendar.
-    #  (rd 1))
-    RD_GREGORIAN_EPOCH = 1  # See BaseCalender notes.
+    GREGORIAN_EPOCH = 1721423.5
     _MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-
-    #(defun gregorian-leap-year? (g-year)
-    #  ;; TYPE gregorian-year -> boolean
-    #  ;; True if g-year is a leap year on the Gregorian calendar.
-    #  (and (= (mod g-year 4) 0)
-    #       (not (member (mod g-year 400)
-    #                    (list 100 200 300)))))
-    #GREGORIAN_LEAP_YEAR = lambda self, year: (
-    #    year % 4 == 0 and (year % 400 not in (100, 200, 300)))
-
-    # ((MOD(year, 4) = 0) * ((MOD(year, 100) <> 0) + (MOD(year, 400) = 0)) = 1)
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
 
@@ -54,7 +37,8 @@ class GregorianCalendar(BaseCalendar):
     def date_representation(self, representation):
         self._gregorian_date = representation
 
-    def jd_from_gregorian_date(self, g_date:tuple) -> float:
+    def jd_from_gregorian_date(self, g_date:tuple,
+                               exact:bool=False) -> float:
         """
         Convert Gregorian dates to Julian day count with the 1582 10, 15
         correction.
@@ -73,22 +57,30 @@ class GregorianCalendar(BaseCalendar):
         """
         year, month, day = self.date_from_ymdhms(g_date)
 
-        if (year, month) == (1582, 10):
-            assert day not in (5, 6, 7, 8, 9, 10, 11, 12, 13, 14), (
-                f"The days 5-14 in 1582-10 are invalid, found day '{day}'.")
+        if exact: # My astronomically correct algorithm
+            pass
 
-        if month <= 2:
-            year -= 1
-            month += 12
+            # (1, 1, 1) 1721423.5 is the Gregorian epoch.
+        else: # Meeus historically correct algorithm
+            if (year, month) == (1582, 10):
+                assert day not in (5, 6, 7, 8, 9, 10, 11, 12, 13, 14), (
+                    f"The days 5-14 in 1582-10 are invalid, found day '{day}'.")
 
-        if (year, month, day) >= (1582, 10, 15):
-            a = math.floor(year / 100)
-            b = 2 - a + math.floor(a / 4)
-        else:
-            b = 0
+            if month <= 2:
+                year -= 1
+                month += 12
 
-        return round(math.floor(self.JULIAN_YEAR * year) + math.floor(
-            30.6001 * (month + 1)) + day + b + 1720994.5, self.ROUNDING_PLACES)
+            if (year, month, day) >= (1582, 10, 15):
+                a = math.floor(year / 100)
+                b = 2 - a + math.floor(a / 4)
+            else:
+                b = 0
+
+            jd = round(math.floor(self.JULIAN_YEAR * year) + math.floor(
+                30.6001 * (month + 1)) + day + b + 1720994.5,
+                       self.ROUNDING_PLACES)
+
+        return jd
 
     def gregorian_date_from_jd(self, jd:float) -> tuple:
         """

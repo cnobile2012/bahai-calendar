@@ -28,7 +28,7 @@ class BahaiCalendar(BaseCalendar):
 # https://www.google.com/maps/place/Nur,+Mazandaran+Province,+Iran/@36.569336,52.0050234,15z/data=!3m1!4b1!4m6!3m5!1s0x3f8efdf2a3fc7385:0x1f76f83486da57be!8m2!3d36.5763485!4d52.0133073!16zL20vMGJ6cjl6?entry=ttu
     BAHAI_LOCATION = (36.569336, 52.0050234, 0, 3.5)
 
-    BADI_EPOCH = 2394646.5 # 2394646.261111
+    BADI_EPOCH = 2394646.5 # 2394646.259722 # 2394646.5
 
     BADI_MONTHS = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -85,7 +85,7 @@ class BahaiCalendar(BaseCalendar):
         """
         jd = self.jd_from_badi_date(date)
         ss = self._sun_setting(jd, lat, lon, zone)
-        print(date, jd, ss)
+        #print(date, jd, ss)
         return self.badi_date_from_jd(ss, short=short)
 
     def naw_ruz(self, year:int, short:bool=False) -> tuple:
@@ -116,7 +116,7 @@ class BahaiCalendar(BaseCalendar):
         kull_i_shay, vahid, year, month, day = ss_date[:5]
         hour, minute, second = self._get_hms(ss_date)
         b_date = (kull_i_shay, vahid, year, month, day, hour, minute, second)
-        print(ss_date, b_date)
+        #print(ss_date, b_date)
         return self.short_date_from_long_date(b_date) if short else b_date
 
     def _is_leap_year(self, date:tuple) -> bool:

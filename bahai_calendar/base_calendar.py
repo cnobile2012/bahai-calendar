@@ -79,11 +79,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     MOD3 = lambda self, x, a, b : x if a == b else (
         a + math.fmod((x - a), (b - a)))
 
-    #(defconstant mean-synodic-month
-    #  ;; TYPE duration
-    #  29.530588861L0)
-    MEAN_SYNODIC_MONTH = 29.530588861
-
     # (defun quotient (m n)
     #   ;; TYPE (real nonzero-real) -> integer
     #   ;; Whole part of m/n.
@@ -95,7 +90,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     PARTIAL_MINUTE_TO_SECOND = PARTIAL_HOUR_TO_MINUTE
 
     MEAN_TROPICAL_YEAR = 365.242189
-    MEAN_SIDEREAL_YEAR = 365.25636
+    MEAN_SOLAR_YEAR = 365.2421897
+    MEAN_SOLAR_MONTH = round(MEAN_SOLAR_YEAR / 12, 10)
 
     MORNING = True
     EVENING = False

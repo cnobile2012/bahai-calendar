@@ -75,36 +75,30 @@ class TestBadiCalendar(unittest.TestCase):
         """
         Test that the sunset method returns the universal time of
         sunset on fixed date. This results in the UTC time of sunset.
-
-        Baha'i epoc in fixed date is 673221 (1844-03-20) at:
-            Official: 6:11 pm (18.1833333333) -> 18.14182542 (6:08:30)
-        Astronomical: 7:37 pm -> Does not seem to be used.
-        (GMT+3:25:44) Sunset in Tehran, Tehran Province, Iran
-
-        18hr + 11min * 1hr / 60min +0s * 1hr / 3600s
-        =18hr + 0.1833hr + 0hr
-        =18.18333333333333333333 hrs
-
-        673221 + 1 * 18.1833hr / 24
-        =673221.75763888888888888889
-        =1844-03-20T18:11:00
         """
         lat, lon, alt, zone = self._bc.BAHAI_LOCATION
         data = (
-            # Should be 1844-03-20T18:13:00
+            # Should be 1844-03-20T18:14:00 (2394645.5 -> 2394646.259201)
             ((1, 1, 1), lat, lon, zone, False,
              (1, 1, 1, 1, 1, 18, 13, 14.9664)),
-            ((1, 1, 1), lat, lon, zone, True, (1, 1, 1, 18, 13, 14.9664)),
-            # Should be 2024-03-19T18:13:00
+            ((1, 1, 1), lat, lon, zone, True,
+             (1, 1, 1, 18, 13, 14.9664)),
+            # Should be 2024-03-19T18:13:00 (2460388.5 -> 2460389.258723)
             ((180, 19, 19), lat, lon, zone, False,
              (1, 10, 10, 1, 1, 18, 12, 33.667201)),
-            # Should be 2064-03-19T18:13:00
+            ((180, 19, 19), lat, lon, zone, True,
+             (181, 1, 1, 18, 12, 33.667201)),
+            # Should be 2064-03-19T18:13:00 (2474999.5 -> 2475000.2595)
             ((221, 1, 1), lat, lon, zone, False,
              (1, 12, 12, 1, 2, 18, 13, 40.8)),
+            ((221, 1, 1), lat, lon, zone, True,
+             (221, 1, 2, 18, 13, 40.8)),
             # Should be 2024-04-19T20:17:00 DST in Raligh NC
-            # 2460419.5 -> 2460420.345139
+            # (2460420.5 -> 2460421.327631)
             ((181, 2, 13), 35.7796, -78.6382, -4, False,
              (1, 10, 10, 2, 13, 19, 51, 47.318399)),
+            ((181, 2, 13), 35.7796, -78.6382, -4, True,
+             (181, 2, 13, 19, 51, 47.318399)),
             )
         msg = "Expected {}, date {}, found {}"
 
