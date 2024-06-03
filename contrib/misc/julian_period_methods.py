@@ -17,9 +17,8 @@ class JulianPeriodTests:
 
     JULIAN_YEAR = 365.25
     GREGORIAN_EPOCH = 1721423.5
-    MEAN_TROPICAL_YEAR = 365.242189
-    MEAN_SOLAR_YEAR = 365.2421897
-    MEAN_SOLAR_MONTH = round(MEAN_SOLAR_YEAR / 12, 10)
+    MEAN_TROPICAL_YEAR = 365.2421897
+    MEAN_SIDEREAL_YEAR = 365.256363004
     ROUNDING_PLACES = 6
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
@@ -29,10 +28,55 @@ class JulianPeriodTests:
 
     TEST_DATES = (
         (1, 1, 1),
+        (1, 3, 20),
         (2, 1, 1),
         (3, 1, 1),
         (4, 1, 1),
         (5, 1, 1),
+        (6, 1, 1),
+        (8, 1, 1),
+        (9, 1, 1),
+        (100, 2, 28),
+        (100, 2, 29), # Should be wrong for standard leap year
+        (100, 3, 1),
+        (128, 2, 28),
+        (128, 2, 29), # Should be wrong for alternitive leap year
+        (128, 3, 1),
+        (200, 2, 28),
+        (200, 2, 29), # Should be wrong for standard leap year
+        (200, 3, 1),
+        (256, 2, 28),
+        (256, 2, 29), # Should be wrong for alternitive leap year
+        (256, 3, 1),
+        (300, 2, 28),
+        (300, 2, 29), # Should be wrong for standard leap year
+        (300, 3, 1),
+        (384, 2, 28),
+        (384, 2, 29), # Should be wrong for alternitive leap year
+        (384, 3, 1),
+        (400, 2, 28),
+        (400, 2, 29), # Should be wrong for standard leap year
+        (400, 3, 1),
+        (800, 1, 1),
+        (800, 12, 31),
+        (1200, 1, 1),
+        (1200, 12, 31),
+        (1300, 1, 1),
+        (1300, 12, 31),
+        (1400, 1, 1),
+        (1400, 12, 31),
+        (1500, 1, 1),
+        (1500, 12, 31),
+        (1582, 10, 4),
+        (1582, 10, 5),
+        (1582, 10, 6),
+        (1582, 10, 7),
+        (1582, 10, 8),
+        (1582, 10, 9),
+        (1582, 10, 10),
+        (1582, 10, 11),
+        (1582, 10, 12),
+        (1582, 10, 13),
         (1582, 10, 14),
         (1582, 10, 15),
         (1844, 3, 20),
@@ -64,25 +108,37 @@ class JulianPeriodTests:
         """
         Mine
         """
+        # Check for valid Gregorian date here
+        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         year, month, day = g_date[:3]
-        sys.stderr.write(str(self.MEAN_SOLAR_YEAR * (year - 1)) + ', ')
-        y = math.floor(self.MEAN_SOLAR_YEAR * (year - 1))
+        #y = self.MEAN_SIDEREAL_YEAR * (year - 1) # 365.256363004 Too high
+        #y = self.MEAN_TROPICAL_YEAR * (year - 1) # Way too low
+        y = self.JULIAN_YEAR * (year - 1)
+        y = math.floor(y)
+        month_days = list(self._MONTHS)
+        month_days[1] = 29 if GLY(year) else 28
+        md = sum([v for v in month_days[:month-1]])
+        md += day + self.GREGORIAN_EPOCH - 1
+        return round(y + md, self.ROUNDING_PLACES)
 
-        if month >= 2:
-            m = sum([v for v in self._MONTHS[:month-1]])
+    def jd_from_gregorian_date_1a(self, g_date):
+        """
+        Meeus Kinda
+        """
+        year, month, day = g_date[:3]
 
-            if alt:
-                d = 0 if self.GREGORIAN_LEAP_YEAR_ALT(year) else -1
-            else:
-                d = 0 if self.GREGORIAN_LEAP_YEAR(year) else -1
-        else:
-            m = 0
-            d = 0
+        if month <= 2:
+            year -= 1
+            month += 12
 
-        sys.stderr.write(str(m) + ', ')
-        d += day + self.GREGORIAN_EPOCH - 1
-        sys.stderr.write(str(d) + '\n')
-        return round(y + m + d, self.ROUNDING_PLACES)
+        if (year, month, day) <= (1582, 10, 15):
+            day -= 2
+
+        a = math.floor(year / 100)
+        b = 2 - a + math.floor(a / 4)
+        return round(math.floor(self.JULIAN_YEAR * year) + math.floor(
+            30.6001 * (month + 1)) + day + b + 1720994.5,
+                     self.ROUNDING_PLACES)
 
     def jd_from_gregorian_date_2(self, g_date):
         """
@@ -139,6 +195,25 @@ class JulianPeriodTests:
 
         return year, month, round(day, self.ROUNDING_PLACES)
 
+    def gregorian_date_from_jd_1(self, jd, alt=False):
+        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
+        md = jd - (self.GREGORIAN_EPOCH - 1)
+        y = math.floor(md / self.JULIAN_YEAR)
+        days = md - (y * self.JULIAN_YEAR)
+        year = y + 1
+        leap = GLY(year)
+        month_days = list(self._MONTHS)
+        month_days[1] = 29 if GLY(year) else 28
+        d = day = 0
+
+        for month, ds in enumerate(month_days, start=1):
+            d += ds
+            if days > d: continue
+            day = math.ceil(days - (d - ds))
+            break
+
+        return year, month, day + (jd % 1) - 0.5
+
     def gregorian_date_from_jd_3(self, jdn):
         """
         Convert the Julian Day Number to the proleptic Gregorian Year,
@@ -156,74 +231,107 @@ class JulianPeriodTests:
         year = 100 * (N - 49) + I + L
         return year, month, day
 
-    def analyze(self):
+    def analyze(self, alt=False):
+        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         data = []
+        values = range(1, 1583)
 
         for date in self.TEST_DATES:
+            date = date if isinstance(date, tuple) else (date, 1, 1)
+            leap = GLY(date[0])
             jd0 = self.jd_from_gregorian_date_0(date)
-            jd1 = self.jd_from_gregorian_date_1(date, True)
-            jd2 = self.jd_from_gregorian_date_2(date)
-            jd3 = self.jd_from_gregorian_date_3(date)
-            dates = []
+            jd1 = self.jd_from_gregorian_date_1(date, alt=alt)
+            #jd1 = self.jd_from_gregorian_date_1a(date)
+            #jd2 = self.jd_from_gregorian_date_2(date)
+            #jd3 = self.jd_from_gregorian_date_3(date)
 
-            for jd in (jd0, jd1, jd2, jd3):
-                gd0 = self.gregorian_date_from_jd_0(jd)
-                #gd3 = self.gregorian_date_from_jd_3(jd)
-                dates.append(gd0)
-                #dates.append((gd0, gd3))
+            if not alt and date[1:] == (2, 29) and not leap:
+                gd0 = 'INVALID'
+            else:
+                gd0 = self.gregorian_date_from_jd_0(jd0)
 
-            data.append((date, jd0, jd1, jd2, jd3, dates))
+            if alt and date[1:] == (2, 29) and not leap:
+                gd1 = 'INVALID'
+            else:
+                gd1 = self.gregorian_date_from_jd_1(jd1, alt=alt)
+
+            data.append((date, leap, jd0, jd1, gd0, gd1))
+
+        return data
+
+    def analyze_1(self, start, end, alt=False):
+        data = []
+        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
+        data = []
+
+        for year in range(start, end + 1):
+            leap = GLY(year)
+
+            for month, days in enumerate(self._MONTHS, start=1):
+                if month == 2 and not leap:
+                    max_days = days - 1
+                else:
+                    max_days = days
+
+                for day in range(1, max_days + 1):
+                    date = (year, month, day)
+                    jd0 = self.jd_from_gregorian_date_0(date)
+                    jd1 = self.jd_from_gregorian_date_1(date, alt=alt)
+                    gd0 = self.gregorian_date_from_jd_0(jd0)
+                    gd1 = self.gregorian_date_from_jd_0(jd1)
+                    data.append((date, leap, jd0, jd1, gd0, gd1))
 
         return data
 
     def compare_leap_year_algorithms(self, year=None):
-        """
-        Year  100 GLY 0 GLY_ALT 1
-        Year  128 GLY 1 GLY_ALT 0
-        Year  200 GLY 0 GLY_ALT 1
-        Year  256 GLY 1 GLY_ALT 0
-        Year  300 GLY 0 GLY_ALT 1
-        Year  384 GLY 1 GLY_ALT 0
-        Year  500 GLY 0 GLY_ALT 1
-        Year  512 GLY 1 GLY_ALT 0
-        Year  600 GLY 0 GLY_ALT 1
-        Year  640 GLY 1 GLY_ALT 0
-        Year  700 GLY 0 GLY_ALT 1
-        Year  768 GLY 1 GLY_ALT 0
-        Year  896 GLY 1 GLY_ALT 0
-        Year  900 GLY 0 GLY_ALT 1
-        Year 1000 GLY 0 GLY_ALT 1
-        Year 1024 GLY 1 GLY_ALT 0
-        Year 1100 GLY 0 GLY_ALT 1
-        Year 1152 GLY 1 GLY_ALT 0
-        Year 1280 GLY 1 GLY_ALT 0
-        Year 1300 GLY 0 GLY_ALT 1
-        Year 1400 GLY 0 GLY_ALT 1
-        Year 1408 GLY 1 GLY_ALT 0
-        Year 1500 GLY 0 GLY_ALT 1
-        Year 1536 GLY 1 GLY_ALT 0
-        Year 1664 GLY 1 GLY_ALT 0
-        Year 1700 GLY 0 GLY_ALT 1
-        Year 1792 GLY 1 GLY_ALT 0
-        Year 1800 GLY 0 GLY_ALT 1
-        Year 1900 GLY 0 GLY_ALT 1
-        Year 1920 GLY 1 GLY_ALT 0
-        Year 2048 GLY 1 GLY_ALT 0
-        Year 2100 GLY 0 GLY_ALT 1
-        Year 2176 GLY 1 GLY_ALT 0
-        Year 2200 GLY 0 GLY_ALT 1
-        Year 2300 GLY 0 GLY_ALT 1
-        Year 2304 GLY 1 GLY_ALT 0
-        Year 2432 GLY 1 GLY_ALT 0
-        Year 2500 GLY 0 GLY_ALT 1
-        Year 2560 GLY 1 GLY_ALT 0
-        Year 2600 GLY 0 GLY_ALT 1
-        Year 2688 GLY 1 GLY_ALT 0
-        Year 2700 GLY 0 GLY_ALT 1
-        Year 2816 GLY 1 GLY_ALT 0
-        Year 2900 GLY 0 GLY_ALT 1
-        Year 2944 GLY 1 GLY_ALT 0
-        Year 3000 GLY 0 GLY_ALT 1
+        """                           std alt
+        Year  100 GLY_STD 0 GLY_ALT 1  1
+        Year  128 GLY_STD 1 GLY_ALT 0      1
+        Year  200 GLY_STD 0 GLY_ALT 1  2
+        Year  256 GLY_STD 1 GLY_ALT 0      2
+        Year  300 GLY_STD 0 GLY_ALT 1  3
+        Year  384 GLY_STD 1 GLY_ALT 0      3
+        Year  500 GLY_STD 0 GLY_ALT 1  4
+        Year  512 GLY_STD 1 GLY_ALT 0      4
+        Year  600 GLY_STD 0 GLY_ALT 1  5
+        Year  640 GLY_STD 1 GLY_ALT 0      5
+        Year  700 GLY_STD 0 GLY_ALT 1  6
+        Year  768 GLY_STD 1 GLY_ALT 0      6
+        Year  896 GLY_STD 1 GLY_ALT 0      7
+        Year  900 GLY_STD 0 GLY_ALT 1  7
+        Year 1000 GLY_STD 0 GLY_ALT 1  8
+        Year 1024 GLY_STD 1 GLY_ALT 0      8
+        Year 1100 GLY_STD 0 GLY_ALT 1  9
+        Year 1152 GLY_STD 1 GLY_ALT 0      9
+        Year 1280 GLY_STD 1 GLY_ALT 0      10
+        Year 1300 GLY_STD 0 GLY_ALT 1  10
+        Year 1400 GLY_STD 0 GLY_ALT 1  11
+        Year 1408 GLY_STD 1 GLY_ALT 0      11   Up to 1482-10-15
+        --------------------------------------------------------
+        Year 1500 GLY_STD 0 GLY_ALT 1
+        Year 1536 GLY_STD 1 GLY_ALT 0
+        Year 1664 GLY_STD 1 GLY_ALT 0
+        Year 1700 GLY_STD 0 GLY_ALT 1
+        Year 1792 GLY_STD 1 GLY_ALT 0
+        Year 1800 GLY_STD 0 GLY_ALT 1
+        Year 1900 GLY_STD 0 GLY_ALT 1
+        Year 1920 GLY_STD 1 GLY_ALT 0
+        Year 2048 GLY_STD 1 GLY_ALT 0
+        Year 2100 GLY_STD 0 GLY_ALT 1
+        Year 2176 GLY_STD 1 GLY_ALT 0
+        Year 2200 GLY_STD 0 GLY_ALT 1
+        Year 2300 GLY_STD 0 GLY_ALT 1
+        Year 2304 GLY_STD 1 GLY_ALT 0
+        Year 2432 GLY_STD 1 GLY_ALT 0
+        Year 2500 GLY_STD 0 GLY_ALT 1
+        Year 2560 GLY_STD 1 GLY_ALT 0
+        Year 2600 GLY_STD 0 GLY_ALT 1
+        Year 2688 GLY_STD 1 GLY_ALT 0
+        Year 2700 GLY_STD 0 GLY_ALT 1
+        Year 2816 GLY_STD 1 GLY_ALT 0
+        Year 2900 GLY_STD 0 GLY_ALT 1
+        Year 2944 GLY_STD 1 GLY_ALT 0
+        Year 3000 GLY_STD 0 GLY_ALT 1
         """
         data = []
 
@@ -251,43 +359,102 @@ if __name__ == "__main__":
         '-a', '--analyze', action='store_true', default=False, dest='analyze',
         help="Generate a list of Julian Period days using different methods.")
     parser.add_argument(
+        '-1', '--analyze-1', action='store_true', default=False,
+        dest='analyze_1',
+        help=("Generate a list of Julian Period days for different start "
+              "and end year."))
+    parser.add_argument(
         '-c', '--compare', type=int, dest='compare',
         help=("Compare two algorithms for determining the leap year. "
               "A value <= 0 processes dates from 1 to 3004"))
+    parser.add_argument(
+        '-A', '--alt-leap', action='store_true', default=False,
+        dest='alt_leap', help="Use alternative leap year metnod.")
+    parser.add_argument(
+        '-S', '--start', type=int, default=0, dest='start',
+        help="Start year of sequence.")
+    parser.add_argument(
+        '-E', '--end', type=int, default=0, dest='end',
+        help="End year of sequence.")
     parser.add_argument(
         '-D', '--debug', action='store_true', default=False, dest='debug',
         help="Run in debug mode.")
     options = parser.parse_args()
 
     jpt = JulianPeriodTests()
+    ret = 0
 
     if options.debug:
         sys.stderr.write("DEBUG--options: {}\n".format(options))
 
     if options.analyze:
         data = [f"{str(date):<17} "
+                f"{str(leap):<5} "
                 f"{meeus:<10} "
+                #f"{wiki:<10} "
+                #f"{orb:<10} "
+                f"{str(gd0):<17} "
                 f"{mine:<10} "
-                f"{wiki:<10} "
-                f"{orb:<10} "
-                f"{str(gd[0]):<17} "
-                f"{str(gd[1]):<17} "
-                f"{str(gd[2]):<17} "
-                f"{str(gd[3]):<17} "
-                for (date, meeus, mine, wiki, orb, gd) in jpt.analyze()]
-        print("Start date        Meeus      Mine       Wiki       Orbital"
-              "    Meeus             Mine              Wiki"
-              "              Orbital")
+                f"{str(gd1):<17} "
+                #f"{str(gd2):<17} "
+                #f"{str(gd3):<17} "
+                for (date,
+                     leap,
+                     meeus,
+                     mine,
+                     #wiki,
+                     #orb,
+                     gd0,
+                     gd1) in jpt.analyze(alt=options.alt_leap)]
+        print("Start date        "
+              "Leap  "
+              "Meeus      "
+              "Mine       "
+              #"Wiki       "
+              #"Orbital    "
+              "Meeus             "
+              "Mine              "
+              #"Wiki              "
+              #"Orbital"
+              )
         [print(item) for item in data]
+    elif options.analyze_1:
+        if options.start == 0 or options.end == 0:
+            print("If option -1 is used, -S and -E must also be used.")
+            ret = 1
+        else:
+            data = [f"{str(date):<13} "
+                    f"{str(leap):<5} "
+                    f"{meeus:<10} "
+                    f"{mine:<10} "
+                    f"{str(gd0):<14} "
+                    f"{str(gd1):<14} "
+                    f"{mine - meeus:<4}"
+                    for (date,
+                         leap,
+                         meeus,
+                         mine,
+                         gd0,
+                         gd1) in jpt.analyze_1(options.start, options.end,
+                                               options.alt_leap)]
+            print("Start date    "
+                  "Leap  "
+                  "Meeus      "
+                  "Mine       "
+                  "Meeus          "
+                  "Mine           "
+                  "Diff"
+                  )
+            [print(item) for item in data]
     elif isinstance(options.compare, int):
         data = [
             f"Year {year:>4} "
-            f"GLY {gly:<1} "
+            f"GLY_STD {gly_std:<1} "
             f"GLY_ALT {gly_alt:<1}"
-            for year, gly, gly_alt in jpt.compare_leap_year_algorithms(
+            for year, gly_std, gly_alt in jpt.compare_leap_year_algorithms(
                 options.compare)]
         [print(item) for item in data]
     else:
         parser.print_help()
 
-    sys.exit(0)
+    sys.exit(ret)

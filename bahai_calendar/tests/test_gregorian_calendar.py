@@ -70,22 +70,22 @@ class TestGregorianCalendar(unittest.TestCase):
         """
         data = (
             # -4712-Jan-01 12:00:00
-            ((-4712, 1, 1.5), True, 0.0),
+            ((-4712, 1, 1.5), False, False, True, 0.0),
             # -4712-Jan-02 00:00:00
-            ((-4712, 1, 2.0), True, 0.5),
+            ((-4712, 1, 2.0), False, False, True, 0.5),
             # Meeus AA ch 7 p61 ex7.b
-            ((333, 1, 27, 12), True, 1842713.0),
+            ((333, 1, 27, 12), False, False, True, 1842713.0),
             # Meeus AA ch 7 p61 ex7.a
-            ((1957, 10, 4.81), True, 2436116.31),
+            ((1957, 10, 4.81), False, False, True, 2436116.31),
             # 1844-Mar-21 00:00:00
-            ((1844, 3, 21), True, 2394646.5),
+            ((1844, 3, 21), False, False, True, 2394646.5),
             # 2451545.0 as per https://aa.usno.navy.mil/data/JulianDate
-            ((2000, 1, 1.5), True, 2451545.0),
-            ((1582, 10, 10), False, 0)
+            ((2000, 1, 1.5), False, False, True, 2451545.0),
+            ((1582, 10, 10), False, False, False, 0)
             )
         msg = "Expected '{}' for g_date '{}', found '{}'"
 
-        for g_date, validity, expected_result in data:
+        for g_date, exact, alt, validity, expected_result in data:
             if validity:
                 result = self._gc.jd_from_gregorian_date(g_date)
                 self.assertEqual(expected_result, result,

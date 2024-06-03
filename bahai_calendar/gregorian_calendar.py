@@ -15,10 +15,13 @@ class GregorianCalendar(BaseCalendar):
     Implementation of the Gregorian Calendar.
     """
     # Julian date for the gregorian epoch
+    # https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/calendar_calculations.htm
     GREGORIAN_EPOCH = 1721423.5
     _MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
+    GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
+        (year % 4 == 0) * (year % 128 != 0) == 1)
 
     def __init__(self):
         super().__init__()
@@ -37,14 +40,20 @@ class GregorianCalendar(BaseCalendar):
     def date_representation(self, representation):
         self._gregorian_date = representation
 
-    def jd_from_gregorian_date(self, g_date:tuple,
-                               exact:bool=False) -> float:
+    def jd_from_gregorian_date(self, g_date:tuple, *, exact:bool=False,
+                               alt=False) -> float:
         """
         Convert Gregorian dates to Julian day count with the 1582 10, 15
         correction.
 
         :param g_date: A Gregorinan date in the (year, month, day) format.
         :type g_date: tuple
+        :param exact: Julian days as if the Gregorian calendar started on
+                      year 1.
+        :type exact: bool
+        :param alt: Use more acurate leap year calculation, only valid when
+                    the `exact` keyword is used, there is no affect otherwise.
+        :type apt: bool
         :return: A Julian day.
         :rtype: float
 
@@ -57,10 +66,16 @@ class GregorianCalendar(BaseCalendar):
         """
         year, month, day = self.date_from_ymdhms(g_date)
 
-        if exact: # My astronomically correct algorithm
-            pass
-
-            # (1, 1, 1) 1721423.5 is the Gregorian epoch.
+        if exact: # An astronomically correct algorithm
+            GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
+                   else self.GREGORIAN_LEAP_YEAR)
+            y = self.JULIAN_YEAR * (year - 1)
+            y = math.floor(y)
+            month_days = list(self._MONTHS)
+            month_days[1] = 29 if GLY(year) else 28
+            md = sum([v for v in month_days[:month-1]])
+            md += day + self.GREGORIAN_EPOCH - 1
+            jd = round(y + md, self.ROUNDING_PLACES)
         else: # Meeus historically correct algorithm
             if (year, month) == (1582, 10):
                 assert day not in (5, 6, 7, 8, 9, 10, 11, 12, 13, 14), (
@@ -82,7 +97,8 @@ class GregorianCalendar(BaseCalendar):
 
         return jd
 
-    def gregorian_date_from_jd(self, jd:float) -> tuple:
+    def gregorian_date_from_jd(self, jd:float, *, exact:bool=False,
+                               alt=False) -> tuple:
         """
         Convert Julian day to Gregorian date.
 
@@ -96,35 +112,58 @@ class GregorianCalendar(BaseCalendar):
            See Astronomical Formulae for Calculators Enlarged & Revised,
            by Jean Meeus ch3 p26-29
         """
-        j_day = jd + 0.5
-        z = math.floor(j_day)
-        f = j_day % 1
+        if exact: # An astronomically correct algorithm
+            GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
+                   else self.GREGORIAN_LEAP_YEAR)
+            md = jd - (self.GREGORIAN_EPOCH - 1)
+            y = math.floor(md / self.JULIAN_YEAR)
+            days = md - (y * self.JULIAN_YEAR)
+            year = y + 1
+            leap = GLY(year)
+            month_days = list(self._MONTHS)
+            month_days[1] = 29 if GLY(year) else 28
+            d = day = 0
 
-        if z >= 2299161: # 1582-10-15 Julian and Gregorian crossover.
-            alpha = math.floor((z - 1867216.25) / 36524.25)
-            a = z + 1 + alpha - math.floor(alpha / 4)
+            for month, ds in enumerate(month_days, start=1):
+                d += ds
+                if days > d: continue
+                day = math.ceil(days - (d - ds))
+                break
+
+            date = (year, month, day + (jd % 1) - 0.5)
+
         else:
-            a = z
+            j_day = jd + 0.5
+            z = math.floor(j_day)
+            f = j_day % 1
 
-        b = a + 1524
-        c = math.floor((b - 122.1) / 365.25)
-        d = math.floor(365.25 * c)
-        e = math.floor((b - d) / 30.6001)
-        day = b - d - math.floor(30.6001 * e) + f
-        month = 0
-        year = 0
+            if z >= 2299161: # 1582-10-15 Julian and Gregorian crossover.
+                alpha = math.floor((z - 1867216.25) / 36524.25)
+                a = z + 1 + alpha - math.floor(alpha / 4)
+            else:
+                a = z
 
-        if e > 13:
-            month = e - 13
-        else:
-            month = e - 1
+            b = a + 1524
+            c = math.floor((b - 122.1) / 365.25)
+            d = math.floor(365.25 * c)
+            e = math.floor((b - d) / 30.6001)
+            day = b - d - math.floor(30.6001 * e) + f
+            month = 0
+            year = 0
 
-        if month > 2:
-            year = c - 4716
-        else:
-            year = c - 4715
+            if e > 13:
+                month = e - 13
+            else:
+                month = e - 1
 
-        return year, month, round(day, self.ROUNDING_PLACES)
+            if month > 2:
+                year = c - 4716
+            else:
+                year = c - 4715
+
+            date = (year, month, round(day, self.ROUNDING_PLACES))
+
+        return date
 
     def gregorian_year_from_jd(self, jde:float) -> int:
         """
