@@ -71,25 +71,47 @@ class TestGregorianCalendar(unittest.TestCase):
         data = (
             # -4712-Jan-01 12:00:00
             ((-4712, 1, 1.5), False, False, True, 0.0),
+            ((-4712, 1, 1.5), True, False, True, 0.0),
+            ((-4712, 1, 1.5), True, True, True, 0.0),
             # -4712-Jan-02 00:00:00
             ((-4712, 1, 2.0), False, False, True, 0.5),
+            ((-4712, 1, 2.0), True, False, True, 0.5),
+            ((-4712, 1, 2.0), True, True, True, 0.5),
+            # Last day of December on leap years which gave me a head ache.
+            ((4, 12, 31), False, False, True, 1722883.5),
+            ((4, 12, 31), True, False, True, 1722883.5),
+            ((4, 12, 31), True, True, True, 1722883.5),
             # Meeus AA ch 7 p61 ex7.b
             ((333, 1, 27, 12), False, False, True, 1842713.0),
-            # Meeus AA ch 7 p61 ex7.a
-            ((1957, 10, 4.81), False, False, True, 2436116.31),
+            ((333, 1, 27, 12), True, False, True, 1842713.0),
+            ((333, 1, 27, 12), True, True, True, 1842713.0),
             # 1844-Mar-21 00:00:00
             ((1844, 3, 21), False, False, True, 2394646.5),
+            ((1844, 3, 21), True, False, True, 2394658.5),
+            ((1844, 3, 21), True, True, True, 2394658.5),
+            # Meeus AA ch 7 p61 ex7.a
+            ((1957, 10, 4.81), False, False, True, 2436116.31),
+            ((1957, 10, 4.81), True, False, True, 2436129.31),
+            ((1957, 10, 4.81), True, True, True, 2436129.31),
             # 2451545.0 as per https://aa.usno.navy.mil/data/JulianDate
             ((2000, 1, 1.5), False, False, True, 2451545.0),
-            ((1582, 10, 10), False, False, False, 0)
+            ((2000, 1, 1.5), True, False, True, 2451558.0),
+            ((2000, 1, 1.5), True, True, True, 2451558.0),
+            # Tests for dates when the Julian Calendar was changed to
+            # the Gregorian Calendar.
+            ((1582, 10, 10), False, False, False, 0),
+            ((1582, 10, 10), True, False, True, 2299165.5),
+            ((1582, 10, 10), True, True, True, 2299165.5),
             )
-        msg = "Expected '{}' for g_date '{}', found '{}'"
+        msg = "Expected '{}' for g_date '{}', exact '{}', alt '{}', found '{}'"
 
         for g_date, exact, alt, validity, expected_result in data:
             if validity:
-                result = self._gc.jd_from_gregorian_date(g_date)
+                result = self._gc.jd_from_gregorian_date(g_date, exact=exact,
+                                                         alt=alt)
                 self.assertEqual(expected_result, result,
-                                 msg.format(expected_result, g_date, result))
+                                 msg.format(expected_result, g_date, exact,
+                                            alt, result))
             else:
                 with self.assertRaises(AssertionError) as cm:
                     self._gc.jd_from_gregorian_date(g_date)

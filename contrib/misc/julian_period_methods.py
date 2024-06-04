@@ -32,6 +32,7 @@ class JulianPeriodTests:
         (2, 1, 1),
         (3, 1, 1),
         (4, 1, 1),
+        (4, 12, 31),
         (5, 1, 1),
         (6, 1, 1),
         (8, 1, 1),
@@ -80,8 +81,10 @@ class JulianPeriodTests:
         (1582, 10, 14),
         (1582, 10, 15),
         (1844, 3, 20),
+        (1957, 10, 4.81),
         (2020, 12, 7.25),
         (2024, 3, 20),
+        (3004, 12, 31),
         )
 
     def jd_from_gregorian_date_0(self, g_date):
@@ -201,18 +204,22 @@ class JulianPeriodTests:
         y = math.floor(md / self.JULIAN_YEAR)
         days = md - (y * self.JULIAN_YEAR)
         year = y + 1
-        leap = GLY(year)
         month_days = list(self._MONTHS)
         month_days[1] = 29 if GLY(year) else 28
         d = day = 0
 
-        for month, ds in enumerate(month_days, start=1):
-            d += ds
-            if days > d: continue
-            day = math.ceil(days - (d - ds))
-            break
+        if (md % self.JULIAN_YEAR) == 0:
+            year -= 1
+            month = 12
+            day = 31
+        else:
+            for month, ds in enumerate(month_days, start=1):
+                d += ds
+                if days > d: continue
+                day = math.ceil(days - (d - ds))
+                break
 
-        return year, month, day + (jd % 1) - 0.5
+        return year, month, round(day + (jd % 1) - 0.5, self.ROUNDING_PLACES)
 
     def gregorian_date_from_jd_3(self, jdn):
         """
@@ -278,7 +285,7 @@ class JulianPeriodTests:
                     jd0 = self.jd_from_gregorian_date_0(date)
                     jd1 = self.jd_from_gregorian_date_1(date, alt=alt)
                     gd0 = self.gregorian_date_from_jd_0(jd0)
-                    gd1 = self.gregorian_date_from_jd_0(jd1)
+                    gd1 = self.gregorian_date_from_jd_1(jd1, alt=alt)
                     data.append((date, leap, jd0, jd1, gd0, gd1))
 
         return data
@@ -426,8 +433,8 @@ if __name__ == "__main__":
             data = [f"{str(date):<13} "
                     f"{str(leap):<5} "
                     f"{meeus:<10} "
-                    f"{mine:<10} "
                     f"{str(gd0):<14} "
+                    f"{mine:<10} "
                     f"{str(gd1):<14} "
                     f"{mine - meeus:<4}"
                     for (date,
@@ -440,8 +447,8 @@ if __name__ == "__main__":
             print("Start date    "
                   "Leap  "
                   "Meeus      "
-                  "Mine       "
                   "Meeus          "
+                  "Mine       "
                   "Mine           "
                   "Diff"
                   )

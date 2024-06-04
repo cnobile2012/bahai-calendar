@@ -49,7 +49,8 @@ class GregorianCalendar(BaseCalendar):
         :param g_date: A Gregorinan date in the (year, month, day) format.
         :type g_date: tuple
         :param exact: Julian days as if the Gregorian calendar started on
-                      year 1.
+                      year 1. This astronomicaly correct but not
+                      historically correct.
         :type exact: bool
         :param alt: Use more acurate leap year calculation, only valid when
                     the `exact` keyword is used, there is no affect otherwise.
@@ -59,10 +60,14 @@ class GregorianCalendar(BaseCalendar):
 
         .. note::
 
-           See Astronomical Formulae for Calculators Enlarged & Revised,
-           by Jean Meeus ch3 p24-25
-           See: https://www.fourmilab.ch/documents/calendar/
-                https://core2.gsfc.nasa.gov/time/julian.html
+           1. See Astronomical Formulae for Calculators Enlarged & Revised,
+              by Jean Meeus ch3 p24-25
+           2. See: https://www.fourmilab.ch/documents/calendar/
+              https://core2.gsfc.nasa.gov/time/julian.html
+           3. Caution when using the `exact=True` keyword the Julian Period
+              days returned will not always be the same when `exact=False`
+              is used. This means date comparisons will be in error if both
+              dates do not use the same True or False `exact` keyword.
         """
         year, month, day = self.date_from_ymdhms(g_date)
 
@@ -119,16 +124,20 @@ class GregorianCalendar(BaseCalendar):
             y = math.floor(md / self.JULIAN_YEAR)
             days = md - (y * self.JULIAN_YEAR)
             year = y + 1
-            leap = GLY(year)
             month_days = list(self._MONTHS)
             month_days[1] = 29 if GLY(year) else 28
             d = day = 0
 
-            for month, ds in enumerate(month_days, start=1):
-                d += ds
-                if days > d: continue
-                day = math.ceil(days - (d - ds))
-                break
+            if (md % self.JULIAN_YEAR) == 0:
+                year -= 1
+                month = 12
+                day = 31
+            else:
+                for month, ds in enumerate(month_days, start=1):
+                    d += ds
+                    if days > d: continue
+                    day = math.ceil(days - (d - ds))
+                    break
 
             date = (year, month, day + (jd % 1) - 0.5)
 
