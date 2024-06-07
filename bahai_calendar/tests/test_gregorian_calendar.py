@@ -102,6 +102,9 @@ class TestGregorianCalendar(unittest.TestCase):
             ((1582, 10, 10), False, False, False, 0),
             ((1582, 10, 10), True, False, True, 2299165.5),
             ((1582, 10, 10), True, True, True, 2299165.5),
+            # Test for Julian Period day jumps a day after December 31st.
+            ((1700, 12, 31), True, False, True, 2342346.5),
+            ((1701, 1, 1), True, False, True, 2342347.5),
             )
         msg = "Expected '{}' for g_date '{}', exact '{}', alt '{}', found '{}'"
 

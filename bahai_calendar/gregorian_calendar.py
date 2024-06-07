@@ -79,7 +79,7 @@ class GregorianCalendar(BaseCalendar):
             month_days = list(self._MONTHS)
             month_days[1] = 29 if GLY(year) else 28
             md = sum([v for v in month_days[:month-1]])
-            md += day + self.GREGORIAN_EPOCH - 1
+            md += day + (self.GREGORIAN_EPOCH - 1)
             jd = round(y + md, self.ROUNDING_PLACES)
         else: # Meeus historically correct algorithm
             if (year, month) == (1582, 10):
@@ -139,8 +139,8 @@ class GregorianCalendar(BaseCalendar):
                     day = math.ceil(days - (d - ds))
                     break
 
-            date = (year, month, day + (jd % 1) - 0.5)
-
+            date = (year, month, round(day + (jd % 1) - 0.5,
+                                       self.ROUNDING_PLACES))
         else:
             j_day = jd + 0.5
             z = math.floor(j_day)

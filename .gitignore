@@ -19,6 +19,8 @@ logs
 package
 .~lock.*
 junk*
+poop*
+contrib/thirdparty/
 
 # C extensions
 *.so
