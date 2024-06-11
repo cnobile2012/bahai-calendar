@@ -52,8 +52,8 @@ class GregorianCalendar(BaseCalendar):
                       year 1. This astronomicaly correct but not
                       historically correct.
         :type exact: bool
-        :param alt: Use more acurate leap year calculation, only valid when
-                    the `exact` keyword is used, there is no affect otherwise.
+        :param alt: Use a more accurate leap year calculation, only valid when
+                    the `exact` keyword is used, there is no effect otherwise.
         :type apt: bool
         :return: A Julian day.
         :rtype: float
@@ -74,13 +74,7 @@ class GregorianCalendar(BaseCalendar):
         if exact: # An astronomically correct algorithm
             GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
                    else self.GREGORIAN_LEAP_YEAR)
-            y = self.JULIAN_YEAR * (year - 1)
-            y = math.floor(y)
-            month_days = list(self._MONTHS)
-            month_days[1] = 29 if GLY(year) else 28
-            md = sum([v for v in month_days[:month-1]])
-            md += day + (self.GREGORIAN_EPOCH - 1)
-            jd = round(y + md, self.ROUNDING_PLACES)
+            jd = self._get_jd(year, month, day, GLY)
         else: # Meeus historically correct algorithm
             if (year, month) == (1582, 10):
                 assert day not in (5, 6, 7, 8, 9, 10, 11, 12, 13, 14), (
@@ -101,6 +95,15 @@ class GregorianCalendar(BaseCalendar):
                        self.ROUNDING_PLACES)
 
         return jd
+
+    def _get_jd(self, year, month, day, gly):
+        y = self.JULIAN_YEAR * (year - 1)
+        y = math.floor(y)
+        month_days = list(self._MONTHS)
+        month_days[1] = 29 if gly(year) else 28
+        md = sum([v for v in month_days[:month-1]])
+        md += day + (self.GREGORIAN_EPOCH - 1)
+        return round(y + md, self.ROUNDING_PLACES)
 
     def gregorian_date_from_jd(self, jd:float, *, exact:bool=False,
                                alt=False) -> tuple:

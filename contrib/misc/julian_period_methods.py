@@ -20,6 +20,7 @@ class JulianPeriodTests:
     MEAN_TROPICAL_YEAR = 365.2421897
     MEAN_SIDEREAL_YEAR = 365.256363004
     ROUNDING_PLACES = 6
+    JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
     GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
@@ -63,36 +64,44 @@ class JulianPeriodTests:
         ## (2024, 3, 20),
         ## (3004, 12, 31),
         # Off by one issue
-        (100, 12, 30), (100, 12, 31), (101, 1, 1),
-        (101, 12, 30), (101, 12, 31), (102, 1, 1),
-        (200, 12, 30), (200, 12, 31), (201, 1, 1),
-        (300, 12, 30), (300, 12, 31), (301, 1, 1),
-        (400, 12, 30), (400, 12, 31), (401, 1, 1),
+        (100, 12, 30), (100, 12, 31),
+        (101, 1, 1), (101, 1, 2), (101, 12, 30), (101, 12, 31),
+        (102, 1, 1), (102, 1, 2), (102, 12, 30), (102, 12, 31),
+        (200, 12, 30), (200, 12, 31),
+        (201, 1, 1), (201, 1, 2),
+        (300, 12, 30), (300, 12, 31),
+        (301, 1, 1), (301, 1, 2),
+        (400, 12, 30), (400, 12, 31),
+        (401, 1, 1), (401, 1, 2),
         # The 29th should be wrong for standard leap year
-        ## ## (500, 2, 28), (500, 2, 29), (500, 3, 1),
-        (500, 12, 30), (500, 12, 31), (501, 1, 1),
-        (600, 12, 30), (600, 12, 31), (601, 1, 1),
+        ## (500, 2, 28), (500, 2, 29), (500, 3, 1),
+        (500, 12, 30), (500, 12, 31),
+        (501, 1, 1),
+        (600, 12, 30), (600, 12, 31),
+        (601, 1, 1),
         ## # The 29th should be wrong for standard leap year
-        ## ## (700, 2, 28), (700, 2, 29), (700, 3, 1),
-        (700, 12, 30), (700, 12, 31), (701, 1, 1),
-        (800, 12, 30), (800, 12, 31), (801, 1, 1),
+        ## (700, 2, 28), (700, 2, 29), (700, 3, 1),
+        (700, 12, 30), (700, 12, 31),
+        (701, 1, 1),
+        (800, 12, 30), (800, 12, 31),
+        (801, 1, 1),
         ## # The 29th should be wrong for standard leap year
-        ## ## (900, 2, 28), (900, 2, 29), (900, 3, 1),
-        ## (900, 12, 31), (901, 1, 1),
+        ## (900, 2, 28), (900, 2, 29), (900, 3, 1),
+        (900, 12, 31), (901, 1, 1),
         ## # The 29th should be wrong for standard leap year
-        ## ## (1000, 2, 28), (1000, 2, 29), (1000, 3, 1),
-        ## (1000, 12, 31), (1001, 1, 1),
+        ## (1000, 2, 28), (1000, 2, 29), (1000, 3, 1),
+        (1000, 12, 31), (1001, 1, 1),
         ## # The 29th should be wrong for standard leap year
-        ## ## (1100, 2, 28), (1100, 2, 29), (1100, 3, 1),
-        ## (1100, 12, 31), (1101, 1, 1),
-        ## (1200, 12, 31), (1201, 1, 1),
+        ## (1100, 2, 28), (1100, 2, 29), (1100, 3, 1),
+        (1100, 12, 31), (1101, 1, 1),
+        (1200, 12, 31), (1201, 1, 1),
         ## # The 29th should be wrong for standard leap year
-        ## ## (1300, 2, 28), (1300, 2, 29), (1300, 3, 1),
+        ## (1300, 2, 28), (1300, 2, 29), (1300, 3, 1),
         ## (1300, 12, 31), (1301, 1, 1),
         ## (1400, 12, 31), (1401, 1, 1),
         ## (1500, 12, 31), (1501, 1, 1),
         ## # The 29th should be wrong for standard leap year
-        ## ## (1500, 2, 28), (1500, 2, 29), (1500, 3, 1),
+        ## (1500, 2, 28), (1500, 2, 29), (1500, 3, 1),
         ## (1600, 12, 31), (1601, 1, 1),
         ## (1700, 12, 31), (1701, 1, 1), # 11
         ## (1800, 12, 31), (1801, 1, 1), # 12
@@ -130,9 +139,10 @@ class JulianPeriodTests:
                      self.ROUNDING_PLACES)
         return (year, month, day)
 
-    def jd_from_gregorian_date_0(self, g_date):
+    def jd_from_gregorian_date_0(self, g_date, alt=False):
         """
         Meeus
+        The alt kward does nothing.
 
         Skips a day:  (100, 2, 28) ->  (100, 3, 1) -- 1757640.5 -> 1757642.5
                       (200, 2, 28) ->  (200, 3, 1) -- 1794165.5 -> 1794167.5
@@ -193,43 +203,53 @@ class JulianPeriodTests:
                      (3100, 12, 31) -> (3101, 1, 1) -- 2853696.5 -> 2853698.5
         """
         GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
-
-        def _get_jd(year, month, day):
-            y = self.JULIAN_YEAR * (year - 1)
-            y = math.floor(y)
-            month_days = list(self._MONTHS)
-            month_days[1] = 29 if GLY(year) else 28
-            md = sum([v for v in month_days[:month-1]])
-            md += day + (self.GREGORIAN_EPOCH - 1)
-            return round(y + md, self.ROUNDING_PLACES)
-
+        #curmudgeon_years = {101: 1, 201: 2, 301: 3, 501: 4}
         year, month, day = self.date_from_ymdhms(g_date)
-        jd0 = _get_jd(year - 1, 12, 31)
-        jd1 = _get_jd(year, 1, 1)
-        jd = _get_jd(year, month, day)
+        #jd0 = self._get_jd(year - 1, 12, 31, GLY)
+        #jd1 = self._get_jd(year, 1, 1, GLY)
+
+        jd = self._get_jd(year, month, day, GLY)
+
+        #jd -= curmudgeon_years.get(year, 0)
 
         #sys.stderr.write(f"g_date: {str(g_date):<14} jd1 - jd0: {jd1-jd0:<3} ")
         #sys.stderr.write(f"jd0: {jd0:<9} jd1: {jd1:<9} jd: {jd:<9}\n")
-        return jd - ((jd1 - jd0) - 1)
+        return jd #- ((jd1 - jd0) - 1)
 
-    def jd_from_gregorian_date_1a(self, g_date):
-        """
-        Meeus Kinda
-        """
-        year, month, day = g_date[:3]
+    def _get_jd(self, year, month, day, gly):
+        y = self.JULIAN_YEAR * (year - 1)
+        sys.stderr.write(f"date: {str((year, month, day)):<16} y: {y:<9} ")
+        y = math.floor(y)
+        month_days = list(self._MONTHS)
+        month_days[1] = 29 if gly(year) else 28
+        md = sum([v for v in month_days[:month-1]])
+        sys.stderr.write(f"md: {md:<3} ")
+        d = self._accumulate_errors(year)
+        md += day + (self.GREGORIAN_EPOCH - 1)
+        return round(y + md, self.ROUNDING_PLACES)
 
-        if month <= 2:
-            year -= 1
-            month += 12
+    def _accumulate_errors(self, year):
+        d = 0
 
-        if (year, month, day) <= (1582, 10, 15):
-            day -= 2
+        if year > 100:
+            a = (year - 100) / 100 if year % 100 == 0 else year / 100
+            b = 0
 
-        a = math.floor(year / 100)
-        b = 2 - a + math.floor(a / 4)
-        return round(math.floor(self.JULIAN_YEAR * year) + math.floor(
-            30.6001 * (month + 1)) + day + b + 1720994.5,
-                     self.ROUNDING_PLACES)
+            #b = 1 if (year % 4) == 1 and (year -1) % 400 else 0
+
+            #if year % 400 in (100, 200, 300, 400, 500, 600, 700, 800):
+            if not (year % 100 == 1 and year % 400 != 1):
+
+                #sys.stderr.write(f"year: {year:<4} ")
+                b = 1
+
+            d = math.floor(a) #- b
+
+            sys.stderr.write(f"a: {a:<5} b: {b:<2} d: {d:<2}")
+
+        sys.stderr.write(f"\n")
+        return d
+
 
     def jd_from_gregorian_date_2(self, g_date):
         """
@@ -314,9 +334,16 @@ class JulianPeriodTests:
                                        self.ROUNDING_PLACES))
 
         year, month, day = _get_date(jd, alt)
-        date = (year, month, day + (1 if day == 0 else 0))
+        #jd0 = self._get_jd(year-1, 12, 31, GLY)
+        #jd1 = self._get_jd(year, 1, 1, GLY)
+        #d = 1 if (jd1 - jd0) == 2 else 0
+        #day += d #if (day + d) == 0 else 1
+        date = (year, month, day)
 
-        #sys.stderr.write(f"jd: {jd:<10} {str(date):<17}\n")
+        ## sys.stderr.write(f"jd: {jd:<10} {str(date):<16} "
+        ##                  f"jd0: {jd0:<10} "
+        ##                  f"jd1: {jd1:<10} "
+        ##                  f"d: {d}\n")
         return date
 
     def gregorian_date_from_jd_3(self, jdn):
@@ -346,7 +373,6 @@ class JulianPeriodTests:
             leap = GLY(date[0])
             jd0 = self.jd_from_gregorian_date_0(date)
             jd1 = self.jd_from_gregorian_date_1(date, alt=alt)
-            #jd1 = self.jd_from_gregorian_date_1a(date)
             #jd2 = self.jd_from_gregorian_date_2(date)
             #jd3 = self.jd_from_gregorian_date_3(date)
 
@@ -359,13 +385,12 @@ class JulianPeriodTests:
                 gd1 = 'INVALID'
             else:
                 gd1 = self.gregorian_date_from_jd_1(jd1, alt=alt)
-
-            data.append((date, leap, jd0, jd1, gd0, gd1))
+            #                        Meeus     Mine
+            data.append((date, leap, jd0, gd0, jd1, gd1))
 
         return data
 
     def analyze_1(self, start, end, alt=False):
-        data = []
         GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         data = []
 
@@ -384,7 +409,7 @@ class JulianPeriodTests:
                     jd1 = self.jd_from_gregorian_date_1(date, alt=alt)
                     gd0 = self.gregorian_date_from_jd_0(jd0)
                     gd1 = self.gregorian_date_from_jd_1(jd1, alt=alt)
-                    data.append((date, leap, jd0, jd1, gd0, gd1))
+                    data.append((date, leap, jd0, gd0, jd1, gd1))
 
         return data
 
@@ -454,6 +479,39 @@ class JulianPeriodTests:
 
         return data
 
+    def consecutive_days(self, start, end, meeus=False, alt=False):
+        """
+        Test that the Julian Period days are consecutive. i.e. no skipping
+        or doubling up.
+        Should produce no output if working correctly.
+        """
+        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
+        LY = self.JULIAN_LEAP_YEAR if meeus else GLY
+        #sys.stderr.write(f" LY: {str(LY)}\nGLY: {str(GLY)}\n")
+
+        method = (self.jd_from_gregorian_date_0 if meeus else
+                  self.jd_from_gregorian_date_1)
+        data = []
+        d = 0
+
+        for year in range(start, end + 1):
+            for month, days in enumerate(self._MONTHS, start=1):
+                LY = LY if (year, month) < (1582, 10) else GLY
+
+                if month == 2 and not LY(year):
+                    max_days = days - 1
+                else:
+                    max_days = days
+
+                for day in range(1, max_days + 1):
+                    date = (year, month, day)
+                    jd = method(date, alt=alt)
+                    d != 0 and (d + 1) != jd and data.append((date, d, jd))
+                    d = jd
+                    #sys.stderr.write(f"date: {str(date):<16} jd: {str(jd)}\n")
+
+        return data
+
 
 if __name__ == "__main__":
     import argparse
@@ -473,6 +531,9 @@ if __name__ == "__main__":
         help=("Compare two algorithms for determining the leap year. "
               "A value <= 0 processes dates from 1 to 3004"))
     parser.add_argument(
+        '-d', '--con-days', action='store_true', default=False,
+        dest='con_days', help=("Test for non consecutive days."))
+    parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help="Use alternative leap year metnod.")
     parser.add_argument(
@@ -481,6 +542,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '-E', '--end', type=int, default=0, dest='end',
         help="End year of sequence.")
+    parser.add_argument(
+        '-M', '--meeus', action='store_true', default=False,
+        dest='meeus', help="Use Meeus' algorithm.")
     parser.add_argument(
         '-D', '--debug', action='store_true', default=False, dest='debug',
         help="Run in debug mode.")
@@ -495,30 +559,31 @@ if __name__ == "__main__":
     if options.analyze:
         data = [f"{str(date):<17} "
                 f"{str(leap):<6} "
-                f"{meeus:<10} "
-                #f"{wiki:<10} "
-                #f"{orb:<10} "
-                f"{str(gd0):<17} "
-                f"{mine:<10} "
-                f"{str(gd1):<17} "
-                #f"{str(gd2):<17} "
-                #f"{str(gd3):<17} "
-                f"{mine - meeus:<4}"
-                for (date,
-                     leap,
-                     meeus,
-                     mine,
-                     #wiki,
-                     #orb,
-                     gd0,
-                     gd1) in jpt.analyze(alt=options.alt_leap)]
+                #f"{jd0:<10} "      # Meeus
+                #f"{str(gd0):<17} " # Meeus
+                f"{jd1:<10} "       # Mine
+                f"{str(gd1):<17} "  # Mine
+                #f"{jd2:<10} "       # Wiki
+                #f"{str(gd2):<17} "  # Wiki
+                #f"{jd3:<10} "       # Orbital
+                #f"{str(gd3):<17} "  # Orbital
+                f"{jd1 - jd0:<4}"
+                for (date, # Initial Gregorian date
+                     leap, # Is leap year
+                     jd0,  # Meeus
+                     gd0,  # Meeus
+                     jd1,  # Mine
+                     gd1,  # Mine
+                     #jd2, # wiki
+                     #gd2, # wiki
+                     #jd3, # orbital
+                     #gd3  # orbital
+                     ) in jpt.analyze(alt=options.alt_leap)]
         print("Start Date"
               "        Leap"
-              "   Meeus"
-              "      Meeus"
-              #"Wiki       "
-              #"Orbital    "
-              "             Mine"
+              #"   Meeus"
+              #"      Meeus"
+              "   Mine"
               "       Mine"
               #"Wiki              "
               #"Orbital"
@@ -530,20 +595,21 @@ if __name__ == "__main__":
             print("If option -1 is used, -S and -E must also be used.")
             ret = 1
         else:
-            data = [f"{str(date):<17} "
-                    f"{str(leap):<6} "
-                    f"{meeus:<10} "
-                    f"{str(gd0):<17} "
-                    f"{mine:<10} "
-                    f"{str(gd1):<17} "
-                    f"{mine - meeus:<5}"
+            data = [f"{str(date):<17} " # Initial Gregorian date
+                    f"{str(leap):<6} "  # Is leap year
+                    f"{jd0:<10} "       # Meeus
+                    f"{str(gd0):<17} "  # Meeus
+                    f"{jd1:<10} "       # Mine
+                    f"{str(gd1):<17} "  # Mine
+                    f"{jd1 - jd0:<5}"   # Mine - Meeus (diff)
                     for (date,
                          leap,
-                         meeus,
-                         mine,
+                         jd0,
                          gd0,
-                         gd1) in jpt.analyze_1(options.start, options.end,
-                                               options.alt_leap)]
+                         jd1,
+                         gd1,
+                         ) in jpt.analyze_1(options.start, options.end,
+                                            alt=options.alt_leap)]
             print("Start Date        "
                   "Leap   "
                   "Meeus      "
@@ -560,6 +626,14 @@ if __name__ == "__main__":
             f"GLY_ALT {gly_alt:<1}"
             for year, gly_std, gly_alt in jpt.compare_leap_year_algorithms(
                 options.compare)]
+        [print(item) for item in data]
+    elif options.con_days:
+        data = [f"date: {str(date):<12} "
+                f"d: {d:<9} "
+                f"jd: {jd:<9}"
+                for date, d, jd in jpt.consecutive_days(
+                    options.start, options.end,
+                    meeus=options.meeus, alt=options.alt_leap)]
         [print(item) for item in data]
     else:
         parser.print_help()
