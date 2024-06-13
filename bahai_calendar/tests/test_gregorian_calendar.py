@@ -242,7 +242,7 @@ class TestGregorianCalendar(unittest.TestCase):
             if validity:
                 # Test correct dates
                 for m in range(1, 13):
-                    for days in range(self._gc._MONTHS[m - 1]):
+                    for days in range(self._gc.MONTHS[m - 1]):
                         if m == 2: # Subtract 0 or 1 from Febuary if leap year.
                             days -= (0 if self._gc.GREGORIAN_LEAP_YEAR(year)
                                      else 1)

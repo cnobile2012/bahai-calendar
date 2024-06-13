@@ -17,7 +17,7 @@ class GregorianCalendar(BaseCalendar):
     # Julian date for the gregorian epoch
     # https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/calendar_calculations.htm
     GREGORIAN_EPOCH = 1721423.5
-    _MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
     GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
@@ -99,7 +99,7 @@ class GregorianCalendar(BaseCalendar):
     def _get_jd(self, year, month, day, gly):
         y = self.JULIAN_YEAR * (year - 1)
         y = math.floor(y)
-        month_days = list(self._MONTHS)
+        month_days = list(self.MONTHS)
         month_days[1] = 29 if gly(year) else 28
         md = sum([v for v in month_days[:month-1]])
         md += day + (self.GREGORIAN_EPOCH - 1)
@@ -127,20 +127,20 @@ class GregorianCalendar(BaseCalendar):
             y = math.floor(md / self.JULIAN_YEAR)
             days = md - (y * self.JULIAN_YEAR)
             year = y + 1
-            month_days = list(self._MONTHS)
+            month_days = list(self.MONTHS)
             month_days[1] = 29 if GLY(year) else 28
             d = day = 0
 
-            if (md % self.JULIAN_YEAR) == 0:
-                year -= 1
-                month = 12
-                day = 31
-            else:
-                for month, ds in enumerate(month_days, start=1):
-                    d += ds
-                    if days > d: continue
-                    day = math.ceil(days - (d - ds))
-                    break
+            #if (md % self.JULIAN_YEAR) == 0:
+            #    year -= 1
+            #    month = 12
+            #    day = 31
+            #else:
+            for month, ds in enumerate(month_days, start=1):
+                d += ds
+                if days > d: continue
+                day = math.ceil(days - (d - ds))
+                break
 
             date = (year, month, round(day + (jd % 1) - 0.5,
                                        self.ROUNDING_PLACES))
@@ -228,7 +228,7 @@ class GregorianCalendar(BaseCalendar):
         minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
         second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
         assert 1 <= month <= 12, f"Invalid month '{month}', should be 1 - 12."
-        days = self._MONTHS[month - 1]
+        days = self.MONTHS[month - 1]
 
         if month == 2: # Subtract 0 or 1 from Febuary if leap year.
             days -= 0 if self.GREGORIAN_LEAP_YEAR(year) else 1

@@ -203,53 +203,86 @@ class JulianPeriodTests:
                      (3100, 12, 31) -> (3101, 1, 1) -- 2853696.5 -> 2853698.5
         """
         GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
-        #curmudgeon_years = {101: 1, 201: 2, 301: 3, 501: 4}
         year, month, day = self.date_from_ymdhms(g_date)
-        #jd0 = self._get_jd(year - 1, 12, 31, GLY)
-        #jd1 = self._get_jd(year, 1, 1, GLY)
-
-        jd = self._get_jd(year, month, day, GLY)
-
-        #jd -= curmudgeon_years.get(year, 0)
-
-        #sys.stderr.write(f"g_date: {str(g_date):<14} jd1 - jd0: {jd1-jd0:<3} ")
-        #sys.stderr.write(f"jd0: {jd0:<9} jd1: {jd1:<9} jd: {jd:<9}\n")
-        return jd #- ((jd1 - jd0) - 1)
+        return self._get_jd(year, month, day, GLY)
 
     def _get_jd(self, year, month, day, gly):
         y = self.JULIAN_YEAR * (year - 1)
-        sys.stderr.write(f"date: {str((year, month, day)):<16} y: {y:<9} ")
         y = math.floor(y)
         month_days = list(self._MONTHS)
         month_days[1] = 29 if gly(year) else 28
         md = sum([v for v in month_days[:month-1]])
-        sys.stderr.write(f"md: {md:<3} ")
-        d = self._accumulate_errors(year)
-        md += day + (self.GREGORIAN_EPOCH - 1)
+        md += day - self._increment_index(year) + (self.GREGORIAN_EPOCH - 1)
         return round(y + md, self.ROUNDING_PLACES)
 
-    def _accumulate_errors(self, year):
-        d = 0
+    def _increment_index(self, year):
+        i = 0
 
-        if year > 100:
-            a = (year - 100) / 100 if year % 100 == 0 else year / 100
-            b = 0
+        if year > 99:
+            if year % 400 != 1 and year % 100 == 1:
+                # Years that increment nn1 etc.
+                i += year / 100 - math.floor(year / 400)
+            elif year % 400 < 100:
+                # Non-incremented years, all years. 400, 401, 800, 801, etc.
+                i += math.floor(year / 400) * 3
+            elif year % 100 == 0:
+                # Incremented Years 100, 200, 300, 500, 600, etc.
+                i += year / 100
 
-            #b = 1 if (year % 4) == 1 and (year -1) % 400 else 0
+                if 100 <= year <= 300:
+                    i -= 1
+                elif 500 <= year <= 700:
+                    i -= 2
+                elif 900 <= year <= 1100:
+                    i -= 3
+                elif 1300 <= year <= 1500:
+                    i -= 4
+                elif 1700 <= year <= 1900:
+                    i -= 5
+                elif 2100 <= year <= 2300:
+                    i -= 6
+                elif 2500 <= year <= 2700:
+                    i -= 7
+                elif 2900 <= year <= 3100:
+                    i -= 8
+                elif 3300 <= year <= 3500:
+                    i -= 9
+                elif 3700 <= year <= 3900:
+                    i -= 10
+                elif 4100 <= year <= 4300:
+                    i -= 11
+                elif 4500 <= year <= 4700:
+                    i -= 12
+            elif year % 400 != 1 and 1 < year % 100 < 100:
+                # Incremented Years 502 - 599, 602 - 699, etc.
+                i += math.floor(year / 100)
 
-            #if year % 400 in (100, 200, 300, 400, 500, 600, 700, 800):
-            if not (year % 100 == 1 and year % 400 != 1):
+                if i < 4:    # 102-199 = 1, 202-299 = 2, 302-399 = 3
+                    pass
+                elif i < 8:  # 502-599 = 4, 602-699 = 5, 702-799 = 6
+                    i -= 1
+                elif i < 12: # 902-999 = 7, 1002-1099 = 8, 1102-1199 = 9
+                    i -= 2
+                elif i < 16: # 1302-1399 = 10, 1402-1499 = 11, 1502-1599 = 12
+                    i -= 3
+                elif i < 20: # 1702-1799 = 13, 1802-1899 = 14, 1902-1999 = 15
+                    i -= 4
+                elif i < 24: # 2102-2199 = 16, 2202-2299 = 17, 2302-2399 = 18
+                    i -= 5
+                elif i < 28: # 2502-2599 = 19, 2602-2699 = 20, 2702-2799 = 21
+                    i -= 6
+                elif i < 32: # 2902-2999 = 22, 3002-3099 = 23, 3102-3199 = 24
+                    i -= 7
+                elif i < 36: # 3302-3399 = 25, 3402-3499 = 26, 3502-3599 = 27
+                    i -= 8
+                elif i < 40: # 3702-3799 = 28, 3802-3899 = 29, 3902-3999 = 30
+                    i -= 9
+                elif i < 44: # 4102-4199 = 31, 4202-4299 = 32, 4302-4399 = 33
+                    i -= 10
+                elif i < 48: # 4502-4599 = 34, 4602-4699 = 35, 4702-4799 = 36
+                    i -= 11
 
-                #sys.stderr.write(f"year: {year:<4} ")
-                b = 1
-
-            d = math.floor(a) #- b
-
-            sys.stderr.write(f"a: {a:<5} b: {b:<2} d: {d:<2}")
-
-        sys.stderr.write(f"\n")
-        return d
-
+        return math.floor(i)
 
     def jd_from_gregorian_date_2(self, g_date):
         """
