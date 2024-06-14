@@ -72,9 +72,7 @@ class GregorianCalendar(BaseCalendar):
         year, month, day = self.date_from_ymdhms(g_date)
 
         if exact: # An astronomically correct algorithm
-            GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
-                   else self.GREGORIAN_LEAP_YEAR)
-            jd = self._get_jd(year, month, day, GLY)
+            pass
         else: # Meeus historically correct algorithm
             if (year, month) == (1582, 10):
                 assert day not in (5, 6, 7, 8, 9, 10, 11, 12, 13, 14), (
@@ -96,15 +94,6 @@ class GregorianCalendar(BaseCalendar):
 
         return jd
 
-    def _get_jd(self, year, month, day, gly):
-        y = self.JULIAN_YEAR * (year - 1)
-        y = math.floor(y)
-        month_days = list(self.MONTHS)
-        month_days[1] = 29 if gly(year) else 28
-        md = sum([v for v in month_days[:month-1]])
-        md += day + (self.GREGORIAN_EPOCH - 1)
-        return round(y + md, self.ROUNDING_PLACES)
-
     def gregorian_date_from_jd(self, jd:float, *, exact:bool=False,
                                alt=False) -> tuple:
         """
@@ -121,29 +110,50 @@ class GregorianCalendar(BaseCalendar):
            by Jean Meeus ch3 p26-29
         """
         if exact: # An astronomically correct algorithm
+            def days_in_year(y, alt=False):
+                n_4 = y // 4
+
+                if alt:
+                    n_128 = y // 128
+                    n_leap_years = n_4 - n_128
+                else:
+                    n_100 = y // 100
+                    n_400 = y // 400
+                    n_leap_years = n_4 - n_100 + n_400
+
+                a = y - n_leap_years # Non-leap years
+                b = y - a # Leap years
+                return a * 365 + b * 366
+
             GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
                    else self.GREGORIAN_LEAP_YEAR)
+            # Get the number of days since the Gregorian epoch.
             md = jd - (self.GREGORIAN_EPOCH - 1)
+            # This is the 1st guess for the year.
             y = math.floor(md / self.JULIAN_YEAR)
-            days = md - (y * self.JULIAN_YEAR)
             year = y + 1
+            # A refined result for the year.
+            td = days_in_year(y, alt=alt)
+            days = md - td
+
+            if days >= 366 and not (days == 366 and GLY(year)):
+                year += 1
+                td = days_in_year(year, alt=alt)
+
+            days -= 1 if days > 366 and not GLY(year) else 0
+            days -= 365 if days > 365 and not GLY(year) else 0
             month_days = list(self.MONTHS)
             month_days[1] = 29 if GLY(year) else 28
             d = day = 0
 
-            #if (md % self.JULIAN_YEAR) == 0:
-            #    year -= 1
-            #    month = 12
-            #    day = 31
-            #else:
             for month, ds in enumerate(month_days, start=1):
                 d += ds
                 if days > d: continue
                 day = math.ceil(days - (d - ds))
                 break
 
-            date = (year, month, round(day + (jd % 1) - 0.5,
-                                       self.ROUNDING_PLACES))
+            date = (year, month, round( day + (jd % 1) - 0.5,
+                                        self.ROUNDING_PLACES))
         else:
             j_day = jd + 0.5
             z = math.floor(j_day)
