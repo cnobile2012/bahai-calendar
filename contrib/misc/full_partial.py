@@ -641,7 +641,7 @@ if __name__ == "__main__":
         description=("Test Badi date ranges."))
     parser.add_argument(
         '-l', '--list', action='store_true', default=False, dest='list',
-        help="Generate a list of Badi dates both ling and short versions.")
+        help="Generate a list of Badi dates both long and short versions.")
     parser.add_argument(
         '-c', '--ck-dates', action='store_true', default=False, dest='ck_dates',
         help="Check that long_date_from_short_date() works correctly.")

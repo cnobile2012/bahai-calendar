@@ -67,6 +67,7 @@ class JulianPeriodTests:
         (100, 12, 30), (100, 12, 31),
         (101, 1, 1), (101, 1, 2), (101, 12, 30), (101, 12, 31),
         (102, 1, 1), (102, 1, 2), (102, 12, 30), (102, 12, 31),
+        (104, 1, 1), (108, 1, 1),
         (200, 12, 30), (200, 12, 31),
         (201, 1, 1), (201, 1, 2),
         (300, 12, 30), (300, 12, 31),
@@ -95,6 +96,7 @@ class JulianPeriodTests:
         ## (1100, 2, 28), (1100, 2, 29), (1100, 3, 1),
         (1100, 12, 31), (1101, 1, 1), #(1100, 1, 2),
         (1200, 12, 31), (1201, 1, 1), (1201, 1, 2),
+        (2024, 1, 1), (2024, 1, 2), (2024, 1, 3),
         ## # The 29th should be wrong for standard leap year
         ## (1300, 2, 28), (1300, 2, 29), (1300, 3, 1),
         ## (1300, 12, 31), (1301, 1, 1),
@@ -223,7 +225,7 @@ class JulianPeriodTests:
                 # Non-incremented years, all years. 400, 401, 800, 801, etc.
                 i += math.floor(year / 400) * 3
             elif year % 100 == 0:
-                # Incremented Years 100 - 300, 500 - 700, etc.
+                # Incremented Years 100, 200, 300 and 500, 600, 700, etc.
                 i += year / 100
 
                 if 100 <= year <= 300:
@@ -334,19 +336,21 @@ class JulianPeriodTests:
         GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         # Get the number of days since the Gregorian epoch.
         md = jd - (self.GREGORIAN_EPOCH - 1)
-        # This is the 1st guess for the year.
-        y = math.floor(md / self.JULIAN_YEAR)
-        year = y + 1
-        # A refined result for the year.
-        td = days_in_year(y, alt=alt)
+        year = math.floor(md / self.JULIAN_YEAR)
+        # A refined number of days for the date.
+        td = days_in_year(year, alt=alt)
         days = md - td
 
-        if days >= 366 and not (days == 366 and GLY(year)):
+        while days > 365:
             year += 1
             td = days_in_year(year, alt=alt)
+            days = md - td
 
-        days -= 1 if days > 366 and not GLY(year) else 0
-        days -= 365 if days > 365 and not GLY(year) else 0
+        if days == 0:
+            days = 366
+        else:
+            year += 1
+
         month_days = list(self.MONTHS)
         month_days[1] = 29 if GLY(year) else 28
         d = day = 0
@@ -360,7 +364,9 @@ class JulianPeriodTests:
         date = (year, month, round( day + (jd % 1) - 0.5,
                                     self.ROUNDING_PLACES))
         #sys.stderr.write(f"jd: {jd:<10} date: {str(date):<16} "
-        #                 f"md: {md:<8} y: {y:<4} d: {d:<4} "
+        #                 f"md: {md:<8} "
+        #                 #f"y: {y:<4} "
+        #                 f"d: {d:<4} "
         #                 f"td: {td:<6} days: {days:<5}\n")
         return date
 
@@ -395,7 +401,7 @@ class JulianPeriodTests:
 
     def analyze_1(self, start, end, alt=False):
         """
-        Compare the Meeus and my algorithms showinf differences.
+        Compare the Meeus and my algorithms showing differences.
         """
         GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         data = []
@@ -416,6 +422,34 @@ class JulianPeriodTests:
                     jd1 = self.jd_from_gregorian_date_1(date, alt=alt)
                     gd1 = self.gregorian_date_from_jd_1(jd1, alt=alt)
                     data.append((date, leap, jd0, gd0, jd1, gd1))
+
+        return data
+
+    def analyze_2(self, start, end, alt=False):
+        """
+        Check that any Gregorian date can be converted to a Julian Period
+        day and then back again to a Gregorian date correctly.
+        This only tests my algorithm.
+        """
+        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
+        data = []
+
+        for year in range(start, end + 1):
+            leap = GLY(year)
+
+            for month, days in enumerate(self.MONTHS, start=1):
+                if month == 2 and not leap:
+                    max_days = days - 1
+                else:
+                    max_days = days
+
+                for day in range(1, max_days + 1):
+                    date = (year, month, day)
+                    jd1 = self.jd_from_gregorian_date_1(date, alt=alt)
+                    gd1 = self.gregorian_date_from_jd_1(jd1, alt=alt)
+
+                    if date != gd1:
+                        data.append((date, gd1, jd1, leap))
 
         return data
 
@@ -533,7 +567,12 @@ if __name__ == "__main__":
         help=("Generate a list of Julian Period days for different start "
               "and end year."))
     parser.add_argument(
-        '-c', '--compare', type=int, dest='compare',
+        '-2', '--analyze-2', action='store_true', default=False,
+        dest='analyze_2',
+        help=("Check that any Gregorian date can be converted to a Julian "
+              "Period day and then back again to a Gregorian date correctly."))
+    parser.add_argument(
+        '-c', '--compare', type=int, default=None, dest='compare',
         help=("Compare two algorithms for determining the leap year. "
               "A value <= 0 processes dates from 1 to 3004"))
     parser.add_argument(
@@ -570,7 +609,7 @@ if __name__ == "__main__":
                 #f"{str(gd0):<17} " # Meeus
                 f"{jd1:<10} "       # Mine
                 f"{str(gd1):<17} "  # Mine
-                f"{jd1 - jd0:<4}"
+                #f"{jd1 - jd0:<4}"
                 for (
                     idx,
                     (date, # Initial Gregorian date
@@ -587,7 +626,7 @@ if __name__ == "__main__":
               #"      Meeus"
               "   Mine"
               "       Mine"
-              "              Diff"
+              #"              Diff"
               )
         [print(item) for item in data]
     elif options.analyze_1:
@@ -617,6 +656,27 @@ if __name__ == "__main__":
                   "Mine       "
                   "Mine              "
                   "Diff"
+                  )
+            [print(item) for item in data]
+    elif options.analyze_2:
+        if options.start is None or options.end is None:
+            print("If option -2 is used, -S and -E must also be used.")
+            ret = 1
+        else:
+            data = [f"{str(date):<16} " # Initial Gregorian date
+                    f"{str(gd1):<16} "  # Mine
+                    f"{jd1:<10} "       # Mine
+                    f"{str(leap):<6} "  # Is leap year
+                    for (date,
+                         gd1,
+                         jd1,
+                         leap,
+                         ) in jpt.analyze_2(options.start, options.end,
+                                            alt=options.alt_leap)]
+            print("Date             "
+                  "gd1              "
+                  "jd1        "
+                  "Leap   "
                   )
             [print(item) for item in data]
     elif isinstance(options.compare, int):
