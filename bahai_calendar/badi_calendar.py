@@ -15,10 +15,6 @@ class BahaiCalendar(BaseCalendar):
     """
     Implementation of the Baha'i (Badi) Calendar.
     """
-    #(defconstant bahai-location
-    #  ;; TYPE location
-    #  ;; Location of Tehran for astronomical Baha’i calendar.
-    #  (location (deg 35.696111L0) (deg 51.423056L0) (mt 0) (hr (+ 3 1/2))))
     # WGS84:          35.689252, 51.3896 1595m 3.5
     # WGS84--https://coordinates-converter.com/
     # https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-

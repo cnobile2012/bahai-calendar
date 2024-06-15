@@ -133,26 +133,45 @@ class TestGregorianCalendar(unittest.TestCase):
         """
         data = (
             # -4712-Jan-01 12:00:00
-            (0.0, (-4712, 1, 1.5)),
+            (0.0, False, False, False, (-4712, 1, 1.5)),
+            #(0.0, True, False, False, (-4712, 1, 1.5)),
             # -4712-Jan-02 00:00:00
-            (0.5, (-4712, 1, 2.0)),
+            (0.5, False, False, False, (-4712, 1, 2.0)),
+            #(0.5, True, False, False, (-4712, 1, 2.0)),
+            # Leap years with special correctio
+            (1867519.5, False, False, False, (400, 12, 28.0)),
+            (1867519.5, True, False, False, (400, 12, 31.0)),
+            (1867519.5, True, True, False, (400, 12, 31.0)),
             # Meeus AA ch 7 p64 ex7.d
-            (2418781.5, (1910, 4, 20)),
+            (2418781.5, False, False, False, (1910, 4, 20)),
+            (2418781.5, True, False, False, (1910, 4, 22)),
+            (2418781.5, True, True, False, (1910, 4, 21)),
             # Meeus AA ch 7 p64 ex7.c
-            (2436116.31, (1957, 10, 4.81)),
+            (2436116.31, False, False, False, (1957, 10, 4.81)),
+            (2436116.31, True, False, False, (1957, 10, 6.81)),
+            (2436116.31, True, True, False, (1957, 10, 6.81)),
             # Meeus AA ch 7 p64 ex7.d
-            (2446470.5, (1986, 2, 9)),
+            (2446470.5, False, False, False, (1986, 2, 9)),
+            (2446470.5, True, False, False, (1986, 2, 11)),
+            (2446470.5, True, True, False, (1986, 2, 11)),
             # 1844-Mar-21 00:00:00
-            (2394646.5, (1844, 3, 21)),
-            (2451544.5, (2000, 1, 1)),
-            (2451545.0, (2000, 1, 1.5)),
+            (2394646.5, False, False, False, (1844, 3, 21)),
+            (2394646.5, True, False, False, (1844, 3, 23)),
+            (2394646.5, True, True, False, (1844, 3, 23)),
+            (2451544.5, False, False, False, (2000, 1, 1)),
+            (2451544.5, True, False, False, (2000, 1, 3)),
+            (2451544.5, True, True, False, (2000, 1, 3)),
+            (2451545.0, False, False, False, (2000, 1, 1.5)),
+            (2451545.0, True, False, False, (2000, 1, 3.5)),
+            (2451545.0, True, True, False, (2000, 1, 3.5)),
             )
-        msg = "Expected '{}' for j_day '{}', found '{}'"
+        msg = "Expected '{}' for jd '{}', with exact '{}', alt '{}', found '{}'"
 
-        for j_day, expected_result in data:
-            result = self._gc.gregorian_date_from_jd(j_day)
+        for jd, exact, alt, validity, expected_result in data:
+            result = self._gc.gregorian_date_from_jd(jd, exact=exact, alt=alt)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, j_day, result))
+                             msg.format(expected_result, jd, exact,
+                                        alt, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_gregorian_year_from_jd(self):
