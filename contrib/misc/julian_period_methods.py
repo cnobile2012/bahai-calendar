@@ -31,72 +31,74 @@ class JulianPeriodTests:
     SEC = lambda self, x: x / 24 / 60 / 60
 
     TEST_DATES = (
-        ## (1, 1, 1),
-        ## (1, 3, 20),
-        ## (2, 1, 1), (3, 1, 1), (4, 1, 1),
-        ## (4, 12, 31), (5, 1, 1),
-        ## (6, 1, 1), (8, 1, 1), (9, 1, 1),
+        (-4712, 1, 1.5),
+        (1, 1, 1),
+        (1, 3, 20),
+        (2, 1, 1), (3, 1, 1), (4, 1, 1),
+        (4, 12, 31), (5, 1, 1),
+        (6, 1, 1), (8, 1, 1), (9, 1, 1),
         # The 29th should be wrong for standard leap year
-        ## (100, 2, 28), (100, 2, 29), (100, 3, 1),
+        (100, 2, 28), (100, 2, 29), (100, 3, 1),
         # The 29th should be wrong for alternitive leap year
-        ## (128, 2, 28), (128, 2, 29), (128, 3, 1),
+        (128, 2, 28), (128, 2, 29), (128, 3, 1),
         # The 29th should be wrong for standard leap year
-        ## (200, 2, 28), (200, 2, 29), (200, 3, 1),
+        (200, 2, 28), (200, 2, 29), (200, 3, 1),
         # The 29th should be wrong for alternitive leap year
-        ## (256, 2, 28), (256, 2, 29), (256, 3, 1),
+        (256, 2, 28), (256, 2, 29), (256, 3, 1),
         # The 29th should be wrong for standard leap year
-        ## (300, 2, 28), (300, 2, 29), (300, 3, 1),
+        (300, 2, 28), (300, 2, 29), (300, 3, 1),
         # The 29th should be wrong for alternitive leap year
-        ## (384, 2, 28), (384, 2, 29), (384, 3, 1),
+        (384, 2, 28), (384, 2, 29), (384, 3, 1),
         # The 29th should be wrong for standard leap year
-        ## (400, 2, 28), (400, 2, 29), (400, 3, 1),
-        ## (800, 1, 1), (800, 12, 31),
-        ## (1200, 1, 1), (1200, 12, 31),
-        ## (1300, 1, 1), (1300, 12, 31),
-        ## (1400, 1, 1), (1400, 12, 31),
-        ## (1500, 1, 1), (1500, 12, 31),
-        ## (1582, 10, 4), (1582, 10, 5), (1582, 10, 6), (1582, 10, 7),
-        ## (1582, 10, 8), (1582, 10, 9), (1582, 10, 10), (1582, 10, 11),
-        ## (1582, 10, 12), (1582, 10, 13), (1582, 10, 14), (1582, 10, 15),
-        ## (1844, 3, 20),
-        ## (1957, 10, 4.81),
-        ## (2020, 12, 7.25),
-        ## (2024, 3, 20),
-        ## (3004, 12, 31),
+        (400, 2, 28), (400, 2, 29), (400, 3, 1),
+        (800, 1, 1), (800, 12, 31),
+        (1200, 1, 1), (1200, 12, 31),
+        (1300, 1, 1), (1300, 12, 31),
+        (1400, 1, 1), (1400, 12, 31),
+        (1500, 1, 1), (1500, 12, 31),
+        (1582, 10, 4), (1582, 10, 5), (1582, 10, 6), (1582, 10, 7),
+        (1582, 10, 8), (1582, 10, 9), (1582, 10, 10), (1582, 10, 11),
+        (1582, 10, 12), (1582, 10, 13), (1582, 10, 14), (1582, 10, 15),
+        (1844, 3, 20),
+        (1957, 10, 4.81),
+        (2020, 12, 7), (2020, 12, 7.1), (2020, 12, 7.25), (2020, 12, 7.49),
+        (2020, 12, 8),
+        (2024, 3, 20),
+        (3004, 12, 31),
         # Off by one issue
-        (100, 12, 30), (100, 12, 31),
-        (101, 1, 1), (101, 1, 2), (101, 12, 30), (101, 12, 31),
-        (102, 1, 1), (102, 1, 2), (102, 12, 30), (102, 12, 31),
-        (104, 1, 1), (108, 1, 1),
-        (200, 12, 30), (200, 12, 31),
-        (201, 1, 1), (201, 1, 2),
-        (300, 12, 30), (300, 12, 31),
-        (301, 1, 1), (301, 1, 2),
-        (400, 12, 30), (400, 12, 31),
-        (401, 1, 1), (401, 1, 2),
-        # The 29th should be wrong for standard leap year
+        ## (100, 12, 30), (100, 12, 31),
+        ## (101, 1, 1), (101, 1, 2), (101, 12, 30), (101, 12, 31),
+        ## (102, 1, 1), (102, 1, 2), (102, 12, 30), (102, 12, 31),
+        ## (104, 1, 1), (108, 1, 1),
+        ## (200, 12, 30), (200, 12, 31),
+        ## (201, 1, 1), (201, 1, 2),
+        ## (300, 12, 30), (300, 12, 31),
+        ## (301, 1, 1), (301, 1, 2),
+        ## (400, 12, 30), (400, 12, 31),
+        ## (401, 1, 1), (401, 1, 2),
+        ## # The 29th should be wrong for standard leap year
         ## (500, 2, 28), (500, 2, 29), (500, 3, 1),
-        (500, 12, 30), (500, 12, 31),
-        (501, 1, 1), (501, 7, 1),
-        (600, 12, 30), (600, 12, 31),
-        (601, 1, 1),
+        ## (500, 12, 30), (500, 12, 31),
+        ## (501, 1, 1), (501, 7, 1),
+        ## (600, 12, 30), (600, 12, 31),
+        ## (601, 1, 1),
         ## # The 29th should be wrong for standard leap year
         ## (700, 2, 28), (700, 2, 29), (700, 3, 1),
-        (700, 12, 30), (700, 12, 31),
-        (701, 1, 1),
-        (800, 12, 30), (800, 12, 31),
-        (801, 1, 1), (801, 1, 2),
+        ## (700, 12, 30), (700, 12, 31),
+        ## (701, 1, 1),
+        ## (800, 12, 30), (800, 12, 31),
+        ## (801, 1, 1), (801, 1, 2),
         ## # The 29th should be wrong for standard leap year
         ## (900, 2, 28), (900, 2, 29), (900, 3, 1),
-        (900, 12, 31), (901, 1, 1), (901, 1, 2),
+        ## (900, 12, 31), (901, 1, 1), (901, 1, 2),
         ## # The 29th should be wrong for standard leap year
         ## (1000, 2, 28), (1000, 2, 29), (1000, 3, 1),
-        (1000, 12, 31), (1001, 1, 1),
+        ## (1000, 12, 31), (1001, 1, 1),
         ## # The 29th should be wrong for standard leap year
         ## (1100, 2, 28), (1100, 2, 29), (1100, 3, 1),
-        (1100, 12, 31), (1101, 1, 1), #(1100, 1, 2),
-        (1200, 12, 31), (1201, 1, 1), (1201, 1, 2),
-        (2024, 1, 1), (2024, 1, 2), (2024, 1, 3),
+        ## (1100, 12, 31), (1101, 1, 1), #(1100, 1, 2),
+        ## (1200, 12, 31), (1201, 1, 1), (1201, 1, 2),
+        ## (2024, 1, 1), (2024, 1, 2), (2024, 1, 3),
         ## # The 29th should be wrong for standard leap year
         ## (1300, 2, 28), (1300, 2, 29), (1300, 3, 1),
         ## (1300, 12, 31), (1301, 1, 1),
@@ -178,110 +180,18 @@ class JulianPeriodTests:
     def jd_from_gregorian_date_1(self, g_date, alt=False):
         """
         Mine
-
-        Skips a day:  (100, 12, 31) ->  (101, 1, 1) -- 1757946.5 -> 1757948.5
-                      (200, 12, 31) ->  (201, 1, 1) -- 1794471.5 -> 1794473.5
-                      (300, 12, 31) ->  (301, 1, 1) -- 1830996.5 -> 1830998.5
-                      (500, 12, 31) ->  (501, 1, 1) -- 1904046.5 -> 1904048.5
-                      (600, 12, 31) ->  (601, 1, 1) -- 1940571.5 -> 1940573.5
-                      (700, 12, 31) ->  (701, 1, 1) -- 1977096.5 -> 1977098.5
-                      (900, 12, 31) ->  (901, 1, 1) -- 2050146.5 -> 2050148.5
-                     (1000, 12, 31) -> (1001, 1, 1) -- 2086671.5 -> 2086673.5
-                     (1100, 12, 31) -> (1101, 1, 1) -- 2123196.5 -> 2123198.5
-                     (1300, 12, 31) -> (1301, 1, 1) -- 2196246.5 -> 2196248.5
-                     (1400, 12, 31) -> (1401, 1, 1) -- 2232771.5 -> 2232773.5
-                     (1500, 12, 31) -> (1501, 1, 1) -- 2269296.5 -> 2269298.5
-                     (1700, 12, 31) -> (1701, 1, 1) -- 2342346.5 -> 2342348.5
-                     (1800, 12, 31) -> (1801, 1, 1) -- 2378871.5 -> 2378873.5
-                     (1900, 12, 31) -> (1901, 1, 1) -- 2415396.5 -> 2415398.5
-                     (2100, 12, 31) -> (2101, 1, 1) -- 2488446.5 -> 2488448.5
-                     (2200, 12, 31) -> (2201, 1, 1) -- 2524971.5 -> 2524973.5
-                     (2300, 12, 31) -> (2301, 1, 1) -- 2561496.5 -> 2561498.5
-                     (2500, 12, 31) -> (2501, 1, 1) -- 2634546.5 -> 2634548.5
-                     (2600, 12, 31) -> (2601, 1, 1) -- 2671071.5 -> 2671073.5
-                     (2700, 12, 31) -> (2701, 1, 1) -- 2707596.5 -> 2707598.5
-                     (2900, 12, 31) -> (2901, 1, 1) -- 2780646.5 -> 2780648.5
-                     (3000, 12, 31) -> (3001, 1, 1) -- 2817171.5 -> 2817173.5
-                     (3100, 12, 31) -> (3101, 1, 1) -- 2853696.5 -> 2853698.5
         """
         GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         year, month, day = self.date_from_ymdhms(g_date)
-        y = self.JULIAN_YEAR * (year - 1)
-        y = math.floor(y)
+        td = self._days_in_year(year-1, alt=alt)
+        days = td + (self.GREGORIAN_EPOCH - 1) # 37
         month_days = list(self.MONTHS)
         month_days[1] = 29 if GLY(year) else 28
-        md = sum([v for v in month_days[:month-1]])
-        md += day - self._increment_index(year) + (self.GREGORIAN_EPOCH - 1)
-        return round(y + md, self.ROUNDING_PLACES)
-
-    def _increment_index(self, year):
-        i = 0
-
-        if year > 99:
-            if year % 400 != 1 and year % 100 == 1:
-                # Years that increment nn1 etc.
-                i += year / 100 - math.floor(year / 400)
-            elif year % 400 < 100:
-                # Non-incremented years, all years. 400, 401, 800, 801, etc.
-                i += math.floor(year / 400) * 3
-            elif year % 100 == 0:
-                # Incremented Years 100, 200, 300 and 500, 600, 700, etc.
-                i += year / 100
-
-                if 100 <= year <= 300:
-                    i -= 1
-                elif 500 <= year <= 700:
-                    i -= 2
-                elif 900 <= year <= 1100:
-                    i -= 3
-                elif 1300 <= year <= 1500:
-                    i -= 4
-                elif 1700 <= year <= 1900:
-                    i -= 5
-                elif 2100 <= year <= 2300:
-                    i -= 6
-                elif 2500 <= year <= 2700:
-                    i -= 7
-                elif 2900 <= year <= 3100:
-                    i -= 8
-                elif 3300 <= year <= 3500:
-                    i -= 9
-                elif 3700 <= year <= 3900:
-                    i -= 10
-                elif 4100 <= year <= 4300:
-                    i -= 11
-                elif 4500 <= year <= 4700:
-                    i -= 12
-            elif year % 400 != 1 and 1 < year % 100 < 100:
-                # Incremented Years 502 - 599, 602 - 699, etc.
-                i += math.floor(year / 100)
-
-                if i < 4:    # 102-199 = 1, 202-299 = 2, 302-399 = 3
-                    pass
-                elif i < 8:  # 502-599 = 4, 602-699 = 5, 702-799 = 6
-                    i -= 1
-                elif i < 12: # 902-999 = 7, 1002-1099 = 8, 1102-1199 = 9
-                    i -= 2
-                elif i < 16: # 1302-1399 = 10, 1402-1499 = 11, 1502-1599 = 12
-                    i -= 3
-                elif i < 20: # 1702-1799 = 13, 1802-1899 = 14, 1902-1999 = 15
-                    i -= 4
-                elif i < 24: # 2102-2199 = 16, 2202-2299 = 17, 2302-2399 = 18
-                    i -= 5
-                elif i < 28: # 2502-2599 = 19, 2602-2699 = 20, 2702-2799 = 21
-                    i -= 6
-                elif i < 32: # 2902-2999 = 22, 3002-3099 = 23, 3102-3199 = 24
-                    i -= 7
-                elif i < 36: # 3302-3399 = 25, 3402-3499 = 26, 3502-3599 = 27
-                    i -= 8
-                elif i < 40: # 3702-3799 = 28, 3802-3899 = 29, 3902-3999 = 30
-                    i -= 9
-                elif i < 44: # 4102-4199 = 31, 4202-4299 = 32, 4302-4399 = 33
-                    i -= 10
-                elif i < 48: # 4502-4599 = 34, 4602-4699 = 35, 4702-4799 = 36
-                    i -= 11
-
-        return math.floor(i)
+        days += sum(month_days[:month-1]) + day
+        #print(f"date: {str(g_date):<16} td: {td:<8} "
+        #      f"days: {days:<10} "
+        #      f"sum: {sum(month_days[:month-1]):<10}\n", file=sys.stderr)
+        return days
 
     def gregorian_date_from_jd_0(self, jd):
         """
@@ -318,32 +228,17 @@ class JulianPeriodTests:
         return year, month, round(day, self.ROUNDING_PLACES)
 
     def gregorian_date_from_jd_1(self, jd, alt=False):
-        def days_in_year(y, alt=False):
-            n_4 = y // 4
-
-            if alt:
-                n_128 = y // 128
-                n_leap_years = n_4 - n_128
-            else:
-                n_100 = y // 100
-                n_400 = y // 400
-                n_leap_years = n_4 - n_100 + n_400
-
-            a = y - n_leap_years # Non-leap years
-            b = y - a # Leap years
-            return a * 365 + b * 366
-
         GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         # Get the number of days since the Gregorian epoch.
         md = jd - (self.GREGORIAN_EPOCH - 1)
         year = math.floor(md / self.JULIAN_YEAR)
         # A refined number of days for the date.
-        td = days_in_year(year, alt=alt)
+        td = self._days_in_year(year, alt=alt)
         days = md - td
 
         while days > 365:
             year += 1
-            td = days_in_year(year, alt=alt)
+            td = self._days_in_year(year, alt=alt)
             days = md - td
 
         if days == 0:
@@ -358,22 +253,37 @@ class JulianPeriodTests:
         for month, ds in enumerate(month_days, start=1):
             d += ds
             if days > d: continue
-            day = math.ceil(days - (d - ds))
+            day = math.ceil(days) - (d - ds)
             break
 
-        date = (year, month, round( day + (jd % 1) - 0.5,
-                                    self.ROUNDING_PLACES))
+        f = jd % 1
+        date = (year, month, round(day + f - (1.5 if f > 0.5 else 0.5),
+                                   self.ROUNDING_PLACES))
         #sys.stderr.write(f"jd: {jd:<10} date: {str(date):<16} "
-        #                 f"md: {md:<8} "
-        #                 #f"y: {y:<4} "
+        #                 f"md: {md:<10} "
         #                 f"d: {d:<4} "
-        #                 f"td: {td:<6} days: {days:<5}\n")
+        #                 f"td: {td:<8} days: {days:<5}\n")
         return date
+
+    def _days_in_year(self, y, alt=False):
+        n_4 = y // 4
+
+        if alt:
+            n_128 = y // 128
+            n_leap_years = n_4 - n_128
+        else:
+            n_100 = y // 100
+            n_400 = y // 400
+            n_leap_years = n_4 - n_100 + n_400
+
+        a = y - n_leap_years # Non-leap years
+        b = y - a # Leap years
+        return a * 365 + b * 366
 
     def analyze(self, alt=False):
         """
         Check that Gregorian dates can be converted to a Julian Period
-        day then back to a Gregorian dats correctly.
+        day then back to a Gregorian dates correctly.
         """
         GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         data = []
@@ -390,7 +300,7 @@ class JulianPeriodTests:
             else:
                 gd0 = self.gregorian_date_from_jd_0(jd0)
 
-            if alt and date[1:] == (2, 29) and not leap:
+            if date[1:] == (2, 29) and not leap:
                 gd1 = 'INVALID'
             else:
                 gd1 = self.gregorian_date_from_jd_1(jd1, alt=alt)
@@ -688,13 +598,17 @@ if __name__ == "__main__":
                 options.compare)]
         [print(item) for item in data]
     elif options.con_days:
-        data = [f"date: {str(date):<12} "
-                f"d: {d:<9} "
-                f"jd: {jd:<9}"
-                for date, d, jd in jpt.consecutive_days(
-                    options.start, options.end,
-                    meeus=options.meeus, alt=options.alt_leap)]
-        [print(item) for item in data]
+        if options.start is None or options.end is None:
+            print("If option -d is used, -S and -E must also be used.")
+            ret = 1
+        else:
+            data = [f"date: {str(date):<12} "
+                    f"d: {d:<9} "
+                    f"jd: {jd:<9}"
+                    for date, d, jd in jpt.consecutive_days(
+                        options.start, options.end,
+                        meeus=options.meeus, alt=options.alt_leap)]
+            [print(item) for item in data]
     else:
         parser.print_help()
 

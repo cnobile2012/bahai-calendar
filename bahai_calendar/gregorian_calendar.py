@@ -75,13 +75,12 @@ class GregorianCalendar(BaseCalendar):
             GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
                    else self.GREGORIAN_LEAP_YEAR)
             year, month, day = self.date_from_ymdhms(g_date)
-            y = self.JULIAN_YEAR * (year - 1)
-            y = math.floor(y)
+            td = self._days_in_year(year-1, alt=alt)
+            days = td + (self.GREGORIAN_EPOCH - 1)
             month_days = list(self.MONTHS)
             month_days[1] = 29 if GLY(year) else 28
-            md = sum([v for v in month_days[:month-1]])
-            md += day - self._increment_index(year) + (self.GREGORIAN_EPOCH - 1)
-            jd = round(y + md, self.ROUNDING_PLACES)
+            days += sum(month_days[:month-1]) + day
+            jd = round(days, self.ROUNDING_PLACES)
         else: # Meeus historically correct algorithm
             if (year, month) == (1582, 10):
                 assert day not in (5, 6, 7, 8, 9, 10, 11, 12, 13, 14), (
@@ -103,75 +102,6 @@ class GregorianCalendar(BaseCalendar):
 
         return jd
 
-    def _increment_index(self, year):
-        i = 0
-
-        if year > 99:
-            if year % 400 != 1 and year % 100 == 1:
-                # Years that increment nn1 etc.
-                i += year / 100 - math.floor(year / 400)
-            elif year % 400 < 100:
-                # Non-incremented years, all years. 400, 401, 800, 801, etc.
-                i += math.floor(year / 400) * 3
-            elif year % 100 == 0:
-                # Incremented Years 100, 200, 300 and 500, 600, 700, etc.
-                i += year / 100
-
-                if 100 <= year <= 300:
-                    i -= 1
-                elif 500 <= year <= 700:
-                    i -= 2
-                elif 900 <= year <= 1100:
-                    i -= 3
-                elif 1300 <= year <= 1500:
-                    i -= 4
-                elif 1700 <= year <= 1900:
-                    i -= 5
-                elif 2100 <= year <= 2300:
-                    i -= 6
-                elif 2500 <= year <= 2700:
-                    i -= 7
-                elif 2900 <= year <= 3100:
-                    i -= 8
-                elif 3300 <= year <= 3500:
-                    i -= 9
-                elif 3700 <= year <= 3900:
-                    i -= 10
-                elif 4100 <= year <= 4300:
-                    i -= 11
-                elif 4500 <= year <= 4700:
-                    i -= 12
-            elif year % 400 != 1 and 1 < year % 100 < 100:
-                # Incremented Years 502 - 599, 602 - 699, etc.
-                i += math.floor(year / 100)
-
-                if i < 4:    # 102-199 = 1, 202-299 = 2, 302-399 = 3
-                    pass
-                elif i < 8:  # 502-599 = 4, 602-699 = 5, 702-799 = 6
-                    i -= 1
-                elif i < 12: # 902-999 = 7, 1002-1099 = 8, 1102-1199 = 9
-                    i -= 2
-                elif i < 16: # 1302-1399 = 10, 1402-1499 = 11, 1502-1599 = 12
-                    i -= 3
-                elif i < 20: # 1702-1799 = 13, 1802-1899 = 14, 1902-1999 = 15
-                    i -= 4
-                elif i < 24: # 2102-2199 = 16, 2202-2299 = 17, 2302-2399 = 18
-                    i -= 5
-                elif i < 28: # 2502-2599 = 19, 2602-2699 = 20, 2702-2799 = 21
-                    i -= 6
-                elif i < 32: # 2902-2999 = 22, 3002-3099 = 23, 3102-3199 = 24
-                    i -= 7
-                elif i < 36: # 3302-3399 = 25, 3402-3499 = 26, 3502-3599 = 27
-                    i -= 8
-                elif i < 40: # 3702-3799 = 28, 3802-3899 = 29, 3902-3999 = 30
-                    i -= 9
-                elif i < 44: # 4102-4199 = 31, 4202-4299 = 32, 4302-4399 = 33
-                    i -= 10
-                elif i < 48: # 4502-4599 = 34, 4602-4699 = 35, 4702-4799 = 36
-                    i -= 11
-
-        return math.floor(i)
-
     def gregorian_date_from_jd(self, jd:float, *, exact:bool=False,
                                alt=False) -> tuple:
         """
@@ -188,33 +118,18 @@ class GregorianCalendar(BaseCalendar):
            by Jean Meeus ch3 p26-29
         """
         if exact: # An astronomically correct algorithm
-            def days_in_year(y, alt=False):
-                n_4 = y // 4
-
-                if alt:
-                    n_128 = y // 128
-                    n_leap_years = n_4 - n_128
-                else:
-                    n_100 = y // 100
-                    n_400 = y // 400
-                    n_leap_years = n_4 - n_100 + n_400
-
-                a = y - n_leap_years # Non-leap years
-                b = y - a # Leap years
-                return a * 365 + b * 366
-
             GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
                    else self.GREGORIAN_LEAP_YEAR)
             # Get the number of days since the Gregorian epoch.
             md = jd - (self.GREGORIAN_EPOCH - 1)
             year = math.floor(md / self.JULIAN_YEAR)
             # A refined number of days since epoch for the date.
-            td = days_in_year(year, alt=alt)
+            td = self._days_in_year(year, alt=alt)
             days = md - td
 
             while days > 365:
                 year += 1
-                td = days_in_year(year, alt=alt)
+                td = self._days_in_year(year, alt=alt)
                 days = md - td
 
             if days == 0:
@@ -232,7 +147,8 @@ class GregorianCalendar(BaseCalendar):
                 day = math.ceil(days - (d - ds))
                 break
 
-            date = (year, month, round( day + (jd % 1) - 0.5,
+            f = jd % 1
+            date = (year, month, round( day + f - (1.5 if f > 0.5 else 0.5),
                                         self.ROUNDING_PLACES))
         else:
             j_day = jd + 0.5
@@ -266,6 +182,21 @@ class GregorianCalendar(BaseCalendar):
             date = (year, month, round(day, self.ROUNDING_PLACES))
 
         return date
+
+    def _days_in_year(self, y, alt=False):
+        n_4 = y // 4
+
+        if alt:
+            n_128 = y // 128
+            n_leap_years = n_4 - n_128
+        else:
+            n_100 = y // 100
+            n_400 = y // 400
+            n_leap_years = n_4 - n_100 + n_400
+
+        a = y - n_leap_years # Non-leap years
+        b = y - a # Leap years
+        return a * 365 + b * 366
 
     def gregorian_year_from_jd(self, jde:float) -> int:
         """

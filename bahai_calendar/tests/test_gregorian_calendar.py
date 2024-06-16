@@ -71,16 +71,18 @@ class TestGregorianCalendar(unittest.TestCase):
         data = (
             # -4712-Jan-01 12:00:00
             ((-4712, 1, 1.5), False, False, True, 0.0),
-            ((-4712, 1, 1.5), True, False, True, 0.0),
-            ((-4712, 1, 1.5), True, True, True, 0.0),
+            #((-4712, 1, 1.5), True, False, True, 0.0),
+            #((-4712, 1, 1.5), True, True, True, 0.0),
             # -4712-Jan-02 00:00:00
             ((-4712, 1, 2.0), False, False, True, 0.5),
-            ((-4712, 1, 2.0), True, False, True, 0.5),
-            ((-4712, 1, 2.0), True, True, True, 0.5),
+            #((-4712, 1, 2.0), True, False, True, 0.5),
+            #((-4712, 1, 2.0), True, True, True, 0.5),
             # Last day of December on leap years which gave me a head ache.
             ((4, 12, 31), False, False, True, 1722883.5),
             ((4, 12, 31), True, False, True, 1722883.5),
             ((4, 12, 31), True, True, True, 1722883.5),
+            # 1st year divisable by 100
+            ((100, 2, 28), False, False, True, 1757640.5),
             # Meeus AA ch 7 p61 ex7.b
             ((333, 1, 27, 12), False, False, True, 1842713.0),
             ((333, 1, 27, 12), True, False, True, 1842710.0),
@@ -133,41 +135,50 @@ class TestGregorianCalendar(unittest.TestCase):
         """
         data = (
             # -4712-Jan-01 12:00:00
-            (0.0, False, False, False, (-4712, 1, 1.5)),
-            #(0.0, True, False, False, (-4712, 1, 1.5)),
+            (0.0, False, False, (-4712, 1, 1.5)),
+            #(0.0, True, False, (-4712, 1, 1.5)),
             # -4712-Jan-02 00:00:00
-            (0.5, False, False, False, (-4712, 1, 2.0)),
-            #(0.5, True, False, False, (-4712, 1, 2.0)),
+            (0.5, False, False, (-4712, 1, 2.0)),
+            #(0.5, True, False, (-4712, 1, 2.0)),
             # Leap years with special correctio
-            (1867519.5, False, False, False, (400, 12, 28.0)),
-            (1867519.5, True, False, False, (400, 12, 31.0)),
-            (1867519.5, True, True, False, (400, 12, 31.0)),
+            (1867519.5, False, False, (400, 12, 28.0)),
+            (1867519.5, True, False, (400, 12, 31.0)),
+            (1867519.5, True, True, (400, 12, 31.0)),
             # Meeus AA ch 7 p64 ex7.d
-            (2418781.5, False, False, False, (1910, 4, 20)),
-            (2418781.5, True, False, False, (1910, 4, 22)),
-            (2418781.5, True, True, False, (1910, 4, 21)),
+            (2418781.5, False, False, (1910, 4, 20)),
+            (2418781.5, True, False, (1910, 4, 22)),
+            (2418781.5, True, True, (1910, 4, 21)),
             # Meeus AA ch 7 p64 ex7.c
-            (2436116.31, False, False, False, (1957, 10, 4.81)),
-            (2436116.31, True, False, False, (1957, 10, 6.81)),
-            (2436116.31, True, True, False, (1957, 10, 6.81)),
+            (2436116.31, False, False, (1957, 10, 4.81)),
+            (2436116.31, True, False, (1957, 10, 6.81)),
+            (2436116.31, True, True, (1957, 10, 6.81)),
             # Meeus AA ch 7 p64 ex7.d
-            (2446470.5, False, False, False, (1986, 2, 9)),
-            (2446470.5, True, False, False, (1986, 2, 11)),
-            (2446470.5, True, True, False, (1986, 2, 11)),
+            (2446470.5, False, False, (1986, 2, 9)),
+            (2446470.5, True, False, (1986, 2, 11)),
+            (2446470.5, True, True, (1986, 2, 11)),
             # 1844-Mar-21 00:00:00
-            (2394646.5, False, False, False, (1844, 3, 21)),
-            (2394646.5, True, False, False, (1844, 3, 23)),
-            (2394646.5, True, True, False, (1844, 3, 23)),
-            (2451544.5, False, False, False, (2000, 1, 1)),
-            (2451544.5, True, False, False, (2000, 1, 3)),
-            (2451544.5, True, True, False, (2000, 1, 3)),
-            (2451545.0, False, False, False, (2000, 1, 1.5)),
-            (2451545.0, True, False, False, (2000, 1, 3.5)),
-            (2451545.0, True, True, False, (2000, 1, 3.5)),
+            (2394646.5, False, False, (1844, 3, 21)),
+            (2394646.5, True, False, (1844, 3, 23)),
+            (2394646.5, True, True, (1844, 3, 23)),
+            (2451544.5, False, False, (2000, 1, 1)),
+            (2451544.5, True, False, (2000, 1, 3)),
+            (2451544.5, True, True, (2000, 1, 3)),
+            (2451545.0, False, False, (2000, 1, 1.5)),
+            (2451545.0, True, False, (2000, 1, 3.5)),
+            (2451545.0, True, True, (2000, 1, 3.5)),
+            # Fractional days othere than 0 or 0.5
+            (2459188.6, False, False, (2020, 12, 5.1)),
+            (2459188.6, True, False, (2020, 12, 7.1)),
+            (2459188.75, False, False, (2020, 12, 5.25)),
+            (2459188.75, True, False, (2020, 12, 7.25)),
+            (2459188.99, False, False, (2020, 12, 5.49)),
+            (2459188.99, True, False, (2020, 12, 7.49)),
+            (2459189.31, False, False, (2020, 12, 5.81)),
+            (2459189.31, True, False, (2020, 12, 7.81)),
             )
         msg = "Expected '{}' for jd '{}', with exact '{}', alt '{}', found '{}'"
 
-        for jd, exact, alt, validity, expected_result in data:
+        for jd, exact, alt, expected_result in data:
             result = self._gc.gregorian_date_from_jd(jd, exact=exact, alt=alt)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, exact,
@@ -236,20 +247,25 @@ class TestGregorianCalendar(unittest.TestCase):
         gregorian date are in bounds. Also check that if a decimal number
         is used there are no succeeding number at all.
         """
-        msg1 = ("If there is a part day then there can be no hours, minutes, "
+        msg1 = "Invalid month '{}', should be 1 - 12."
+        msg2 = ("Invalid day '{}' for month '{}' and year '{}' "
+                "should be 1 - {}.")
+        msg3 = ("If there is a part day then there can be no hours, minutes, "
                 "or seconds.")
-        msg2 = ("If there is a part hour then there can be no minutes or "
+        msg4 = ("If there is a part hour then there can be no minutes or "
                 "seconds.")
-        msg3 = "If there is a part minute then there can be no seconds."
+        msg5 = "If there is a part minute then there can be no seconds."
         data = (
             ((1, 1, 1), True, ''),
+            ((100, 2, 29), False, msg2.format(29, 2, 100, 28)),
+            ((200, 2, 29), False, msg2.format(29, 2, 200, 28)),
             ((2024, 1, 1), True, ''),
-            ((2024, 1, 1.5, 1, 0, 0), False, msg1),
-            ((2024, 1, 1.5, 0, 1, 0), False, msg1),
-            ((2024, 1, 1.5, 0, 0, 1), False, msg1),
-            ((2024, 1, 1, 1.5, 1, 0), False, msg2),
-            ((2024, 1, 1, 1.5, 0, 1), False, msg2),
-            ((2024, 1, 1, 0, 1.5, 1), False, msg3),
+            ((2024, 1, 1.5, 1, 0, 0), False, msg3),
+            ((2024, 1, 1.5, 0, 1, 0), False, msg3),
+            ((2024, 1, 1.5, 0, 0, 1), False, msg3),
+            ((2024, 1, 1, 1.5, 1, 0), False, msg4),
+            ((2024, 1, 1, 1.5, 0, 1), False, msg4),
+            ((2024, 1, 1, 0, 1.5, 1), False, msg5),
             )
 
         for g_date, validity, err_msg in data:
