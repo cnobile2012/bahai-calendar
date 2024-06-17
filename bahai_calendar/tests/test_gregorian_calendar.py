@@ -260,6 +260,7 @@ class TestGregorianCalendar(unittest.TestCase):
             ((100, 2, 29), False, msg2.format(29, 2, 100, 28)),
             ((200, 2, 29), False, msg2.format(29, 2, 200, 28)),
             ((2024, 1, 1), True, ''),
+            ((2024, 0, 1), False, msg1.format(0)),
             ((2024, 1, 1.5, 1, 0, 0), False, msg3),
             ((2024, 1, 1.5, 0, 1, 0), False, msg3),
             ((2024, 1, 1.5, 0, 0, 1), False, msg3),

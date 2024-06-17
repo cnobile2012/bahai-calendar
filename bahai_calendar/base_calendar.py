@@ -212,9 +212,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus--AA ch.12 p.88 Eq.12.3
         """
-        return self.coterminal_angle(280.46061837 + 360.98564736629 *
-                                     (tc * 36525) + 0.000387933 *
-                                     tc**2 - tc**3 / 38710000)
+        return self._coterminal_angle(280.46061837 + 360.98564736629 *
+                                      (tc * 36525) + 0.000387933 *
+                                      tc**2 - tc**3 / 38710000)
 
     def _apparent_sidereal_time_greenwich(self, tc:float) -> float:
         """
@@ -234,7 +234,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         t0 = self._mean_sidereal_time_greenwich(tc)
         eps = self._true_obliquity_of_ecliptic(tc)
         d_psi = self._nutation_longitude(tc)
-        return self.coterminal_angle(t0 + d_psi * self.cos_deg(eps))
+        return self._coterminal_angle(t0 + d_psi * self.cos_deg(eps))
 
     def _approx_local_hour_angle(self, tc:float, lat:float,
                                  offset:float=SUN_OFFSET) -> float:
@@ -330,7 +330,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
-        alpha = self.interpolation_from_three(ra0, ra1, ra2, n, True)
+        alpha = self._interpolation_from_three(ra0, ra1, ra2, n, True)
         h = self._local_hour_angle(srt, lon, alpha)
         return -h / 360
 
@@ -475,8 +475,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         de0 = self._sun_apparent_declination(tc - (1 / 36525))
         de1 = self._sun_apparent_declination(tc)
         de2 = self._sun_apparent_declination(tc + (1 / 36525))
-        alpha = self.interpolation_from_three(ra0, ra1, ra2, n, True)
-        delta = self.interpolation_from_three(de0, de1, de2, n)
+        alpha = self._interpolation_from_three(ra0, ra1, ra2, n, True)
+        delta = self._interpolation_from_three(de0, de1, de2, n)
         h = self._local_hour_angle(srt, lon, alpha)
         alt = self._altitude(delta, lat, h)
         return (alt + offset) / (360 * self.cos_deg(delta) *
@@ -486,7 +486,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Meeus-AA p.103
         """
-        h = self.coterminal_angle(srt + lon - alpha)
+        h = self._coterminal_angle(srt + lon - alpha)
         return h - 360 if h > 180 else h
 
     def _nutation_longitude(self, tc:float, *, degrees:bool=False) -> float:
@@ -564,8 +564,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         obl_sum /= 36000000
 
         if degrees:
-            lon_sum = self.coterminal_angle(math.degrees(lon_sum))
-            obl_sum = self.coterminal_angle(math.degrees(obl_sum))
+            lon_sum = self._coterminal_angle(math.degrees(lon_sum))
+            obl_sum = self._coterminal_angle(math.degrees(obl_sum))
 
         return lon_sum, obl_sum
 
@@ -582,7 +582,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch.22 p.144
            Referenced by lm (M').
         """
-        return self.coterminal_angle(self._poly(
+        return self._coterminal_angle(self._poly(
             tc, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
 
     def _sun_earth_mean_anomaly(self, tc:float) -> float:
@@ -598,7 +598,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch.22 p.144
            Referenced by ls (M).
         """
-        return self.coterminal_angle(self._poly(
+        return self._coterminal_angle(self._poly(
             tc, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
 
     def _moon_latitude(self, tc:float) -> float:
@@ -614,7 +614,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch.22 p.144
            Referenced by ff (F).
         """
-        return self.coterminal_angle(self._poly(
+        return self._coterminal_angle(self._poly(
             tc, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
 
     def _mean_moon_elongation(self, tc:float) -> float:
@@ -630,7 +630,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch22 p144
            Referenced by dd (D).
         """
-        return self.coterminal_angle(self._poly(
+        return self._coterminal_angle(self._poly(
             tc, (297.85036, 445267.11148, -0.0019142, 1 / 189474)))
 
     def _moon_ascending_node_longitude(self, tc:float) -> float:
@@ -648,7 +648,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch22 p144
            Referenced by om (omega).
         """
-        return self.coterminal_angle(self._poly(
+        return self._coterminal_angle(self._poly(
             tc, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
 
     def _true_obliquity_of_ecliptic(self, tc:float) -> float:
@@ -691,7 +691,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch.25 p.163 Eq.25.2
            References by L0
         """
-        return self.coterminal_angle(self._poly(
+        return self._coterminal_angle(self._poly(
             tc, (280.46646, 36000.76983, 0.0003032)))
 
     def _eccentricity_earth_orbit(self, tc:float) -> float:
@@ -753,7 +753,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         lam = self._sun_apparent_longitude(tc)
         alpha = math.degrees(math.atan2(self.cos_deg(eps) * self.sin_deg(lam),
                                         self.cos_deg(lam)))
-        return self.coterminal_angle(alpha)
+        return self._coterminal_angle(alpha)
 
     def _sun_apparent_declination(self, tc:float) -> float:
         """
@@ -802,7 +802,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         l4 = self._sigma((self.L4_A, self.L4_B, self.L4_C), func)
         l5 = self._sigma((self.L5_A, self.L5_B, self.L5_C), func)
         l = self._poly(tm, (l0, l1, l2, l3, l4, l5)) / 10**8
-        return self.coterminal_angle(math.degrees(l)) if degrees else l
+        return self._coterminal_angle(math.degrees(l)) if degrees else l
 
     def _heliocentric_ecliptical_latitude(self, tm:float,
                                           degrees:bool=False) -> float:
@@ -826,7 +826,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         b0 = self._sigma((self.B0_A, self.B0_B, self.B0_C), func)
         b1 = self._sigma((self.B1_A, self.B1_B, self.B1_C), func)
         b = self._poly(tm, (b0, b1)) / 10**8
-        return self.coterminal_angle(math.degrees(b)) if degrees else b
+        return self._coterminal_angle(math.degrees(b)) if degrees else b
 
     def _radius_vector(self, tm:float, degrees:bool=False) -> float:
         """
@@ -852,7 +852,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         r3 = self._sigma((self.R3_A, self.R3_B, self.R3_C), func)
         r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
         r = self._poly(tm, (r0, r1, r2, r3, r4)) / 10**8
-        return self.coterminal_angle(math.degrees(r)) if degrees else r
+        return self._coterminal_angle(math.degrees(r)) if degrees else r
 
     def apparent_solar_longitude(self, jde:float, degrees:bool=True) -> float:
         """
@@ -871,7 +871,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         l += self._aberration(tm)
 
         if degrees:
-           l = self.coterminal_angle(math.degrees(l))
+           l = self._coterminal_angle(math.degrees(l))
 
         return l
 
@@ -893,7 +893,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         b += bd
 
         if degrees:
-            b = self.coterminal_angle(math.degrees(b))
+            b = self._coterminal_angle(math.degrees(b))
 
         return b
 
@@ -905,7 +905,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param tc: The moment in time referenced to J2000 millennia.
         :type tm: float
         :param fixed: If True the results is to a fixed reference frame, if
-                      False the results the reference is to the mean equinox.
+                      False the result is referenced to the mean equinox.
                       Default is True.
         :type fixed: bool
         :return: The aberration of the date in degrees.
@@ -937,7 +937,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Find the approximate Julian day for the equinoxes or solstices.
 
-        See: A ch.27 p.177
+        See: AA ch.27 p.177
         """
         if g_year <= 1000:
             y = g_year / 1000
@@ -1021,66 +1021,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         return math.cos(math.radians(theta))
 
-    def tan_deg(self, theta:float) -> float:
-        """
-        (defun tan-degrees (theta)
-          ;; TYPE angle -> real
-          ;; Tangent of theta (given in degrees).
-          (tan (radians-from-degrees theta)))
-        """
-        return math.tan(math.radians(theta))
-
-    def arctan_degrees(self, y, x):
-        """
-        (defun arctan-degrees (y x)
-          ;; TYPE (real real) -> angle
-          ;; Arctangent of y/x in degrees.
-          ;; Returns bogus if x and y are both 0.
-          (if (and (= x y 0))
-              bogus
-            (mod
-             (if (= x 0)
-                 (* (sign y) (deg 90L0))
-               (let* ((alpha (degrees-from-radians
-                              (atan (/ y x)))))
-                 (if (>= x 0)
-                      alpha
-                   (+ alpha (deg 180L0)))))
-              360)))
-        """
-        assert not (x == 0 == y), (
-            f"The value of x '{x}' and y '{y}' must not be x == 0 == y.")
-
-        if x == 0:
-            result = math.sin(y) * 90
-        else:
-            alpha = math.degrees(math.atan2(y, x))
-            result = alpha if x >= 0 else alpha + 180
-
-        return math.fmod(result, 360)
-
-    def arcsin_degrees(self, x):
-        """
-        used
-
-        (defun arcsin-degrees (x)
-          ;; TYPE amplitude -> angle
-          ;; Arcsine of x in degrees.
-          (degrees-from-radians (asin x)))
-        """
-        assert -1 <= x <= 1, f"The value of x '{x}' must be >= -1 and <= 1."
-        return math.degrees(math.asin(x))
-
-    def arccos_degrees(self, x):
-        """
-        (defun arccos-degrees (x)
-          ;; TYPE amplitude -> angle
-          ;; Arccosine of x in degrees.
-          (degrees-from-radians (acos x)))
-        """
-        assert -1 <= x <= 1, f"The value of x '{x}' must be >= -1 and <= 1."
-        return math.degrees(math.acos(x))
-
     def _sigma(self, lists:tuple, func:object) -> float:
         """
         used
@@ -1119,49 +1059,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             (+ (first a) (* x (poly x (rest a))))))
         """
         return 0 if not a else a[0] + (x * self._poly(x, a[1:]))
-
-    def _next(self, initial:int, func:object) -> int:
-        """
-        used
-
-        (defmacro next (index initial condition)
-          ;; TYPE (* integer (integer->boolean)) -> integer
-          ;; First integer greater or equal to initial such that
-          ;; condition holds.
-          ‘(loop for ,index from ,initial
-                 when ,condition
-                 return ,index))
-        """
-        while not func(initial):
-            initial += 1
-
-        return initial
-
-    def _to_radix(self, x:int, b:tuple, c:tuple=()):
-        """
-        (defun to-radix (x b &optional c)
-          ;; TYPE (real list-of-rationals list-of-rationals)
-          ;; TYPE -> list-of-reals
-          ;; The radix notation corresponding to x
-          ;; with base b for whole part and c for fraction.
-          (if (null c)
-              (if (null b)
-                  (list x)
-            (append (to-radix (quotient x (nth (1- (length b)) b))
-                              (butlast b) nil)
-                    (list (mod x (nth (1- (length b)) b)))))
-           (to-radix (* x (apply ’* c)) (append b c))))
-        """
-        if not c:
-            if not b:
-                result = (x,)
-            else:
-                result = self._to_radix(self.QUOTIENT(x, b[-1]),
-                                        b[:-1]) + (math.fmod(x, b[-1]),)
-        else:
-            result = self._to_radix(x * reduce(mul, c), b + c)
-
-        return result
 
     #
     # Additional methods
@@ -1250,7 +1147,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         The angle may be expressed as negative east of the meridian plane
         and positive west of the meridian plane, or as positive westward
         from 0° to 360°. The angle may be measured in degrees or in time,
-        with 24h = 360° exactly. So one hour is equal to (360/24)°=15°.
+        with 24h = 360° exactly. So one hour is equal to (360/24)° = 15°.
         """
         return 15 * h + 15 * m / 60 + 15 * s / 3600
 
@@ -1263,7 +1160,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         The angle may be expressed as negative east of the meridian plane
         and positive west of the meridian plane, or as positive westward
         from 0° to 360°. The angle may be measured in degrees or in time,
-        with 24h = 360° exactly. So one hour is equal to (360/24)°=15°.
+        with 24h = 360° exactly. So one hour is equal to (360/24)° = 15°.
         """
         h = math.floor(deg / 15)
         m = math.floor((deg / 15 - h) * 60)
@@ -1283,28 +1180,52 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         hours = math.floor(seconds / 3600)
         m = (seconds - hours * 3600) / 60
         minutes = math.floor(m)
-        return hours, minutes, m - minutes
+        return hours, minutes, (seconds - hours * 3600) - minutes * 60
 
     def decimal_from_hms(self, hours, minutes, seconds):
         """
+        Convert hours, minutes, and seconds to a decimal number representing
+        percentage of one revolution around the Earth. Where the number 1
+        indicates one revolution.
+
+        .. note::
+
+           This method is used in with determining time zones.
         """
         return self.seconds_from_hms(hours, minutes, seconds) / 86400
 
     def hms_from_decimal(self, dec):
         """
-        """
+        Convert a decimal number into hours, minutes, and seconds of a
+        time zone. The decimal number represents the percentage of one
+        revolution around the Earth. Where the number 1 indicates one
+        revolution.
+
+        .. note::
+
+           This method is used in with determining time zones.
+         """
         return self.hms_from_seconds(dec * 86400)
 
-    def coterminal_angle(self, value:float) -> float:
+    def _coterminal_angle(self, value:float) -> float:
         """
         Find the Coterminal Angle.
         """
         value = math.fmod(value, 360)
         return value + 360 if value < 0 else value
 
-    def interpolation_from_three(self, y1, y2, y3, n, normalize=False):
+    def _interpolation_from_three(self, y1, y2, y3, n, normalize=False):
         """
         Interpolate from three terms with a factor.
+
+        :param y1: 1st of the three parameters.
+        :type y1: float
+        :param y2: 2nd of the three parameters.
+        :type y2: float
+        :param y3: 3rd of the three parameters.
+        :type y3: float
+        :param n: 
+        :type n: float
         """
         a = y2 - y1
         b = y3 - y2

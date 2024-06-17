@@ -873,6 +873,25 @@ class TestBaseCalandar(unittest.TestCase):
                              msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test__aberration(self):
+        """
+        Test that the _aberration method returns the correct aberration
+        of the given date in degrees.
+        """
+        data = (
+            # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
+            (389.759722222, True, -0.005707963671359962),
+            (389.759722222, False, -0.005708184087893643),
+            )
+        msg = "Expected {}, for jd {}, found {}."
+
+        for jd, fixed, expected_result in data:
+            tm = self.bc.julian_millennia(jd)
+            result = self.bc._aberration(tm, fixed=fixed)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jd, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test_approx_julian_day_for_equinoxes_or_solstices(self):
         """
         Test that the approx_julian_day_for_equinoxes_or_solstices method
@@ -959,7 +978,7 @@ class TestBaseCalandar(unittest.TestCase):
                 msg.format(expected_result, seasons[season], result))
 
     #
-    # Calandarical Calculations
+    # Methods from Calandarical Calculations
     #
 
     #@unittest.skip("Temporarily skipped")
@@ -985,108 +1004,6 @@ class TestBaseCalandar(unittest.TestCase):
         expected_result = 6.123233995736766e-17 # is 0?
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
-
-    #@unittest.skip("Temporarily skipped")
-    def test_tan_deg(self):
-        """
-        Test that the tan_deg method returns the tangent of theta
-        (given in degrees).
-        """
-        theta = 90.0
-        result = self.bc.tan_deg(theta)
-        expected_result = 1.633123935319537e+16
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
-
-    #@unittest.skip("Temporarily skipped")
-    def test_arctan_degrees(self):
-        """
-        Test that the arctan_degrees method returns the arctangent of
-        y/x in degrees. Returns bogus if x and y are both 0.
-        """
-        x = 2.0
-        y = 2.0
-        result = self.bc.arctan_degrees(x, y)
-        expected_result = 45
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
-
-        # Test that both x and y are equal to 0.
-        x = y = 0
-        msg = "Expected {}, found {}."
-        expected_result = (
-            f"The value of x '{x}' and y '{y}' must not be x == 0 == y.")
-
-        with self.assertRaises(AssertionError) as cm:
-            self.bc.arctan_degrees(x, y)
-
-        result = str(cm.exception)
-        self.assertEqual(expected_result, result,
-                         msg.format(expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_arcsin_degrees(self):
-        """
-        Test that the arcsin_degrees method returns the arcsine of x
-        in degrees.
-
-        https://www.rapidtables.com/calc/math/Arcsin_Calculator.html
-        """
-        X = ((-1, -90), (-0.8660254, -60), (-0.7071068, -45), (-0.5, -30),
-             (0, 0), (0.5, 30), (0.7071068, 45), (0.8660254, 60), (1, 90))
-        msg = "Expected {} with {}, found {}."
-
-        for x, expected_result in X:
-            result = self.bc.arcsin_degrees(x)
-            self.assertTrue(
-                math.isclose(expected_result, result, rel_tol=0.00000009),
-                msg.format(expected_result, x, result))
-
-        # Test x out of range.
-        X = (-5, 5)
-        msg = "Expected error {}, found {}"
-
-        for x in X:
-            expected_result = f"The value of x '{x}' must be >= -1 and <= 1."
-
-            with self.assertRaises(AssertionError) as cm:
-                self.bc.arcsin_degrees(x)
-
-            result = str(cm.exception)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_arccos_degrees(self):
-        """
-        Test that the arccos_degrees method returns the arccosine of x
-        in degrees.
-
-        https://www.rapidtables.com/calc/math/Arccos_Calculator.html
-        """
-        X = ((-1, 180), (-0.8660254, 150), (-0.7071068, 135), (-0.5, 120),
-             (0, 90), (0.5, 60), (0.7071068, 45), (0.8660254, 30), (1, 0))
-        msg = "Expected {} with {}, found {}."
-
-        for x, expected_result in X:
-            result = self.bc.arccos_degrees(x)
-            self.assertTrue(
-                math.isclose(expected_result, result, rel_tol=0.00000009),
-                msg.format(expected_result, x, result))
-
-        # Test x out of range.
-        X = (-5, 5)
-        msg = "Expected error {}, found {}"
-
-        for x in X:
-            expected_result = f"The value of x '{x}' must be >= -1 and <= 1."
-
-            with self.assertRaises(AssertionError) as cm:
-                self.bc.arccos_degrees(x)
-
-            result = str(cm.exception)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sigma(self):
@@ -1122,39 +1039,6 @@ class TestBaseCalandar(unittest.TestCase):
         expected_poly = 1.234
         msg = f"POLY should be {expected_poly}, found {poly}."
         self.assertEqual(expected_poly, poly, msg)
-
-    #@unittest.skip("Temporarily skipped")
-    def test__next(self):
-        """
-        Test that the next_ method returns the first integer greater
-        or equal to initial such that condition holds.
-        """
-        y = 20
-        condition = lambda x: x >= y
-        msg = "Expected {}, found {}"
-        data = ((0, 20), (6, 20), (2, 20), (15, 20), (40, 40), (100, 100))
-
-        for initial, expected_result in data:
-            result = self.bc._next(initial , condition)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__to_radix(self):
-        """
-        Test that the _to_radix method returns the radix notation
-        corresponding to x with base b for whole part and c for fraction.
-        """
-        data = (
-            (10, (1, 2, 3, 4), (), (0, 0, 0, 2, 2)),
-            (10, (1, 2, 3, 4), (4, 3, 2, 1), (0, 0, 0, 2, 2, 0, 0, 0, 0)),
-            )
-        msg = "Expected {} with '{}, {}, {}', found {}."
-
-        for x, b, c, expected_result in data:
-            result = self.bc._to_radix(x, b, c)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, x, b, c, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_decimal_from_dms(self):
@@ -1213,5 +1097,171 @@ class TestBaseCalandar(unittest.TestCase):
 
         for args, expected_result in data:
             result = self.bc.dms_from_decimal(*args)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, args, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_degrees_from_hms(self):
+        """
+        Test that the degrees_from_hms method converts hours, minutes,
+        and seconds into degrees properly.
+        """
+        data = (
+            ((1, 0, 0), 15.0),
+            ((2, 0, 0), 30.0),
+            ((24, 0, 0), 360.0),
+            )
+        msg = "Expected {} with h,m,s {}, found {}."
+
+        for args, expected_result in data:
+            result = self.bc.degrees_from_hms(*args)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, args, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_hms_from_degrees(self):
+        """
+        Test that the hms_from_degrees method converts degrees to hours,
+        minutes, and seconds properly.
+        """
+        data = (
+            (15., (1, 0, 0)),
+            (30., (2, 0, 0)),
+            (360, (24, 0, 0)),
+            )
+        msg = "Expected {} with degrees {}, found {}."
+
+        for degrees, expected_result in data:
+            result = self.bc.hms_from_degrees(degrees)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, degrees, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_seconds_from_hms(self):
+        """
+        Test that the seconds_from_hms method converts hours minutes,
+        and seconds to seconds.
+        """
+        data = (
+            ((10, 2, 5), 36125),
+            ((24, 0, 0), 86400),
+            )
+        msg = "Expected {} with h,m,s {}, found {}."
+
+        for args, expected_result in data:
+            result = self.bc.seconds_from_hms(*args)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, args, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_hms_from_seconds(self):
+        """
+        Test that the hms_from_seconds method converts seconds into
+        hours, minutes, and seconds properly.
+        """
+        data = (
+            (36125, (10, 2, 5)),
+            (86400, (24, 0, 0)),
+            )
+        msg = "Expected {} with seconds {}, found {}."
+
+        for seconds, expected_result in data:
+            result = self.bc.hms_from_seconds(seconds)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, seconds, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_decimal_from_hms(self):
+        """
+        Test that the decimal_from_hms method converts hours, minutes, and
+        seconds of a time zone to a decimal number representing degrees.
+        """
+        data = (
+            ((10, 2, 5), 0.41811342592592593),
+            ((24, 0, 0), 1.0),
+            )
+        msg = "Expected {} with h,m,s {}, found {}."
+
+        for args, expected_result in data:
+            result = self.bc.decimal_from_hms(*args)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, args, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_hms_from_decimal(self):
+        """
+        Test that the hms_from_decimal method converts a decimal number
+        to hours, minutes, and seconds correcty.
+        """
+        data = (
+            (0.41811342592592593, (10, 2, 5)),
+            (1.0, (24, 0, 0)),
+            )
+        msg = "Expected {} with number {}, found {}."
+
+        for number, expected_result in data:
+            result = self.bc.hms_from_decimal(number)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, number, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__coterminal_angle(self):
+        """
+        Test that the _coterminal_angle method converts degrees greater
+        or less that 360 degrees to a number between 0 and 360 degrees.
+        """
+        data = (
+            (1000, 280.0),
+            (-361, 359.0),
+            )
+        msg = "Expected {} with degrees {}, found {}."
+
+        for degrees, expected_result in data:
+            result = self.bc._coterminal_angle(degrees)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, degrees, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__interpolation_from_three(self):
+        """
+        Test that the _interpolation_from_three method interpolates from
+        three values an estimate of a forth value.
+
+        See AA Example 3.a and 3.b
+        """
+        data = (
+            ((0.884226, 0.884226, 0.870531, 0.18125), False,
+             0.8827599395507812),
+            ((0.884226, 0.884226, 0.870531, 0.18125), True,
+             39.42104118955078),
+            ((1.3814294, 1.3812213, 1.3812453, 0.39660), False,
+             1.381203046655538),
+            ((1.3814294, 1.3812213, 1.3812453, 0.39660), True,
+             44.45672224665554),
+            )
+        msg = "Expected {} with {}, found {}."
+
+        for args, normalize, expected_result in data:
+            result = self.bc._interpolation_from_three(
+                *args, normalize=normalize)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, args, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__truncate_decimal(self):
+        """
+        Test that the _truncate_decimal method correctly truncates a
+        decimal value.
+        """
+        data = (
+            ((10.1212123456789, 6), 10.121212),
+            ((0.01234, 3), 0.012),
+            ((1.0123456789, 12), 1.0123456789 ),
+            ((1.123, 20), 1.123),
+            )
+        msg = "Expected {} with {}, found {}."
+
+        for args, expected_result in data:
+            result = self.bc._truncate_decimal(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
