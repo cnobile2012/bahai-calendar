@@ -490,7 +490,7 @@ if __name__ == "__main__":
         dest='con_days', help=("Test for non consecutive days."))
     parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
-        dest='alt_leap', help="Use alternative leap year metnod.")
+        dest='alt_leap', help="Use alternative leap year method.")
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
         help="Start year of sequence.")

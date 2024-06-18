@@ -27,43 +27,45 @@ class DateTests(BahaiCalendar):
     # https://data.giss.nasa.gov/modelE/ar5plots/srvernal.html
     # https://aa.usno.navy.mil/data/RS_OneYear
     # https://www.sunrisesunset.com/England/GreaterLondon/Greenwich.asp
-    # https://gml.noaa.gov/grad/solcalc/
+    # https://gml.noaa.gov/grad/solcalc/ Sunrise and Sunset
     # Tehran: 35.696111 (35, 41, 45.9996), 51.423056 (51, 25, 23.0016)
+    # Nur Mazandaran Province, Iran (City Center)
+    # Nur: 36.569336, 52.0050234
     TMP_ANS_DATES = (
-        ## (   1, 3, 20), (   2, 3, 21), (   3, 3, 21), (   4, 3, 20),
-        ## (   5, 3, 23), (   6, 3, 23), (   7, 3, 23), (   8, 3, 23),
-        ## (   9, 3, 23), (  10, 3, 23), (  11, 3, 23), (  12, 3, 23),
-        ## (  13, 3, 23), (  14, 3, 23), (  15, 3, 23), (  16, 3, 23),
-        ## (  17, 3, 23), (  18, 3, 23), (  19, 3, 23), (  20, 3, 23),
-        ## (  21, 3, 23), (  22, 3, 23), (  23, 3, 23), (  24, 3, 22),
-        ## (  25, 3, 23), (  26, 3, 23), (  27, 3, 23), (  28, 3, 22),
-        ## (  29, 3, 23), (  30, 3, 23), (  31, 3, 23), (  32, 3, 22),
-        ## (  33, 3, 23), (  34, 3, 23), (  35, 3, 23), (  36, 3, 22),
-        ## (  37, 3, 23), (  38, 3, 23), (  39, 3, 23), (  40, 3, 22),
+        (   1, 3, 20), (   2, 3, 21), (   3, 3, 21), (   4, 3, 20),
+        (   5, 3, 20), (   6, 3, 21), (   7, 3, 21), (   8, 3, 20),
+        (   9, 3, 20), (  10, 3, 21), (  11, 3, 21), (  12, 3, 20),
+        (  13, 3, 20), (  14, 3, 21), (  15, 3, 21), (  16, 3, 20),
+        (  17, 3, 20), (  18, 3, 21), (  19, 3, 21), (  20, 3, 20),
+        (  21, 3, 20), (  22, 3, 21), (  23, 3, 21), (  24, 3, 20),
+        (  25, 3, 20), (  26, 3, 20), (  27, 3, 21), (  28, 3, 20),
+        (  29, 3, 20), (  30, 3, 20), (  31, 3, 21), (  32, 3, 20),
+        (  33, 3, 20), (  34, 3, 20), (  35, 3, 21), (  36, 3, 20),
+        (  37, 3, 20), (  38, 3, 20), (  39, 3, 21), (  40, 3, 20),
 
-        ## (1491, 3, 21), (1492, 3, 20), (1493, 3, 20), (1494, 3, 20),
-        ## (1495, 3, 21), (1496, 3, 20), (1497, 3, 20), (1498, 3, 21),
-        ## (1499, 3, 21), (1500, 3, 21), (1501, 3, 21), (1502, 3, 21),
-        ## (1503, 3, 22), (1504, 3, 21), (1505, 3, 21), (1506, 3, 21),
-        ## (1507, 3, 22), (1508, 3, 21), (1509, 3, 21), (1510, 3, 21),
-        ## (1511, 3, 22), (1512, 3, 21), (1513, 3, 21), (1514, 3, 21),
-        ## (1515, 3, 22), (1516, 3, 21), (1517, 3, 21), (1518, 3, 21),
-        ## (1519, 3, 22), (1520, 3, 21), (1521, 3, 21), (1522, 3, 21),
-        ## (1523, 3, 21), (1524, 3, 21), (1525, 3, 21), (1526, 3, 21),
-        ## (1527, 3, 21), (1528, 3, 21), (1529, 3, 21), (1530, 3, 21),
-        ## (1531, 3, 21), (1532, 3, 21), (1533, 3, 21), (1534, 3, 21),
-        ## (1535, 3, 21), (1536, 3, 21), (1537, 3, 21), (1538, 3, 21),
-        ## (1539, 3, 21), (1540, 3, 21), (1541, 3, 21), (1542, 3, 21),
-        ## (1543, 3, 21), (1544, 3, 21), (1545, 3, 21), (1546, 3, 21),
-        ## (1547, 3, 21), (1548, 3, 21), (1549, 3, 21), (1550, 3, 21),
-        ## (1551, 3, 21), (1552, 3, 21), (1553, 3, 21), (1554, 3, 21),
-        ## (1555, 3, 21), (1556, 3, 21), (1557, 3, 21), (1558, 3, 21),
-        ## (1559, 3, 21), (1560, 3, 21), (1561, 3, 21), (1562, 3, 21),
-        ## (1563, 3, 21), (1564, 3, 20), (1565, 3, 21), (1566, 3, 21),
-        ## (1567, 3, 21), (1568, 3, 20), (1569, 3, 21), (1570, 3, 21),
-        ## (1571, 3, 21), (1572, 3, 20), (1573, 3, 21), (1574, 3, 21),
-        ## (1575, 3, 21), (1576, 3, 20), (1577, 3, 21), (1578, 3, 21),
-        ## (1579, 3, 21), (1580, 3, 20), (1581, 3, 21), (1582, 3, 21),
+        (1491, 3, 21), (1492, 3, 20), (1493, 3, 20), (1494, 3, 20),
+        (1495, 3, 21), (1496, 3, 20), (1497, 3, 20), (1498, 3, 20),
+        (1499, 3, 21), (1500, 3, 21), (1501, 3, 21), (1502, 3, 21),
+        (1503, 3, 22), (1504, 3, 21), (1505, 3, 21), (1506, 3, 21),
+        (1507, 3, 22), (1508, 3, 21), (1509, 3, 21), (1510, 3, 21),
+        (1511, 3, 22), (1512, 3, 21), (1513, 3, 21), (1514, 3, 21),
+        (1515, 3, 22), (1516, 3, 21), (1517, 3, 21), (1518, 3, 21),
+        (1519, 3, 22), (1520, 3, 21), (1521, 3, 21), (1522, 3, 21),
+        (1523, 3, 22), (1524, 3, 21), (1525, 3, 21), (1526, 3, 21),
+        (1527, 3, 21), (1528, 3, 21), (1529, 3, 21), (1530, 3, 21),
+        (1531, 3, 21), (1532, 3, 21), (1533, 3, 21), (1534, 3, 21),
+        (1535, 3, 21), (1536, 3, 21), (1537, 3, 21), (1538, 3, 21),
+        (1539, 3, 21), (1540, 3, 21), (1541, 3, 21), (1542, 3, 21),
+        (1543, 3, 21), (1544, 3, 21), (1545, 3, 21), (1546, 3, 21),
+        (1547, 3, 21), (1548, 3, 21), (1549, 3, 21), (1550, 3, 21),
+        (1551, 3, 21), (1552, 3, 21), (1553, 3, 21), (1554, 3, 21),
+        (1555, 3, 21), (1556, 3, 21), (1557, 3, 21), (1558, 3, 21),
+        (1559, 3, 21), (1560, 3, 20), (1561, 3, 21), (1562, 3, 21),
+        (1563, 3, 21), (1564, 3, 20), (1565, 3, 21), (1566, 3, 21),
+        (1567, 3, 21), (1568, 3, 20), (1569, 3, 21), (1570, 3, 21),
+        (1571, 3, 21), (1572, 3, 20), (1573, 3, 21), (1574, 3, 21),
+        (1575, 3, 21), (1576, 3, 20), (1577, 3, 21), (1578, 3, 21),
+        (1579, 3, 21), (1580, 3, 20), (1581, 3, 21), (1582, 3, 21),
         # All dates before 1582-10-15 will be wrong.
         (1583, 3, 21), (1584, 3, 20), (1585, 3, 21), (1586, 3, 21),
         (1587, 3, 21), (1588, 3, 20), (1589, 3, 21), (1590, 3, 21),
@@ -479,12 +481,12 @@ class DateTests(BahaiCalendar):
     def _create_gregorian_date_range(self, md=(3, 20)):
         return [(year,) + md for year in range(self.START_G, self.END_G, 10)]
 
-    def _create_jd_for_gulian_date(self, data):
+    def _create_jd_for_gregorian_date(self, data):
         return [self.gc.jd_from_gregorian_date(date) for date in data]
 
     def analyze_date_error(self, options):
         #g_data = self._create_gregorian_date_range()
-        #jds = self._create_jd_for_gulian_date(g_data)
+        #jds = self._create_jd_for_gregorian_date(g_data)
         #z = zip(jds, g_data)
         #pprint.pprint([d for d in z])
         data = []
@@ -495,15 +497,16 @@ class DateTests(BahaiCalendar):
         for g_date in self.TMP_ANS_DATES:
             b_date = (g_date[0] - self.TRAN_COFF, 1, 1)
             b_date += self._trim_hms(self._get_hms(g_date, True))
-            self._calculate_b_date(b_date, g_date, data)
+            self._calculate_b_date(b_date, g_date, data, options)
 
             for items in self._find_dates(b_date[0], inject):
-                self._calculate_b_date(*items, data)
+                self._calculate_b_date(*items, data, options)
 
         return data
 
-    def _calculate_b_date(self, b_date, g_date, data):
-        gjd = round(self.gc.jd_from_gregorian_date(g_date),
+    def _calculate_b_date(self, b_date, g_date, data, options):
+        gjd = round(self.gc.jd_from_gregorian_date(
+            g_date, exact=options.exact, alt=options.alt_leap),
                     self.ROUNDING_PLACES)
         bjd, jey_y_m_o, coff, floor_jey = self._jd_from_badi_date(b_date,
                                                                   options)
@@ -540,7 +543,8 @@ class DateTests(BahaiCalendar):
             coff = self._get_coff(year)
 
         # BADI_EPOCH = 2394645.5 # 2394646.257639
-        badi_epoch_m_o = self.BADI_EPOCH - 1
+        adj = 3 if options.exact else 1
+        badi_epoch_m_o = self.BADI_EPOCH - adj
         # Mean Tropical Year: 365.242189
         # Sidereal Year: 365.25636
         # Anomalistic Year: 365.25964
@@ -567,7 +571,12 @@ class DateTests(BahaiCalendar):
 
             return coff
 
-        if year < -159: # -259 to -160
+        if year < -100:
+            coff = process_century(-100 - year, 0, 0)
+
+        #elif year < -262:
+        #    coff = process_century(-262 - year, 0, 0.24)
+        elif year < -159: # -259 to -160
             coff = process_century(-159 - year, 0.04, 0.18)
         elif year < -64: # -159 to -65
             coff = process_century(-64 - year, 0.04, 0.16)
@@ -633,6 +642,35 @@ class DateTests(BahaiCalendar):
 
         return data
 
+    def julian_leap_for_coefficents(self, options):
+        """
+        This determines which coefficent group should be used for the
+        years provided. The years provided are on the Badi Calendar - or +
+        the epoch.
+
+        Arguments to the process_century() function.
+        --------------------------------------------
+        1. The first argument will be (cooresponds to the (1, 34, 67, 100)):
+           end date - Badi year
+        2. The second argument is the 1st coefficent determined by trial
+           and error.
+        3. The third argument is the 2nd coefficent determined by trial
+           and error.
+        """
+        data = []
+
+        for y in range(options.start, options.end):
+            year = options.end - y
+
+            if year in (1, 34, 67, 100):
+                a = year
+            else:
+                a = ''
+
+            data.append((y, year % 4, a))
+
+        return data
+
 
 if __name__ == "__main__":
     import argparse
@@ -649,19 +687,35 @@ if __name__ == "__main__":
         '-a', '--analyze', action='store_true', default=False, dest='analyze',
         help="Analyze Badi date errors when converting to jd.")
     parser.add_argument(
-        '-C', '--coff', action='store_true', default=False, dest='coff',
-        help="Turn off all coefficents during an analysis.")
-    parser.add_argument(
-        '-G', '--graph', action='store_true', default=False, dest='graph',
-        help=("Turn off all coefficents and dump output appropriate for "
-              "graphing."))
-    parser.add_argument(
         '-k', '--consecutive', action='store_true', default=False,
         dest='consecutive',
         help="Check that all dates are consecutive with no holes.")
     parser.add_argument(
         '-r', '--range', type=int, default=0, dest='range',
         help="Dump an analysis of date ranges. Takes an integer value.")
+    parser.add_argument(
+        '-j', '--julian-leap', action='store_true', default=False,
+        dest='julian_leap',
+        help="Dump data for determining coefficents.")
+    parser.add_argument(
+        '-A', '--alt-leap', action='store_true', default=False,
+        dest='alt_leap', help="Use alternative leap year method.")
+    parser.add_argument(
+        '-C', '--coff', action='store_true', default=False, dest='coff',
+        help="Turn off all coefficents during an analysis.")
+    parser.add_argument(
+        '-X', '--exact', action='store_true', default=False, dest='exact',
+        help="Use alternative leap year method.")
+    parser.add_argument(
+        '-G', '--graph', action='store_true', default=False, dest='graph',
+        help=("Turn off all coefficents and dump output appropriate for "
+              "graphing."))
+    parser.add_argument(
+        '-S', '--start', type=int, default=None, dest='start',
+        help="Start year of sequence.")
+    parser.add_argument(
+        '-E', '--end', type=int, default=None, dest='end',
+        help="End year of sequence.")
     options = parser.parse_args()
     exclusive_error = (options.list, options.ck_dates, options.analyze,
                        options.consecutive, options.range != 0)
@@ -669,6 +723,7 @@ if __name__ == "__main__":
         "Options -l, -c, -a, -k, and -r are exclusive.")
 
     dt = DateTests()
+    ret = 0
 
     if options.list:
         data = dt.create_date_lists()
@@ -729,7 +784,15 @@ if __name__ == "__main__":
         data = dt.get_range(options.range)
         [print(item) for item in data]
         print(f"Total years: {len(data)}")
+    elif options.julian_leap:
+        if options.start is None or options.end is None:
+            print("If option -j is used, -S and -E must also be used.")
+            ret = 1
+        else:
+            data = dt.julian_leap_for_coefficents(options)
+            [print(y, n, a) for y, n, a in data]
+            print(f"Total years: {len(data)}")
     else:
         parser.print_help()
 
-    sys.exit(0)
+    sys.exit(ret)

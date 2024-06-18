@@ -74,7 +74,6 @@ class GregorianCalendar(BaseCalendar):
         if exact: # An astronomically correct algorithm
             GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
                    else self.GREGORIAN_LEAP_YEAR)
-            year, month, day = self.date_from_ymdhms(g_date)
             td = self._days_in_year(year-1, alt=alt)
             days = td + (self.GREGORIAN_EPOCH - 1)
             month_days = list(self.MONTHS)

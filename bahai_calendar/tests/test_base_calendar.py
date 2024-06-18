@@ -13,7 +13,7 @@ from ..base_calendar import BaseCalendar
 from ..gregorian_calendar import GregorianCalendar
 
 
-class TestBaseCalandar(unittest.TestCase):
+class TestBaseCalendar(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)
@@ -978,7 +978,7 @@ class TestBaseCalandar(unittest.TestCase):
                 msg.format(expected_result, seasons[season], result))
 
     #
-    # Methods from Calandarical Calculations
+    # Methods from Calendarical Calculations
     #
 
     #@unittest.skip("Temporarily skipped")
