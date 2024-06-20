@@ -1064,6 +1064,21 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # Additional methods
     #
 
+    def _days_in_year(self, y, alt=False):
+        n_4 = y // 4
+
+        if alt:
+            n_128 = y // 128
+            n_leap_years = n_4 - n_128
+        else:
+            n_100 = y // 100
+            n_400 = y // 400
+            n_leap_years = n_4 - n_100 + n_400
+
+        a = y - n_leap_years # Non-leap years
+        b = y - a # Leap years
+        return a * 365 + b * 366
+
     def decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
                          direction:str='N') -> float:
         '''

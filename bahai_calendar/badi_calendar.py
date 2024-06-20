@@ -26,7 +26,7 @@ class BahaiCalendar(BaseCalendar):
 
     BADI_EPOCH = 2394646.5 # 2394646.259722 # 2394646.5
 
-    BADI_MONTHS = (
+    BADI_MONTH_NAMES = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
         (6, 'Raḥmat'), (7, 'Kalimát'), (8, 'Kamál'), (9, "Asmá'"),
         (10, "'Izzat"), (11, 'Mashíyyat'), (12, "'Ilm"), (13, 'Qudrat'),
