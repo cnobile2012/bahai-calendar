@@ -74,7 +74,7 @@ class GregorianCalendar(BaseCalendar):
         if exact: # An astronomically correct algorithm
             GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
                    else self.GREGORIAN_LEAP_YEAR)
-            td = self._days_in_year(year-1, alt=alt)
+            td = self._days_in_years(year-1, alt=alt)
             days = td + (self.GREGORIAN_EPOCH - 1)
             month_days = list(self.MONTHS)
             month_days[1] = 29 if GLY(year) else 28
@@ -123,12 +123,12 @@ class GregorianCalendar(BaseCalendar):
             md = jd - (self.GREGORIAN_EPOCH - 1)
             year = math.floor(md / self.JULIAN_YEAR)
             # A refined number of days since epoch for the date.
-            td = self._days_in_year(year, alt=alt)
+            td = self._days_in_years(year, alt=alt)
             days = md - td
 
             while days > 365:
                 year += 1
-                td = self._days_in_year(year, alt=alt)
+                td = self._days_in_years(year, alt=alt)
                 days = md - td
 
             if days == 0:

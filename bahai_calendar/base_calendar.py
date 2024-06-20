@@ -1064,7 +1064,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # Additional methods
     #
 
-    def _days_in_year(self, y, alt=False):
+    def _days_in_years(self, y, alt=False):
         n_4 = y // 4
 
         if alt:
