@@ -24,6 +24,9 @@ class DateTests(BahaiCalendar):
     END_G = 3004
     TRAN_COFF = 1843
     # https://www.timeanddate.com/sun/@112931?month=3&year=1844
+    # The site below is where I've gotten the Vernal Equinox data it uses
+    # the 4, 100, and 400 algorithm, so we must also. The 4 and 128 algorithm
+    # is more accurate, but I've not found Vernal Equinox data that uses it.
     # https://data.giss.nasa.gov/modelE/ar5plots/srvernal.html
     # https://aa.usno.navy.mil/data/RS_OneYear
     # https://www.sunrisesunset.com/England/GreaterLondon/Greenwich.asp
@@ -31,6 +34,8 @@ class DateTests(BahaiCalendar):
     # Tehran: 35.696111 (35, 41, 45.9996), 51.423056 (51, 25, 23.0016)
     # Nur Mazandaran Province, Iran (City Center)
     # Nur: 36.569336, 52.0050234
+    # I use coordinates and the sunset in the city of Nur to determine the
+    # yearly Badi epoch.
     TMP_ANS_DATES = (
         (   1, 3, 20), (   2, 3, 21), (   3, 3, 21), (   4, 3, 20),
         (   5, 3, 20), (   6, 3, 21), (   7, 3, 21), (   8, 3, 20),
@@ -42,6 +47,23 @@ class DateTests(BahaiCalendar):
         (  29, 3, 20), (  30, 3, 20), (  31, 3, 21), (  32, 3, 20),
         (  33, 3, 20), (  34, 3, 20), (  35, 3, 21), (  36, 3, 20),
         (  37, 3, 20), (  38, 3, 20), (  39, 3, 21), (  40, 3, 20),
+        (  41, 3, 20), (  42, 3, 20), (  43, 3, 21), (  44, 3, 20),
+        (  45, 3, 20), (  46, 3, 20), (  47, 3, 21), (  48, 3, 20),
+        (  49, 3, 20), (  50, 3, 20), (  51, 3, 21), (  52, 3, 20),
+        (  53, 3, 20), (  54, 3, 20), (  55, 3, 21), (  56, 3, 20),
+        (  57, 3, 20), (  58, 3, 20), (  59, 3, 21), (  60, 3, 21),
+        (  61, 3, 20), (  62, 3, 20), (  63, 3, 20), (  64, 3, 20),
+        (  65, 3, 20), (  66, 3, 20), (  67, 3, 20), (  68, 3, 20),
+        (  69, 3, 20), (  70, 3, 20), (  71, 3, 20), (  72, 3, 20),
+        (  73, 3, 20), (  74, 3, 20), (  75, 3, 20), (  76, 3, 20),
+        (  77, 3, 20), (  78, 3, 20), (  79, 3, 20), (  80, 3, 20),
+        (  81, 3, 20), (  82, 3, 20), (  83, 3, 20), (  84, 3, 20),
+        (  85, 3, 20), (  86, 3, 20), (  87, 3, 20), (  88, 3, 20),
+        (  89, 3, 20), (  90, 3, 20), (  91, 3, 20), (  92, 3, 20),
+        (  93, 3, 20), (  94, 3, 20), (  95, 3, 20), (  96, 3, 19),
+        (  97, 3, 20), (  98, 3, 20), (  99, 3, 20), ( 100, 3, 20),
+        #(), (), (), (),
+        #(), (), (), (),
 
         (1491, 3, 21), (1492, 3, 20), (1493, 3, 20), (1494, 3, 20),
         (1495, 3, 21), (1496, 3, 20), (1497, 3, 20), (1498, 3, 20),
@@ -490,7 +512,6 @@ class DateTests(BahaiCalendar):
         #z = zip(jds, g_data)
         #pprint.pprint([d for d in z])
         data = []
-        diff = 0
         inject = [(b_date[0], (b_date, g_date))
                   for b_date, g_date in self.INJECT]
 
@@ -499,20 +520,27 @@ class DateTests(BahaiCalendar):
             b_date += self._trim_hms(self._get_hms(g_date, True))
             self._calculate_b_date(b_date, g_date, data, options)
 
-            for items in self._find_dates(b_date[0], inject):
-                self._calculate_b_date(*items, data, options)
+            for dates in self._find_dates(b_date[0], inject):
+                self._calculate_b_date(*dates, data, options)
 
         return data
 
     def _calculate_b_date(self, b_date, g_date, data, options):
-        gjd = round(self.gc.jd_from_gregorian_date(
-            g_date, exact=options.exact, alt=options.alt_leap),
-                    self.ROUNDING_PLACES)
-        bjd, jey_y_m_o, coff, floor_jey = self._jd_from_badi_date(b_date,
-                                                                  options)
-        diff = bjd - gjd
-        data.append((b_date, bjd, g_date, gjd, jey_y_m_o, floor_jey,
-                     round(jey_y_m_o + coff, 6), round(diff, 6)))
+        gjd = self.gc.jd_from_gregorian_date(
+            g_date, exact=options.exact, alt=options.alt_leap)
+        #bjd = self._jd_from_badi_date(b_date, options)
+        bjd = self._jd_from_badi_date_alt(b_date, options)
+
+        coff = 0
+
+        if not options.coff:
+            coff = self._get_coff(b_date[0])
+
+        bjd -= coff
+        diff = round(bjd - gjd, 6)
+        offby = math.floor(bjd) - math.floor(gjd)
+        #         Badi Date  JD  Grg Date JD   Diff  floor
+        data.append((b_date, bjd, g_date, gjd, diff, offby))
 
     def _find_dates(self, year, inject):
         items = []
@@ -537,75 +565,86 @@ class DateTests(BahaiCalendar):
             # it's necessary fix for the leap year using coefficients below.
             d = 18 * 19 + 4 + day
 
-        coff = 0
-
-        if not options.coff:
-            coff = self._get_coff(year)
-
         # BADI_EPOCH = 2394645.5 # 2394646.257639
         adj = 3 if options.exact else 1
         badi_epoch_m_o = self.BADI_EPOCH - adj
         # Mean Tropical Year: 365.242189
         # Sidereal Year: 365.25636
         # Anomalistic Year: 365.25964
-        jey_y_m_o = round(self.MEAN_TROPICAL_YEAR * (year - 1), 6)
-        floor_jey = math.floor(round(jey_y_m_o - coff, 6))
-        return round(badi_epoch_m_o + floor_jey + d, 6
-                     ), jey_y_m_o, coff, floor_jey
+        jey_y_m_o = self.MEAN_TROPICAL_YEAR * (year - 1)
+        return round(badi_epoch_m_o + jey_y_m_o + d, 6)
+
+    def _jd_from_badi_date_alt(self, b_date, options):
+        date = self.date_from_kvymdhms(
+            self.long_date_from_short_date(b_date), short=True)
+        year, month, day = date[:3]
+        td = self._days_in_years(year-1, alt=options.exact)
+        adj = 3 if options.exact else 1
+        return td + (self.BADI_EPOCH - adj)
 
     def _get_coff(self, year):
-        def process_century(y, coff1, coff2, onoff=0):
-            first = False if onoff == 1 else True
-            second = False if onoff == 2 else True
-            third = False if onoff == 3 else True
-            func = lambda low, y, high, v: low < y < high and y % 4 == v
+        def process_century(y, coff1, coff2, onoff):
+            #first = False if onoff == 1 else True
+            #second = False if onoff == 2 else True
+            #third = False if onoff == 3 else True
+            ## func = lambda low, y, high, v: low < y < high and y % 4 == v
+            func = lambda low, y, high: low < y < high and y % 4 in onoff
             coff = 0
 
             if coff1 and y in (1, 34, 67, 100):
                 coff = coff1
+
             # Only one can be turned off at a time.
-            elif coff2 and (first and func(1, y, 34, 1) or
-                            second and func(34, y, 67, 2) or
-                            third and func(67, y, 100, 3)):
+            ## elif coff2 and (first and func(1, y, 34, 1) or
+            ##                 second and func(34, y, 67, 2) or
+            ##                 third and func(67, y, 100, 3)):
+            elif coff2 and func(1, y, 100):
                 coff = coff2
 
             return coff
 
-        if year < -100:
-            coff = process_century(-100 - year, 0, 0)
+        # General ranges are determined with:
+        # ./contrib/misc/full_partial.py -p -S start_year -E end_year
+        # Where -S is the ist year and -E is the nth year + 1 that needs to
+        # be process. Use the following command to test the results.
+        # ./contrib/misc/full_partial.py -qX -S start_year -E end_year
+        if year < -1821: # -1921 to -1822 (range -S-1920 -E-1821)
+            coff = process_century(-1821 - year, 1, 1, (1, 2))
+        elif year < -1792: # -1820 to -1793 (range -S-1820 -E-1792)
+            coff = process_century(-1720 - year, 0, 1, (1, 2, 3))
 
-        #elif year < -262:
-        #    coff = process_century(-262 - year, 0, 0.24)
-        elif year < -159: # -259 to -160
-            coff = process_century(-159 - year, 0.04, 0.18)
-        elif year < -64: # -159 to -65
-            coff = process_century(-64 - year, 0.04, 0.16)
-        elif year < 35: # -64 to 34
-            coff = process_century(35 - year, 0.15, 0.14)
-        elif year < 134: # 35 to 133
-            coff = process_century(134 - year, 0, 0.12)
-        elif year < 233: # 134 to 232
-            coff = process_century(233 - year, 0, 0.075)
-        elif year < 332: # 234 to 331
-            coff = process_century(332 - year, 0, 0.035)
-        elif year < 386: # 332 to 385
-            coff = process_century(386 - year, 0.037, 0)
-        elif year < 517: # 386 to 516
-            coff = 0
-        elif year < 617: # 517 to 616
-            coff = process_century(617 - year, -0.047, -0.023)
-        elif year < 716: # 617 to 715
-            coff = process_century(716 - year, -0.078, -0.046, onoff=3)
-        elif year < 815: # 716 to 814
-            coff = process_century(815 - year, -0.11, -0.07)
-        elif year < 914: # 815 to 913
-            coff = process_century(914 - year, -0.13, -0.093)
-        elif year < 1013: # 915 to 1012
-            coff = process_century(1013 - year, -0.15, -0.181)
-        elif year < 1112: # 1013 to 1111
-            coff = process_century(1112 - year, -0.171, -0.195)
-        elif year < 1211: # 1112 to 1210
-            coff = process_century(1211 - year, -0.18, -0.21)
+        elif year < -262:
+            coff = process_century(-262 - year, 0, 0, (1, 2, 3))
+        ## elif year < -159: # -259 to -160
+        ##     coff = process_century(-159 - year, 0.04, 0.18)
+        ## elif year < -64: # -159 to -65
+        ##     coff = process_century(-64 - year, 0.04, 0.16)
+        ## elif year < 35: # -64 to 34
+        ##     coff = process_century(35 - year, 0.15, 0.14)
+        ## elif year < 134: # 35 to 133
+        ##     coff = process_century(134 - year, 0, 0.12)
+        ## elif year < 233: # 134 to 232
+        ##     coff = process_century(233 - year, 0, 0.075)
+        ## elif year < 332: # 234 to 331
+        ##     coff = process_century(332 - year, 0, 0.035)
+        ## elif year < 386: # 332 to 385
+        ##     coff = process_century(386 - year, 0.037, 0)
+        ## elif year < 517: # 386 to 516
+        ##     coff = 0
+        ## elif year < 617: # 517 to 616
+        ##     coff = process_century(617 - year, -0.047, -0.023)
+        ## elif year < 716: # 617 to 715
+        ##     coff = process_century(716 - year, -0.078, -0.046, onoff=3)
+        ## elif year < 815: # 716 to 814
+        ##     coff = process_century(815 - year, -0.11, -0.07)
+        ## elif year < 914: # 815 to 913
+        ##     coff = process_century(914 - year, -0.13, -0.093)
+        ## elif year < 1013: # 915 to 1012
+        ##     coff = process_century(1013 - year, -0.15, -0.181)
+        ## elif year < 1112: # 1013 to 1111
+        ##     coff = process_century(1112 - year, -0.171, -0.195)
+        ## elif year < 1211: # 1112 to 1210
+        ##     coff = process_century(1211 - year, -0.18, -0.21)
         else:
             coff = 0
 
@@ -642,20 +681,35 @@ class DateTests(BahaiCalendar):
 
         return data
 
-    def julian_leap_for_coefficents(self, options):
+    def find_coefficents_precursor(self, options):
         """
-        This determines which coefficent group should be used for the
+        This determines which coefficient group should be used for the
         years provided. The years provided are on the Badi Calendar - or +
         the epoch.
 
         Arguments to the process_century() function.
         --------------------------------------------
-        1. The first argument will be (cooresponds to the (1, 34, 67, 100)):
-           end date - Badi year
-        2. The second argument is the 1st coefficent determined by trial
-           and error.
-        3. The third argument is the 2nd coefficent determined by trial
-           and error.
+        1. First run `full_partial.py -aGX > filename.txt`
+           This file will be long so use `less filename.txt` to look at it.
+           The last column will usually be -1.0, 0.0, or 1.0. The 0.0 values
+           are already correct, the other two values means there is a
+           difference in the between the Gregorian and Badi Julian Period
+           days. These are the ones than need the coefficients which fixes them.
+        2. The first argument is the current Badi year being processed
+           subtracted from the end year argument.
+        3. The second argument is the 1st coefficient corresponding to the
+           (1, 34, 67, 100) numbers in the output from this method.
+        4. The third argument is the 2nd coefficient which fixes the 1 values
+           that were not included in the 1st coefficient and the 2 and 3 values.
+
+        If an error JD falls on a 0 (zero) value then you need to change
+        the start and end years so that no error JDs fall on a 0 value. The
+        average number of years fixed in a group is 99, but this is not a
+        hard and fast rule. Obvious break points are where a sequence
+        changes. For example where there are two consecutive already good
+        values where the values you need to fix had one.
+
+        Note: Zero values never get processes.
         """
         data = []
 
@@ -667,9 +721,50 @@ class DateTests(BahaiCalendar):
             else:
                 a = ''
 
-            data.append((y, year % 4, a))
+            data.append((y + self.TRAN_COFF, y, year % 4, a))
 
         return data
+
+    def find_coefficents(self, options):
+        found = False
+        data = []
+        inject = [(b_date[0], (b_date, g_date))
+                  for b_date, g_date in self.INJECT]
+
+        for g_date in self.TMP_ANS_DATES:
+            b_date = (g_date[0] - self.TRAN_COFF, 1, 1)
+            b_date += self._trim_hms(self._get_hms(g_date, True))
+
+            if options.start <= b_date[0]:
+                if options.end <= b_date[0]: break
+                self._calculate_b_date(b_date, g_date, data, options)
+
+                for dates in self._find_dates(b_date[0], inject):
+                    self._calculate_b_date(*dates, data, options)
+
+        cp = {by: (n, a)
+              for gy, by, n, a in self.find_coefficents_precursor(options)}
+        items = []
+
+        for item in data:
+            b_year, month, day = item[0][:3]
+            h, m, s = dt._get_hms(item[0], True)
+            bjd = item[1]
+            msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
+                   f"{s:<02} {bjd:<14} ")
+            g_year, month, day = item[2][:3]
+            h, m, s = dt._get_hms(item[2], True)
+            gjd = item[3]
+            msg += (f"{g_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
+                    f"{s:<02} {gjd:<9} ")
+            diff = item[4]
+            offby = item[5]
+            msg += f"{diff:< 9} {offby:> 2} "
+            j, k = cp.get(b_year)
+            msg += f"{j} {k:<3}"
+            items.append(msg)
+
+        return items
 
 
 if __name__ == "__main__":
@@ -694,21 +789,24 @@ if __name__ == "__main__":
         '-r', '--range', type=int, default=0, dest='range',
         help="Dump an analysis of date ranges. Takes an integer value.")
     parser.add_argument(
-        '-j', '--julian-leap', action='store_true', default=False,
-        dest='julian_leap',
-        help="Dump data for determining coefficents.")
+        '-p', '--precursor', action='store_true', default=False,
+        dest='precursor',
+        help="Dump data for determining the precursors to the coefficients.")
+    parser.add_argument(
+        '-q', '--coeff', action='store_true', default=False, dest='coeff',
+        help="Dump data for determining coefficients.")
     parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help="Use alternative leap year method.")
     parser.add_argument(
         '-C', '--coff', action='store_true', default=False, dest='coff',
-        help="Turn off all coefficents during an analysis.")
+        help="Turn off all coefficients during an analysis.")
     parser.add_argument(
         '-X', '--exact', action='store_true', default=False, dest='exact',
         help="Use alternative leap year method.")
     parser.add_argument(
         '-G', '--graph', action='store_true', default=False, dest='graph',
-        help=("Turn off all coefficents and dump output appropriate for "
+        help=("Turn off all coefficients and dump output appropriate for "
               "graphing."))
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
@@ -724,7 +822,6 @@ if __name__ == "__main__":
 
     dt = DateTests()
     ret = 0
-
     if options.list:
         data = dt.create_date_lists()
         pprint.pprint(data)
@@ -740,23 +837,24 @@ if __name__ == "__main__":
             items = []
 
             for item in data:
-                #if item[-1] != 0.0:
                 year, month, day = item[0][:3]
                 h, m, s = dt._get_hms(item[0], True)
-                msg = (f"{year}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                       f"{s:<02} {item[1]} ")
+                bjd = item[1]
+                msg = (f"{year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
+                       f"{s:>02} {bjd:<14} ")
                 year, month, day = item[2][:3]
                 h, m, s = dt._get_hms(item[2], True)
-                msg += (f"{year}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                        f"{s:<02} {item[3]} ")
-                diff = round(1 - (item[4] % 1), 6)
-                msg += f"{item[4]} {diff} {item[-1]}"
+                gjd = item[3]
+                msg += (f"{year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
+                        f"{s:>02} {gjd:<9} ")
+                diff = item[4]
+                offby = item[5]
+                msg += f"{diff:< 9} {offby:> 2}"
                 items.append(msg)
 
             [print(item) for item in items]
         else:
             data = dt.analyze_date_error(options)
-            #print(data)
             [print(item) for item in data]
             diffs = []
             p = 0
@@ -784,14 +882,22 @@ if __name__ == "__main__":
         data = dt.get_range(options.range)
         [print(item) for item in data]
         print(f"Total years: {len(data)}")
-    elif options.julian_leap:
+    elif options.precursor:
         if options.start is None or options.end is None:
-            print("If option -j is used, -S and -E must also be used.")
+            print("If option -p is used, -S and -E must also be used.")
             ret = 1
         else:
-            data = dt.julian_leap_for_coefficents(options)
-            [print(y, n, a) for y, n, a in data]
+            data = dt.find_coefficents_precursor(options)
+            [print(f"{gy:> 5} {by:> 5}, {n:<1} {a:>2}")
+             for gy, by, n, a in data]
             print(f"Total years: {len(data)}")
+    elif options.coeff:
+        if options.start is None or options.end is None:
+            print("If option -q is used, -S and -E must also be used.")
+            ret = 1
+        else:
+            data = dt.find_coefficents(options)
+            [print(item) for item in data]
     else:
         parser.print_help()
 
