@@ -248,6 +248,55 @@ class TestBaseCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
+    @unittest.skip("Temporarily skipped")
+    def test__altitude(self):
+        """
+        Test that the _altitude method returns the correct altitude in degrees.
+        """
+        func = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
+
+        def inter_ra(tc, n):
+            a0 = self.bc._sun_apparent_right_ascension(tc - (1 / 36525))
+            a1 = self.bc._sun_apparent_right_ascension(tc)
+            a2 = self.bc._sun_apparent_right_ascension(tc + (1 / 36525))
+            return self.bc.interpolation_from_three(a0, a1, a2, n)
+
+        def inter_de(tc, n):
+            d0 = self.bc._sun_apparent_declination(tc - (1 / 36525))
+            d1 = self.bc._sun_apparent_declination(tc)
+            d2 = self.bc._sun_apparent_declination(tc + (1 / 36525))
+            return self.bc.interpolation_from_three(d0, d1, d2, n)
+
+        data = (
+            # 1987-04-10T19:21:00 -- 2446896.30625, lat, lon
+            # AA Ex.13.b alpha=347.3193, delta=  +15.1249
+            ((1987, 4, 10, 19, 21), 38.921388, -77.065416, 0),
+            )
+        msg = "Expected {}, for date {}, with lat {} and lon {}, found {}."
+
+        for g_date, lat, lon, expected_result in data:
+            jd = self.gc.jd_from_gregorian_date(g_date)
+            tc = self.bc.julian_centuries(jd)
+            ast = self.bc._apparent_sidereal_time_greenwich(tc)
+            dt = self.gc.delta_t(jd)
+            jde = jd + dt
+            # Find alpha
+            ara = self.bc._sun_apparent_right_ascension(tc)
+            ma = func((ara - lon - ast) / 360)
+            alpha = inter_ra(tc, ma * dt / 86400)
+            # Find delta
+            de = self.bc._sun_apparent_declination(tc)
+            md = func((de - lon - ast) / 360)
+            delta = inter_de(tc, ma * dt / 86400)
+            # Find the local hour angle
+            #srt = ast + 360.98564736629 *
+            h = self.bc._local_hour_angle(ast, lon, alpha)
+            print(alpha, delta, ast, h)
+            result = self.bc._altitude(delta, lat, h)
+            self.assertEqual(
+                expected_result, result,
+                msg.format(expected_result, g_date, lat, lon, result))
+
     #@unittest.skip("Temporarily skipped")
     def test__approx_local_hour_angle(self):
         """
@@ -278,16 +327,16 @@ class TestBaseCalendar(unittest.TestCase):
         data = (
             # 1844-03-20T12:00:00 -> 1844-03-21T06:06:00 (2394645.754167)
             (2394646.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2394646.755381),
+             2394646.75577),
             # 2024-03-19T12:00:00 -> 2024-03-20T07:07:00 (2460389.795139)
             (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.755919),
+             2460389.755317),
             # 2024-03-20T00:00:00 -> 2024-03-20T07:05:00 (2460389.795139)
             (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.755422),
+             2460389.755317),
             # 2024-03-20T02:00:00 -> 2024-03-20T07:05:00 (2460389.795139)
             (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.755339),
+             2460389.755317),
             )
         msg = "Expected {}, for jd {}, found {}."
 
@@ -334,19 +383,19 @@ class TestBaseCalendar(unittest.TestCase):
         data = (
             # 1844-03-20T12:00:00 -> 1844-03-20T18:14:00 (2394646.259722)
             (2394646.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2394646.261088),
+             2394646.261155),
             # 2024-03-19T12:00:00 -> 2024-03-19T19:14:00 (2460389.301389)
             (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.260629),
+             2460389.261285),
             # 2024-03-20T00:00:00 -> 2024-03-20T19:14:00 (2460390.301389)
             (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460390.260921),
+             2460390.261285),
             # 2024-03-20T02:00:00 -> 2024-03-20T19:14:00 (2460390.301389)
             (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460390.26097),
+             2460390.261285),
             # 2024-04-20T00:00:00 -> 2024-04-20T19:41:00 DST (2460421.320139)
             # In Raligh NC, USA
-            (2460420.5, 35.7796, -78.6382, -4, 2460421.327631)
+            (2460420.5, 35.7796, -78.6382, -4, 2460421.328216)
             )
         msg = "Expected {}, for jd {}, found {}."
 
@@ -369,21 +418,21 @@ class TestBaseCalendar(unittest.TestCase):
             # JD        Latitude Longitude zone  exact
             (2447240.5, 42.3333, -71.0833, -5.0, False,
              self.bc.STARS_PLANET_OFFSET,
-             (0.24264795945457443, 0.7461053367058698)),
+             (0.2421071593327397, 0.7468673681328643)),
             # 2024-03-20T00:00:00 -- (0.250694 = 6:01 am, 0.759027 = 6:13 pm)
           # https://www.timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
             # In Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
             (2460389.5, 51.477928, -0.001545, 0, False, self.bc.SUN_OFFSET,
-             (0.2516441995987325, 0.7587248316117255)),
+             (0.25124910166299663, 0.7596219768191209)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
             # https://www.timeanddate.com/sun/@112931?month=3&year=2024
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
             (2460389.5, 35.696111, 51.423056, 3.5, False, self.bc.SUN_OFFSET,
-             (0.2554223430236847, 0.7609211270756622)),
+             (0.25531713868266454, 0.7612851043067462)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
             (2460389.5, 35.696111, 51.423056, 0, True, self.bc.SUN_OFFSET,
-             (0.2524308319125736, 0.757929615964551)),
+             (0.2523256275715534, 0.7582935931956352)),
             )
         msg = "Expected {}, for jd {}, zone {}, exact {}, found {}."
 

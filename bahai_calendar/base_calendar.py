@@ -236,6 +236,27 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         d_psi = self._nutation_longitude(tc)
         return self._coterminal_angle(t0 + d_psi * self.cos_deg(eps))
 
+    def _altitude(self, delta:float, lat:float, h:float) -> float:
+        """
+        Altitude in degrees, positive above the horizon, negative below.
+
+        :param delta: Declination in sidereal time.
+        :type delta: float
+        :param lat: Geographic latitude.
+        :type lat: float
+        :param h: Local hour angle.
+        :type h: float
+        :return: Altitude in degrees.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA p.93 Eq.13.6
+        """
+        return math.degrees(math.asin(
+            self.sin_deg(lat) * self.sin_deg(delta) + self.cos_deg(lat) *
+            self.cos_deg(delta) * self.cos_deg(h)))
+
     def _approx_local_hour_angle(self, tc:float, lat:float,
                                  offset:float=SUN_OFFSET) -> float:
         """
@@ -457,9 +478,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         dm = 1
 
         for i in range(5):
-            if abs(dm) > 0.0001: break
             dm = self._rise_set_correction(tc, ast, dt, lat, lon, m, offset)
             m += dm
+            if abs(dm) < 0.0001: break
 
         m += self.decimal_from_hms(zone, 0, 0)
         return m % 1
