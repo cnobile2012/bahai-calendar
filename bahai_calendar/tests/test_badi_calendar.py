@@ -52,8 +52,8 @@ class TestBadiCalendar(unittest.TestCase):
         [major, cycle, year, month, day]
         """
         data = (
-            # Badi epoch (Sunset 1844-03-20T18:53:00)
-            ((1844, 3, 20, 18, 16), (1, 1, 1, 1, 1, 18, 15, 59.9904)),
+            # Badi epoch (Sunset 1844-03-20T18:14:00)
+            ((1844, 3, 20, 18, 14), (1, 1, 1, 1, 1, 18, 13, 59.9808)),
             # CC ch#16 p271 First day of Riḍván
             ((1930, 4, 21), (1, 5, 11, 2, 13)),
             # B.E. 100 (Vernal Equinox 1943-03-21T12:03:04 DT)
@@ -75,6 +75,7 @@ class TestBadiCalendar(unittest.TestCase):
         """
         Test that the sunset method returns the universal time of
         sunset on fixed date. This results in the UTC time of sunset.
+        See: https://gml.noaa.gov/grad/solcalc/
         """
         lat, lon, alt, zone = self._bc.BAHAI_LOCATION
         data = (
