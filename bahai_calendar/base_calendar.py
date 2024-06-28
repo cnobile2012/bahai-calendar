@@ -358,6 +358,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _sun_rising(self, jd:float, lat:float, lon:float, zone:float=0,
                     exact:bool=False, offset:float=SUN_OFFSET) -> float:
         """
+        Find the exact jd for sunrise of the given jd.
 
         :param jd: Julian day in UT.
         :type jd: float
@@ -392,6 +393,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0,
                      exact:bool=False, offset:float=SUN_OFFSET) -> float:
         """
+        Find the exact jd for sunset of the given jd.
 
         :param jd: Julian day in UT.
         :type jd: float
@@ -427,6 +429,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                         exact:bool=False, offset:float=SUN_OFFSET,
                         sr_ss:str='RISE') -> float:
         """
+        Find the jd difference for sunrise or sunset of the given jd.
 
         :param jd: Julian day in UT.
         :type jd: float
