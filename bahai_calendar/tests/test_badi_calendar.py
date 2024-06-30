@@ -77,7 +77,7 @@ class TestBadiCalendar(unittest.TestCase):
         sunset on fixed date. This results in the UTC time of sunset.
         See: https://gml.noaa.gov/grad/solcalc/
         """
-        lat, lon, alt, zone = self._bc.BAHAI_LOCATION
+        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # Should be 1844-03-20T18:14:00 (2394645.5 -> 2394646.259201)
             ((1, 1, 1), lat, lon, zone, False,
@@ -141,7 +141,7 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the first_day_of_ridvan method returns Jalál 13th in
         any year.
         """
-        lat, lon, elv, zone = self._bc.BAHAI_LOCATION
+        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # 1-02-13T18:40:00 (1844-04-20T18:40:00)
             (1, lat, lon, zone, False, (1, 1, 1, 2, 13, 18, 39, 49.7376)),

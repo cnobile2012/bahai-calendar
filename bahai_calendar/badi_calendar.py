@@ -19,10 +19,10 @@ class BahaiCalendar(BaseCalendar):
     # WGS84--https://coordinates-converter.com/
     # https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-
 # https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
-    #BAHAI_LOCATION = (35.696111, 51.423056, 0, 3.5)
+    #BAHAI_LOCATION = (35.696111, 51.423056, 3.5, 0)
     # Nur Mazandaran Province, Iran (City Center)
 # https://www.google.com/maps/place/Nur,+Mazandaran+Province,+Iran/@36.569336,52.0050234,15z/data=!3m1!4b1!4m6!3m5!1s0x3f8efdf2a3fc7385:0x1f76f83486da57be!8m2!3d36.5763485!4d52.0133073!16zL20vMGJ6cjl6?entry=ttu
-    BAHAI_LOCATION = (36.569336, 52.0050234, 0, 3.5)
+    BAHAI_LOCATION = (36.569336, 52.0050234, 3.5, 0)
 
     BADI_EPOCH = 2394646.5 # 2394646.259722 # 2394646.5
 
@@ -91,8 +91,7 @@ class BahaiCalendar(BaseCalendar):
         """
         jd = self.jd_from_badi_date((year, 1, 1))
         ve = self.find_moment_of_equinoxes_or_solstices(jd)
-        lat, lon, elev, zone = self.BAHAI_LOCATION
-        ss = self._sun_setting(ve, lat, lon, zone)
+        ss = self._sun_setting(ve, *self.BAHAI_LOCATION[:3])
         return self.badi_date_from_jd(ss, short)
 
     def first_day_of_ridvan(self, year:int, lat:float=0, lon:float=0,
@@ -105,7 +104,7 @@ class BahaiCalendar(BaseCalendar):
         naw_ruz = self.naw_ruz(year, short=True)
 
         if lat == 0 and lon == 0 and zone == 0:
-            lat, lon, elv, zone = self.BAHAI_LOCATION
+            lat, lon, zone = self.BAHAI_LOCATION[:3]
 
         year, month, day = naw_ruz[:3]
         ss_date = self.sunset((year, 2, 13), lat, lon, zone)
