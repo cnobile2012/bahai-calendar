@@ -139,6 +139,7 @@ class GregorianCalendar(BaseCalendar):
             month_days = list(self.MONTHS)
             month_days[1] = 29 if GLY(year) else 28
             d = day = 0
+            f = jd % 1
 
             for month, ds in enumerate(month_days, start=1):
                 d += ds
@@ -146,9 +147,13 @@ class GregorianCalendar(BaseCalendar):
                 day = math.ceil(days - (d - ds))
                 break
 
-            f = jd % 1
-            date = (year, month, round( day + f - (1.5 if f > 0.5 else 0.5),
-                                        self.ROUNDING_PLACES))
+
+            if day == 1 and f > 0.5:
+                month -= 1
+                day += 28
+
+            date = (year, month, round(day + f - (1.5 if f > 0.5 else 0.5),
+                                       self.ROUNDING_PLACES))
         else:
             j_day = jd + 0.5
             z = math.floor(j_day)

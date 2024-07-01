@@ -500,7 +500,7 @@ class DateTests(BahaiCalendar):
         (1837, 3, 21), (1838, 3, 21), (1839, 3, 21), (1840, 3, 20),
         (1841, 3, 21), (1842, 3, 21), (1843, 3, 21),
         # Badi epoch are the first two below.
-        (1844, 3, 20), (1844, 3, 20, 18, 14), (1845, 3, 21), (1846, 3, 21),
+        (1844, 3, 20), (1845, 3, 21), (1846, 3, 21),
         (1847, 3, 21), (1848, 3, 20), (1849, 3, 21), (1850, 3, 21),
         (1851, 3, 21), (1852, 3, 20), (1853, 3, 21), (1854, 3, 21),
         (1855, 3, 21), (1856, 3, 20), (1857, 3, 21), (1858, 3, 21),
@@ -795,13 +795,18 @@ class DateTests(BahaiCalendar):
         (3003, 3, 21), (3004, 3, 21),
         )
     INJECT = (
-        ((181, 1, 2), (2024, 3, 21)),
-        ((181, 1, 5), (2024, 3, 24)),
-        ((181, 2, 13), (2024, 4, 20)),
-        ((181, 3, 18, 20), (2024, 5, 14, 20)), # Sunset Nur -> 15:49:14
-        ((181, 3, 19, 20), (2024, 5, 15, 20)), # Sunset Nur -> 15:49:14
-        ((181, 4, 1, 17), (2024, 5, 16, 17)),  # Sunset Nur -> 15:49:14
-        ((181, 4, 1, 20), (2024, 5, 16, 20)),  # Sunset Nur -> 15:49:14
+        ((1, 1, 1), (1844, 3, 20, 18, 14)),
+        ((181, 1, 2), (2024, 3, 21, 6, 14)),
+        ((181, 1, 5), (2024, 3, 24, 6, 17, 2.5536)),
+        ((181, 2, 13), (2024, 4, 20, 6, 40, 49.6992)),
+        # Sunset Nur -> 15:49:14
+        ((181, 3, 18, 20), (2024, 5, 16, 15, 2, 24.3744)),
+        # Sunset Nur -> 15:49:14
+        ((181, 3, 19, 20), (2024, 5, 17, 15, 2, 24.3744)),
+        # Sunset Nur -> 15:49:14
+        ((181, 4, 1, 17), (2024, 5, 17, 12, 2, 24.48)),
+        # Sunset Nur -> 15:49:14
+        ((181, 4, 1, 20), (2024, 5, 16, 20)),
         ((181, 18, 1), (2025, 2, 5)),
         ((181, 18, 19), (2025, 2, 23)),
         ((181, 0, 1), (2025, 2, 24)),
@@ -821,7 +826,6 @@ class DateTests(BahaiCalendar):
         # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
         # 365.2421897
         self.MEAN_TROPICAL_YEAR = 365.242189
-        self.location = (*self.BAHAI_LOCATION[:2], self.BAHAI_LOCATION[3])
         self.gc = GregorianCalendar()
 
     def _calc_kvymd(self, days, k, v, y, m, data):
@@ -856,61 +860,13 @@ class DateTests(BahaiCalendar):
 
         return items
 
-    def _create_gregorian_date_range(self, md=(3, 20)):
-        return [(year,) + md for year in range(self.START_G, self.END_G, 10)]
-
-    def _create_jd_for_gregorian_date(self, data):
-        return [self.gc.jd_from_gregorian_date(date) for date in data]
-
     def analyze_date_error(self, options):
-        #g_data = self._create_gregorian_date_range()
-        #jds = self._create_jd_for_gregorian_date(g_data)
-        #z = zip(jds, g_data)
-        #pprint.pprint([d for d in z])
-        data = []
-        inject = [(b_date[0], (b_date, g_date))
-                  for b_date, g_date in self.INJECT]
-
-        for g_date in self.TMP_ANS_DATES:
-            b_date = (g_date[0] - self.TRAN_COFF, 1, 1)
-            b_date += self._trim_hms(self._get_hms(g_date, True))
-            self._calculate_b_date(b_date, g_date, data, options)
-
-            for dates in self._find_dates(b_date[0], inject):
-                self._calculate_b_date(*dates, data, options)
-
-        return data
-
-    def _calculate_b_date(self, b_date, g_date, data, options):
-        gjd = self.gc.jd_from_gregorian_date(
-            g_date, exact=options.exact, alt=options.alt_leap)
-        #bjd = self._jd_from_badi_date(b_date, options)
-        bjd = self._jd_from_badi_date_alt(b_date, options, *self.location)
-
-        coff = 0
-
-        if not options.coff:
-            coff = self._get_coff(b_date[0])
-
-        bjd += coff
-        diff = round(bjd - gjd, 6)
-        offby = math.floor(bjd) - math.floor(gjd)
-        #         Badi Date  JD  Grg Date JD   Diff  floor
-        data.append((b_date, bjd, g_date, gjd, diff, offby))
-
-    def _find_dates(self, year, inject):
-        items = []
-
-        for y, item in inject:
-            if y == year:
-                items.append(item)
-
-        return items
+        return self._date_range(options)
 
     def _jd_from_badi_date(self, b_date, options):
         date = self.date_from_kvymdhms(
             self.long_date_from_short_date(b_date), short=True)
-        year, month, day = date[:3]
+        year, month, day = date
 
         if month == 0: # Ayyam-i-Ha
             d = 18 * 19 + day
@@ -940,8 +896,9 @@ class DateTests(BahaiCalendar):
         elif month < 19:
             m = (month - 1) * 19
         else: # month == 19:
-            # Because we have to use 4 days without knowing the leap year
-            # it's necessary fix for the leap year using coefficients below.
+            # Because we have to use 4 days without knowing if the leap year
+            # is 4 or 5 days it's necessary to fix the day count by using
+            # coefficients below.
             m = 18 * 19 + 4
 
         td = self._days_in_years(year-1, alt=options.exact)
@@ -951,18 +908,18 @@ class DateTests(BahaiCalendar):
         if lat and lon:
             diff = self._fix_hours(day, jd, lat, lon, zone)
 
-        return jd
+        return round(jd + diff, 6)
 
     def _fix_hours(self, day, jd, lat, lon, zone):
         jds = math.floor(jd)
         ss_a = self._sun_setting(jds, lat, lon, zone)
-        ss_b = self._sun_setting(jds + 1, lat, lon, zone)
-        length_of_day = ss_b - ss_a
+        #ss_b = self._sun_setting(jds + 1, lat, lon, zone)
+        #length_of_day = ss_b - ss_a
         p = round(day % 1, 6)
-
-        #print(f"jd: {jd:<14} ss_a: {ss_a:<14} ss_b: {ss_b:<14} "
-        #      f"p: {p:<8} lod: {length_of_day}", file=sys.stderr)
-        return
+        #print(f"jd: {jd:<14} ss_a: {ss_a:<14} " #ss_b: {ss_b:<14} "
+        #      f"p: {p:<8}" # lod: {length_of_day}"
+        #      , file=sys.stderr)
+        return p + ss_a % 1
 
     def _get_coff(self, year):
         def process_century(y, coff1, coff2, onoff):
@@ -1161,6 +1118,17 @@ class DateTests(BahaiCalendar):
 
         return coff
 
+    def _gregorian_date_from_badi_date(self, b_date:tuple, options, lat=0,
+                                       lon=0, zone=0) -> tuple:
+        """
+        Get the Gregorian date from the Badi date.
+        """
+        jd = self._jd_from_badi_date_alt(b_date, options, lat=lat,
+                                         lon=lon, zone=zone)
+        gd = self.gc.gregorian_date_from_jd(jd, exact=options.exact)
+        g_date = self.gc.ymdhms_from_date(gd)
+        return g_date
+
     def consecutive_years(self):
         data = []
         py = 0
@@ -1237,7 +1205,50 @@ class DateTests(BahaiCalendar):
         return data
 
     def find_coefficents(self, options):
-        found = False
+        data = self._date_range(options)
+        cp = {by: (n, a)
+              for gy, by, n, a in self.find_coefficents_precursor(options)}
+        items = []
+
+        for item in data:
+            b_year, month, day = item[0][:3]
+            h, m, s = dt._get_hms(item[0], short=True)
+            bjd = item[1]
+            msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
+                   f"{s:<02} {bjd:<14} ")
+            g_year, month, day = item[2][:3]
+            h, m, s = dt._get_hms(item[2], short=True)
+            gjd = item[3]
+            msg += (f"{g_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
+                    f"{s:<02} {gjd:<9} ")
+            diff = item[4]
+            offby = item[5]
+            msg += f"{diff:< 9} {offby:> 2} "
+            j, k = cp.get(b_year)
+            msg += f"{j} {k:<3}"
+            items.append(msg)
+
+        return items
+
+    def find_gregorian_dates(self, options):
+        """
+        Converts Badi to Gregorian dates for the given range.
+        """
+        data = []
+
+        for item in self._date_range(options):
+            b_date, bjd, g_date, gjd, diff, offby = item
+            g_date = self._gregorian_date_from_badi_date(
+                b_date, options, *self.BAHAI_LOCATION[:3])
+            gjd = self.gc.jd_from_gregorian_date(
+                g_date, exact=options.exact, alt=options.alt_leap)
+            diff = round(bjd - gjd, 6)
+            offby = math.floor(bjd) - math.floor(gjd)
+            data.append((b_date, bjd, g_date, gjd, diff, offby))
+
+        return data
+
+    def _date_range(self, options):
         data = []
         last_year = 0
         inject = [(b_date[0], (b_date, g_date))
@@ -1245,7 +1256,7 @@ class DateTests(BahaiCalendar):
 
         for g_date in self.TMP_ANS_DATES:
             b_date = (g_date[0] - self.TRAN_COFF, 1, 1)
-            b_date += self._trim_hms(self._get_hms(g_date, True))
+            #b_date += self._trim_hms(self._get_hms(g_date, True))
 
             if options.start <= b_date[0]:
                 assert last_year == 0 or g_date[0] == (last_year + 1), (
@@ -1259,27 +1270,30 @@ class DateTests(BahaiCalendar):
 
                 last_year = g_date[0]
 
-        cp = {by: (n, a)
-              for gy, by, n, a in self.find_coefficents_precursor(options)}
+        return data
+
+    def _calculate_b_date(self, b_date, g_date, data, options):
+        gjd = self.gc.jd_from_gregorian_date(
+            g_date, exact=options.exact, alt=options.alt_leap)
+        #bjd = self._jd_from_badi_date(b_date, options)
+        bjd = self._jd_from_badi_date_alt(b_date, options,
+                                          *self.BAHAI_LOCATION[:3])
+        coff = 0
+
+        if not options.coff:
+            coff = self._get_coff(b_date[0])
+
+        bjd += coff
+        diff = round(bjd - gjd, 6)
+        offby = math.floor(bjd) - math.floor(gjd)
+        data.append((b_date, bjd, g_date, gjd, diff, offby))
+
+    def _find_dates(self, year, inject):
         items = []
 
-        for item in data:
-            b_year, month, day = item[0][:3]
-            h, m, s = dt._get_hms(item[0], True)
-            bjd = item[1]
-            msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                   f"{s:<02} {bjd:<14} ")
-            g_year, month, day = item[2][:3]
-            h, m, s = dt._get_hms(item[2], True)
-            gjd = item[3]
-            msg += (f"{g_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                    f"{s:<02} {gjd:<9} ")
-            diff = item[4]
-            offby = item[5]
-            msg += f"{diff:< 9} {offby:> 2} "
-            j, k = cp.get(b_year)
-            msg += f"{j} {k:<3}"
-            items.append(msg)
+        for y, item in inject:
+            if y == year:
+                items.append(item)
 
         return items
 
@@ -1312,6 +1326,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '-q', '--coeff', action='store_true', default=False, dest='coeff',
         help="Dump data for determining coefficients.")
+    parser.add_argument(
+        '-g', '--g-dates', action='store_true', default=False, dest='g_dates',
+        help="Convert Badi to Gregorian dates.")
     parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help="Use alternative leap year method.")
@@ -1348,6 +1365,11 @@ if __name__ == "__main__":
         bad_items = bad_items if bad_items else "All dates match."
         pprint.pprint(bad_items)
     elif options.analyze:
+        if options.start is None or options.end is None:
+            # Set default Badi years.
+            options.start = -1842
+            options.end = 1162
+
         if options.graph:
             options.coff = True
             data = dt.analyze_date_error(options)
@@ -1355,12 +1377,12 @@ if __name__ == "__main__":
 
             for item in data:
                 year, month, day = item[0][:3]
-                h, m, s = dt._get_hms(item[0], True)
+                h, m, s = dt._get_hms(item[0], short=True)
                 bjd = item[1]
                 msg = (f"{year}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
                        f"{s:>02} {bjd} ")
                 year, month, day = item[2][:3]
-                h, m, s = dt._get_hms(item[2], True)
+                h, m, s = dt._get_hms(item[2], short=True)
                 gjd = item[3]
                 msg += (f"{year}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
                         f"{s:>02} {gjd} ")
@@ -1415,6 +1437,26 @@ if __name__ == "__main__":
         else:
             data = dt.find_coefficents(options)
             [print(item) for item in data]
+    elif options.g_dates:
+        if options.start is None or options.end is None:
+            print("If option -g is used, -S and -E must also be used.")
+            ret = 1
+        else:
+            print("b_date                        "
+                  "bjd            "
+                  "g_date                        "
+                  "gjd            "
+                  "diff "
+                  "offby")
+            [print(f"{str(b_date):<29} "
+                   f"{bjd:<14} "
+                   f"{str(g_date):<29} "
+                   f"{gjd:<14} "
+                   f"{diff:<4} "
+                   f"{offby}"
+                   )
+             for (b_date, bjd, g_date,
+                  gjd, diff, offby) in dt.find_gregorian_dates(options)]
     else:
         parser.print_help()
 
