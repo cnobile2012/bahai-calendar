@@ -147,13 +147,13 @@ class GregorianCalendar(BaseCalendar):
                 day = math.ceil(days - (d - ds))
                 break
 
+            day += f - (1.5 if f > 0.5 else 0.5)
 
-            if day == 1 and f > 0.5:
+            if day < 1:
                 month -= 1
                 day += 28
 
-            date = (year, month, round(day + f - (1.5 if f > 0.5 else 0.5),
-                                       self.ROUNDING_PLACES))
+            date = (year, month, round(day, self.ROUNDING_PLACES))
         else:
             j_day = jd + 0.5
             z = math.floor(j_day)

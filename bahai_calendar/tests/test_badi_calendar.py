@@ -30,6 +30,9 @@ class TestBadiCalendar(unittest.TestCase):
     Out[8]:
     (datetime.datetime(1844, 3, 20, 6, 5, 51, 164827, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>),
      datetime.datetime(1844, 3, 20, 18, 11, 6, 983600, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>))
+
+    Alternative latitude and longitude coordinates can be found at:
+    https://latitude.to/map/us/united-states/cities/fuquay-varina
     """
 
     def __init__(self, name):
@@ -94,7 +97,7 @@ class TestBadiCalendar(unittest.TestCase):
              (1, 12, 12, 1, 2, 18, 13, 40.8)),
             ((221, 1, 1), lat, lon, zone, True,
              (221, 1, 2, 18, 13, 40.8)),
-            # Should be 2024-04-19T20:17:00 DST in Raligh NC
+            # Should be 2024-04-19T20:17:00 DST in Raleigh NC
             # (2460420.5 -> 2460421.327631)
             ((181, 2, 13), 35.7796, -78.6382, -4, False,
              (1, 10, 10, 2, 13, 19, 51, 47.318399)),
@@ -111,7 +114,7 @@ class TestBadiCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_naw_ruz(self):
         """
-        Test that the nam_ruz method returns the correct Badi date.
+        Test that the naw_ruz method returns the correct Badi date.
         """
         data = (
             (1, False, (1, 1, 1, 1, 1, 18, 13, 40.8864)), # 1844-03-20T18:13:00
@@ -159,7 +162,7 @@ class TestBadiCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test__is_leap_year(self):
         """
-        Test that the _is_leap_year method returns the correct boolean
+        Test that the _is_leap_year method returns the correct Boolean
         for the given year or long Badi date.
         """
         data = (
@@ -212,7 +215,7 @@ class TestBadiCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_badi_date_from_jd(self):
         """
-        Test that the badi_date_from_jd method returns the correct jd day.
+        Test that the badi_date_from_jd method returns the correct Badi date.
         """
         data = (
             (2394645.5, True, (1, 1, 1)),     # 1844-03-20T00:00:00
@@ -342,9 +345,9 @@ class TestBadiCalendar(unittest.TestCase):
     def test__check_valid_badi_month_day(self):
         """
         Test that the _check_valid_badi_month_day method returns the
-        correct boolean for valid and invalid dates.
+        correct Boolean for valid and invalid dates.
 
-        Note: The boolean below in the data statments determines whether
+        Note: The Boolean below in the data statements determines whether
               or not the data is valid or invalid.
         """
         msg0 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
@@ -473,16 +476,18 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the gregorian_date_from_badi_date method returns the
         correct Gregorian date.
         """
+        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
-            ((1, 1, 1, 18, 16), (1844, 3, 20.761111)),
-            ((181, 3, 18, 20), (2024, 5, 14.833333)),
-            ((181, 3, 19, 20), (2024, 5, 15.833333)),
-            ((181, 4, 1, 17), (2024, 5, 16.708333)),
-            ((181, 4, 1, 20), (2024, 5, 16.833333)),
+            ((1, 1, 1), lat, lon, zone, (1844, 3, 20.758361)),
+            ((181, 3, 18, 20), lat, lon, zone, (2024, 5, 17.292762)),
+            ((181, 3, 19, 20), lat, lon, zone, (2024, 5, 18.293337)),
+            ((181, 4, 1, 17), lat, lon, zone, (2024, 5, 18.918337)),
+            ((181, 4, 1, 20), lat, lon, zone, (2024, 5, 19.293908)),
             )
         msg = "Expected {} for date {}, found {}"
 
-        for date, expected_result in data:
-            result = self._bc.gregorian_date_from_badi_date(date)
+        for date, lat, lon, zone, expected_result in data:
+            result = self._bc.gregorian_date_from_badi_date(date, lat=lat,
+                                                            lon=lon, zone=zone)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
