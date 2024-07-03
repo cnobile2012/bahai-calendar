@@ -501,7 +501,7 @@ class DateTests(BahaiCalendar):
         (1837, 3, 21), (1838, 3, 21), (1839, 3, 21), (1840, 3, 20),
         (1841, 3, 21), (1842, 3, 21), (1843, 3, 21),
         # Badi epoch are the first two below.
-        (1844, 3, 20), (1845, 3, 21), (1846, 3, 21),
+        (1844, 3, 20, 18, 14), (1845, 3, 21), (1846, 3, 21),
         (1847, 3, 21), (1848, 3, 20), (1849, 3, 21), (1850, 3, 21),
         (1851, 3, 21), (1852, 3, 20), (1853, 3, 21), (1854, 3, 21),
         (1855, 3, 21), (1856, 3, 20), (1857, 3, 21), (1858, 3, 21),
@@ -801,7 +801,6 @@ class DateTests(BahaiCalendar):
         (3003, 3, 21), (3004, 3, 21),
         )
     INJECT = (
-        ((1, 1, 1), (1844, 3, 20, 18, 14)),
         ((181, 1, 2), (2024, 3, 21, 18, 14)),
         ((181, 1, 5), (2024, 3, 24, 19, 31)),
         ((181, 2, 13), (2024, 4, 20, 19, 54)),
@@ -823,7 +822,7 @@ class DateTests(BahaiCalendar):
 
     def __init__(self):
         super().__init__()
-        #self.BADI_EPOCH = 2394646.259722
+        #self.BADI_EPOCH = 2394644.258361
         # https://qr.ae/psZONa
         # https://www.someweekendreading.blog/leap-year-revised/
         # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
@@ -880,9 +879,7 @@ class DateTests(BahaiCalendar):
             # it's necessary fix for the leap year using coefficients below.
             d = 18 * 19 + 4 + day
 
-        # BADI_EPOCH = 2394645.5 # 2394646.257639
-        adj = 3 if options.exact else 1
-        badi_epoch_m_o = self.BADI_EPOCH - adj
+        badi_epoch_m_o = self.BADI_EPOCH + 2
         # Mean Tropical Year: 365.242189
         # Sidereal Year: 365.25636
         # Anomalistic Year: 365.25964
@@ -905,8 +902,9 @@ class DateTests(BahaiCalendar):
             m = 18 * 19 + 4
 
         td = self._days_in_years(year-1, alt=options.exact)
-        adj = 3 if options.exact else 1
-        jd = td + (self.BADI_EPOCH - adj) + m + (day - 1) + day % 1
+        adj = -1 if options.exact else -3
+        jd = td + (math.floor(self.BADI_EPOCH) + adj) + m + (day - 1) + day % 1
+        diff = 0
 
         if lat and lon:
             diff = self._fix_hours(day, jd, lat, lon, zone)
@@ -916,13 +914,12 @@ class DateTests(BahaiCalendar):
     def _fix_hours(self, day, jd, lat, lon, zone):
         jds = math.floor(jd)
         ss_a = self._sun_setting(jds, lat, lon, zone)
-        #ss_b = self._sun_setting(jds + 1, lat, lon, zone)
-        #length_of_day = ss_b - ss_a
         p = round(day % 1, 6)
-        #print(f"jd: {jd:<14} ss_a: {ss_a:<14} " #ss_b: {ss_b:<14} "
+        #print(f"jd: {jd:<14} day: {day:<9} ss_a: {ss_a:<14} "
+        #      #f"ss_b: {ss_b:<14} "
         #      f"p: {p:<8}" # lod: {length_of_day}"
         #      , file=sys.stderr)
-        return p + ss_a % 1 + 0.5
+        return p + ss_a % 1 + 1
 
     def _get_coff(self, year):
         def process_century(y, coff1, coff2, onoff):

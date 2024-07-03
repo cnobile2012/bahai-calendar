@@ -24,7 +24,7 @@ class BahaiCalendar(BaseCalendar):
 # https://www.google.com/maps/place/Nur,+Mazandaran+Province,+Iran/@36.569336,52.0050234,15z/data=!3m1!4b1!4m6!3m5!1s0x3f8efdf2a3fc7385:0x1f76f83486da57be!8m2!3d36.5763485!4d52.0133073!16zL20vMGJ6cjl6?entry=ttu
     BAHAI_LOCATION = (36.569336, 52.0050234, 3.5, 0)
 
-    BADI_EPOCH = 2394646.5 # 2394646.258361 # 2394646.5
+    BADI_EPOCH = 2394644.258361
 
     BADI_MONTH_NAMES = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -117,25 +117,6 @@ class BahaiCalendar(BaseCalendar):
         #print(ss_date, b_date)
         return self.short_date_from_long_date(b_date) if short else b_date
 
-    def _is_leap_year(self, date:tuple) -> bool:
-        """
-        Return a boolean True if a Badi leap year, False if not.
-
-        :param date: This value can be either the Badi year or a long form
-                     date.
-        :type date: int or tuple
-        :return:
-        :rtype: bool
-        """
-        if isinstance(date, tuple):
-            assert len(date) >= 3, ("If tuple it must be the Kull-i-Shay', "
-                                    f"Váḥid, and year, found {date}")
-            year = (date[0] - 1) * 361 + (date[1] - 1) * 19 + date[2]
-        else:
-            year = date
-
-        return True if self._days_in_year(year) == 366 else False
-
     def jd_from_badi_date(self, b_date:tuple, lat:float=None, lon:float=None,
                           zone:float=None) -> float:
         """
@@ -161,8 +142,7 @@ class BahaiCalendar(BaseCalendar):
             m = 18 * 19 + 4
 
         td = self._days_in_years(year-1)
-        adj = 3 # Adjustment to Badi Epoch
-        jd = td + (self.BADI_EPOCH - adj) + m + (day - 1) + day % 1
+        jd = td + (math.floor(self.BADI_EPOCH) - 1) + m + (day - 1) + day % 1
         diff = 0
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
@@ -171,7 +151,7 @@ class BahaiCalendar(BaseCalendar):
         jds = math.floor(jd)
         ss_a = self._sun_setting(jds, lat, lon, zone)
         p = round(day % 1, self.ROUNDING_PLACES)
-        diff = p + ss_a % 1 + 0.5
+        diff = p + ss_a % 1 + 1
         return round(jd + diff + self._get_coff(year), self.ROUNDING_PLACES)
 
     def _get_coff(self, year):
@@ -375,44 +355,47 @@ class BahaiCalendar(BaseCalendar):
         """
         Convert a Julian period day to a Badi date.
         """
-        a = jd - (self.BADI_EPOCH - 1)
-        y = a / self.MEAN_TROPICAL_YEAR
-        year = math.floor(y) + 1
-        m = (y % 1) * self.MEAN_TROPICAL_YEAR
-        m1 = math.floor(m / 19)
-        month = m1 + 1
+        md = jd - (self.BADI_EPOCH - 1)
+        year = (md // self.JULIAN_YEAR) + 1
+        td = self._days_in_years(year)
 
-        if month > 18:
-            ay_years = {365: 4, 366: 5}
-            ytd = 18 * 19
-            days_in_year = self._days_in_year(year)
-            ay_days = ay_years.get(days_in_year)
-            assert days_in_year in ay_years.keys(), (
-                "Programming error, incorrect number of days in any "
-                f"year, found {days}.")
-            d = ytd + ay_days
-            dsf = math.ceil(m)
 
-            if ytd < dsf <= d:
-                month = 0
-                day = dsf - ytd
-            else:
-                month -= 1
-                day = days_in_year - d
-        else:
-            day = math.floor(m) - m1 * 19 + 1
+        #days = td + md
 
-        day += round(a, self.ROUNDING_PLACES) % 1
-        date = self.long_date_from_short_date((year, month, day))
-        return self.kvymdhms_from_b_date(date, short)
 
-    def _days_in_year(self, year:int) -> int:
-        """
-        Determine the number of days in the current year.
-        """
-        jd_n0 = self.jd_from_badi_date((year, 1, 1))
-        jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
-        return int(jd_n1 - jd_n0)
+        print('jd:', jd, 'year:', year, 'md:', md, 'td:', td)
+
+
+        ## a = jd - (self.BADI_EPOCH - 1)
+        ## y = a / self.MEAN_TROPICAL_YEAR
+        ## year = math.floor(y) + 1
+        ## m = (y % 1) * self.MEAN_TROPICAL_YEAR
+        ## m1 = math.floor(m / 19)
+        ## month = m1 + 1
+
+        ## if month > 18:
+        ##     ay_years = {365: 4, 366: 5}
+        ##     ytd = 18 * 19
+        ##     days_in_year = self._days_in_year(year)
+        ##     ay_days = ay_years.get(days_in_year)
+        ##     assert days_in_year in ay_years.keys(), (
+        ##         "Programming error, incorrect number of days in any "
+        ##         f"year, found {days}.")
+        ##     d = ytd + ay_days
+        ##     dsf = math.ceil(m)
+
+        ##     if ytd < dsf <= d:
+        ##         month = 0
+        ##         day = dsf - ytd
+        ##     else:
+        ##         month -= 1
+        ##         day = days_in_year - d
+        ## else:
+        ##     day = math.floor(m) - m1 * 19 + 1
+
+        #day += round(a, self.ROUNDING_PLACES) % 1
+        #date = self.long_date_from_short_date((year, month, day))
+        #return self.kvymdhms_from_b_date(date, short)
 
     def short_date_from_long_date(self, b_date:tuple) -> tuple:
         """
@@ -534,6 +517,33 @@ class BahaiCalendar(BaseCalendar):
         if second:
             assert not minute % 1, (
                 "If there is a part minute then there can be no seconds.")
+
+    def _is_leap_year(self, date:tuple) -> bool:
+        """
+        Return a boolean True if a Badi leap year, False if not.
+
+        :param date: This value can be either the Badi year or a long form
+                     date.
+        :type date: int or tuple
+        :return:
+        :rtype: bool
+        """
+        if isinstance(date, tuple):
+            assert len(date) >= 3, ("If tuple it must be the Kull-i-Shay', "
+                                    f"Váḥid, and year, found {date}")
+            year = (date[0] - 1) * 361 + (date[1] - 1) * 19 + date[2]
+        else:
+            year = date
+
+        return True if self._days_in_year(year) == 366 else False
+
+    def _days_in_year(self, year:int) -> int:
+        """
+        Determine the number of days in the current year.
+        """
+        jd_n0 = self.jd_from_badi_date((year, 1, 1))
+        jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
+        return int(math.floor(jd_n1) - math.floor(jd_n0))
 
     def _get_hms(self, date:tuple, short:bool=False) -> tuple:
         """

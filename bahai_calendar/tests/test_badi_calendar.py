@@ -160,32 +160,6 @@ class TestBadiCalendar(unittest.TestCase):
                              msg.format(expected_result, year, short, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__is_leap_year(self):
-        """
-        Test that the _is_leap_year method returns the correct Boolean
-        for the given year or long Badi date.
-        """
-        data = (
-            # Start of years
-            (173, False),                 # 2016
-            ((1, 10, 2, 1, 1), False),    # (2016, 3, 20)
-            (174, True),                  # 2017
-            ((1, 10, 3, 1, 1), True),     # (2017, 3, 20)
-            (175, False),                 # 2018
-            ((1, 10, 4, 1, 1), False),    # (2018, 3, 21)
-            # End of years
-            ((1, 10, 2, 19, 19), False), # (2017, 3, 19)
-            ((1, 10, 3, 19, 19), True),  # (2017, 3, 19)
-            ((1, 10, 4, 19, 19), False), # (2018, 3, 20)
-            )
-        msg = "Expected {} for day {}, found {}"
-
-        for day, expected_result in data:
-            result = self._bc._is_leap_year(day)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, day, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test_jd_from_badi_date(self):
         """
         Test that the jd_from_badi_date method returns the correct jd day.
@@ -193,17 +167,17 @@ class TestBadiCalendar(unittest.TestCase):
         See: https://aa.usno.navy.mil/data/RS_OneYear
         """
         data = (
-            ((1, 1, 1), 2394645.5),                 # 1844-03-20T00:00:00
+            ((1, 1, 1), 2394644.258361),           # 1844-03-20T00:00:00
             # Real epoch at sunset 01-01-01T18:16:00 B.E.
-            ((1, 1, 1, 18, 16), 2394646.261111),    # 1844-03-20T18:16:00
-            ((19, 19, 19), 2401584.5),              # 1863-03-20T00:00:00
-            ((180, 19, 19), 2460388.5),             # 2024-03-19T00:00:00
-            ((181, 3, 2), 2460428.5),               # 2024-04-28T00:00:00
-            ((-260, 1, 1, 18, 16), 2299318.261111), # 1583-03-21T18:16:00
+            ((1, 1, 1, 18, 16), 2394646.5423),     # 1844-03-20T18:16:00
+            ((19, 19, 19), 2401583.257373),        # 1863-03-20T00:00:00
+            ((180, 19, 19), 2460387.257263),       # 2024-03-19T00:00:00
+            ((181, 3, 2), 2460427.281993),         # 2024-04-28T00:00:00
+            ((-260, 1, 1, 18, 16), 2299317.54196), # 1583-03-21T18:16:00
             # A day in Ayyám-i-Há 2022-02-25T00:00:00
-            ((178, 0, 1), 2459635.5),
+            ((178, 0, 1), 2459634.243336),
             # 2024-05-14T20:00
-            ((181, 3, 19, 20), 2460446.333333),
+            ((181, 3, 19, 20), 2460446.792762),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -218,14 +192,12 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the badi_date_from_jd method returns the correct Badi date.
         """
         data = (
-            (2394645.5, True, (1, 1, 1)),     # 1844-03-20T00:00:00
-            # Real epoch at sunset 01-01-01T18:16:00 B.E. 1844-03-20T18:16:00
-            (2394646.261111, True, (1, 1, 1, 18, 15, 59.9904)),
-            (2401584.5, True, (19, 19, 19)),  # 1863-03-20T00:00:00
-            (2460388.5, True, (180, 19, 19)), # 2024-03-19T00:00:00
-            (2460428.5, True, (181, 3, 2)),   # 2024-04-28T00:00:00
-            # 1583-03-21T18:16:00
-            (2299318.261111, True, (-260, 1, 1, 18, 15, 59.9904)),
+            #(2394644.258361, True, (1, 1, 1)),    # 1844-03-20T18:14:00
+            (2401584.257983, True, (20, 1, 1)),   # 1863-03-20T18:13:00
+            (2460388.258491, True, (181, 1, 1)),  # 2024-03-20T18:14:00
+            (2460419.277143, True, (181, 2, 13)), # 2024-04-28T18:48:00
+            # 1583-03-21T18:14:00
+            (2299316.258627, True, (-260, 1, 1)),
             # A day in Ayyám-i-Há 2022-02-25T00:00:00
             (2459635.5, True, (178, 0, 1)),   # 2022-02-25T00:00:00
             # 2024-05-14T19:59:59.9712 - long form
@@ -434,6 +406,42 @@ class TestBadiCalendar(unittest.TestCase):
                     self.assertEqual(err_msg.format(num_days), message)
 
     #@unittest.skip("Temporarily skipped")
+    def test__is_leap_year(self):
+        """
+        Test that the _is_leap_year method returns the correct Boolean
+        for the given year or long Badi date.
+        """
+        data = (
+            # Start of years
+            (173, False),                 # 2016
+            ((1, 10, 2, 1, 1), False),    # (2016, 3, 20)
+            (174, True),                  # 2017
+            ((1, 10, 3, 1, 1), True),     # (2017, 3, 20)
+            (175, False),                 # 2018
+            ((1, 10, 4, 1, 1), False),    # (2018, 3, 21)
+            # End of years
+            ((1, 10, 2, 19, 19), False), # (2017, 3, 19)
+            ((1, 10, 3, 19, 19), True),  # (2017, 3, 19)
+            ((1, 10, 4, 19, 19), False), # (2018, 3, 20)
+            )
+        msg = "Expected {} for day {}, found {}"
+
+        for day, expected_result in data:
+            result = self._bc._is_leap_year(day)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, day, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test__days_in_year(self):
+        """
+        Test that the _days_in_year method returns the correct number of
+        days in the current year.
+        """
+        pass
+
+
+
+    #@unittest.skip("Temporarily skipped")
     def test__get_hms(self):
         """
         Test that the _get_hms method parses the hours, minutes, and
@@ -479,10 +487,10 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             ((1, 1, 1), lat, lon, zone, (1844, 3, 20.758361)),
-            ((181, 3, 18, 20), lat, lon, zone, (2024, 5, 17.292762)),
-            ((181, 3, 19, 20), lat, lon, zone, (2024, 5, 18.293337)),
+            ((181, 3, 18, 20), lat, lon, zone, (2024, 5, 17.292183)),
+            ((181, 3, 19, 20), lat, lon, zone, (2024, 5, 18.292762)),
             ((181, 4, 1, 17), lat, lon, zone, (2024, 5, 18.918337)),
-            ((181, 4, 1, 20), lat, lon, zone, (2024, 5, 19.293908)),
+            ((181, 4, 1, 20), lat, lon, zone, (2024, 5, 19.293337)),
             )
         msg = "Expected {} for date {}, found {}"
 
