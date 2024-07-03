@@ -20,8 +20,6 @@ class DateTests(BahaiCalendar):
 
     # The following three must be updated in unison.
     # This must be the first Gregorian date in TMP_ANS_DATES below.
-    START_G = 1494
-    END_G = 3004
     TRAN_COFF = 1843
     # https://www.timeanddate.com/sun/@112931?month=3&year=1844
     # The site below is where I've gotten the Vernal Equinox data it uses
@@ -801,6 +799,9 @@ class DateTests(BahaiCalendar):
         (3003, 3, 21), (3004, 3, 21),
         )
     INJECT = (
+        ((178, 0, 5), (2022, 3, 1, 17, 56)),
+        ((178, 19, 1), (2022, 3, 2, 17, 57)),
+        ((178, 19, 2), (2022, 3, 3, 17, 58)),
         ((181, 1, 2), (2024, 3, 21, 18, 14)),
         ((181, 1, 5), (2024, 3, 24, 19, 31)),
         ((181, 2, 13), (2024, 4, 20, 19, 54)),
@@ -822,7 +823,6 @@ class DateTests(BahaiCalendar):
 
     def __init__(self):
         super().__init__()
-        #self.BADI_EPOCH = 2394644.258361
         # https://qr.ae/psZONa
         # https://www.someweekendreading.blog/leap-year-revised/
         # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
@@ -830,27 +830,10 @@ class DateTests(BahaiCalendar):
         self.MEAN_TROPICAL_YEAR = 365.242189
         self.gc = GregorianCalendar()
 
-    def _calc_kvymd(self, days, k, v, y, m, data):
-        year = (k - 1) * 361 + (v - 1) * 19 + y
-
-        for d in reversed(range(1, days)):
-            data.append(((k, v, y, m, d), (year, m, d)))
-
-    def create_date_lists(self):
-        data = []
-
-        for k in reversed(range(self.START_K, self.END_K)):
-            for v in reversed(range(1, 20)):
-                for y in reversed(range(1, 20)):
-                    for m in reversed(range(0, 20)):
-                        if m == 0:
-                            self._calc_kvymd(5, k, v, y, m, data)
-                        else:
-                            self._calc_kvymd(20, k, v, y, m, data)
-
-        return data
-
     def check_long_date_from_short_date(self, data):
+        """
+        -c or --ck-dates
+        """
         items = []
 
         for item in data:
@@ -862,7 +845,29 @@ class DateTests(BahaiCalendar):
 
         return items
 
+    def create_date_lists(self, options):
+        """
+        -l or --list
+        Also -S and -E must both used together.
+        """
+        data = []
+
+        for k in reversed(range(options.start, options.end)):
+            for v in reversed(range(1, 20)):
+                for y in reversed(range(1, 20)):
+                    for m in reversed(range(0, 20)):
+                        if m == 0:
+                            self._calc_kvymd(5, k, v, y, m, data)
+                        else:
+                            self._calc_kvymd(20, k, v, y, m, data)
+
+        return data
+
     def analyze_date_error(self, options):
+        """
+        -a, optional -C, -G, and -X
+        Also if -S and -E are used they must be used together.
+        """
         return self._date_range(options)
 
     def _jd_from_badi_date(self, b_date, options):
@@ -1119,6 +1124,9 @@ class DateTests(BahaiCalendar):
         return coff
 
     def consecutive_years(self):
+        """
+        -k or --consecutive
+        """
         data = []
         py = 0
 
@@ -1133,6 +1141,9 @@ class DateTests(BahaiCalendar):
         return data
 
     def get_range(self, end):
+        """
+        -r or --range
+        """
         seq = {-159: -259, -64: -159, 35: -64, 134: 35, 233: 134, 332: 233,
                386: 332, 617: 517, 716: 617, 815: 716, 914: 815, 1013: 914,
                1112: 1013, 1211: 1112}
@@ -1151,6 +1162,8 @@ class DateTests(BahaiCalendar):
 
     def find_coefficents_precursor(self, options):
         """
+        -p or --precursor
+
         This determines which coefficient group should be used for the
         years provided. The years provided are on the Badi Calendar - or +
         the epoch.
@@ -1194,6 +1207,9 @@ class DateTests(BahaiCalendar):
         return data
 
     def find_coefficents(self, options):
+        """
+        -q or --coeff and -S and -E
+        """
         data = self._date_range(options)
         cp = {by: (n, a)
               for gy, by, n, a in self.find_coefficents_precursor(options)}
@@ -1221,6 +1237,8 @@ class DateTests(BahaiCalendar):
 
     def find_gregorian_dates(self, options):
         """
+        -g or --g-dates and -S and -E
+
         Converts Badi to Gregorian dates for the given range.
         """
         data = []
@@ -1297,6 +1315,12 @@ class DateTests(BahaiCalendar):
         g_date = self.gc.ymdhms_from_date(gd)
         return g_date
 
+    def _calc_kvymd(self, days, k, v, y, m, data):
+        year = (k - 1) * 361 + (v - 1) * 19 + y
+
+        for d in reversed(range(1, days)):
+            data.append(((k, v, y, m, d), (year, m, d)))
+
 
 if __name__ == "__main__":
     import argparse
@@ -1304,11 +1328,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description=("Test Badi date ranges."))
     parser.add_argument(
-        '-l', '--list', action='store_true', default=False, dest='list',
-        help="Generate a list of Badi dates both long and short versions.")
-    parser.add_argument(
         '-c', '--ck-dates', action='store_true', default=False, dest='ck_dates',
         help="Check that long_date_from_short_date() works correctly.")
+    parser.add_argument(
+        '-l', '--list', action='store_true', default=False, dest='list',
+        help="Generate a list of Badi dates both long and short versions.")
     parser.add_argument(
         '-a', '--analyze', action='store_true', default=False, dest='analyze',
         help="Analyze Badi date errors when converting to jd.")
@@ -1353,22 +1377,30 @@ if __name__ == "__main__":
                        options.consecutive, options.range != 0)
     assert exclusive_error.count(True) <= 1, (
         "Options -l, -c, -a, -k, and -r are exclusive.")
-
     dt = DateTests()
     ret = 0
-    if options.list:
-        data = dt.create_date_lists()
-        pprint.pprint(data)
-    elif options.ck_dates:
-        data = dt.create_date_lists()
-        bad_items = dt.check_long_date_from_short_date(data)
-        bad_items = bad_items if bad_items else "All dates match."
-        pprint.pprint(bad_items)
+
+    if options.ck_dates:
+        if options.start is None or options.end is None:
+            print("If option -c is used, -S and -E must also be used.")
+            ret = 1
+        else:
+            data = dt.create_date_lists(options)
+            bad_items = dt.check_long_date_from_short_date(data)
+            bad_items = bad_items if bad_items else "All dates match."
+            pprint.pprint(bad_items)
+    elif options.list:
+        if options.start is None or options.end is None:
+            print("If option -l is used, -S and -E must also be used.")
+            ret = 1
+        else:
+            data = dt.create_date_lists(options)
+            pprint.pprint(data)
     elif options.analyze:
         if options.start is None or options.end is None:
             # Set default Badi years.
-            options.start = -1842
-            options.end = 1162
+            options.start = -1842 # Gregorian year 1
+            options.end = 1162    # Gregorian year 3004
 
         if options.graph:
             options.coff = True

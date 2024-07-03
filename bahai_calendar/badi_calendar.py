@@ -356,15 +356,24 @@ class BahaiCalendar(BaseCalendar):
         Convert a Julian period day to a Badi date.
         """
         md = jd - (self.BADI_EPOCH - 1)
-        year = (md // self.JULIAN_YEAR) + 1
+        md -= 1 if md < 0 else 0
+        year = math.floor(md / self.JULIAN_YEAR)
         td = self._days_in_years(year)
+        days = md - td
+        m = days / 19
+        month = math.floor(m) + 1
+        day = math.floor((m % 1) * 19)
+        year += 1
+        a = 5 if self._is_leap_year(year) else 4
 
+        if 342 < math.ceil(days) <= (342 + a): # Ayyám-i-Há
+            month = 0
+            day = math.ceil(days % 1)
 
-        #days = td + md
+        date = (year, month, day)
 
-
-        print('jd:', jd, 'year:', year, 'md:', md, 'td:', td)
-
+        print('jd:', jd, 'md:', md, 'td:', td, 'days:', days, 'm:', m,
+              'a:', a, 'date:', date)
 
         ## a = jd - (self.BADI_EPOCH - 1)
         ## y = a / self.MEAN_TROPICAL_YEAR
@@ -393,9 +402,8 @@ class BahaiCalendar(BaseCalendar):
         ## else:
         ##     day = math.floor(m) - m1 * 19 + 1
 
-        #day += round(a, self.ROUNDING_PLACES) % 1
-        #date = self.long_date_from_short_date((year, month, day))
-        #return self.kvymdhms_from_b_date(date, short)
+        date = self.long_date_from_short_date((year, month, day))
+        return self.kvymdhms_from_b_date(date, short)
 
     def short_date_from_long_date(self, b_date:tuple) -> tuple:
         """
