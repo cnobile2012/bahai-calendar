@@ -1123,20 +1123,57 @@ class DateTests(BahaiCalendar):
 
         return coff
 
-    def consecutive_years(self):
+    def consecutive_years(self, options):
         """
         -k or --consecutive
+        If -Y is used then consecutive years are check from the defined
+        TMP_ANS_DATES list. If -Y is not defined then a check on consecutive
+        days are checked based on -S and -E.
+
+        If -X is used the more exact mode is used. This should be the
+        normal usage.
+
+        There should be no output so any output indicates inconsecutive years.
         """
         data = []
         py = 0
 
-        for g_date in self.TMP_ANS_DATES:
-            year = g_date[0]
+        if options.year:
+            for g_date in self.TMP_ANS_DATES:
+                year = g_date[0]
 
-            if py != 0 and py != year and year != (py + 1):
-                data.append(g_date)
+                if py != 0 and py != year and year != (py + 1):
+                    data.append(g_date)
 
             py = year
+        else:
+            items = []
+            last_jd = 0
+            last_date = ()
+            months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                      12, 13, 14, 15, 16, 17, 18, 0, 19)
+
+            for year in range(options.start, options.end):
+                for month in months:
+                    if month == 0:
+                        a = 5 if self._is_leap_year(year) else 4
+
+                        for day in range(1, a + 1):
+                            items.append((year, month, day))
+                    else:
+                        for day in range(1, 20):
+                            items.append((year, month, day))
+
+            for item in items:
+                jd = self._jd_from_badi_date_alt(
+                    item, options, *self.BAHAI_LOCATION[:3])
+                jdf = math.floor(jd)
+
+                if not (last_jd == 0 or jdf == (last_jd + 1)):
+                    data.append((item, jdf, last_date, last_jd, jdf-last_jd))
+
+                last_jd = jdf
+                last_date = item
 
         return data
 
@@ -1368,10 +1405,13 @@ if __name__ == "__main__":
               "graphing."))
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
-        help="Start year of sequence.")
+        help="Start Badi year of sequence.")
     parser.add_argument(
         '-E', '--end', type=int, default=None, dest='end',
-        help="End year of sequence.")
+        help="End Badi year of sequence.")
+    parser.add_argument(
+        '-Y', '--year', action='store_true', default=False, dest='year',
+        help="Run test for the defines years 1 - 3004.")
     options = parser.parse_args()
     exclusive_error = (options.list, options.ck_dates, options.analyze,
                        options.consecutive, options.range != 0)
@@ -1447,8 +1487,25 @@ if __name__ == "__main__":
                 coff = sum(diffs) / len(diffs)
                 print(coff)
     elif options.consecutive:
-        data = dt.consecutive_years()
-        [print(item) for item in data]
+        if (options.year is False and
+            (options.start is None or options.end is None)):
+            # Set default Badi years.
+            options.start = -1842 # Gregorian year 1
+            options.end = 1162    # Gregorian year 3004
+
+        if options.year:
+            [print(item) for item in dt.consecutive_years(options)]
+        else:
+            data = dt.consecutive_years(options)
+            [print(
+                f"{str(item):<15} {jdf:<7} "
+                f"{str(l_date):<15} {l_jd:<7} "
+                f"{diff:<2}"
+                ) for item, jdf, l_date, l_jd, diff in data]
+            years = options.end-options.start
+            print(f"Years analyzed: {years}\n"
+                  f"Approximate days analyzed: {years*dt.JULIAN_YEAR}\n"
+                  f"Total errors: {len(data)}")
     elif options.range != 0:
         data = dt.get_range(options.range)
         [print(item) for item in data]
@@ -1467,8 +1524,7 @@ if __name__ == "__main__":
             print("If option -q is used, -S and -E must also be used.")
             ret = 1
         else:
-            data = dt.find_coefficents(options)
-            [print(item) for item in data]
+            [print(item) for item in dt.find_coefficents(options)]
     elif options.g_dates:
         if options.start is None or options.end is None:
             print("If option -g is used, -S and -E must also be used.")
