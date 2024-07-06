@@ -1088,7 +1088,23 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # Additional methods
     #
 
-    def _days_in_years(self, y, alt=False):
+    def _days_in_years(self, y:int, alt:bool=False) -> int:
+        """
+        Find the number of days up to the provided year.
+
+        :param y: The year to count to.
+        :type y: int
+        :param alt: If True use the 4|128 rule else if False use the 4|100|400
+                    rule. The default is False.
+        :return: The count of days including year one to the given year.
+        :rtype: int
+
+        .. note::
+
+           This method starts the count from year 1 of the Julian Calendar,
+           however, it uses one of the two leap rules described above instead
+           of the usual Julian Calendar leap year rule of every 4 year.
+        """
         n_4 = y // 4
 
         if alt:

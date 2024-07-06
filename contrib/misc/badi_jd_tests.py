@@ -38,8 +38,8 @@ class DateTests(BahaiCalendar):
     TMP_ANS_DATES = (
         (   1, 3, 20, 18, 13), (   2, 3, 21, 18, 14), (   3, 3, 21, 18, 14),
         (   4, 3, 20, 18, 14), (   5, 3, 20, 18, 13), (   6, 3, 21, 18, 14),
-        (   7, 3, 21), (   8, 3, 20),
-        (   9, 3, 20), (  10, 3, 21), (  11, 3, 21), (  12, 3, 20),
+        (   7, 3, 21, 18, 14), (   8, 3, 20, 18, 14), (   9, 3, 20, 18, 14),
+        (  10, 3, 21, 18, 14), (  11, 3, 21, 18, 14), (  12, 3, 20, 18, 14),
         (  13, 3, 20), (  14, 3, 21), (  15, 3, 21), (  16, 3, 20),
         (  17, 3, 20), (  18, 3, 21), (  19, 3, 21), (  20, 3, 20),
         (  21, 3, 20), (  22, 3, 21), (  23, 3, 21), (  24, 3, 20),
@@ -51,7 +51,7 @@ class DateTests(BahaiCalendar):
         (  45, 3, 20), (  46, 3, 20), (  47, 3, 21), (  48, 3, 20),
         (  49, 3, 20), (  50, 3, 20), (  51, 3, 21), (  52, 3, 20),
         (  53, 3, 20), (  54, 3, 20), (  55, 3, 21), (  56, 3, 20),
-        (  57, 3, 20), (  58, 3, 20), (  59, 3, 21), (  60, 3, 21),
+        (  57, 3, 20), (  58, 3, 20), (  59, 3, 21), (  60, 3, 20),
         (  61, 3, 20), (  62, 3, 20), (  63, 3, 20), (  64, 3, 20),
         (  65, 3, 20), (  66, 3, 20), (  67, 3, 20), (  68, 3, 20),
         (  69, 3, 20), (  70, 3, 20), (  71, 3, 20), (  72, 3, 20),
@@ -101,7 +101,7 @@ class DateTests(BahaiCalendar):
         ( 245, 3, 21), ( 246, 3, 21), ( 247, 3, 21), ( 248, 3, 20),
         ( 249, 3, 21), ( 250, 3, 21), ( 251, 3, 21), ( 252, 3, 20),
         ( 253, 3, 21), ( 254, 3, 21), ( 255, 3, 21), ( 256, 3, 20),
-        ( 257, 3, 21), ( 258, 3, 20), ( 259, 3, 21), ( 260, 3, 20),
+        ( 257, 3, 21), ( 258, 3, 21), ( 259, 3, 21), ( 260, 3, 20),
         ( 261, 3, 20), ( 262, 3, 21), ( 263, 3, 21), ( 264, 3, 20),
         ( 265, 3, 20), ( 266, 3, 21), ( 267, 3, 21), ( 268, 3, 20),
         ( 269, 3, 20), ( 270, 3, 21), ( 271, 3, 21), ( 272, 3, 20),
@@ -497,9 +497,9 @@ class DateTests(BahaiCalendar):
         (1829, 3, 21), (1830, 3, 21), (1831, 3, 21), (1832, 3, 20),
         (1833, 3, 21), (1834, 3, 21), (1835, 3, 21), (1836, 3, 20),
         (1837, 3, 21), (1838, 3, 21), (1839, 3, 21), (1840, 3, 20),
-        (1841, 3, 21), (1842, 3, 21), (1843, 3, 21),
+        (1841, 3, 21, 18, 14), (1842, 3, 21, 18, 14), (1843, 3, 21, 18, 14),
         # Badi epoch are the first two below.
-        (1844, 3, 20, 18, 14), (1845, 3, 21), (1846, 3, 21),
+        (1844, 3, 20, 18, 14), (1845, 3, 21, 18, 14), (1846, 3, 21, 18, 14),
         (1847, 3, 21), (1848, 3, 20), (1849, 3, 21), (1850, 3, 21),
         (1851, 3, 21), (1852, 3, 20), (1853, 3, 21), (1854, 3, 21),
         (1855, 3, 21), (1856, 3, 20), (1857, 3, 21), (1858, 3, 21),
@@ -543,6 +543,20 @@ class DateTests(BahaiCalendar):
         (2007, 3, 21), (2008, 3, 20), (2009, 3, 20), (2010, 3, 21),
         (2011, 3, 21), (2012, 3, 20), (2013, 3, 20), (2014, 3, 21),
         # First World Center date on 2015
+        ## (2015, 3, 21), (2016, 3, 20), (2017, 3, 20), (2018, 3, 21),
+        ## (2019, 3, 21), (2020, 3, 20), (2021, 3, 20), (2022, 3, 21),
+        ## (2023, 3, 21), (2024, 3, 20), (2025, 3, 20), (2026, 3, 21),
+        ## (2027, 3, 21), (2028, 3, 20), (2029, 3, 20), (2030, 3, 20),
+        ## (2031, 3, 21), (2032, 3, 20), (2033, 3, 20), (2034, 3, 20),
+        ## (2035, 3, 21), (2036, 3, 20), (2037, 3, 20), (2038, 3, 20),
+        ## (2039, 3, 21), (2040, 3, 20), (2041, 3, 20), (2042, 3, 20),
+        ## (2043, 3, 21), (2044, 3, 20), (2045, 3, 20), (2046, 3, 20),
+        ## (2047, 3, 21), (2048, 3, 20), (2049, 3, 20), (2050, 3, 20),
+        ## (2051, 3, 21), (2052, 3, 20), (2053, 3, 20), (2054, 3, 20),
+        ## (2055, 3, 21), (2056, 3, 20), (2057, 3, 20), (2058, 3, 20),
+        ## (2059, 3, 20), (2060, 3, 20), (2061, 3, 20), (2062, 3, 20),
+        #              Last World Center date on 2064
+        ## (2063, 3, 20), (2064, 3, 20), (2065, 3, 20), (2066, 3, 20),
         (2015, 3, 21, 18, 14), (2016, 3, 20, 18, 14), (2017, 3, 20, 18, 14),
         (2018, 3, 21, 18, 14), (2019, 3, 21, 18, 14), (2020, 3, 20, 18, 14),
         (2021, 3, 20, 18, 14), (2022, 3, 21, 18, 14), (2023, 3, 21, 18, 14),
@@ -891,7 +905,8 @@ class DateTests(BahaiCalendar):
         jey_y_m_o = self.MEAN_TROPICAL_YEAR * (year - 1)
         return round(badi_epoch_m_o + jey_y_m_o + d, 6)
 
-    def _jd_from_badi_date_alt(self, b_date, options, lat=0, lon=0, zone=0):
+    def _jd_from_badi_date_alt(self, b_date, options, lat=None,
+                               lon=None, zone=None):
         date = self.date_from_kvymdhms(
             self.long_date_from_short_date(b_date), short=True)
         year, month, day = date
@@ -901,33 +916,25 @@ class DateTests(BahaiCalendar):
         elif month < 19:
             m = (month - 1) * 19
         else: # month == 19:
-            # Because we have to use 4 days without knowing if the leap year
-            # is 4 or 5 days it's necessary to fix the day count by using
-            # coefficients below.
-            m = 18 * 19 + 4
+            m = 18 * 19 + (5 if self._is_leap_year(year) else 4)
 
-        td = self._days_in_years(year-1, alt=options.exact)
+        td = self._days_in_years(year-1, alt=options.alt_leap)
         adj = -1 if options.exact else -3
         jd = td + (math.floor(self.BADI_EPOCH) + adj) + m + (day - 1) + day % 1
-        diff = 0
 
-        if lat and lon:
-            diff = self._fix_hours(day, jd, lat, lon, zone)
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        return round(jd + diff, 6)
-
-    def _fix_hours(self, day, jd, lat, lon, zone):
         jds = math.floor(jd)
         ss_a = self._sun_setting(jds, lat, lon, zone)
         p = round(day % 1, 6)
-        #print(f"jd: {jd:<14} day: {day:<9} ss_a: {ss_a:<14} "
-        #      #f"ss_b: {ss_b:<14} "
-        #      f"p: {p:<8}" # lod: {length_of_day}"
-        #      , file=sys.stderr)
-        return p + ss_a % 1 + 1
+        diff = p + ss_a % 1 + 2
+        #diff = 1
+        coff = 0 if options.coff else self._get_coff(year)
+        return round(jd + diff + coff, 6)
 
     def _get_coff(self, year):
-        def process_century(y, coff1, coff2, onoff):
+        def process_segment(y, coff1, coff2, onoff):
             func = lambda y: 1 < y < 100 and y % 4 in onoff
             coff = 0
 
@@ -939,185 +946,195 @@ class DateTests(BahaiCalendar):
             return coff
 
         # General ranges are determined with:
-        # ./contrib/misc/full_partial.py -p -S start_year -E end_year
+        # ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
         # Where -S is the 1st year and -E is the nth year + 1 that needs to
         # be process. Use the following command to test the results.
-        # ./contrib/misc/full_partial.py -qX -S start_year -E end_year
+        # ./contrib/misc/badi_jd_tests.py -qX -S start_year -E end_year
         # The if or elif statments may not have the same ranges as are
-        # passed into the process_century method because we may need to skip
+        # passed into the process_segment method because we may need to skip
         # over already good results.
-        if year < -1820: # -1920 to -1821 (range -S-1920 -E-1821)
-            coff = process_century(-1821 - year, -1, -1, (1, 2))
-        elif year < -1791: # -1821 to -1792 (range -S-1821 -E-1792)
-            coff = process_century(-1792 - year, -1, -1, (1, 2, 3))
-        elif year < -1747: # -1792 to -1748 (range -S-1792  -E-1782)
-            coff = process_century(-1782 - year, 1, 1, (2,))
+        if year < -1819: # -1842 to -1820 (range -S-1920 -E-1821)
+            coff = process_segment(-1821 - year, -1, -1, (1, 2))
+        elif year < -1796: # -1819 to -1797 (range -S-1819 -E-1800)
+            coff = process_segment(-1800 - year, -1, -1, (1, 2, 3))
+        elif year < -1747: # -1796 to -1748 (range -S-1792  -E-1782)
+            coff = process_segment(-1782 - year, 0, 1, (2,))
         elif year < -1715: # -1747 to -1716 (range -S-1747 -E-1717)
-            coff = process_century(-1717 - year, 0, -1, (2,))
-        elif year < -1687: # -1715 to -1687 (range -S-1715 -E-1689)
-            coff = process_century(-1689 - year, -1, -1, (1, 2))
-        elif year < -1660: # -1686 to -1661 (range -S-1687 -E-1664)
-            coff = process_century(-1664 - year, -1, -1, (1, 2, 3))
-        elif year < -1615: # -1660 to -1616 (range -S-1660 -E-1654)
-            coff = process_century(-1654 - year, 0, 1, (2,))
-        elif year < -1583: # -1615 to -1584 (range -S-1615 -E-1584)
-            coff = process_century(-1584 - year, -1, -1, (3,))
-        elif year < -1551: # -1583 to -1552 (range -S-1583 -E-1553)
-            coff = process_century(-1553 - year, -1, -1, (1, 2))
-        elif year < -1532: # -1551 to -1533 (range -S-1551 -E-1536)
-            coff = process_century(-1536 - year, -1, -1, (1, 2, 3))
-        elif year < -1479: # -1532 to -1480 (range -S-1532 -E-1518)
-            coff = process_century(-1518 - year, 0, 1, (2,))
+            coff = process_segment(-1717 - year, 0, -1, (2,))
+        elif year < -1697: # -1715 to -1698 (range -S-1715 -E-1701)
+            coff = process_segment(-1701 - year, -1, -1, (1, 2))
+        elif year < -1684: # -1697 to -1685 (range -S-1697 -E-1687)
+            coff = process_segment(-1687 - year, 1, 1, (1, 2))
+        elif year < -1615: # -1684 to -1616 (range -S-1684 -E-1655)
+            coff = process_segment(-1655 - year, 1, 1, (1,))
+        elif year < -1583: # -1615 to -1584 (range -S-1615 -E-1586)
+            coff = process_segment(-1586 - year, -1, -1, (1,))
+        elif year < -1551: # -1583 to -1552 (range -S-1585 -E-1553)
+            coff = process_segment(-1553 - year, -1, -1, (1, 2))
+        elif year < -1519: # -1551 to -1520 (range -S-1551 -E-1520)
+            coff = process_segment(-1520 - year, -1, -1, (1, 2, 3))
+        elif year < -1479: # -1519 to -1480 (range -S-1519 -E-1499)
+            coff = process_segment(-1499 - year, -1, -1, (0, 1, 2, 3))
         elif year < -1447: # -1779 to -1448 (range -S-1479 -E-1450)
-            coff = process_century(-1450 - year, -1, -1, (1,))
+            coff = process_segment(-1450 - year, -1, -1, (1,))
         elif year < -1415: # -1447 to -1416 (range -S-1447 -E-1417)
-            coff = process_century(-1417 - year, -1, -1, (1, 2))
-        elif year < -1404: # -1415 to -1405 (range -S-1415 -E-1408)
-            coff = process_century(-1408 - year, -1, -1, (1, 2, 3))
-        elif year < -1347: # -1404 to -1348 (range -S-1404 -E-1387)
-            coff = process_century(-1387 - year, 1, 1, (1,))
+            coff = process_segment(-1417 - year, -1, -1, (1, 2))
+        elif year < -1396: # -1415 to -1397 (range -S-1415 -E-1400)
+            coff = process_segment(-1400 - year, -1, -1, (1, 2, 3))
+        elif year < -1347: # -1396 to -1348 (range -S-1396 -E-1387)
+            coff = process_segment(-1387 - year, 1, 1, (1,))
         elif year < -1315: # -1347 to -1316 (range -S-1347 -E-1318)
-            coff = process_century(-1318 - year, -1, -1, (1,))
-        elif year < -1276: # -1315 to -1277 (range -S-1315 -E-1280)
-            coff = process_century(-1280 - year, -1, -1, (2, 3))
-        elif year < -1215: # -1276 to -1216 (range -S-1276 -E-1251)
-            coff = process_century(-1251 - year, 1, 1, (1,))
+            coff = process_segment(-1318 - year, -1, -1, (1,))
+        elif year < -1297: # -1315 to -1298 (range -S-1315 -E-1301)
+            coff = process_segment(-1301 - year, -1, -1, (1, 2,))
+        elif year < -1280: # -1296 to -1281 (range -S-1297 -E-1283)
+            coff = process_segment(-1283 - year, 1, 1, (1, 2))
+        elif year < -1215: # -1280 to -1216 (range -S-1280 -E-1251)
+            coff = process_segment(-1251 - year, 1, 1, (1,))
         elif year < -1183: # -1215 to -1184 (range -S-1215 -E-1186)
-            coff = process_century(-1186 - year, -1, -1, (1,))
-        elif year < -1148: # -1183 to -1047 (range -S-1183 -E-1153)
-            coff = process_century(-1153 - year, -1, -1, (1, 2))
-        elif year < -1079: # -1148 to -1080 (range -S-1148 -E-1119)
-            coff = process_century(-1119 - year, 1, 1, (1,))
-        elif year < -1052: # -1079 to -1053 (range -S-1079 -E-1052)
-            coff = process_century(-1052 - year, 0, -1, (3,))
-        elif year < -1021: # -1052 to -1022 (range -S-1051 -E-1025)
-            coff = process_century(-1025 - year, -1, -1, (1, 2))
-        elif year < -947: # -1021 to -948 (range -S-1021 -E-987)
-            coff = process_century(-987 - year, 1, 1, (1,))
+            coff = process_segment(-1186 - year, -1, -1, (1,))
+        elif year < -1151: # -1183 to -1152 (range -S-1183 -E-1153)
+            coff = process_segment(-1153 - year, -1, -1, (1, 2))
+        elif year < -1119: # -1151 to -1120 (range -S-1151 -E-1120)
+            coff = process_segment(-1120 - year, -1, -1, (1, 2, 3,))
+        elif year < -1079: # -1119 to -1080 (range -S-1119 -E-1099)
+            coff = process_segment(-1099 - year, -1, -1, (0, 1, 2, 3))
+        elif year < -1051: # -1079 to -1052 (range -S-1079 -E-1054)
+            coff = process_segment(-1054 - year, -1, -1, (1,))
+        elif year < -1019: # -1051 to -1020 (range -S-1051 -E-1021)
+            coff = process_segment(-1021 - year, -1, -1, (1, 2))
+        elif year < -996: # -1019 to -997 (range -S-1019 -E-1000)
+            coff = process_segment(-1000 - year, -1, -1, (1, 2, 3))
+        elif year < -947: # -996 to -948 (range -S-996 -E-987)
+            coff = process_segment(-987 - year, 1, 1, (1,))
         elif year < -915: # -947 to -916 (range -S-947 -E-918)
-            coff = process_century(-918 - year, -1, -1, (1,))
-        elif year < -893: # -915 to -894 (range -S-915 -E-897)
-            coff = process_century(-897 - year, -1, -1, (1, 2))
-        elif year < -880: # -893 to -881 (range -S-893 -E-883)
-            coff = process_century(-883 - year, 1, 1, (1, 2))
+            coff = process_segment(-918 - year, -1, -1, (1,))
+        elif year < -897: # -915 to -898 (range -S-915 -E-901
+            coff = process_segment(-901 - year, -1, -1, (1, 2))
+        elif year < -880: # -897 to -881 (range -S-897 -E-883)
+            coff = process_segment(-883 - year, 1, 1, (1, 2))
         elif year < -815: # -880 to -816 (range -S-880 -E-851)
-            coff = process_century(-851 - year, 1, 1, (1,))
-        elif year < -783: # -815 to -784 (range -S-815 -E-786
-            coff = process_century(-786 - year, -1, -1, (1,))
-        elif year < -765: # -783 to -766 (range -S-783 -E-769)
-            coff = process_century(-769 - year, -1, -1, (1, 2))
-        elif year < -748: # -765 to -749 (range -S-765 -E-751)
-            coff = process_century(-751 - year, 1, 1, (1, 2))
-        elif year < -683: # -748 to -684 (range -S-748 -E-719)
-            coff = process_century(-719 - year, 1, 1, (1,))
-        elif year < -651: # -683 to -652 (range -S-683 -E-653
-            coff = process_century(-653 - year, 0, -1, (2,))
-        elif year < -637: # -651 to -638 (range -S-651 -E-641)
-            coff = process_century(-641 - year, -1, -1, (1, 2))
-        elif year < -616: # -637 to -617 (range -S-637 -E-619)
-            coff = process_century(-619 - year, 1, 1, (1, 2))
-        elif year < -547: # -616 to -548 (range -S-616 -E-587)
-            coff = process_century(-587 - year, 1, 1, (1,))
-        elif year < -509: # -547 to -510 (range -S-547 -E-513)
-            coff = process_century(-513 - year, -1, -1, (2,))
-        elif year < -480: # -509 to -481 (range -S-509 -E-483)
-            coff = process_century(-483 - year, 1, 1, (1, 2))
+            coff = process_segment(-851 - year, 1, 1, (1,))
+        elif year < -783: # -815 to -784 (range -S-815 -E-786)
+            coff = process_segment(-786 - year, -1, -1, (1,))
+        elif year < -751: # -783 to -752 (range -S-783 -E-753
+            coff = process_segment(-753 - year, -1, -1, (1, 2,))
+        elif year < -719: # -751 to -720 (range -S-751 -E-720)
+            coff = process_segment(-720 - year, -1, -1, (1, 2, 3))
+        elif year < -683: # -719 to -684 (range -S-719 -E-699)
+            coff = process_segment(-699 - year, -1, -1, (0, 1, 2, 3))
+        elif year < -651: # -683 to -652 (range -S-683 -E-654)
+            coff = process_segment(-654 - year, -1, -1, (1,))
+        elif year < -619: # -651 to -620 (range -S-651 -E-621)
+            coff = process_segment(-621 - year, -1, -1, (1, 2,))
+        elif year < -596: # -619 to -597 (range -S-619 -E-600)
+            coff = process_segment(-600 - year, -1, -1, (1, 2, 3))
+        elif year < -547: # -596 to -548 (range -S-596 -E-587)
+            coff = process_segment(-587 - year, 1, 1, (1,))
+        elif year < -515: # -547 to -516 (range -S-547 -E-518)
+            coff = process_segment(-518 - year, -1, -1, (1,))
+        elif year < -497: # -515 to -498 (range -S-515 -E-501)
+            coff = process_segment(-501 - year, -1, -1, (1, 2,))
+        elif year < -480: # -497 to -481 (range -S-497 -E-483)
+            coff = process_segment(-483 - year, 1, 1, (1, 2))
         elif year < -415: # -480 to -416 (range -S-480 -E-451)
-            coff = process_century(-451 - year, 1, 1, (1,))
-        elif year < -381: # -415 to -382 (range -S-415 -E-386)
-            coff = process_century(-386 - year, -1, -1, (1,))
-        elif year < -348: # -381 to -349 (range -S-381 -E-351)
-            coff = process_century(-351 - year, 1, 1, (1, 2,))
-        elif year < -279: # -348 to -280 (range -S-348 -E-319)
-            coff = process_century(-319 - year, 1, 1, (1,))
-        elif year < -254: # -279 to -255 (range -S-279 -E-258)
-            coff = process_century(-258 - year, -1, -1, (1,))
-        elif year < -245: # -254 to -246 (range -S-254 -E-247)
-            coff = process_century(-247 - year, 1, 1, (1, 2, 3))
-        elif year < -212: # -245 to -213 (range -S-245 -E-215)
-            coff = process_century(-215 - year, 1, 1, (1, 2))
-        elif year < -147: # -212 to -148 (range -S-212 -E-181)
-            coff = process_century(-181 - year, 0, 1, (3,))
-        elif year < -126: # -147 to -127 (range -S-143 -E-126)
-            coff = process_century(-130 - year, -1, -1, (1,))
-        elif year < -113: # -126 to -114 (range -S-126 -E-115)
-            coff = process_century(-115 - year, 1, 1, (1, 2, 3))
-        elif year < -80: # -114 to -81 (range -S-114 -E-83)
-            coff = process_century(-83 - year, 1, 1, (1, 2))
+            coff = process_segment(-451 - year, 1, 1, (1,))
+        elif year < -383: # -415 to -384 (range -S-415 -E-386)
+            coff = process_segment(-386 - year, -1, -1, (1,))
+        elif year < -351: # -383 to -352 (range -S-383 -E-353)
+            coff = process_segment(-353 - year, -1, -1, (1, 2))
+        elif year < -319: # -351 to -320 (range -S-351 -E-320)
+            coff = process_segment(-320 - year, -1, -1, (1, 2, 3,))
+        elif year < -279: # -319 to -280 (range -S-319 -E-299)
+            coff = process_segment(-299 - year, -1, -1, (0, 1, 2, 3))
+        elif year < -247: # -279 to -248 (range -S-279 -E-250)
+            coff = process_segment(-250 - year, -1, -1, (1,))
+        elif year < -215: # -247 to -216 (range -S-247 -E-217)
+            coff = process_segment(-217 - year, -1, -1, (1, 2))
+        elif year < -196: # -215 to -197 (range -S-215 -E-200)
+            coff = process_segment(-200 - year, -1, -1, (1, 2, 3))
+        elif year < -147: # -196 to -148 (range -S-196 -E-183)
+            coff = process_segment(-183 - year, 1, 1, (1,))
+        elif year < -115: # -147 to -116 (range -S-147 -E-118)
+            coff = process_segment(-118 - year, -1, -1, (1,))
+        elif year < -99: # -115 to -100 (range -S-115 -E-101)
+            coff = process_segment(-101 - year, -1, -1, (1, 2,))
+        elif year < -80: # -99 to -81 (range -S-97 -E-83)
+            coff = process_segment(-83 - year, 1, 1, (1, 2))
         elif year < -15: # -80 to -16 (range -S-80 -E-51)
-            coff = process_century(-51 - year, 1, 1, (1,))
-        elif year < 2: # -79 to 1 (range -S-15 -E-1)
-            coff = process_century(-1 - year, 0, -1, (2,))
-        elif year < 19: # 2 to 18 (range -S2 -E17)
-            coff = process_century(17 - year, 1, 1, (1, 2, 3))
-        elif year < 52: # 19 to 51 (range -S19 -E49)
-            coff = process_century(49 - year, 1, 1, (1, 2,))
-        elif year < 117: # 52 to 116 (range -S52 -E81)
-            coff = process_century(81 - year, 1, 1, (1,))
-        elif year < 130: # 117 to 129 (range -S117 -E126)
-            coff = process_century(126 - year, -1, -1, (1,))
-        elif year < 155: # 130 to 154 (range -S130 -E153)
-            coff = process_century(153 - year, 1, 1, (1, 2, 3))
-        elif year < 188: # 155 to 187 (range -S155 -E186)
-            coff = process_century(186 - year, 0, 1, (2, 3))
-        elif year < 253: # 188 to 252 (range -S188 -E213)
-            coff = process_century(213 - year, 1, 1, (1,))
-        elif year < 258: # 253 to 258 (range -S253 -E254)
-            coff = process_century(254 - year, -1, 0, ())
-        elif year < 287: # 258 to 286 (range -S258 -E285)
-            coff = process_century(285 - year, 1, 1, (1, 2, 3))
-        elif year < 320: # 287 to 319 (range -S287 -E318)
-            coff = process_century(318 - year, 0, 1, (2, 3))
-        elif year < 386: # 220 to 386 (range -S320 -E349)
-            coff = process_century(349 - year, 1, 1, (1,))
-        elif year < 419: # 387 to 418 (range -S386 -E417)
-            coff = process_century(417 - year, 1, 1, (1, 2, 3))
-        elif year < 452: # 419 to 451 (range -S419 -E449)
-            coff = process_century(449 - year, 1, 1, (1, 2))
-        elif year < 513: # 452 to 512 (range -S452 -E481)
-            coff = process_century(481 - year, 1, 1, (1,))
-        elif year < 518: # 513 to 517 (range -S513 -E518)
-            coff = process_century(518 - year, 1, 1, (0, 1, 2, 3))
-        elif year < 555: # 518 to 554 (range -S518 -E553)
-            coff = process_century(553 - year, 1, 1, (1, 2, 3))
-        elif year < 588: # 555 to 587 (range -S555 -E585)
-            coff = process_century(585 - year, 1, 1, (1, 2))
-        elif year < 641: # 588 to 640 (range -S588 -E613)
-            coff = process_century(613 - year, 1, 1, (1,))
-        elif year < 654: # 641 to 653 (range -S641 -E653)
-            coff = process_century(653 - year, 1, 1, (0, 1, 2, 3))
-        elif year < 687: # 654 to 686 (range -S654 -E685)
-            coff = process_century(685 - year, 1, 1, (1, 2, 3))
-        elif year < 720: # 687 to 719 (range -S687 -E717)
-            coff = process_century(717 - year, 1, 1, (1, 2))
-        elif year < 769: # 720 to 768 (range -S720 -E749)
-            coff = process_century(749 - year, 1, 1, (1,))
-        elif year < 786: # 769 to 785 (range -S769 -E785)
-            coff = process_century(785 - year, 1, 1, (0, 1, 2, 3))
-        elif year < 819: # 786 to 818 (range -S786 -E817)
-            coff = process_century(817 - year, 1, 1, (1, 2, 3))
-        elif year < 852: # 819 to 851 (range -S819 -E849)
-            coff = process_century(849 - year, 1, 1, (1, 2))
-        elif year < 897: # 852 to 896 (range -S819 -E881)
-            coff = process_century(881 - year, 1, 1, (1,))
-        elif year < 917: # 897 to 916 (range -S987 -E917)
-            coff = process_century(917 - year, 1, 1, (0, 1, 2, 3))
-        elif year < 949: # 917 to 850 (range -S918 -E949)
-            coff = process_century(949 - year, 1, 1, (1, 2, 3))
-        elif year < 984: # 851 to 983 (range -S951 -E981)
-            coff = process_century(981 - year, 1, 1, (1, 2))
-        elif year < 1025: # 984 to 1024 (range -S984 -E1013)
-            coff = process_century(1013 - year, 1, 1, (1,))
-        elif year < 1049: # 1025 to 1050 (range -S1025 -E1049)
-            coff = process_century(1049 - year, 1, 1, (0, 1, 2, 3))
-        elif year < 1083: # 1051 to 1082 (range -S1051 -E1081)
-            coff = process_century(1081 - year, 1, 1, (1, 2, 3))
-        elif year < 1116: # 1083 to 1115 (range -S1083 -E1113)
-            coff = process_century(1113 - year, 1, 1, (1, 2))
-        elif year < 1153: # 1116 to 1152 (range -S1116 -E1145)
-            coff = process_century(1145 - year, 1, 1, (1,))
-        elif year < 1162: # 1153 to 1161 (range -S1153 -E1162)
-            coff = process_century(1162 - year, 1, 1, (0, 1, 2, 3))
+            coff = process_segment(-51 - year, 1, 1, (1,))
+        elif year < 17: # -15 to 16 (range -S-15 -E14)
+            coff = process_segment(14 - year, -1, -1, (1,))
+        elif year < 49: # 17 to 48 (range -S17 -E47)
+            coff = process_segment(47 - year, -1, -1, (1, 2))
+        elif year < 81: # 49 to 80 (range -S49 -E80)
+            coff = process_segment(80 - year, -1, -1, (1, 2, 3))
+        elif year < 117: # 81 to 116 (range -S81 -E101)
+            coff = process_segment(101 - year, -1, -1, (0, 1, 2 , 3))
+        elif year < 153: # 117 to 129 (range -S117 -E150)
+            coff = process_segment(150 - year, -1, -1, (1,))
+        elif year < 185: # 153 to 184 (range -S153 -E183)
+            coff = process_segment(183 - year, -1, -1, (1, 2))
+        elif year < 204: # 185 to 203 (range -S185 -E200)
+            coff = process_segment(200 - year, -1, -1, (1, 2, 3))
+        elif year < 253: # 204 to 252 (range -S204 -E213)
+            coff = process_segment(213 - year, 1, 1, (1,))
+        elif year < 285: # 253 to 284 (range -S253 -E282)
+            coff = process_segment(282 - year, -1, -1, (1,))
+        elif year < 303: # 285 to 302 (range -S285 -E299)
+            coff = process_segment(299 - year, -1, -1, (1, 2))
+        elif year < 320: # 303 to 319 (range -S303 -E317)
+            coff = process_segment(317 - year, 1, 1, (1, 2))
+        elif year < 385: # 320 to 384 (range -S320 -E349)
+            coff = process_segment(349 - year, 1, 1, (1,))
+        elif year < 417: # 385 to 416 (range -S385 -E414)
+            coff = process_segment(414 - year, -1, -1, (1,))
+        elif year < 449: # 417 to 448 (range -S417 -E447)
+            coff = process_segment(447 - year, -1, -1, (1, 2))
+        elif year < 481: # 449 to 480 (range -S449 -E480)
+            coff = process_segment(480 - year, -1, -1, (1, 2, 3))
+        elif year < 521: # 481 to 520 (range -S481 -E501)
+            coff = process_segment(501 - year, -1, -1, (0, 1, 2, 3))
+        elif year < 553: # 521 to 552 (range -S521 -E550)
+            coff = process_segment(550 - year, -1, -1, (1,))
+        elif year < 585: # 553 to 584 (range -S553 -E583)
+            coff = process_segment(583 - year, -1, -1, (1, 2))
+        elif year < 604: # 585 to 603 (range -S585 -E600)
+            coff = process_segment(600 - year, -1, -1, (1, 2 ,3))
+        elif year < 653: # 604 to 652 (range -S604 -E613)
+            coff = process_segment(613 - year, 1, 1, (1,))
+        elif year < 685: # 653 to 684 (range -S653 -E682)
+            coff = process_segment(682 - year, -1, -1, (1,))
+        elif year < 703: # 685 to 702 (range -S685 -E699)
+            coff = process_segment(699 - year, -1, -1, (1, 2))
+        elif year < 720: # 703 to 719 (range -S703 -E717)
+            coff = process_segment(717 - year, 1, 1, (1, 2))
+        elif year < 785: # 720 to 784 (range -S720 -E749)
+            coff = process_segment(749 - year, 1, 1, (1,))
+        elif year < 817: # 785 to 816 (range -S785 -E814)
+            coff = process_segment(814 - year, -1, -1, (1,))
+        elif year < 849: # 817 to 848 (range -S817 -E847)
+            coff = process_segment(847 - year, -1, -1, (1, 2))
+        elif year < 881: # 849 to 880 (range -S849 -E880)
+            coff = process_segment(880 - year, -1, -1, (1, 2, 3))
+        elif year < 917: # 881 to 916 (range -S881 -E901)
+            coff = process_segment(901 - year, -1, -1, (0, 1, 2, 3))
+        elif year < 949: # 917 to 948 (range -S917 -E946)
+            coff = process_segment(946 - year, -1, -1, (1,))
+        elif year < 981: # 849 to 980 (range -S949 -E979)
+            coff = process_segment(979 - year, -1, -1, (1, 2))
+        elif year < 1004: # 981 to 1003 (range -S981 -E1000)
+            coff = process_segment(1000 - year, -1, -1, (1, 2, 3))
+        elif year < 1049: # 1004 to 1048 (range -S1004 -E1013)
+            coff = process_segment(1013 - year, 1, 1, (1,))
+        elif year < 1081: # 1049 to 1080 (range -S1049 -E1078)
+            coff = process_segment(1078 - year, -1, -1, (1,))
+        elif year < 1103: # 1081 to 1102 (range -S1081 -E1099)
+            coff = process_segment(1099 - year, -1, -1, (1, 2))
+        elif year < 1116: # 1103 to 1115 (range -S1103 -E1113)
+            coff = process_segment(1113 - year, 1, 1, (1, 2))
+        elif year < 1162: # 1116 to 1161 (range -S1116 -E1145)
+            coff = process_segment(1145 - year, 1, 1, (1,))
         else:
             coff = 0
 
@@ -1165,12 +1182,15 @@ class DateTests(BahaiCalendar):
                             items.append((year, month, day))
 
             for item in items:
-                jd = self._jd_from_badi_date_alt(
-                    item, options, *self.BAHAI_LOCATION[:3])
+                #jd = self.jd_from_badi_date(item)
+                jd = self._jd_from_badi_date_alt(item, options)
                 jdf = math.floor(jd)
 
-                if not (last_jd == 0 or jdf == (last_jd + 1)):
-                    data.append((item, jdf, last_date, last_jd, jdf-last_jd))
+                if last_jd != 0 and jdf == last_jd:
+                    last_leap = self._is_leap_year(last_date[0])
+                    leap = self._is_leap_year(item[0])
+                    data.append((last_date, last_jd, last_leap,
+                                 item, jdf, leap, jdf-last_jd))
 
                 last_jd = jdf
                 last_date = item
@@ -1205,9 +1225,9 @@ class DateTests(BahaiCalendar):
         years provided. The years provided are on the Badi Calendar - or +
         the epoch.
 
-        Arguments to the process_century() function.
+        Arguments to the process_segment() function.
         --------------------------------------------
-        1. First run `full_partial.py -aGX > filename.txt`
+        1. First run `badi_jd_tests.py -aGX > filename.txt`
            This file will be long so use `less filename.txt` to look at it.
            The last column will usually be -1.0, 0.0, or 1.0. The 0.0 values
            are already correct, the other two values means there is a
@@ -1246,6 +1266,9 @@ class DateTests(BahaiCalendar):
     def find_coefficents(self, options):
         """
         -q or --coeff and -S and -E
+
+        If -X is used the more exact mode is used. This should be the
+        normal usage.
         """
         data = self._date_range(options)
         cp = {by: (n, a)
@@ -1320,14 +1343,8 @@ class DateTests(BahaiCalendar):
         gjd = self.gc.jd_from_gregorian_date(
             g_date, exact=options.exact, alt=options.alt_leap)
         #bjd = self._jd_from_badi_date(b_date, options)
-        bjd = self._jd_from_badi_date_alt(b_date, options,
-                                          *self.BAHAI_LOCATION[:3])
-        coff = 0
-
-        if not options.coff:
-            coff = self._get_coff(b_date[0])
-
-        bjd += coff
+        bjd = self._jd_from_badi_date_alt(b_date, options)
+        #bjd = self.jd_from_badi_date(b_date)
         diff = round(bjd - gjd, 6)
         offby = math.floor(bjd) - math.floor(gjd)
         data.append((b_date, bjd, g_date, gjd, diff, offby))
@@ -1398,7 +1415,7 @@ if __name__ == "__main__":
         help="Turn off all coefficients during an analysis.")
     parser.add_argument(
         '-X', '--exact', action='store_true', default=False, dest='exact',
-        help="Use alternative leap year method.")
+        help="Use the 4|100|400 or the 4|128 rules from Julian Calendar day one.")
     parser.add_argument(
         '-G', '--graph', action='store_true', default=False, dest='graph',
         help=("Turn off all coefficients and dump output appropriate for "
@@ -1498,14 +1515,16 @@ if __name__ == "__main__":
         else:
             data = dt.consecutive_years(options)
             [print(
-                f"{str(item):<15} {jdf:<7} "
-                f"{str(l_date):<15} {l_jd:<7} "
+                f"{str(l_date):<15} {l_jd:<7} {str(ll):<5} "
+                f"{str(item):<15} {jdf:<7} {str(l):<5} "
                 f"{diff:<2}"
-                ) for item, jdf, l_date, l_jd, diff in data]
+                ) for l_date, l_jd, ll, item, jdf, l, diff in data]
             years = options.end-options.start
-            print(f"Years analyzed: {years}\n"
+            print(f"Start year: {options.start}\n"
+                  F"End year: {options.end}\n"
+                  f"Years analyzed: {years}\n"
                   f"Approximate days analyzed: {years*dt.JULIAN_YEAR}\n"
-                  f"Total errors: {len(data)}")
+                  f"Total error days: {len(data)}")
     elif options.range != 0:
         data = dt.get_range(options.range)
         [print(item) for item in data]
