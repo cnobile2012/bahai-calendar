@@ -365,48 +365,28 @@ class BahaiCalendar(BaseCalendar):
         md -= 1 if md < 0 else 0
         year = math.floor(md / self.JULIAN_YEAR)
         td = self._days_in_years(year)
-        days = md - td
+        days = abs(md - td)
         m = days / 19
         month = math.floor(m) + 1
-        day = math.floor((m % 1) * 19)
         year += 1
         a = 5 if self._is_leap_year(year) else 4
 
-        if 342 < math.ceil(days) <= (342 + a): # Ayyám-i-Há
+        if 342 < days <= (342 + a): # Ayyám-i-Há
             month = 0
-            day = math.ceil(days % 1)
+            day = math.ceil(days) - 342
+        elif month == 19: # 19th month
+            day = math.ceil(days) - 342 - a
+        else: # All other months
+            if year < 0:
+                days += 1
 
-        date = (year, month, day)
+            while math.floor(days) > 19:
+                days -= 19
 
-        print('jd:', jd, 'md:', md, 'td:', td, 'days:', days, 'm:', m,
-              'a:', a, 'date:', date)
+            day = math.floor(days)
 
-        ## a = jd - (self.BADI_EPOCH - 1)
-        ## y = a / self.MEAN_TROPICAL_YEAR
-        ## year = math.floor(y) + 1
-        ## m = (y % 1) * self.MEAN_TROPICAL_YEAR
-        ## m1 = math.floor(m / 19)
-        ## month = m1 + 1
-
-        ## if month > 18:
-        ##     ay_years = {365: 4, 366: 5}
-        ##     ytd = 18 * 19
-        ##     days_in_year = self._days_in_year(year)
-        ##     ay_days = ay_years.get(days_in_year)
-        ##     assert days_in_year in ay_years.keys(), (
-        ##         "Programming error, incorrect number of days in any "
-        ##         f"year, found {days}.")
-        ##     d = ytd + ay_days
-        ##     dsf = math.ceil(m)
-
-        ##     if ytd < dsf <= d:
-        ##         month = 0
-        ##         day = dsf - ytd
-        ##     else:
-        ##         month -= 1
-        ##         day = days_in_year - d
-        ## else:
-        ##     day = math.floor(m) - m1 * 19 + 1
+        #print('jd:', jd, 'md:', md, 'td:', td, 'days:', days, 'm:', m,
+        #      'a:', a, 'date:', (year, month, day))
 
         date = self.long_date_from_short_date((year, month, day))
         return self.kvymdhms_from_b_date(date, short)
