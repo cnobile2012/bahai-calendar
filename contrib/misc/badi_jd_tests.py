@@ -1140,12 +1140,15 @@ class DateTests(BahaiCalendar):
 
         return coff
 
-    def consecutive_years(self, options):
+    def consecutive_dates(self, options):
         """
         -k or --consecutive
-        If -Y is used then consecutive years are check from the defined
-        TMP_ANS_DATES list. If -Y is not defined then a check on consecutive
-        days are checked based on -S and -E.
+        If -Y is used then consecutive years are checked from the defined
+        TMP_ANS_DATES list.
+        If -J test for consecutive Julian Period days between start and end
+        Badi years.
+
+        All days are checked based on -S and -E.
 
         If -X is used the more exact mode is used. This should be the
         normal usage.
@@ -1163,7 +1166,7 @@ class DateTests(BahaiCalendar):
                     data.append(g_date)
 
             py = year
-        else:
+        elif options.jd:
             items = []
             last_jd = 0
             last_date = ()
@@ -1194,6 +1197,30 @@ class DateTests(BahaiCalendar):
 
                 last_jd = jdf
                 last_date = item
+        else:
+            last_jd = 0
+            last_date = ()
+            start = math.floor(self.jd_from_badi_date((options.start, 1, 1)))
+            end = math.floor(self.jd_from_badi_date((options.end, 19, 19)))
+
+            for jd in range(start, end):
+                # This makes the Badi and Gregorian dates to always be
+                # on the same day.
+                jd_t = jd + 0.333333 # About 8 pm UT.
+                date = self.badi_date_from_jd(jd_t, short=True)
+                jd_f = self.jd_from_badi_date(date)
+
+                if last_jd != 0 and (int(last_jd) == int(jd_f)
+                                     or int(jd_f) != int(jd_t)):
+                    #last_leap = self._is_leap_year(last_date[0])
+                    #leap = self._is_leap_year(date[0])
+                    #data.append((last_date, last_jd, last_leap,
+                    #             date, jdf, leap, jdf-last_jd))
+
+                    data.append((last_date, last_jd, jd_f, jd_t, date))
+
+                last_jd = jd_f
+                last_date = date
 
         return data
 
@@ -1415,7 +1442,8 @@ if __name__ == "__main__":
         help="Turn off all coefficients during an analysis.")
     parser.add_argument(
         '-X', '--exact', action='store_true', default=False, dest='exact',
-        help="Use the 4|100|400 or the 4|128 rules from Julian Calendar day one.")
+        help=("Use the 4|100|400 or the 4|128 rules from Julian Calendar "
+              "day one."))
     parser.add_argument(
         '-G', '--graph', action='store_true', default=False, dest='graph',
         help=("Turn off all coefficients and dump output appropriate for "
@@ -1427,8 +1455,12 @@ if __name__ == "__main__":
         '-E', '--end', type=int, default=None, dest='end',
         help="End Badi year of sequence.")
     parser.add_argument(
+        '-J', '--jd', action='store_true', default=False, dest='jd',
+        help=("Test for consecutive Julian Period days between start and "
+              "end Badi years."))
+    parser.add_argument(
         '-Y', '--year', action='store_true', default=False, dest='year',
-        help="Run test for the defines years 1 - 3004.")
+        help="Test for the consecutive defined years 1 - 3004.")
     options = parser.parse_args()
     exclusive_error = (options.list, options.ck_dates, options.analyze,
                        options.consecutive, options.range != 0)
@@ -1511,9 +1543,9 @@ if __name__ == "__main__":
             options.end = 1162    # Gregorian year 3004
 
         if options.year:
-            [print(item) for item in dt.consecutive_years(options)]
-        else:
-            data = dt.consecutive_years(options)
+            [print(item) for item in dt.consecutive_dates(options)]
+        elif options.jd:
+            data = dt.consecutive_dates(options)
             [print(
                 f"{str(l_date):<15} {l_jd:<7} {str(ll):<5} "
                 f"{str(item):<15} {jdf:<7} {str(l):<5} "
@@ -1521,10 +1553,23 @@ if __name__ == "__main__":
                 ) for l_date, l_jd, ll, item, jdf, l, diff in data]
             years = options.end-options.start
             print(f"Start year: {options.start}\n"
-                  F"End year: {options.end}\n"
+                  f"End year: {options.end}\n"
                   f"Years analyzed: {years}\n"
                   f"Approximate days analyzed: {years*dt.JULIAN_YEAR}\n"
                   f"Total error days: {len(data)}")
+        else: # Consecutive Badi dates
+            data = dt.consecutive_dates(options)
+            print("last_date                          "
+                  "last_jd   !=   "
+                  "jd_f     ==    "
+                  "jd_t           "
+                  "date")
+            [print(f"{str(l_d):<34} "
+                   f"{l_jd:<14} "
+                   f"{jd_f:<14} "
+                   f"{jd_t:<14} "
+                   f"{str(date):<34}"
+                   ) for l_d, l_jd, jd_f, jd_t, date in data]
     elif options.range != 0:
         data = dt.get_range(options.range)
         [print(item) for item in data]

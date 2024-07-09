@@ -357,7 +357,8 @@ class BahaiCalendar(BaseCalendar):
 
         return coff
 
-    def badi_date_from_jd(self, jd:float, short:bool=False) -> tuple:
+    def badi_date_from_jd(self, jd:float, lat:float=None, lon:float=None,
+                          zone:float=None, *, short:bool=False) -> tuple:
         """
         Convert a Julian period day to a Badi date.
         """
@@ -370,20 +371,24 @@ class BahaiCalendar(BaseCalendar):
         month = math.floor(m) + 1
         year += 1
         a = 5 if self._is_leap_year(year) else 4
+        if year < 0: days += 1
 
-        if 342 < days <= (342 + a): # Ayyám-i-Há
+        if month == 19 and days > (342 + a): # 19th month
+            day = math.ceil(days) - 342 - a
+        elif 342 < days <= (342 + a): # Ayyám-i-Há
             month = 0
             day = math.ceil(days) - 342
-        elif month == 19: # 19th month
-            day = math.ceil(days) - 342 - a
         else: # All other months
-            if year < 0:
-                days += 1
-
-            while math.floor(days) > 19:
-                days -= 19
-
             day = math.floor(days)
+
+            while day > 19:
+                day -= 19
+
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self.BAHAI_LOCATION[:3]
+
+        diff = jd % 1 - self._sun_setting(jd, lat, lon, zone) % 1
+        day += diff
 
         #print('jd:', jd, 'md:', md, 'td:', td, 'days:', days, 'm:', m,
         #      'a:', a, 'date:', (year, month, day))
@@ -493,7 +498,7 @@ class BahaiCalendar(BaseCalendar):
 
         assert 1 <= day < (cycle), (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "
-            f"should be 1 - < {cycle-1}.")
+            f"should be from 1 to <= {cycle-1}.")
         assert 0 <= hour < 24, (f"Invalid hour '{hour}' it must be "
                                 f"0 <= {hour} < 24")
         assert 0 <= minute < 60, (f"Invalid minute '{minute}' should be "

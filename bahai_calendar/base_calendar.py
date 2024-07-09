@@ -387,7 +387,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, sr_ss='RISE')
+        jd += self._rising_setting(jd, lat, lon, zone, exact=exact,
+                                   offset=offset, sr_ss='RISE')
         return round(jd, self.ROUNDING_PLACES)
 
     def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0,
@@ -422,7 +423,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, sr_ss='SET')
+        jd += self._rising_setting(jd, lat, lon, zone, exact=exact,
+                                   offset=offset, sr_ss='SET')
         return round(jd, self.ROUNDING_PLACES)
 
     def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0,
