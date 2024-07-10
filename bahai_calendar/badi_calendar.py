@@ -373,22 +373,25 @@ class BahaiCalendar(BaseCalendar):
         a = 5 if self._is_leap_year(year) else 4
         if year < 0: days += 1
 
-        if month == 19 and days > (342 + a): # 19th month
+        if month == 19 and days > (342 + a): # Month 19
             day = math.ceil(days) - 342 - a
-        elif 342 < days <= (342 + a): # Ayyám-i-Há
+        elif 0 < month < 19: # Months 1 - 18
+            if days < 20:
+                day = math.floor(days)
+            else:
+                day = math.ceil(days) if days % 1 > 0.5 else math.floor(days)
+
+                while day > 19:
+                    day -= 19
+        else: # Ayyám-i-Há
             month = 0
             day = math.ceil(days) - 342
-        else: # All other months
-            day = math.floor(days)
-
-            while day > 19:
-                day -= 19
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        diff = jd % 1 - self._sun_setting(jd, lat, lon, zone) % 1
-        day += diff
+        #diff = jd % 1 - self._sun_setting(jd, lat, lon, zone) % 1
+        #day += diff
 
         #print('jd:', jd, 'md:', md, 'td:', td, 'days:', days, 'm:', m,
         #      'a:', a, 'date:', (year, month, day))

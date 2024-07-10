@@ -1214,9 +1214,6 @@ class DateTests(BahaiCalendar):
                                      or int(jd_f) != int(jd_t)):
                     #last_leap = self._is_leap_year(last_date[0])
                     #leap = self._is_leap_year(date[0])
-                    #data.append((last_date, last_jd, last_leap,
-                    #             date, jdf, leap, jdf-last_jd))
-
                     data.append((last_date, last_jd, jd_f, jd_t, date))
 
                 last_jd = jd_f
