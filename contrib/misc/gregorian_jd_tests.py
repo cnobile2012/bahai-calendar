@@ -18,7 +18,7 @@ class JulianPeriodTests:
     JULIAN_YEAR = 365.25
     GREGORIAN_EPOCH = 1721423.5
     MEAN_TROPICAL_YEAR = 365.2421897
-    MEAN_SIDEREAL_YEAR = 365.256363004
+    #MEAN_SIDEREAL_YEAR = 365.256363004
     ROUNDING_PLACES = 6
     JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
     GREGORIAN_LEAP_YEAR = lambda self, year: (
@@ -477,9 +477,14 @@ class JulianPeriodTests:
         else:
             items = []
             last_date = ()
+            GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
+                   else self.GREGORIAN_LEAP_YEAR)
+            month_days = list(self.MONTHS)
 
             for year in range(options.start, options.end):
-                for month, days in enumerate(self.MONTHS, start=1):
+                month_days[1] = 29 if GLY(year) else 28
+
+                for month, days in enumerate(month_days, start=1):
                     for day in range(1, days+1):
                         items.append((year, month, day))
 
@@ -493,6 +498,10 @@ class JulianPeriodTests:
                 last_jd = jd
                 last_date = date
 
+                if item[0] % 500 == 0 and item[1] == 1 and item[2] == 1:
+                    print(item, file=sys.stderr)
+
+        #[print(item) for item in items]
         return data
 
     def _gregorian_date_from_jd(self, jd, alt):
@@ -500,7 +509,8 @@ class JulianPeriodTests:
                else self.GREGORIAN_LEAP_YEAR)
         # Get the number of days since the Gregorian epoch.
         md = jd - (self.GREGORIAN_EPOCH - 1)
-        year = math.floor(md / self.JULIAN_YEAR)
+        year = math.floor(abs(md / self.MEAN_TROPICAL_YEAR)) + 1
+        year *= -1 if md < (self.GREGORIAN_EPOCH - 1) else 1
         # A refined number of days since epoch for the date.
         td = self._days_in_years(year, alt=alt)
         days = md - td
@@ -511,14 +521,13 @@ class JulianPeriodTests:
             days = md - td
 
         if days == 0:
-            days = 366
+            days = 365 if year < 0 and year % 4 != 0 else 366
         else:
             year += 1
 
         month_days = list(self.MONTHS)
         month_days[1] = 29 if GLY(year) else 28
         d = day = 0
-        f = jd % 1
 
         for month, ds in enumerate(month_days, start=1):
             d += ds
@@ -526,6 +535,7 @@ class JulianPeriodTests:
             day = math.ceil(days - (d - ds))
             break
 
+        f = jd % 1
         day += f - (1.5 if f > 0.5 else 0.5)
 
         if day < 1:

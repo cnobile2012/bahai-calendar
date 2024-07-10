@@ -121,7 +121,8 @@ class GregorianCalendar(BaseCalendar):
                    else self.GREGORIAN_LEAP_YEAR)
             # Get the number of days since the Gregorian epoch.
             md = jd - (self.GREGORIAN_EPOCH - 1)
-            year = math.floor(md / self.JULIAN_YEAR)
+            year = math.floor(abs(md / self.MEAN_TROPICAL_YEAR)) + 1
+            year *= -1 if md < (self.GREGORIAN_EPOCH - 1) else 1
             # A refined number of days since epoch for the date.
             td = self._days_in_years(year, alt=alt)
             days = md - td
@@ -132,14 +133,13 @@ class GregorianCalendar(BaseCalendar):
                 days = md - td
 
             if days == 0:
-                days = 366
+                days = 365 if year < 0 and year % 4 != 0 else 366
             else:
                 year += 1
 
             month_days = list(self.MONTHS)
             month_days[1] = 29 if GLY(year) else 28
             d = day = 0
-            f = jd % 1
 
             for month, ds in enumerate(month_days, start=1):
                 d += ds
@@ -147,6 +147,7 @@ class GregorianCalendar(BaseCalendar):
                 day = math.ceil(days - (d - ds))
                 break
 
+            f = jd % 1
             day += f - (1.5 if f > 0.5 else 0.5)
 
             if day < 1:
@@ -154,6 +155,8 @@ class GregorianCalendar(BaseCalendar):
                 day += 28
 
             date = (year, month, round(day, self.ROUNDING_PLACES))
+            #print('jd', jd, 'md', md, 'td', td, 'days', days, 'd', d,
+            #      'f', f, 'months', month_days, 'date', date)
         else:
             j_day = jd + 0.5
             z = math.floor(j_day)

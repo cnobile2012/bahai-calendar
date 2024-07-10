@@ -140,6 +140,15 @@ class TestGregorianCalendar(unittest.TestCase):
             # -4712-Jan-02 00:00:00
             (0.5, False, False, (-4712, 1, 2.0)),
             #(0.5, True, False, (-4712, 1, 2.0)),
+            (363.5, True, False, (-4712, 11, 24)),
+            (364.5, True, False, (-4712, 11, 25)),
+            (1172462.5, True, False, (-1503, 12, 30.0)),
+            (1172463.5, True, False, (-1503, 12, 31)),
+            (1312715.5, True, False, (-1119, 12, 30)),
+            (1312716.5, True, False, (-1119, 12, 31)),
+            (1314176.5, True, False, (-1115, 12, 30)),
+            (1314177.5, True, False, (-1115, 12, 31)),
+            (1721482.5, True, False, (1, 3, 1)),
             # Leap years with special correctio
             (1867519.5, False, False, (400, 12, 28.0)),
             (1867519.5, True, False, (400, 12, 31.0)),
