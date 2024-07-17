@@ -23,9 +23,7 @@ class BahaiCalendar(BaseCalendar):
     # Nur Mazandaran Province, Iran (City Center)
 # https://www.google.com/maps/place/Nur,+Mazandaran+Province,+Iran/@36.569336,52.0050234,15z/data=!3m1!4b1!4m6!3m5!1s0x3f8efdf2a3fc7385:0x1f76f83486da57be!8m2!3d36.5763485!4d52.0133073!16zL20vMGJ6cjl6?entry=ttu
     BAHAI_LOCATION = (36.569336, 52.0050234, 3.5, 0)
-
-    BADI_EPOCH = 2394644.258361
-
+    BADI_EPOCH = 2394644.258361 # 2394646.259722 using Meeus' algorinthm
     BADI_MONTH_NAMES = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
         (6, 'Raḥmat'), (7, 'Kalimát'), (8, 'Kamál'), (9, "Asmá'"),
@@ -127,9 +125,8 @@ class BahaiCalendar(BaseCalendar):
         :return: The Julian Period day.
         :rtype: float
         """
-        date = self.date_from_kvymdhms(
+        year, month, day = self.date_from_kvymdhms(
             self.long_date_from_short_date(b_date), short=True)
-        year, month, day = date
 
         if month == 0: # Ayyam-i-Ha
             m = 18 * 19
@@ -362,39 +359,57 @@ class BahaiCalendar(BaseCalendar):
         """
         Convert a Julian period day to a Badi date.
         """
+        def get_leap_year_info(y):
+            leap = self._is_leap_year(year)
+            yds = 366 if leap else 365
+            ld = 5 if leap else 4
+            return leap, yds, ld
+
+        def check_and_fix_day(cjd, y, lat=None, lon=None, zone=None):
+            fjdy = self.jd_from_badi_date((y, 1, 1), lat, lon, zone)
+            return y-1 if (fjdy - cjd) > 0 else y
+
         md = jd - (self.BADI_EPOCH - 1)
-        md -= 1 if md < 0 else 0
-        year = math.floor(md / self.JULIAN_YEAR)
-        td = self._days_in_years(year)
-        days = abs(md - td)
-        m = days / 19
-        month = math.floor(m) + 1
-        year += 1
-        a = 5 if self._is_leap_year(year) else 4
-        if year < 0: days += 1
+        year = math.floor(md / self.MEAN_TROPICAL_YEAR) + 1
+        #year = math.floor(abs(md / self.MEAN_TROPICAL_YEAR))
+        #year *= -1 if md < (self.BADI_EPOCH - 1) else 1
 
-        if month == 19 and days > (342 + a): # Month 19
-            day = math.ceil(days) - 342 - a
-        elif 0 < month < 19: # Months 1 - 18
-            if days < 20:
-                day = math.floor(days)
+        leap, yds, ld = get_leap_year_info(year)
+
+        if (y := check_and_fix_day(jd, year, lat, lon, zone)):
+            year = y
+            leap, yds, ld = get_leap_year_info(year)
+
+        fjdy = self.jd_from_badi_date((year, 1, 1), lat, lon, zone)
+        days = math.floor(jd) - math.floor(fjdy) + 1
+
+        if days <= 342:
+            m_days = days % 19
+            day = 19 if m_days == 0 else m_days
+        elif (342 + ld) < days <= yds:
+            day = days - (342 + ld)
+        else: # Ayyam-i-Ha
+            day = days % 342
+
+        month_days = [(n, 19) for n, v in self.BADI_MONTH_NAMES]
+        month_days[18] = (0, ld)
+
+        for month, ds in month_days:
+            if days > ds:
+                days -= ds
             else:
-                day = math.ceil(days) if days % 1 > 0.5 else math.floor(days)
-
-                while day > 19:
-                    day -= 19
-        else: # Ayyám-i-Há
-            month = 0
-            day = math.ceil(days) - 342
+                break
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
         #diff = jd % 1 - self._sun_setting(jd, lat, lon, zone) % 1
-        #day += diff
+        #day += jd % 1 + 0.5
 
-        #print('jd:', jd, 'md:', md, 'td:', td, 'days:', days, 'm:', m,
-        #      'a:', a, 'date:', (year, month, day))
+        #print('jd:', jd, 'md:', md, #'td:', td,
+        #      'days:', days,
+        #      'diff', diff,
+        #      'leap', self._is_leap_year(year), 'date:', (year, month, day))
 
         date = self.long_date_from_short_date((year, month, day))
         return self.kvymdhms_from_b_date(date, short)
@@ -541,11 +556,11 @@ class BahaiCalendar(BaseCalendar):
 
     def _days_in_year(self, year:int) -> int:
         """
-        Determine the number of days in the provided year.
+        Determine the number of days in the provided Badi year.
 
-        :param year: The year to process.
+        :param year: The Badi year to process.
         :type year: int
-        :return: The number of days in the provided year.
+        :return: The number of days.
         :rtype: int
         """
         jd_n0 = self.jd_from_badi_date((year, 1, 1))

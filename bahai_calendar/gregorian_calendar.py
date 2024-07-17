@@ -123,7 +123,7 @@ class GregorianCalendar(BaseCalendar):
             md = jd - (self.GREGORIAN_EPOCH - 1)
             year = math.floor(abs(md / self.MEAN_TROPICAL_YEAR)) + 1
             year *= -1 if md < (self.GREGORIAN_EPOCH - 1) else 1
-            # A refined number of days since epoch for the date.
+            # Refine the number of days since the epoch for the date.
             td = self._days_in_years(year, alt=alt)
             days = md - td
 

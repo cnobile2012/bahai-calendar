@@ -498,7 +498,7 @@ class DateTests(BahaiCalendar):
         (1833, 3, 21), (1834, 3, 21), (1835, 3, 21), (1836, 3, 20),
         (1837, 3, 21), (1838, 3, 21), (1839, 3, 21), (1840, 3, 20),
         (1841, 3, 21, 18, 14), (1842, 3, 21, 18, 14), (1843, 3, 21, 18, 14),
-        # Badi epoch are the first two below.
+        # Badi epoch
         (1844, 3, 20, 18, 14), (1845, 3, 21, 18, 14), (1846, 3, 21, 18, 14),
         (1847, 3, 21), (1848, 3, 20), (1849, 3, 21), (1850, 3, 21),
         (1851, 3, 21), (1852, 3, 20), (1853, 3, 21), (1854, 3, 21),
@@ -841,7 +841,7 @@ class DateTests(BahaiCalendar):
         # https://www.someweekendreading.blog/leap-year-revised/
         # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
         # 365.2421897
-        self.MEAN_TROPICAL_YEAR = 365.242189
+        #self.MEAN_TROPICAL_YEAR = 365.2421897
         self.gc = GregorianCalendar()
 
     def check_long_date_from_short_date(self, data):
@@ -884,32 +884,210 @@ class DateTests(BahaiCalendar):
         """
         return self._date_range(options)
 
-    def _jd_from_badi_date(self, b_date, options):
-        date = self.date_from_kvymdhms(
-            self.long_date_from_short_date(b_date), short=True)
-        year, month, day = date
+    def consecutive_dates(self, options):
+        """
+        -k or --consecutive
+        If -Y is used then consecutive years are checked from the defined
+        TMP_ANS_DATES list.
+        If -J test for consecutive Julian Period days between start and end
+        Badi years.
 
-        if month == 0: # Ayyam-i-Ha
-            d = 18 * 19 + day
-        elif month < 19:
-            d = (month - 1) * 19 + day
-        else: # month == 19:
-            # Because we have to use 4 days without knowing the leap year
-            # it's necessary fix for the leap year using coefficients below.
-            d = 18 * 19 + 4 + day
+        All days are checked based on -S and -E.
 
-        badi_epoch_m_o = self.BADI_EPOCH + 2
-        # Mean Tropical Year: 365.242189
-        # Sidereal Year: 365.25636
-        # Anomalistic Year: 365.25964
-        jey_y_m_o = self.MEAN_TROPICAL_YEAR * (year - 1)
-        return round(badi_epoch_m_o + jey_y_m_o + d, 6)
+        If -X is used the more exact mode is used. This should be the
+        normal usage.
 
-    def _jd_from_badi_date_alt(self, b_date, options, lat=None,
-                               lon=None, zone=None):
-        date = self.date_from_kvymdhms(
-            self.long_date_from_short_date(b_date), short=True)
-        year, month, day = date
+        There should be no output so any output indicates inconsecutive years.
+        """
+        data = []
+        py = 0
+
+        if options.year:
+            for g_date in self.TMP_ANS_DATES:
+                year = g_date[0]
+
+                if py != 0 and py != year and year != (py + 1):
+                    data.append(g_date)
+
+            py = year
+        elif options.jd:
+            items = []
+            last_jd = 0
+            last_date = ()
+            months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                      12, 13, 14, 15, 16, 17, 18, 0, 19)
+
+            for year in range(options.start, options.end):
+                for month in months:
+                    if month == 0:
+                        a = 5 if self._is_leap_year(year) else 4
+
+                        for day in range(1, a + 1):
+                            items.append((year, month, day))
+                    else:
+                        for day in range(1, 20):
+                            items.append((year, month, day))
+
+            for item in items:
+                #jd = self.jd_from_badi_date(item)
+                jd = self._jd_from_badi_date(item, options)
+                jdf = math.floor(jd)
+
+                if last_jd != 0 and jdf == last_jd:
+                    last_leap = self._is_leap_year(last_date[0])
+                    leap = self._is_leap_year(item[0])
+                    data.append((last_date, last_jd, last_leap,
+                                 item, jdf, leap, jdf-last_jd))
+
+                last_jd = jdf
+                last_date = item
+        else:
+            last_jd = 0
+            last_date = ()
+            start = math.floor(self.jd_from_badi_date((options.start, 1, 1)))
+            end = math.floor(self.jd_from_badi_date((options.end, 1, 1)))
+
+            for jd in range(start, end):
+                # This makes the Badi and Gregorian dates to always be
+                # on the same day.
+                jd_t = jd + 0.375 # About 9 pm UT.
+                date = self._badi_date_from_jd_alt(jd_t)
+                jd_f = self._jd_from_badi_date(date, options)
+
+                if last_jd != 0 and (int(last_jd) == int(jd_f)
+                                     and (int(jd_f) - int(last_jd) != 1)):
+                    #last_leap = self._is_leap_year(last_date[0])
+                    #leap = self._is_leap_year(date[0])
+                    data.append((last_date, last_jd, jd_f, jd_t, date))
+
+                last_jd = jd_f
+                last_date = date
+
+        return data
+
+    def get_range(self, end):
+        """
+        -r or --range
+        """
+        seq = {-159: -259, -64: -159, 35: -64, 134: 35, 233: 134, 332: 233,
+               386: 332, 617: 517, 716: 617, 815: 716, 914: 815, 1013: 914,
+               1112: 1013, 1211: 1112}
+        valid_dates = list(seq.keys())
+        start = seq.get(end)
+        assert start is not None, (f"You must use valid dates, found {end}, "
+                                   f"Valid dates are {valid_dates}.")
+        data = []
+
+        for y in range(start, end):
+            yj = end - y
+            jump = yj if yj in (1, 34, 67, 100) else 0 # jump values
+            data.append((y, (end - y) % 4, jump))      # mod 4 values
+
+        return data
+
+    def find_coefficents_precursor(self, options):
+        """
+        -p or --precursor
+
+        This determines which coefficient group should be used for the
+        years provided. The years provided are on the Badi Calendar - or +
+        the epoch.
+
+        Arguments to the process_segment() function.
+        --------------------------------------------
+        1. First run `badi_jd_tests.py -aGX > filename.txt`
+           This file will be long so use `less filename.txt` to look at it.
+           The last column will usually be -1.0, 0.0, or 1.0. The 0.0 values
+           are already correct, the other two values means there is a
+           difference in the between the Gregorian and Badi Julian Period
+           days. These are the ones than need the coefficients which fixes them.
+        2. The first argument is the current Badi year being processed
+           subtracted from the end year argument.
+        3. The second argument is the 1st coefficient corresponding to the
+           (1, 34, 67, 100) numbers in the output from this method.
+        4. The third argument is the 2nd coefficient which fixes the 1 values
+           that were not included in the 1st coefficient and the 2 and 3 values.
+
+        If an error JD falls on a 0 (zero) value then you need to change
+        the start and end years so that no error JDs fall on a 0 value. The
+        average number of years fixed in a group is 99, but this is not a
+        hard and fast rule. Obvious break points are where a sequence
+        changes. For example where there are two consecutive already good
+        values where the values you need to fix had one.
+
+        Note: Zero values never get processes.
+        """
+        data = []
+
+        for y in range(options.start, options.end):
+            year = options.end - y
+
+            if year in (1, 34, 67, 100):
+                a = year
+            else:
+                a = ''
+
+            data.append((y + self.TRAN_COFF, y, year % 4, a))
+
+        return data
+
+    def find_coefficents(self, options):
+        """
+        -q or --coeff and -S and -E
+
+        If -X is used the more exact mode is used. This should be the
+        normal usage.
+        """
+        data = self._date_range(options)
+        cp = {by: (n, a)
+              for gy, by, n, a in self.find_coefficents_precursor(options)}
+        items = []
+
+        for item in data:
+            b_year, month, day = item[0][:3]
+            h, m, s = dt._get_hms(item[0], short=True)
+            bjd = item[1]
+            msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
+                   f"{s:<02} {bjd:<14} ")
+            g_year, month, day = item[2][:3]
+            h, m, s = dt._get_hms(item[2], short=True)
+            gjd = item[3]
+            msg += (f"{g_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
+                    f"{s:<02} {gjd:<9} ")
+            diff = item[4]
+            offby = item[5]
+            msg += f"{diff:< 9} {offby:> 2} "
+            j, k = cp.get(b_year)
+            msg += f"{j} {k:<3}"
+            items.append(msg)
+
+        return items
+
+    def find_gregorian_dates(self, options):
+        """
+        -g or --g-dates and -S and -E
+
+        Converts Badi to Gregorian dates for the given range.
+        """
+        data = []
+
+        for item in self._date_range(options):
+            b_date, bjd, g_date, gjd, diff, offby = item
+            g_date = self._gregorian_date_from_badi_date(
+                b_date, options, *self.BAHAI_LOCATION[:3])
+            gjd = self.gc.jd_from_gregorian_date(
+                g_date, exact=options.exact, alt=options.alt_leap)
+            diff = round(bjd - gjd, 6)
+            offby = math.floor(bjd) - math.floor(gjd)
+            data.append((b_date, bjd, g_date, gjd, diff, offby))
+
+        return data
+
+    def _jd_from_badi_date(self, b_date, options, lat=None,
+                           lon=None, zone=None):
+        #date = self.date_from_kvymdhms(
+        #    self.long_date_from_short_date(b_date), short=True)
+        year, month, day = b_date
 
         if month == 0: # Ayyam-i-Ha
             m = 18 * 19
@@ -1140,204 +1318,67 @@ class DateTests(BahaiCalendar):
 
         return coff
 
-    def consecutive_dates(self, options):
+    def _badi_date_from_jd_alt(self, jd:float, lat:float=None, lon:float=None,
+                               zone:float=None) -> tuple:
         """
-        -k or --consecutive
-        If -Y is used then consecutive years are checked from the defined
-        TMP_ANS_DATES list.
-        If -J test for consecutive Julian Period days between start and end
-        Badi years.
-
-        All days are checked based on -S and -E.
-
-        If -X is used the more exact mode is used. This should be the
-        normal usage.
-
-        There should be no output so any output indicates inconsecutive years.
+        Convert a Julian period day to a Badi date.
         """
-        data = []
-        py = 0
+        def get_leap_year_info(y):
+            leap = self._is_leap_year(year)
+            yds = 366 if leap else 365
+            ld = 5 if leap else 4
+            return leap, yds, ld
 
-        if options.year:
-            for g_date in self.TMP_ANS_DATES:
-                year = g_date[0]
+        def check_and_fix_day(cjd, y, lat=None, lon=None, zone=None):
+            fjdy = self.jd_from_badi_date((y, 1, 1), lat, lon, zone)
+            return y-1 if (fjdy - cjd) > 0 else y
 
-                if py != 0 and py != year and year != (py + 1):
-                    data.append(g_date)
+        md = jd - (self.BADI_EPOCH - 1)
+        year = math.floor(md / self.MEAN_TROPICAL_YEAR) + 1
+        #year = math.floor(abs(md / self.MEAN_TROPICAL_YEAR))
+        #year *= -1 if md < (self.BADI_EPOCH - 1) else 1
 
-            py = year
-        elif options.jd:
-            items = []
-            last_jd = 0
-            last_date = ()
-            months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                      12, 13, 14, 15, 16, 17, 18, 0, 19)
+        leap, yds, ld = get_leap_year_info(year)
 
-            for year in range(options.start, options.end):
-                for month in months:
-                    if month == 0:
-                        a = 5 if self._is_leap_year(year) else 4
+        if (y := check_and_fix_day(jd, year, lat, lon, zone)):
+            year = y
+            leap, yds, ld = get_leap_year_info(year)
 
-                        for day in range(1, a + 1):
-                            items.append((year, month, day))
-                    else:
-                        for day in range(1, 20):
-                            items.append((year, month, day))
+        fjdy = self.jd_from_badi_date((year, 1, 1), lat, lon, zone)
+        days = math.floor(jd) - math.floor(fjdy) + 1
 
-            for item in items:
-                #jd = self.jd_from_badi_date(item)
-                jd = self._jd_from_badi_date_alt(item, options)
-                jdf = math.floor(jd)
+        if days <= 342:
+            m_days = days % 19
+            day = 19 if m_days == 0 else m_days
+        elif (342 + ld) < days <= yds:
+            day = days - (342 + ld)
+        else: # Ayyam-i-Ha
+            day = days % 342
 
-                if last_jd != 0 and jdf == last_jd:
-                    last_leap = self._is_leap_year(last_date[0])
-                    leap = self._is_leap_year(item[0])
-                    data.append((last_date, last_jd, last_leap,
-                                 item, jdf, leap, jdf-last_jd))
+        month_days = [(n, 19) for n, v in self.BADI_MONTH_NAMES]
+        month_days[18] = (0, ld)
 
-                last_jd = jdf
-                last_date = item
-        else:
-            last_jd = 0
-            last_date = ()
-            start = math.floor(self.jd_from_badi_date((options.start, 1, 1)))
-            end = math.floor(self.jd_from_badi_date((options.end, 19, 19)))
-
-            for jd in range(start, end):
-                # This makes the Badi and Gregorian dates to always be
-                # on the same day.
-                jd_t = jd + 0.333333 # About 8 pm UT.
-                date = self.badi_date_from_jd(jd_t, short=True)
-                jd_f = self.jd_from_badi_date(date)
-
-                if last_jd != 0 and (int(last_jd) == int(jd_f)
-                                     or int(jd_f) != int(jd_t)):
-                    #last_leap = self._is_leap_year(last_date[0])
-                    #leap = self._is_leap_year(date[0])
-                    data.append((last_date, last_jd, jd_f, jd_t, date))
-
-                last_jd = jd_f
-                last_date = date
-
-        return data
-
-    def get_range(self, end):
-        """
-        -r or --range
-        """
-        seq = {-159: -259, -64: -159, 35: -64, 134: 35, 233: 134, 332: 233,
-               386: 332, 617: 517, 716: 617, 815: 716, 914: 815, 1013: 914,
-               1112: 1013, 1211: 1112}
-        valid_dates = list(seq.keys())
-        start = seq.get(end)
-        assert start is not None, (f"You must use valid dates, found {end}, "
-                                   f"Valid dates are {valid_dates}.")
-        data = []
-
-        for y in range(start, end):
-            yj = end - y
-            jump = yj if yj in (1, 34, 67, 100) else 0 # jump values
-            data.append((y, (end - y) % 4, jump))      # mod 4 values
-
-        return data
-
-    def find_coefficents_precursor(self, options):
-        """
-        -p or --precursor
-
-        This determines which coefficient group should be used for the
-        years provided. The years provided are on the Badi Calendar - or +
-        the epoch.
-
-        Arguments to the process_segment() function.
-        --------------------------------------------
-        1. First run `badi_jd_tests.py -aGX > filename.txt`
-           This file will be long so use `less filename.txt` to look at it.
-           The last column will usually be -1.0, 0.0, or 1.0. The 0.0 values
-           are already correct, the other two values means there is a
-           difference in the between the Gregorian and Badi Julian Period
-           days. These are the ones than need the coefficients which fixes them.
-        2. The first argument is the current Badi year being processed
-           subtracted from the end year argument.
-        3. The second argument is the 1st coefficient corresponding to the
-           (1, 34, 67, 100) numbers in the output from this method.
-        4. The third argument is the 2nd coefficient which fixes the 1 values
-           that were not included in the 1st coefficient and the 2 and 3 values.
-
-        If an error JD falls on a 0 (zero) value then you need to change
-        the start and end years so that no error JDs fall on a 0 value. The
-        average number of years fixed in a group is 99, but this is not a
-        hard and fast rule. Obvious break points are where a sequence
-        changes. For example where there are two consecutive already good
-        values where the values you need to fix had one.
-
-        Note: Zero values never get processes.
-        """
-        data = []
-
-        for y in range(options.start, options.end):
-            year = options.end - y
-
-            if year in (1, 34, 67, 100):
-                a = year
+        for month, ds in month_days:
+            if days > ds:
+                days -= ds
             else:
-                a = ''
+                break
 
-            data.append((y + self.TRAN_COFF, y, year % 4, a))
+        #if any([True if l is None else False for l in (lat, lon, zone)]):
+        #    lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        return data
+        #diff = jd % 1 - self._sun_setting(jd, lat, lon, zone) % 1
+        #day += jd % 1 + 0.5
 
-    def find_coefficents(self, options):
-        """
-        -q or --coeff and -S and -E
+        ## print('jd:', jd, 'md:', md, #'td', td,
+        ##       'days:', days,
+        ##       'fjdy', fjdy,
+        ##       #'d', d,
+        ##       #'diff', diff,
+        ##       'ld', ld, 'date:', (year, month, day),
+        ##       file=sys.stderr)
 
-        If -X is used the more exact mode is used. This should be the
-        normal usage.
-        """
-        data = self._date_range(options)
-        cp = {by: (n, a)
-              for gy, by, n, a in self.find_coefficents_precursor(options)}
-        items = []
-
-        for item in data:
-            b_year, month, day = item[0][:3]
-            h, m, s = dt._get_hms(item[0], short=True)
-            bjd = item[1]
-            msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                   f"{s:<02} {bjd:<14} ")
-            g_year, month, day = item[2][:3]
-            h, m, s = dt._get_hms(item[2], short=True)
-            gjd = item[3]
-            msg += (f"{g_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                    f"{s:<02} {gjd:<9} ")
-            diff = item[4]
-            offby = item[5]
-            msg += f"{diff:< 9} {offby:> 2} "
-            j, k = cp.get(b_year)
-            msg += f"{j} {k:<3}"
-            items.append(msg)
-
-        return items
-
-    def find_gregorian_dates(self, options):
-        """
-        -g or --g-dates and -S and -E
-
-        Converts Badi to Gregorian dates for the given range.
-        """
-        data = []
-
-        for item in self._date_range(options):
-            b_date, bjd, g_date, gjd, diff, offby = item
-            g_date = self._gregorian_date_from_badi_date(
-                b_date, options, *self.BAHAI_LOCATION[:3])
-            gjd = self.gc.jd_from_gregorian_date(
-                g_date, exact=options.exact, alt=options.alt_leap)
-            diff = round(bjd - gjd, 6)
-            offby = math.floor(bjd) - math.floor(gjd)
-            data.append((b_date, bjd, g_date, gjd, diff, offby))
-
-        return data
+        return year, month, day
 
     def _date_range(self, options):
         data = []
@@ -1366,8 +1407,7 @@ class DateTests(BahaiCalendar):
     def _calculate_b_date(self, b_date, g_date, data, options):
         gjd = self.gc.jd_from_gregorian_date(
             g_date, exact=options.exact, alt=options.alt_leap)
-        #bjd = self._jd_from_badi_date(b_date, options)
-        bjd = self._jd_from_badi_date_alt(b_date, options)
+        bjd = self._jd_from_badi_date(b_date, options)
         #bjd = self.jd_from_badi_date(b_date)
         diff = round(bjd - gjd, 6)
         offby = math.floor(bjd) - math.floor(gjd)
@@ -1387,8 +1427,8 @@ class DateTests(BahaiCalendar):
         """
         Get the Gregorian date from the Badi date.
         """
-        jd = self._jd_from_badi_date_alt(b_date, options, lat=lat,
-                                         lon=lon, zone=zone)
+        jd = self._jd_from_badi_date(b_date, options, lat=lat,
+                                     lon=lon, zone=zone)
         gd = self.gc.gregorian_date_from_jd(jd, exact=options.exact)
         g_date = self.gc.ymdhms_from_date(gd)
         return g_date
@@ -1556,16 +1596,18 @@ if __name__ == "__main__":
                   f"Total error days: {len(data)}")
         else: # Consecutive Badi dates
             data = dt.consecutive_dates(options)
-            print("last_date                          "
+            print("last_date       "
                   "last_jd   !=   "
-                  "jd_f     ==    "
+                  "jd_f           "
                   "jd_t           "
-                  "date")
-            [print(f"{str(l_d):<34} "
+                  "date            "
+                  "diff")
+            [print(f"{str(l_d):<15} "
                    f"{l_jd:<14} "
                    f"{jd_f:<14} "
                    f"{jd_t:<14} "
-                   f"{str(date):<34}"
+                   f"{str(date):<15} "
+                   f"{(jd_f-last_jd) == 1}"
                    ) for l_d, l_jd, jd_f, jd_t, date in data]
     elif options.range != 0:
         data = dt.get_range(options.range)
