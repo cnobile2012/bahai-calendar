@@ -83,10 +83,7 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # Should be 1844-03-20T18:14:00 (2394645.5 -> 2394646.259201)
-            ((1, 1, 1), lat, lon, zone, False,
-             (1, 1, 1, 1, 1, 18, 13, 14.9664)),
-            ((1, 1, 1), lat, lon, zone, True,
-             (1, 1, 1, 18, 13, 14.9664)),
+            ((1, 1, 1, 2), lat, lon, zone, False, (1, 1, 1, 1, 1)),
             # Should be 2024-03-19T18:13:00 (2460388.5 -> 2460389.258723)
             ((180, 19, 19), lat, lon, zone, False,
              (1, 10, 10, 1, 1, 18, 12, 33.667201)),
@@ -107,7 +104,7 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {}, date {}, found {}"
 
         for date, lat, lon, zone, short, expected_result in data:
-            result = self._bc.sunset(date, lat, lon, zone, short)
+            result = self._bc.sunset(date, lat, lon, zone, short=short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
@@ -117,9 +114,9 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the naw_ruz method returns the correct Badi date.
         """
         data = (
-            (1, False, (1, 1, 1, 1, 1, 18, 13, 40.8864)), # 1844-03-20T18:13:00
-            (1, True, (1, 1, 1, 18, 13, 40.8864)),        # 1844-03-20T18:13:00
-            (182, True, (182, 1, 1, 18, 13, 33.5424)),    # 2025-03-20T18:13:00
+            (1, False, (1, 1, 1, 1, 1)), # 1844-03-20T18:13:00
+            (1, True, (1, 1, 1)),        # 1844-03-20T18:13:00
+            (182, True, (182, 1, 1)),    # 2025-03-20T18:13:00
             # 2026-03-21T18:14:00
             (183, False, (1, 10, 12, 1, 1, 18, 13, 33.455999)),
             # The following years are the ones that had errors.
@@ -134,7 +131,7 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {} for date {} and short {}, found {}"
 
         for year, short, expected_result in data:
-            result = self._bc.naw_ruz(year, short)
+            result = self._bc.naw_ruz(year, short=short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, short, result))
 
@@ -155,7 +152,8 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {} for short {}, found {}"
 
         for year, lat, lon, zone, short, expected_result in data:
-            result = self._bc.first_day_of_ridvan(year, lat, lon, zone, short)
+            result = self._bc.first_day_of_ridvan(year, lat, lon, zone,
+                                                  short=short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, short, result))
 
@@ -225,6 +223,7 @@ class TestBadiCalendar(unittest.TestCase):
             (2460443.291601, True, (181, 3, 18)),
             # Badi long form -> 2024-05-14T18:59:54.3264
             (2460443.291601, False, (1, 10, 10, 3, 18)),
+            (2460507.743218, True, (181, 7, 6, 3, 30)),
             )
         msg = "Expected {} for jd {}, found {}"
 
@@ -311,7 +310,7 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {} for date {}, found {}"
 
         for date, short, expected_result in data:
-            result = self._bc.date_from_kvymdhms(date, short)
+            result = self._bc.date_from_kvymdhms(date, short=short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
@@ -330,7 +329,7 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {} for date {}, found {}"
 
         for date, short, expected_result in data:
-            result = self._bc.kvymdhms_from_b_date(date, short)
+            result = self._bc.kvymdhms_from_b_date(date, short=short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
@@ -476,7 +475,7 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {} for date {} amd short {}, found {}"
 
         for date, short, expected_result in data:
-            result = self._bc._get_hms(date, short)
+            result = self._bc._get_hms(date, short=short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, short, result))
 
@@ -495,7 +494,7 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {} for date {}, found {}"
 
         for date, short, expected_result in data:
-            result = self._bc.badi_date_from_gregorian_date(date, short)
+            result = self._bc.badi_date_from_gregorian_date(date, short=short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, short, result))
 

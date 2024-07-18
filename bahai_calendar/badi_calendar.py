@@ -68,7 +68,7 @@ class BahaiCalendar(BaseCalendar):
         self._bahai_date = representation
 
     def sunset(self, date:tuple, lat:float=None, lon:float=None,
-               zone:float=None, short:bool=False) -> float:
+               zone:float=None, *, short:bool=False) -> float:
         """
         Return the sunset for the given Badi Day in either the long or
         short form date.
@@ -85,7 +85,7 @@ class BahaiCalendar(BaseCalendar):
         #print(date, jd, ss)
         return self.badi_date_from_jd(ss, short=short)
 
-    def naw_ruz(self, year:int, short:bool=False) -> tuple:
+    def naw_ruz(self, year:int, *, short:bool=False) -> tuple:
         """
         Return the Badi date for Naw-Ruz from the given Badi year.
 
@@ -93,7 +93,7 @@ class BahaiCalendar(BaseCalendar):
         jd = self.jd_from_badi_date((year, 1, 1))
         ve = self.find_moment_of_equinoxes_or_solstices(jd)
         ss = self._sun_setting(ve, *self.BAHAI_LOCATION[:3])
-        return self.badi_date_from_jd(ss, short)
+        return self.badi_date_from_jd(ss, short=short)
 
     def first_day_of_ridvan(self, year:int, lat:float=0, lon:float=0,
                             zone:float=0, short:bool=False) -> tuple:
@@ -403,16 +403,17 @@ class BahaiCalendar(BaseCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        #diff = jd % 1 - self._sun_setting(jd, lat, lon, zone) % 1
-        #day += jd % 1 + 0.5
+        diff = jd % 1  - self._sun_setting(jd, lat, lon, zone) % 1
+        day += (round(diff, self.ROUNDING_PLACES)
+                if math.isclose(diff, 1, rel_tol=0.001) else 0)
 
-        #print('jd:', jd, 'md:', md, #'td:', td,
-        #      'days:', days,
-        #      'diff', diff,
-        #      'leap', self._is_leap_year(year), 'date:', (year, month, day))
+        print('jd:', jd, 'md:', md, #'td:', td,
+              'days:', days,
+              'diff', diff,
+              'leap', self._is_leap_year(year), 'date:', (year, month, day))
 
         date = self.long_date_from_short_date((year, month, day))
-        return self.kvymdhms_from_b_date(date, short)
+        return self.kvymdhms_from_b_date(date, short=short)
 
     def short_date_from_long_date(self, b_date:tuple) -> tuple:
         """
@@ -429,7 +430,7 @@ class BahaiCalendar(BaseCalendar):
         Convert a date to a short date (ymdhms) to a long date (kvymdhms).
         """
         year, month, day = date[:3]
-        hour, minute, second = self._get_hms(date, True)
+        hour, minute, second = self._get_hms(date, short=True)
         k = year / 361
         k0 = self._truncate_decimal(k % 1, 6)
         v = k0 / 19 * 361
@@ -448,7 +449,7 @@ class BahaiCalendar(BaseCalendar):
         self._check_valid_badi_month_day(b_date)
         return b_date
 
-    def date_from_kvymdhms(self, b_date:tuple, short:bool=False) -> tuple:
+    def date_from_kvymdhms(self, b_date:tuple, *, short:bool=False) -> tuple:
         """
         Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second)
         into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
@@ -461,7 +462,7 @@ class BahaiCalendar(BaseCalendar):
         date = (kull_i_shay, vahid, year, month, day)
         return self.short_date_from_long_date(date) if short else date
 
-    def kvymdhms_from_b_date(self, b_date:tuple, short:bool=False) -> tuple:
+    def kvymdhms_from_b_date(self, b_date:tuple, *, short:bool=False) -> tuple:
         """
         Convert ((Kull-i-Shay, Váḥid, year, month, day.partial) into
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
@@ -567,7 +568,7 @@ class BahaiCalendar(BaseCalendar):
         jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
         return int(math.floor(jd_n1) - math.floor(jd_n0))
 
-    def _get_hms(self, date:tuple, short:bool=False) -> tuple:
+    def _get_hms(self, date:tuple, *, short:bool=False) -> tuple:
         """
         Parse the hours, minutes, and seconds correctly for either the
         short or long form Badi date.
@@ -587,7 +588,7 @@ class BahaiCalendar(BaseCalendar):
         second = date[s+2] if t_len > s+2 and date[s+2] is not None else 0
         return hour, minute, second
 
-    def badi_date_from_gregorian_date(self, g_date:tuple,
+    def badi_date_from_gregorian_date(self, g_date:tuple, *,
                                       short:bool=False) -> tuple:
         """
         Get the Badi date from the Gregorian date.
