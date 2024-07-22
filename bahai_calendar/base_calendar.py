@@ -345,7 +345,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         alpha = self._sun_apparent_right_ascension(tc_td)
         m = func0((alpha - lon - ast) / 360)
         md = self._transit_correction(tc, ast, dt, lon, m)
-        m += md + self.decimal_from_hms(zone, 0, 0)
+        m += md + self.tz_decimal_from_hms(zone, 0, 0)
         return m
 
     def _transit_correction(self, tc, ast, dt, lon, m):
@@ -492,7 +492,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             m += dm
             if abs(dm) < 0.0001: break
 
-        m += self.decimal_from_hms(zone, 0, 0)
+        m += self.tz_decimal_from_hms(zone, 0, 0)
         return m % 1
 
     def _rise_set_correction(self, tc, ast, dt, lat, lon, m, offset):
@@ -1244,7 +1244,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         minutes = math.floor(m)
         return hours, minutes, (seconds - hours * 3600) - minutes * 60
 
-    def decimal_from_hms(self, hours, minutes, seconds):
+    def tz_decimal_from_hms(self, hours:int, minutes:int, seconds:int) -> int:
         """
         Convert hours, minutes, and seconds to a decimal number representing
         percentage of one revolution around the Earth. Where the number 1
@@ -1252,11 +1252,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           This method is used in with determining time zones.
+           This method is used in determining time zones.
         """
         return self.seconds_from_hms(hours, minutes, seconds) / 86400
 
-    def hms_from_decimal(self, dec):
+    def tz_hms_from_decimal(self, dec:float) -> tuple:
         """
         Convert a decimal number into hours, minutes, and seconds of a
         time zone. The decimal number represents the percentage of one
@@ -1265,9 +1265,32 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           This method is used in with determining time zones.
+           This method is used in determining time zones.
          """
         return self.hms_from_seconds(dec * 86400)
+
+    def hms_from_decimal_day(self, dec:float) -> tuple:
+        """
+        Convert a decimal day to hours, minutes, and seconds. If this
+        method is used for a Julian Period day a 0.5 must be added to the
+        value before being passed in.
+
+        :param dec: A decimal number.
+        :type dec: float
+        :return: A tuple representing the hour, minute, and seconds.
+        :rtype: tuple
+
+        .. note::
+
+           If a whole number as in 10.5 is passed in, the 10 will be
+           stripped off before calculations are done.
+        """
+        h = self.PARTIAL_DAY_TO_HOURS(dec)
+        hour = math.floor(h)
+        m = self.PARTIAL_HOUR_TO_MINUTE(h)
+        minute = math.floor(m)
+        second = self.PARTIAL_MINUTE_TO_SECOND(m)
+        return hour, minute, second
 
     def _coterminal_angle(self, value:float) -> float:
         """
