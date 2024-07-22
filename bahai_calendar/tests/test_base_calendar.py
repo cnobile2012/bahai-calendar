@@ -23,10 +23,10 @@ class TestBaseCalendar(unittest.TestCase):
             # Location of Tehran for astronomical Baha’i calendar.
             # Can be change for individual tests using the location
             # method below.
-            latitude = 35.696111
-            longitude = 51.423056
-            elevation = 0
+            latitude = 36.569336
+            longitude = 52.0050234
             zone = 3.5
+            elevation = 0
 
             def location(self, location):
                 if location[0] is not None:
@@ -307,9 +307,9 @@ class TestBaseCalendar(unittest.TestCase):
         """
         offset = self.bc.SUN_OFFSET
         data = (
-            ((1844, 3, 20), self.bc.latitude, offset, 90.88543421536639),
+            ((1844, 3, 20), self.bc.latitude, offset, 90.89234108635455),
             ((1988, 3, 20), 42.3333, offset, 90.98306896131454), # AA Ex15.a
-            ((2024, 6, 20), self.bc.latitude, offset, 109.3294509629815),
+            ((2024, 6, 20), self.bc.latitude, offset, 109.9589991005709),
             )
         msg = "Expected {}, for date {}, found {}."
 
@@ -321,22 +321,22 @@ class TestBaseCalendar(unittest.TestCase):
                              msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__sun_sunrise(self):
+    def test__sun_rising(self):
         """
         """
         data = (
-            # 1844-03-20T12:00:00 -> 1844-03-21T06:06:00 (2394645.754167)
+            # 1844-03-20T12:00:00 -> 1844-03-21T06:05:57.0912 (06:06)
             (2394646.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2394646.75577),
-            # 2024-03-19T12:00:00 -> 2024-03-20T07:07:00 (2460389.795139)
+             2394646.754133),
+            # 2024-03-19T12:00:00 -> 2024-03-20T06:05:17.1744 (06:07)
             (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.755317),
-            # 2024-03-20T00:00:00 -> 2024-03-20T07:05:00 (2460389.795139)
+             2460389.753671),
+            # 2024-03-20T00:00:00 -> 2024-03-20T06:05:17.1744 (06:05)
             (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.755317),
-            # 2024-03-20T02:00:00 -> 2024-03-20T07:05:00 (2460389.795139)
+             2460389.753671),
+            # 2024-03-20T02:00:00 -> 2024-03-20T06:05:17.1744 (06:06)
             (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.755317),
+             2460389.753671),
             )
         msg = "Expected {}, for jd {}, found {}."
 
@@ -381,19 +381,19 @@ class TestBaseCalendar(unittest.TestCase):
         given date represented by a Julian Period day.
         """
         data = (
-            # 1844-03-20T12:00:00 -> 1844-03-20T18:14:00 (2394646.259722)
+            # 1844-03-20T12:00:00 -> 1844-03-20T18:13:47.0208
             (2394646.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2394646.261155),
-            # 2024-03-19T12:00:00 -> 2024-03-19T19:14:00 (2460389.301389)
+             2394646.259572),
+            # 2024-03-19T12:00:00 -> 2024-03-19T18:13:59.1168
             (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.261285),
-            # 2024-03-20T00:00:00 -> 2024-03-20T19:14:00 (2460390.301389)
+             2460389.259712),
+            # 2024-03-20T00:00:00 -> 2024-03-20T18:13:59.1168
             (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460390.261285),
-            # 2024-03-20T02:00:00 -> 2024-03-20T19:14:00 (2460390.301389)
+             2460390.259712),
+            # 2024-03-20T02:00:00 -> 2024-03-20T18:13:59.1168
             (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460390.261285),
-            # 2024-04-20T00:00:00 -> 2024-04-20T19:41:00 DST (2460421.320139)
+             2460390.259712),
+            # 2024-04-20T00:00:00 -> 2024-04-20T19:52:378624 DST (19:53)
             # In Raligh NC, USA
             (2460420.5, 35.7796, -78.6382, -4, 2460421.328216)
             )

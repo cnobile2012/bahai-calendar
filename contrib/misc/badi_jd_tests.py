@@ -15,9 +15,6 @@ from bahai_calendar import BahaiCalendar, GregorianCalendar
 
 
 class DateTests(BahaiCalendar):
-    START_K = -5
-    END_K = 5
-
     # The following three must be updated in unison.
     # This must be the first Gregorian date in TMP_ANS_DATES below.
     TRAN_COFF = 1843
@@ -900,6 +897,8 @@ class DateTests(BahaiCalendar):
         There should be no output so any output indicates inconsecutive years.
         """
         data = []
+        months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                  12, 13, 14, 15, 16, 17, 18, 0, 19)
         py = 0
 
         if options.year:
@@ -914,8 +913,6 @@ class DateTests(BahaiCalendar):
             items = []
             last_jd = 0
             last_date = ()
-            months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                      12, 13, 14, 15, 16, 17, 18, 0, 19)
 
             for year in range(options.start, options.end):
                 for month in months:
@@ -930,7 +927,7 @@ class DateTests(BahaiCalendar):
 
             for item in items:
                 #jd = self.jd_from_badi_date(item)
-                jd = self._jd_from_badi_date(item, options)
+                jd = self._jd_from_badi_date(item, options=options)
                 jdf = math.floor(jd)
 
                 if last_jd != 0 and jdf == last_jd:
@@ -941,18 +938,20 @@ class DateTests(BahaiCalendar):
 
                 last_jd = jdf
                 last_date = item
-        else:
+        elif options.dates:
             last_jd = 0
             last_date = ()
-            start = math.floor(self.jd_from_badi_date((options.start, 1, 1)))
-            end = math.floor(self.jd_from_badi_date((options.end, 1, 1)))
+            start = math.floor(self._jd_from_badi_date(
+                (options.start, 1, 1), options=options))
+            end = math.floor(self._jd_from_badi_date(
+                (options.end, 1, 1), options=options))
 
             for jd in range(start, end):
                 # This makes the Badi and Gregorian dates to always be
                 # on the same day.
                 jd_t = jd + 0.375 # About 9 pm UT.
                 date = self._badi_date_from_jd_alt(jd_t)
-                jd_f = self._jd_from_badi_date(date, options)
+                jd_f = self._jd_from_badi_date(date, options=options)
 
                 if last_jd != 0 and (int(last_jd) == int(jd_f)
                                      and (int(jd_f) - int(last_jd) != 1)):
@@ -962,6 +961,49 @@ class DateTests(BahaiCalendar):
 
                 last_jd = jd_f
                 last_date = date
+        elif options.hours: # Test for consecutive hours in a day.
+            max_years = 1
+
+            if (options.end - options.start) > max_years:
+                print(f"Cannot test for more than {max_years} year at a time.",
+                      file=sys.stderr)
+            else:
+                def twentyfour(year, month, day, hour):
+                    if hour == 0:
+                        date = (year, month, day)
+                    else:
+                        date = (year, month, day, hour)
+
+                    return date
+
+                for year in range(options.start, options.end):
+                    for month in months:
+                        if month == 0:
+                            a = 5 if self._is_leap_year(year) else 4
+
+                            for day in range(1, a + 1):
+                                #sjd = self._jd_from_badi_date(
+                                #    (year, month, day), options=options)
+                                #sss = self._sun_setting(sjd)
+
+                                for hour in range(24):
+                                    date = twentyfour(year, month, day, hour)
+                                    jd = self._jd_from_badi_date(
+                                        date, options=options)
+                                    b_date = self._badi_date_from_jd_alt(jd)
+                                    data.append((date, jd, b_date))
+                        else:
+                            for day in range(1, 20):
+                                #sjd = self._jd_from_badi_date(
+                                #    (year, month, day), options=options)
+                                #sss = self._sun_setting(sjd)
+
+                                for hour in range(24):
+                                    date = twentyfour(year, month, day, hour)
+                                    jd = self._jd_from_badi_date(
+                                        date, options=options)
+                                    b_date = self._badi_date_from_jd_alt(jd)
+                                    data.append((date, jd, b_date))
 
         return data
 
@@ -1083,33 +1125,39 @@ class DateTests(BahaiCalendar):
 
         return data
 
-    def _jd_from_badi_date(self, b_date, options, lat=None,
-                           lon=None, zone=None):
-        #date = self.date_from_kvymdhms(
-        #    self.long_date_from_short_date(b_date), short=True)
-        year, month, day = b_date
+    def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None, *,
+                           options=None):
+        year, month, day = self.date_from_kvymdhms(
+            self.long_date_from_short_date(b_date), short=True)
 
         if month == 0: # Ayyam-i-Ha
             m = 18 * 19
         elif month < 19:
             m = (month - 1) * 19
         else: # month == 19:
+            # _is_leap_year() calls `jd_from_badi_date` from BadiCalendar
             m = 18 * 19 + (5 if self._is_leap_year(year) else 4)
 
-        td = self._days_in_years(year-1, alt=options.alt_leap)
-        adj = -1 if options.exact else -3
-        jd = td + (math.floor(self.BADI_EPOCH) + adj) + m + (day - 1) + day % 1
+        td = self._days_in_years(year-1)
+        jd = td + math.floor(self.BADI_EPOCH) + m + day
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        jds = math.floor(jd)
-        ss_a = self._sun_setting(jds, lat, lon, zone)
-        p = round(day % 1, 6)
-        diff = p + ss_a % 1 + 2
-        #diff = 1
-        coff = 0 if options.coff else self._get_coff(year)
-        return round(jd + diff + coff, 6)
+        if (year, month, day) < (-261, 12, 2):
+            diff = 0 # *** TODO *** Check this
+        else:
+            diff = 1
+
+        ss_a = self._sun_setting(math.floor(jd + diff), lat, lon, zone) % 1
+        #print(f"{str(b_date):<15} {day:<9} {jd:<14} {ss_a:<20}")
+
+        if options:
+            coff = 0 if options.coff else self._get_coff(year)
+        else:
+            coff = self._get_coff(year)
+
+        return round(jd + ss_a + coff, 6)
 
     def _get_coff(self, year):
         def process_segment(y, coff1, coff2, onoff):
@@ -1347,10 +1395,10 @@ class DateTests(BahaiCalendar):
         fjdy = self.jd_from_badi_date((year, 1, 1), lat, lon, zone)
         days = math.floor(jd) - math.floor(fjdy) + 1
 
-        if days <= 342:
+        if days <= 342: # Month 1 - 18
             m_days = days % 19
             day = 19 if m_days == 0 else m_days
-        elif (342 + ld) < days <= yds:
+        elif (342 + ld) < days <= yds: # Month 19
             day = days - (342 + ld)
         else: # Ayyam-i-Ha
             day = days % 342
@@ -1364,8 +1412,8 @@ class DateTests(BahaiCalendar):
             else:
                 break
 
-        #if any([True if l is None else False for l in (lat, lon, zone)]):
-        #    lat, lon, zone = self.BAHAI_LOCATION[:3]
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self.BAHAI_LOCATION[:3]
 
         #diff = jd % 1 - self._sun_setting(jd, lat, lon, zone) % 1
         #day += jd % 1 + 0.5
@@ -1407,7 +1455,7 @@ class DateTests(BahaiCalendar):
     def _calculate_b_date(self, b_date, g_date, data, options):
         gjd = self.gc.jd_from_gregorian_date(
             g_date, exact=options.exact, alt=options.alt_leap)
-        bjd = self._jd_from_badi_date(b_date, options)
+        bjd = self._jd_from_badi_date(b_date, options=options)
         #bjd = self.jd_from_badi_date(b_date)
         diff = round(bjd - gjd, 6)
         offby = math.floor(bjd) - math.floor(gjd)
@@ -1427,8 +1475,8 @@ class DateTests(BahaiCalendar):
         """
         Get the Gregorian date from the Badi date.
         """
-        jd = self._jd_from_badi_date(b_date, options, lat=lat,
-                                     lon=lon, zone=zone)
+        jd = self._jd_from_badi_date(b_date, lat=lat, lon=lon, zone=zone,
+                                     options=options)
         gd = self.gc.gregorian_date_from_jd(jd, exact=options.exact)
         g_date = self.gc.ymdhms_from_date(gd)
         return g_date
@@ -1498,6 +1546,12 @@ if __name__ == "__main__":
     parser.add_argument(
         '-Y', '--year', action='store_true', default=False, dest='year',
         help="Test for the consecutive defined years 1 - 3004.")
+    parser.add_argument(
+        '-D', '--dates', action='store_true', default=False, dest='dates',
+        help="Test for the consecutive dates from JDs.")
+    parser.add_argument(
+        '-H', '--hours', action='store_true', default=False, dest='hours',
+        help="Test for the consecutive hours.")
     options = parser.parse_args()
     exclusive_error = (options.list, options.ck_dates, options.analyze,
                        options.consecutive, options.range != 0)
@@ -1508,7 +1562,8 @@ if __name__ == "__main__":
 
     if options.ck_dates:
         if options.start is None or options.end is None:
-            print("If option -c is used, -S and -E must also be used.")
+            print("If option -c is used, -S and -E must also be used.",
+                  file=sys.stderr)
             ret = 1
         else:
             data = dt.create_date_lists(options)
@@ -1517,7 +1572,8 @@ if __name__ == "__main__":
             pprint.pprint(bad_items)
     elif options.list:
         if options.start is None or options.end is None:
-            print("If option -l is used, -S and -E must also be used.")
+            print("If option -l is used, -S and -E must also be used.",
+                  file=sys.stderr)
             ret = 1
         else:
             data = dt.create_date_lists(options)
@@ -1594,7 +1650,7 @@ if __name__ == "__main__":
                   f"Years analyzed: {years}\n"
                   f"Approximate days analyzed: {years*dt.JULIAN_YEAR}\n"
                   f"Total error days: {len(data)}")
-        else: # Consecutive Badi dates
+        elif options.dates: # Consecutive Badi dates
             data = dt.consecutive_dates(options)
             print("last_date       "
                   "last_jd   !=   "
@@ -1609,13 +1665,21 @@ if __name__ == "__main__":
                    f"{str(date):<15} "
                    f"{(jd_f-last_jd) == 1}"
                    ) for l_d, l_jd, jd_f, jd_t, date in data]
+        elif options.hours:
+            data = dt.consecutive_dates(options)
+            [print(item) for item in data]
+        else:
+            print("Please choose one of options -[YJDH] with -k.",
+                  file=sys.stderr)
+            ret = 1
     elif options.range != 0:
         data = dt.get_range(options.range)
         [print(item) for item in data]
         print(f"Total years: {len(data)}")
     elif options.precursor:
         if options.start is None or options.end is None:
-            print("If option -p is used, -S and -E must also be used.")
+            print("If option -p is used, -S and -E must also be used.",
+                  file=sys.stderr)
             ret = 1
         else:
             data = dt.find_coefficents_precursor(options)
@@ -1624,13 +1688,15 @@ if __name__ == "__main__":
             print(f"Total years: {len(data)}")
     elif options.coeff:
         if options.start is None or options.end is None:
-            print("If option -q is used, -S and -E must also be used.")
+            print("If option -q is used, -S and -E must also be used.",
+                  file=sys.stderr)
             ret = 1
         else:
             [print(item) for item in dt.find_coefficents(options)]
     elif options.g_dates:
         if options.start is None or options.end is None:
-            print("If option -g is used, -S and -E must also be used.")
+            print("If option -g is used, -S and -E must also be used.",
+                  file=sys.stderr)
             ret = 1
         else:
             print("b_date           "

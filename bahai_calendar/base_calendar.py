@@ -85,8 +85,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     #   (floor m n))
     QUOTIENT = lambda self, m, n: math.floor(m / n)
 
-    PARTIAL_DAY_TO_HOURS = lambda self, x: (x % 1) * 24
-    PARTIAL_HOUR_TO_MINUTE = lambda self, x: (x % 1) * 60
+    # The inline functions below will assume that 0 is midnight, if
+    # converting from a Julian Period day add 0.5 to the value before
+    # calling the function.
+    PARTIAL_DAY_TO_HOURS = lambda self, x: round(
+        (x % 1), self.ROUNDING_PLACES) * 24
+    PARTIAL_HOUR_TO_MINUTE = lambda self, x: round(
+        (x % 1), self.ROUNDING_PLACES) * 60
     PARTIAL_MINUTE_TO_SECOND = PARTIAL_HOUR_TO_MINUTE
 
     MEAN_TROPICAL_YEAR = 365.2421897
@@ -355,7 +360,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         h = self._local_hour_angle(srt, lon, alpha)
         return -h / 360
 
-    def _sun_rising(self, jd:float, lat:float, lon:float, zone:float=0,
+    def _sun_rising(self, jd:float, lat:float, lon:float, zone:float=0, *,
                     exact:bool=False, offset:float=SUN_OFFSET) -> float:
         """
         Find the exact jd for sunrise of the given jd.
@@ -391,7 +396,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                    offset=offset, sr_ss='RISE')
         return round(jd, self.ROUNDING_PLACES)
 
-    def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0,
+    def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0, *,
                      exact:bool=False, offset:float=SUN_OFFSET) -> float:
         """
         Find the exact jd for sunset of the given jd.
@@ -427,7 +432,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                    offset=offset, sr_ss='SET')
         return round(jd, self.ROUNDING_PLACES)
 
-    def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0,
+    def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0, *,
                         exact:bool=False, offset:float=SUN_OFFSET,
                         sr_ss:str='RISE') -> float:
         """
