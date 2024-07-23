@@ -34,7 +34,7 @@ class GregorianCalendar(BaseCalendar):
 
     @property
     def date_representation(self):
-        return self._gregorian_date + super().time_representation
+        return self._gregorian_date + self.time_representation
 
     @date_representation.setter
     def date_representation(self, representation):

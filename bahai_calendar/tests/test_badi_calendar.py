@@ -56,55 +56,47 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # Badi epoch (Sunset 1844-03-20T18:14:00)
-            ((1844, 3, 20, 18, 14), (1, 1, 1, 1, 1, 18, 13, 59.9808)),
+            ((1844, 3, 20, 18, 14), False, (1, 1, 1, 1, 1, 0, 0, 12.96)),
             # CC ch#16 p271 First day of Riḍván
-            ((1930, 4, 21), (1, 5, 11, 2, 13)),
+            ((1930, 4, 21, 18, 41), False, (1, 5, 11, 2, 13, 0, 0, 25.7472)),
             # B.E. 100 (Vernal Equinox 1943-03-21T12:03:04 DT)
-            ((1943, 3, 21), (1, 6, 5, 1, 1)),
+            ((1943, 3, 21, 18, 14), False, (1, 6, 5, 1, 1, 0, 0, 16.9344)),
             # World Centre update (Vernal Equinox 2015-03-20T22:46:16 DT)
-            ((2015, 3, 21), (1, 10, 1, 1, 1)),
+            ((2015, 3, 21, 18, 14), True, (172, 1, 1)),
             )
         msg = "Expected {} with g_date {}, found {}"
 
-        for g_date, expected_result in data:
+        for g_date, short, expected_result in data:
             dt = datetime.datetime(*g_date)
-            self._bc.parse_gregorian_datetime(dt)
+            self._bc.parse_gregorian_datetime(dt, short=short)
             result = self._bc.date_representation
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_sunset(self):
+    def test_utc_sunset(self):
         """
-        Test that the sunset method returns the universal time of
+        Test that the utc_sunset method returns the universal time of
         sunset on fixed date. This results in the UTC time of sunset.
         See: https://gml.noaa.gov/grad/solcalc/
         """
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
-            # Should be 1844-03-20T18:14:00 (2394645.5 -> 2394646.259201)
-            ((1, 1, 1, 2), lat, lon, zone, False, (1, 1, 1, 1, 1)),
-            # Should be 2024-03-19T18:13:00 (2460388.5 -> 2460389.258723)
-            ((180, 19, 19), lat, lon, zone, False,
-             (1, 10, 10, 1, 1, 18, 12, 33.667201)),
-            ((180, 19, 19), lat, lon, zone, True,
-             (181, 1, 1, 18, 12, 33.667201)),
-            # Should be 2064-03-19T18:13:00 (2474999.5 -> 2475000.2595)
-            ((221, 1, 1), lat, lon, zone, False,
-             (1, 12, 12, 1, 2, 18, 13, 40.8)),
-            ((221, 1, 1), lat, lon, zone, True,
-             (221, 1, 2, 18, 13, 40.8)),
-            # Should be 2024-04-19T20:17:00 DST in Raleigh NC
-            # (2460420.5 -> 2460421.327631)
-            ((181, 2, 13), 35.7796, -78.6382, -4, False,
-             (1, 10, 10, 2, 13, 19, 51, 47.318399)),
-            ((181, 2, 13), 35.7796, -78.6382, -4, True,
-             (181, 2, 13, 19, 51, 47.318399)),
+            # Should be 1844-03-20T18:14:00
+            ((1, 1, 1, 2), lat, lon, zone, (18, 13, 47.0208)),
+            # Should be 2024-03-19T18:13:00
+            ((180, 19, 19), lat, lon, zone, (18, 13, 6.4128)),
+            # Should be 2064-03-19T18:13:00
+            ((221, 1, 1), lat, lon, zone, (18, 14, 13.8912)),
+            # Should be 2024-04-20T19:53:00 DST in Raleigh NC
+            ((181, 2, 13), 35.7796, -78.6382, -4, (19, 52, 37.8624)),
+            # Should be 2024-07-22T20:26:00 DST in Raleigh NC
+            ((181, 7, 11), 35.7796, -78.6382, -4, (20, 26, 29.1264)),
             )
         msg = "Expected {}, date {}, found {}"
 
-        for date, lat, lon, zone, short, expected_result in data:
-            result = self._bc.sunset(date, lat, lon, zone, short=short)
+        for date, lat, lon, zone, expected_result in data:
+            result = self._bc.utc_sunset(date, lat, lon, zone)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
@@ -114,9 +106,9 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the naw_ruz method returns the correct Badi date.
         """
         data = (
-            (1, False, (1, 1, 1, 1, 1)), # 1844-03-20T18:13:00
-            (1, True, (1, 1, 1)),        # 1844-03-20T18:13:00
-            (182, True, (182, 1, 1)),    # 2025-03-20T18:13:00
+            (1, False, (1, 1, 1, 1, 1, 0, 0, 52.0992)),   # 1844-03-20T18:14:00
+            (1, True, (1, 1, 1, 0, 0, 52.0992)),          # 1844-03-20T18:14:00
+            (182, True, (182, 1, 1)),                     # 2025-03-20T18:14:00
             # 2026-03-21T18:14:00
             (183, False, (1, 10, 12, 1, 1, 18, 13, 33.455999)),
             # The following years are the ones that had errors.
@@ -205,24 +197,27 @@ class TestBadiCalendar(unittest.TestCase):
             (2299316.259821, True, (-260, 1, 1)),
             # 1844-03-20T18:12:2.3904
             (2394644.259572, True, (1, 1, 1)),
-            (2395009.260028, True, (1, 19, 19)),
+            (2395009.260028, True, (1, 19, 19, 0, 0, 52.0992)),
             # 1863-03-21T18:11:29.7312
             (2401584.259803, True, (20, 1, 1)),
+            # 2015-03-21T18:14:00
+            (2457101.259829, True, (172, 1, 1)),
+            (2457101.259722, True, (172, 1, 1)),
             # 2024-03-20T18:12:2.3904
             (2460388.259712, True, (181, 1, 1)),
             # 2024-04-20T18:39:5.1552
-            (2460419.278959, True, (181, 2, 13)),
+            (2460419.278959, True, (181, 2, 13, 0, 0, 52.3584)),
             # 1st day of Ayyám-i-Há -> 2022-02-25T17:50:24.2304
-            (2459634.245373, True, (178, 0, 1)),
+            (2459634.245373, True, (178, 0, 1, 0, 0, 58.32)),
             # 2022-03-01T17:54:18.2016
-            (2459638.248036, True, (178, 0, 5)),
+            (2459638.248036, True, (178, 0, 5, 0, 0, 57.024)),
             # 2022-03-02T17:55:15.9168
-            (2459639.248693, True, (178, 19, 1)),
+            (2459639.248693, True, (178, 19, 1, 0, 0, 56.7648)),
             # Badi short form -> 2024-05-14T18:59:54.3264
-            (2460443.293338, True, (181, 3, 18)),
+            (2460443.293338, True, (181, 3, 18, 0, 0, 49.68)),
             # Badi long form -> 2024-05-14T18:59:54.3264
-            (2460443.293338, False, (1, 10, 10, 3, 18)),
-            (2460507.450424, True, (181, 7, 6, 3, 30)),
+            (2460443.293338, False, (1, 10, 10, 3, 18, 0, 0, 49.68)),
+            (2460507.450424, True, (181, 7, 6, 3, 29, 25.7568)),
             )
         msg = "Expected {} for jd {}, found {}"
 
@@ -274,9 +269,9 @@ class TestBadiCalendar(unittest.TestCase):
             ((0, 19, 19), (0, 19, 19, 19, 19)),
             # 
             ((0, 10, 10), (0, 19, 19, 10, 10)),
-            # 
+            # 1843-03-21T21:18:14
             ((0, 1, 1), (0, 19, 19, 1, 1)),
-            # 1843-03-21T00:00:00
+            # 1842-03-21T00:00:00
             ((-1, 1, 1), (0, 19, 18, 1, 1)),
             # 1444-05-17T00:00:00
             ((-400, 4, 3), (-1, 17, 18, 4, 3)),
@@ -485,10 +480,10 @@ class TestBadiCalendar(unittest.TestCase):
         correct Badi date.
         """
         data = (
-            ((1844, 3, 20, 18, 14), False, (1, 1, 1, 1, 1, 18, 15, 59.9904)),
-            ((1844, 3, 20, 18, 14), True, (1, 1, 1, 18, 15, 59.9904)),
-            ((2024, 5, 14, 20), False, (1, 10, 10, 3, 19, 19, 59, 59.9712)),
-            ((2024, 5, 14, 20), True, (181, 3, 19, 19, 59, 59.9712)),
+            ((1844, 3, 20, 18, 14), False, (1, 1, 1, 1, 1, 0, 0, 12.96)),
+            ((1844, 3, 20, 18, 14), True, (1, 1, 1, 0, 0, 12.96)),
+            ((2024, 5, 14, 20), False, (1, 10, 10, 3, 18, 0, 58, 25.248)),
+            ((2024, 5, 14, 20), True, (181, 3, 18, 0, 58, 25.248)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -505,11 +500,11 @@ class TestBadiCalendar(unittest.TestCase):
         """
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
-            ((1, 1, 1), lat, lon, zone, (1844, 3, 20.758361)),
-            ((181, 3, 18, 20), lat, lon, zone, (2024, 5, 17.292183)),
-            ((181, 3, 19, 20), lat, lon, zone, (2024, 5, 18.292762)),
-            ((181, 4, 1, 17), lat, lon, zone, (2024, 5, 18.918337)),
-            ((181, 4, 1, 20), lat, lon, zone, (2024, 5, 19.293337)),
+            ((1, 1, 1), lat, lon, zone, (1844, 3, 18.759572)),
+            ((181, 3, 18, 20), lat, lon, zone, (2024, 5, 13.626671)),
+            ((181, 3, 19, 20), lat, lon, zone, (2024, 5, 14.627242)),
+            ((181, 4, 1, 17), lat, lon, zone, (2024, 5, 15.502808)),
+            ((181, 4, 1, 20), lat, lon, zone, (2024, 5, 15.627808)),
             )
         msg = "Expected {} for date {}, found {}"
 

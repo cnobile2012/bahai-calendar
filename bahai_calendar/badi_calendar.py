@@ -43,13 +43,17 @@ class BahaiCalendar(BaseCalendar):
         self._bahai_date = None
         self._gc = GregorianCalendar()
 
-    def parse_gregorian_datetime(self, dt:datetime.datetime) -> None:
+    def parse_gregorian_datetime(self, dt:datetime.datetime, lat:float=None,
+                                 lon:float=None, zone:float=None, *,
+                                 short=False) -> None:
         """
         Parse a Gregorian date to a long form Badi date.
         """
         self._gc.parse_datetime(dt)
-        jd = self._gc.jd_from_gregorian_date(self._gc.date_representation)
-        self.date_representation = self.badi_date_from_jd(jd)
+        jd = self._gc.jd_from_gregorian_date(self._gc.date_representation,
+                                             exact=True)
+        self.date_representation = self.badi_date_from_jd(
+            jd, lat=lat, lon=lon, zone=zone, short=short)
 
     #def parse_badi_datetime(self, dt:badi_datetime) -> None:
     #    """
@@ -67,11 +71,10 @@ class BahaiCalendar(BaseCalendar):
     def date_representation(self, representation:tuple=None):
         self._bahai_date = representation
 
-    def sunset(self, date:tuple, lat:float=None, lon:float=None,
-               zone:float=None, *, short:bool=False) -> float:
+    def utc_sunset(self, date:tuple, lat:float=None, lon:float=None,
+                   zone:float=None) -> float:
         """
-        Return the sunset for the given Badi Day in either the long or
-        short form date.
+        Return the time of sunset for the given Badi Day.
 
         :param date: Short form Badi date.
         :type date: tuple
@@ -80,16 +83,8 @@ class BahaiCalendar(BaseCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        jd = self.jd_from_badi_date(date, lat, lon, zone)
-
-        if date < (-261, 12, 2):
-            pass
-        else:
-            jd += 2
-
-        ss = self._sun_setting(jd, lat, lon, zone)
-        #print(date, jd, ss)
-        return self.badi_date_from_jd(ss, short=short)
+        jd = self.jd_from_badi_date(date[:3], lat, lon, zone)
+        return self.hms_from_decimal_day(jd + 0.5)
 
     def naw_ruz(self, year:int, *, short:bool=False) -> tuple:
         """
@@ -97,9 +92,22 @@ class BahaiCalendar(BaseCalendar):
 
         """
         jd = self.jd_from_badi_date((year, 1, 1))
-        ve = self.find_moment_of_equinoxes_or_solstices(jd)
+
+        # The diff value compensates for all of Meeus' algorithms which
+        # is 2 days ahead of mine after 1582-10-15T00:00:00 (-261, 12, 2)
+        if year < -262:
+            diff = 0 # *** TODO *** Check this
+        else:
+            diff = 2
+
+        ve = self.find_moment_of_equinoxes_or_solstices(jd + diff)
         ss = self._sun_setting(ve, *self.BAHAI_LOCATION[:3])
-        return self.badi_date_from_jd(ss, short=short)
+
+        if ss < ve:
+            ss = self._sun_setting(ve + 1, *self.BAHAI_LOCATION[:3])
+
+        print(year, ss, ve, jd, ss - diff)
+        return self.badi_date_from_jd(ss - diff, short=short)
 
     def first_day_of_ridvan(self, year:int, lat:float=0, lon:float=0,
                             zone:float=0, short:bool=False) -> tuple:
@@ -378,7 +386,7 @@ class BahaiCalendar(BaseCalendar):
 
         def check_and_fix_day(cjd, y, lat=None, lon=None, zone=None):
             fjdy = self.jd_from_badi_date((y, 1, 1), lat, lon, zone)
-            return y-1 if (fjdy - cjd) > 0 else y
+            return y-1 if (math.floor(fjdy) - math.floor(cjd)) > 0 else y
 
         md = jd - (self.BADI_EPOCH - 1)
         year = math.floor(md / self.MEAN_TROPICAL_YEAR) + 1
@@ -403,22 +411,22 @@ class BahaiCalendar(BaseCalendar):
         month_days[18] = (0, ld)
 
         for month, ds in month_days:
-            if days > ds:
-                days -= ds
-            else:
-                break
+            if days <= ds: break
+            days -= ds
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        diff = jd % 1  - self._sun_setting(jd, lat, lon, zone) % 1
-        day += (round(diff, self.ROUNDING_PLACES)
-                if math.isclose(diff, 1, rel_tol=0.001) else 0)
+        # We add 1 to the JD to compinsate for the difference between
+        # the Meeus algorithm and mine.
+        diff = self._sun_setting(jd + 1, lat, lon, zone) % 1
+        cor = (jd % 1) - diff
+        day += cor if (day + cor) >= 1 else 0
 
-        print('jd:', jd, 'md:', md,
-              'days:', days,
-              'diff:', diff,
-              'leap:', self._is_leap_year(year), 'date:', (year, month, day))
+        #print('jd:', jd, 'md:', md,
+        #      'days:', days,
+        #      'diff:', diff,
+        #      'leap:', self._is_leap_year(year), 'date:', (year, month, day))
 
         date = self.long_date_from_short_date((year, month, day))
         return self.kvymdhms_from_b_date(date, short=short)
@@ -440,7 +448,7 @@ class BahaiCalendar(BaseCalendar):
         year, month, day = date[:3]
         hour, minute, second = self._get_hms(date, short=True)
         k = year / 361
-        k0 = self._truncate_decimal(k % 1, 6)
+        k0 = self._truncate_decimal(k % 1, self.ROUNDING_PLACES)
         v = k0 / 19 * 361
         kull_i_shay = math.floor(k)
 
@@ -450,7 +458,8 @@ class BahaiCalendar(BaseCalendar):
         else:
             kull_i_shay += 1
             vahid = math.ceil(v)
-            y = math.ceil(self._truncate_decimal(v % 1, 6) * 19)
+            y = math.ceil(self._truncate_decimal(
+                v % 1, self.ROUNDING_PLACES) * 19)
 
         hms = self._trim_hms((hour, minute, second))
         b_date = (kull_i_shay, vahid, y, month, day) + hms
@@ -596,12 +605,12 @@ class BahaiCalendar(BaseCalendar):
         second = date[s+2] if t_len > s+2 and date[s+2] is not None else 0
         return hour, minute, second
 
-    def badi_date_from_gregorian_date(self, g_date:tuple, *, short:bool=False,
-                                      exact=False) -> tuple:
+    def badi_date_from_gregorian_date(self, g_date:tuple, *,
+                                      short:bool=False) -> tuple:
         """
         Get the Badi date from the Gregorian date.
         """
-        jd = self._gc.jd_from_gregorian_date(g_date, exact=exact)
+        jd = self._gc.jd_from_gregorian_date(g_date, exact=True)
         return self.badi_date_from_jd(jd, short=short)
 
     def gregorian_date_from_badi_date(self, b_date:tuple, lat:float=0,
