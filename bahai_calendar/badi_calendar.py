@@ -86,48 +86,63 @@ class BahaiCalendar(BaseCalendar):
         jd = self.jd_from_badi_date(date[:3], lat, lon, zone)
         return self.hms_from_decimal_day(jd + 0.5)
 
-    def naw_ruz(self, year:int, *, short:bool=False) -> tuple:
+    def naw_ruz_g_date(self, year:int, lat:float=None, lon:float=None,
+                       zone:float=None, *, hms:bool=False) -> tuple:
         """
         Return the Badi date for Naw-Ruz from the given Badi year.
 
+        :param year: A Badi year.
+        :type year: int
+        :param lat: The latitude.
+        :type lat: float
+        :param lon: The longitude.
+        :type lon: float
+        :param zone: The time zone.
+        :type zone: float
+        :param hms: If True the output returns the hours, minutes, and second
+                    as seperate fields. If False the day has a decimal value
+                    indicating the houirs, minutes, and seconds.
+        :type hms: bool
+        :return: A Gregorian date.
+        :rtype: tuple
         """
-        jd = self.jd_from_badi_date((year, 1, 1))
-
-        # The diff value compensates for all of Meeus' algorithms which
-        # is 2 days ahead of mine after 1582-10-15T00:00:00 (-261, 12, 2)
-        if year < -262:
-            diff = 0 # *** TODO *** Check this
-        else:
-            diff = 2
-
-        ve = self.find_moment_of_equinoxes_or_solstices(jd + diff)
-        ss = self._sun_setting(ve, *self.BAHAI_LOCATION[:3])
-
-        if ss < ve:
-            ss = self._sun_setting(ve + 1, *self.BAHAI_LOCATION[:3])
-
-        print(year, ss, ve, jd, ss - diff)
-        return self.badi_date_from_jd(ss - diff, short=short)
-
-    def first_day_of_ridvan(self, year:int, lat:float=0, lon:float=0,
-                            zone:float=0, short:bool=False) -> tuple:
-        """
-        Find the first day of Riḍván in either the long or short form date.
-        If the latitude, longitude, and time zone are not given Riḍván time
-        of day is determined for the city of Nur in Iran.
-        """
-        naw_ruz = self.naw_ruz(year, short=True)
-
-        if lat == 0 and lon == 0 and zone == 0:
+        if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        year, month, day = naw_ruz[:3]
-        ss_date = self.sunset((year, 2, 13), lat, lon, zone)
-        kull_i_shay, vahid, year, month, day = ss_date[:5]
-        hour, minute, second = self._get_hms(ss_date)
-        b_date = (kull_i_shay, vahid, year, month, day, hour, minute, second)
-        #print(ss_date, b_date)
-        return self.short_date_from_long_date(b_date) if short else b_date
+        jd = self.jd_from_badi_date((year, 1, 1), lat, lon, zone)
+        date = self._gc.gregorian_date_from_jd(jd, exact=True)
+        return self._gc.ymdhms_from_date(date) if hms else date
+
+    def first_day_of_ridvan_g_date(self, year:int, lat:float=None,
+                                   lon:float=None, zone:float=None, *,
+                                   hms:bool=False) -> tuple:
+        """
+        Find the first day of Riḍván in either with or without hours,
+        minutes, and seconds.
+        If the latitude, longitude, and time zone are not given Riḍván time
+        of day is determined for the city of Nur in Iran.
+
+        :param year: A Badi year.
+        :type year: int
+        :param lat: The latitude.
+        :type lat: float
+        :param lon: The longitude.
+        :type lon: float
+        :param zone: The time zone.
+        :type zone: float
+        :param hms: If True the output returns the hours, minutes, and second
+                    as seperate fields. If False the day has a decimal value
+                    indicating the houirs, minutes, and seconds.
+        :type hms: bool
+        :return: A Gregorian date.
+        :rtype: tuple
+        """
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self.BAHAI_LOCATION[:3]
+
+        jd = self.jd_from_badi_date((year, 2, 13), lat, lon, zone)
+        date = self._gc.gregorian_date_from_jd(jd, exact=True)
+        return self._gc.ymdhms_from_date(date) if hms else date
 
     def jd_from_badi_date(self, b_date:tuple, lat:float=None, lon:float=None,
                           zone:float=None) -> float:

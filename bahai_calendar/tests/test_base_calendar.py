@@ -1031,25 +1031,25 @@ class TestBaseCalendar(unittest.TestCase):
     #
 
     #@unittest.skip("Temporarily skipped")
-    def test_sin_deg(self):
+    def test__sin_deg(self):
         """
-        Test that the sin_deg method returns the sine of theta
+        Test that the _sin_deg method returns the sine of theta
         (given in degrees).
         """
         theta = 90.0
-        result = self.bc.sin_deg(theta)
+        result = self.bc._sin_deg(theta)
         expected_result = 1.0
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_cos_deg(self):
+    def test__cos_deg(self):
         """
-        Test that the cos_deg method returns the cosine of theta
+        Test that the _cos_deg method returns the cosine of theta
         (given in degrees).
         """
         theta = 90.0
-        result = self.bc.cos_deg(theta)
+        result = self.bc._cos_deg(theta)
         expected_result = 6.123233995736766e-17 # is 0?
         msg = f"Expected {expected_result}, found {result}."
         self.assertEqual(expected_result, result, msg)

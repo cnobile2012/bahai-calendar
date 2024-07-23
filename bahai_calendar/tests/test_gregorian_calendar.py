@@ -149,7 +149,7 @@ class TestGregorianCalendar(unittest.TestCase):
             (1314176.5, True, False, (-1115, 12, 30)),
             (1314177.5, True, False, (-1115, 12, 31)),
             (1721482.5, True, False, (1, 3, 1)),
-            # Leap years with special correctio
+            # Leap years with special correct
             (1867519.5, False, False, (400, 12, 28.0)),
             (1867519.5, True, False, (400, 12, 31.0)),
             (1867519.5, True, True, (400, 12, 31.0)),
@@ -175,7 +175,7 @@ class TestGregorianCalendar(unittest.TestCase):
             (2451545.0, False, False, (2000, 1, 1.5)),
             (2451545.0, True, False, (2000, 1, 3.5)),
             (2451545.0, True, True, (2000, 1, 3.5)),
-            # Fractional days othere than 0 or 0.5
+            # Fractional days other than 0 or 0.5
             (2459188.6, False, False, (2020, 12, 5.1)),
             (2459188.6, True, False, (2020, 12, 7.1)),
             (2459188.75, False, False, (2020, 12, 5.25)),

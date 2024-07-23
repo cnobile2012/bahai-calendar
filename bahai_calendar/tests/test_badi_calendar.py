@@ -83,71 +83,107 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # Should be 1844-03-20T18:14:00
-            ((1, 1, 1, 2), lat, lon, zone, (18, 13, 47.0208)),
+            ((1, 1, 1, 2), lat, lon, zone, True, (18, 13, 47.0208)),
             # Should be 2024-03-19T18:13:00
-            ((180, 19, 19), lat, lon, zone, (18, 13, 6.4128)),
+            ((180, 19, 19), lat, lon, zone, True, (18, 13, 6.4128)),
             # Should be 2064-03-19T18:13:00
-            ((221, 1, 1), lat, lon, zone, (18, 14, 13.8912)),
+            ((221, 1, 1), lat, lon, zone, True, (18, 14, 13.8912)),
             # Should be 2024-04-20T19:53:00 DST in Raleigh NC
-            ((181, 2, 13), 35.7796, -78.6382, -4, (19, 52, 37.8624)),
+            ((181, 2, 13), 35.7796, -78.6382, -4, True, (19, 52, 37.8624)),
             # Should be 2024-07-22T20:26:00 DST in Raleigh NC
-            ((181, 7, 11), 35.7796, -78.6382, -4, (20, 26, 29.1264)),
+            ((181, 7, 11), 35.7796, -78.6382, -4, True, (20, 26, 29.1264)),
+            # Test default latitude, longitude, and zone.
+            ((1, 1, 1, 2), lat, lon, zone, False, (18, 13, 47.0208)),
             )
         msg = "Expected {}, date {}, found {}"
 
-        for date, lat, lon, zone, expected_result in data:
-            result = self._bc.utc_sunset(date, lat, lon, zone)
+        for date, lat, lon, zone, use_cor, expected_result in data:
+            if use_cor:
+                result = self._bc.utc_sunset(date, lat, lon, zone)
+            else:
+                result = self._bc.utc_sunset(date)
+
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_naw_ruz(self):
+    def test_naw_ruz_g_date(self):
         """
-        Test that the naw_ruz method returns the correct Badi date.
-        """
-        data = (
-            (1, False, (1, 1, 1, 1, 1, 0, 0, 52.0992)),   # 1844-03-20T18:14:00
-            (1, True, (1, 1, 1, 0, 0, 52.0992)),          # 1844-03-20T18:14:00
-            (182, True, (182, 1, 1)),                     # 2025-03-20T18:14:00
-            # 2026-03-21T18:14:00
-            (183, False, (1, 10, 12, 1, 1, 18, 13, 33.455999)),
-            # The following years are the ones that had errors.
-            (178, True, (178, 1, 1, 18, 13, 33.1104)),    # 2021-03-20T18:14:00
-            (187, True, (187, 1, 1, 18, 13, 33.110401)),  # 2030-03-20T18:14:00
-            (191, True, (191, 1, 1, 18, 13, 32.9376)),    # 2034-03-20T18:14:00
-            (195, True, (195, 1, 1, 18, 13, 32.6784)),    # 2038-03-20T18:14:00
-            (211, True, (211, 1, 1, 18, 13, 31.728)),     # 2054-03-20T18:14:00
-            (216, True, (216, 1, 1, 18, 13, 31.468801)),  # 2059-03-20T18:14:00
-            (220, True, (220, 1, 1, 18, 13, 31.641599)),  # 2063-03-20T18:14:00
-            )
-        msg = "Expected {} for date {} and short {}, found {}"
-
-        for year, short, expected_result in data:
-            result = self._bc.naw_ruz(year, short=short)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, year, short, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_first_day_of_ridvan(self):
-        """
-        Test that the first_day_of_ridvan method returns Jalál 13th in
-        any year.
+        Test that the naw_ruz_g_date method returns the correct Badi date.
         """
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
-            # 1-02-13T18:40:00 (1844-04-20T18:40:00)
-            (1, lat, lon, zone, False, (1, 1, 1, 2, 13, 18, 39, 49.7376)),
-            (1, lat, lon, zone, True, (1, 2, 13, 18, 39, 49.7376)),
-            # 181-02-13T19:41:00 DST at Raleigh NC, USA
-            (181, 35.7796, -78.6382, -4, False, (1, 10, 10, 2, 13, 19, 40)),
+            # 1844-03-20T18:14:00
+            (1, lat, lon, zone, False, True, (1844, 3, 20.759572)),
+            # 1844-03-20T18:14:00
+            (1, lat, lon, zone, True, True, (1844, 3, 20, 18, 13, 47.0208)),
+            # 2024-03-20T
+            (181, 35.7796, -78.6382, -4, True, True,
+             (2024, 3, 20, 19, 26, 48.3648)),
+            # 2025-03-20T18:14:00
+            (182, lat, lon, zone, False, True, (2025, 3, 20.759566)),
+            # 2026-03-21T18:14:00
+            (183, lat, lon, zone, False, True, (2026, 3, 21.760028)),
+            # The following years are the ones that had errors.
+            # 2021-03-20T18:14:00
+            (178, lat, lon, zone, False, True, (2021, 3, 20.759545)),
+            # 2030-03-20T18:14:00
+            (187, lat, lon, zone, False, True, (2030, 3, 20.760046)),
+            # 2034-03-20T18:14:00
+            (191, lat, lon, zone, False, True, (2034, 3, 20.760059)),
+            # 2038-03-20T18:14:00
+            (195, lat, lon, zone, False, True, (2038, 3, 20.760072)),
+            # 2054-03-20T18:14:00
+            (211, lat, lon, zone, False, True, (2054, 3, 20.759532)),
+            # 2059-03-20T18:14:00
+            (216, lat, lon, zone, False, True, (2059, 3, 20.759398)),
+            # 2063-03-20T18:14:00
+            (220, lat, lon, zone, False, True, (2063, 3, 20.75942)),
+            # Test default latitude, longitude, and zone.
+            (1, lat, lon, zone, False, False, (1844, 3, 20.759572)),
+            # 1993-03-21T18:14:00 Test sunset before Vernal Equinox
+            (150, lat, lon, zone, False, True, (1993, 3, 21.760044)),
             )
-        msg = "Expected {} for short {}, found {}"
+        msg = "Expected {} for date {}, found {}"
 
-        for year, lat, lon, zone, short, expected_result in data:
-            result = self._bc.first_day_of_ridvan(year, lat, lon, zone,
-                                                  short=short)
+        for year, lat, lon, zone, hms, use_cor, expected_result in data:
+            if use_cor:
+                result = self._bc.naw_ruz_g_date(year, lat, lon, zone, hms=hms)
+            else:
+                result = self._bc.naw_ruz_g_date(year, hms=hms)
+
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, year, short, result))
+                             msg.format(expected_result, year, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_first_day_of_ridvan_g_date(self):
+        """
+        Test that the first_day_of_ridvan_g_date method returns Jalál 13th
+        in any year.
+        """
+        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
+        data = (
+            # 0001-02-13T18:40:00 (1844-04-20T18:40:00)
+            (1, lat, lon, zone, False, True, (1844, 4, 20.778639)),
+            (1, lat, lon, zone, True, True, (1844, 4, 20, 18, 41, 14.4096)),
+            # 0181-02-13T19:41:00-04:00 DST at Raleigh NC, USA
+            (181, 35.7796, -78.6382, -4, False, True, (2024, 4, 20.828216)),
+            (181, 35.7796, -78.6382, -4, True, True,
+             (2024, 4, 20, 19, 52, 37.8624)),
+            # Test default latitude, longitude, and zone.
+            (1, lat, lon, zone, False, False, (1844, 4, 20.778639)),
+            )
+        msg = "Expected {} for hms {}, found {}"
+
+        for year, lat, lon, zone, hms, use_cor, expected_result in data:
+            if use_cor:
+                result = self._bc.first_day_of_ridvan_g_date(
+                    year, lat, lon, zone, hms=hms)
+            else:
+                result = self._bc.first_day_of_ridvan_g_date(year, hms=hms)
+
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, hms, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_jd_from_badi_date(self):
@@ -167,6 +203,12 @@ class TestBadiCalendar(unittest.TestCase):
             # A day in Ayyám-i-Há 2022-02-25T17:53:20.2272
             ((178, 0, 1), 2459634.245373),
             ((181, 3, 19, 20), 2460445.127242),     # 2024-05-16T15:03:13.7088
+            # A few dates from the higher end of the scale.
+            ((250, 1, 1), 2485590.259847),
+            ((500, 1, 1), 2576900.259359),
+            ((1000, 1, 1), 2759522.259554),
+            ((1161, 1, 1), 2818326.259428),
+            ((1162, 1, 1), 2818691.259272), # This 1 beyond what we guarantee.
             )
         msg = "Expected {} for date {}, found {}"
 
