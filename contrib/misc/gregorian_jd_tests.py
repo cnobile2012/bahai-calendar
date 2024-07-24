@@ -126,167 +126,12 @@ class JulianPeriodTests:
         ## (3200, 12, 31), (3201, 1, 1),
         )
 
-    def date_from_ymdhms(self, date:tuple) -> tuple:
-        """
-        Convert (year, month, day, hour, minute, second) into a
-        (year, month, day.partial) date.
-        """
-        #self._check_valid_gregorian_month_day(date)
-        t_len = len(date)
-        year = date[0]
-        month = date[1]
-        day = date[2]
-        hour = date[3] if t_len > 3 and date[3] is not None else 0
-        minute = date[4] if t_len > 4 and date[4] is not None else 0
-        second = date[5] if t_len > 5 and date[5] is not None else 0
-        day += round(self.HR(hour) + self.MN(minute) + self.SEC(second),
-                     self.ROUNDING_PLACES)
-        return (year, month, day)
-
-    def jd_from_gregorian_date_0(self, g_date, alt=False):
-        """
-        Meeus
-        The alt kward does nothing.
-
-        Skips a day:  (100, 2, 28) ->  (100, 3, 1) -- 1757640.5 -> 1757642.5
-                      (200, 2, 28) ->  (200, 3, 1) -- 1794165.5 -> 1794167.5
-                      (300, 2, 28) ->  (300, 3, 1) -- 1830690.5 -> 1830692.5
-                      (500, 2, 28) ->  (500, 3, 1) -- 1903740.5 -> 1903742.5
-                      (600, 2, 28) ->  (600, 3, 1) -- 1940265.5 -> 1940267.5
-                      (700, 2, 28) ->  (700, 3, 1) -- 1976790.5 -> 1976792.5
-                      (900, 2, 28) ->  (900, 3, 1) -- 2049840.5 -> 2049842.5
-                     (1000, 2, 28) -> (1000, 3, 1) -- 2086365.5 -> 2086367.5
-                     (1100, 2, 28) -> (1100, 3, 1) -- 2122890.5 -> 2122892.5
-                     (1300, 2, 28) -> (1300, 3, 1) -- 2195940.5 -> 2195942.5
-                     (1400, 2, 28) -> (1400, 3, 1) -- 2232465.5 -> 2232467.5
-                     (1500, 2, 28) -> (1500, 3, 1) -- 2268990.5 -> 2268992.5
-        """
-        year, month, day = self.date_from_ymdhms(g_date)
-
-        if month <= 2:
-            year -= 1
-            month += 12
-
-        if (year, month, day) >= (1582, 10, 15):
-            a = math.floor(year / 100)
-            b = 2 - a + math.floor(a / 4)
-        else:
-            b = 0
-
-        return round(math.floor(self.JULIAN_YEAR * year) + math.floor(
-            30.6001 * (month + 1)) + day + b + 1720994.5,
-                     self.ROUNDING_PLACES)
-
-    def jd_from_gregorian_date_1(self, g_date, alt=False):
-        """
-        Mine
-        """
-        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
-        year, month, day = self.date_from_ymdhms(g_date)
-        td = self._days_in_years(year-1, alt=alt)
-        days = td + (self.GREGORIAN_EPOCH - 1) # 37
-        month_days = list(self.MONTHS)
-        month_days[1] = 29 if GLY(year) else 28
-        days += sum(month_days[:month-1]) + day
-        #print(f"date: {str(g_date):<16} td: {td:<8} "
-        #      f"days: {days:<10} "
-        #      f"sum: {sum(month_days[:month-1]):<10}\n", file=sys.stderr)
-        return days
-
-    def gregorian_date_from_jd_0(self, jd):
-        """
-        Convert Julian day to Gregorian date using the Meeus algorithm.
-        """
-        j_day = jd + 0.5
-        z = math.floor(j_day)
-        f = j_day % 1
-
-        if z >= 2299161: # 1582-10-15 Julian and Gregorian crossover.
-            alpha = math.floor((z - 1867216.25) / 36524.25)
-            a = z + 1 + alpha - math.floor(alpha / 4)
-        else:
-            a = z
-
-        b = a + 1524
-        c = math.floor((b - 122.1) / 365.25)
-        d = math.floor(365.25 * c)
-        e = math.floor((b - d) / 30.6001)
-        day = b - d - math.floor(30.6001 * e) + f
-        month = 0
-        year = 0
-
-        if e > 13:
-            month = e - 13
-        else:
-            month = e - 1
-
-        if month > 2:
-            year = c - 4716
-        else:
-            year = c - 4715
-
-        return year, month, round(day, self.ROUNDING_PLACES)
-
-    def gregorian_date_from_jd_1(self, jd, alt=False):
-        """
-        Convert Julian day to Gregorian date using my algorithm.
-        """
-        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
-        # Get the number of days since the Gregorian epoch.
-        md = jd - (self.GREGORIAN_EPOCH - 1)
-        year = math.floor(md / self.JULIAN_YEAR)
-        # A refined number of days for the date.
-        td = self._days_in_year(year, alt=alt)
-        days = md - td
-
-        while days > 365:
-            year += 1
-            td = self._days_in_years(year, alt=alt)
-            days = md - td
-
-        if days == 0:
-            days = 366
-        else:
-            year += 1
-
-        month_days = list(self.MONTHS)
-        month_days[1] = 29 if GLY(year) else 28
-        d = day = 0
-
-        for month, ds in enumerate(month_days, start=1):
-            d += ds
-            if days > d: continue
-            day = math.ceil(days) - (d - ds)
-            break
-
-        f = jd % 1
-        date = (year, month, round(day + f - (1.5 if f > 0.5 else 0.5),
-                                   self.ROUNDING_PLACES))
-        #sys.stderr.write(f"jd: {jd:<10} date: {str(date):<16} "
-        #                 f"md: {md:<10} "
-        #                 f"d: {d:<4} "
-        #                 f"td: {td:<8} days: {days:<5}\n")
-        return date
-
-    def _days_in_years(self, y, alt=False):
-        n_4 = y // 4
-
-        if alt:
-            n_128 = y // 128
-            n_leap_years = n_4 - n_128
-        else:
-            n_100 = y // 100
-            n_400 = y // 400
-            n_leap_years = n_4 - n_100 + n_400
-
-        a = y - n_leap_years # Non-leap years
-        b = y - a # Leap years
-        return a * 365 + b * 366
-
     def analyze(self, options):
         """
         Check that Gregorian dates can be converted to a Julian Period
         day then back to a Gregorian dates correctly.
+
+        -a with optional -A for alternete leap year calculation.
         """
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
                else self.GREGORIAN_LEAP_YEAR)
@@ -315,7 +160,13 @@ class JulianPeriodTests:
 
     def analyze_1(self, options):
         """
-        Compare the Meeus and my algorithms showing differences.
+        Compare Meeus' and my algorithms showing differences.
+
+        -1 with optional -A for alternete leap year calculation.
+        -S and -E are manditory.
+
+        If the last column shows anything other than 0.0 then there are
+        inconsistancies.
         """
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
                else self.GREGORIAN_LEAP_YEAR)
@@ -347,6 +198,12 @@ class JulianPeriodTests:
         Check that any Gregorian date can be converted to a Julian Period
         day and then back again to a Gregorian date correctly.
         This only tests my algorithm.
+
+        If there is any data returned except the heading then there are
+        errors in the conversion.
+
+        -2 with optional -A for alternete leap year calculation.
+        -S and -E are manditory.
         """
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
                else self.GREGORIAN_LEAP_YEAR)
@@ -371,10 +228,19 @@ class JulianPeriodTests:
                     if date != gd1:
                         data.append((date, gd1, jd1, leap))
 
+                    if year % 500 == 0 and month == 1 and day == 1:
+                        print(date, file=sys.stderr)
+
         return data
 
     def compare_leap_year_algorithms(self, year=None):
-        """                           std alt
+        """
+        Compare the two leap year algorithms.
+
+        If -c == 0 then all dates from 1 to 3004 are processed.
+        If -c == any year then only that year is processed.
+
+                                       std alt
         Year  100 GLY_STD 0 GLY_ALT 1  1
         Year  128 GLY_STD 1 GLY_ALT 0      1
         Year  200 GLY_STD 0 GLY_ALT 1  2
@@ -444,6 +310,19 @@ class JulianPeriodTests:
         Test that the Julian Period days are consecutive. i.e. no skipping
         or doubling up.
         Should produce no output if working correctly.
+
+        -k ith optional -A for alternete leap year calculation.
+        -S and -E are manditory.
+        If -J is used then the test is for consecutive Julian Period days.
+
+        If -JM is used the test is for consecutive Julian Period days using
+        Meeus' algorithm.
+
+        If -J is used the test is for consecutive Julian Period days using
+        my algorithm.
+
+        Some long tests will display to stderr a completion counter for
+        every 500 years.
         """
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
                else self.GREGORIAN_LEAP_YEAR)
@@ -473,7 +352,6 @@ class JulianPeriodTests:
                             data.append((date, last_jd, jd))
 
                         last_jd = jd # Save the jd
-                       #sys.stderr.write(f"date: {str(date):<16} jd: {str(jd)}\n")
         else:
             items = []
             last_date = ()
@@ -489,8 +367,9 @@ class JulianPeriodTests:
                         items.append((year, month, day))
 
             for item in items:
+                # My algorithms
                 jd = self.jd_from_gregorian_date_1(item, alt=options.alt_leap)
-                date = self._gregorian_date_from_jd(jd, alt=options.alt_leap)
+                date = self.gregorian_date_from_jd_1(jd, alt=options.alt_leap)
 
                 if last_jd != 0 and (last_jd == jd or item != date):
                     data.append((last_date, last_jd, item, jd, date))
@@ -504,7 +383,94 @@ class JulianPeriodTests:
         #[print(item) for item in items]
         return data
 
-    def _gregorian_date_from_jd(self, jd, alt):
+    def jd_from_gregorian_date_0(self, g_date, alt=False):
+        """
+        Meeus algorithm
+        The alt kward does nothing.
+
+        Skips a day:  (100, 2, 28) ->  (100, 3, 1) -- 1757640.5 -> 1757642.5
+                      (200, 2, 28) ->  (200, 3, 1) -- 1794165.5 -> 1794167.5
+                      (300, 2, 28) ->  (300, 3, 1) -- 1830690.5 -> 1830692.5
+                      (500, 2, 28) ->  (500, 3, 1) -- 1903740.5 -> 1903742.5
+                      (600, 2, 28) ->  (600, 3, 1) -- 1940265.5 -> 1940267.5
+                      (700, 2, 28) ->  (700, 3, 1) -- 1976790.5 -> 1976792.5
+                      (900, 2, 28) ->  (900, 3, 1) -- 2049840.5 -> 2049842.5
+                     (1000, 2, 28) -> (1000, 3, 1) -- 2086365.5 -> 2086367.5
+                     (1100, 2, 28) -> (1100, 3, 1) -- 2122890.5 -> 2122892.5
+                     (1300, 2, 28) -> (1300, 3, 1) -- 2195940.5 -> 2195942.5
+                     (1400, 2, 28) -> (1400, 3, 1) -- 2232465.5 -> 2232467.5
+                     (1500, 2, 28) -> (1500, 3, 1) -- 2268990.5 -> 2268992.5
+        """
+        year, month, day = self.date_from_ymdhms(g_date)
+
+        if month <= 2:
+            year -= 1
+            month += 12
+
+        if (year, month, day) >= (1582, 10, 15):
+            a = math.floor(year / 100)
+            b = 2 - a + math.floor(a / 4)
+        else:
+            b = 0
+
+        return round(math.floor(self.JULIAN_YEAR * year) + math.floor(
+            30.6001 * (month + 1)) + day + b + 1720994.5,
+                     self.ROUNDING_PLACES)
+
+    def jd_from_gregorian_date_1(self, g_date, alt=False):
+        """
+        My algorithm
+        """
+        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
+        year, month, day = self.date_from_ymdhms(g_date)
+        td = self._days_in_years(year-1, alt=alt)
+        days = td + (self.GREGORIAN_EPOCH - 1) # 37
+        month_days = list(self.MONTHS)
+        month_days[1] = 29 if GLY(year) else 28
+        days += sum(month_days[:month-1]) + day
+        #print(f"date: {str(g_date):<16} td: {td:<8} "
+        #      f"days: {days:<10} "
+        #      f"sum: {sum(month_days[:month-1]):<10}\n", file=sys.stderr)
+        return days
+
+    def gregorian_date_from_jd_0(self, jd):
+        """
+        Convert Julian day to Gregorian date using the Meeus algorithm.
+        """
+        j_day = jd + 0.5
+        z = math.floor(j_day)
+        f = j_day % 1
+
+        if z >= 2299161: # 1582-10-15 Julian and Gregorian crossover.
+            alpha = math.floor((z - 1867216.25) / 36524.25)
+            a = z + 1 + alpha - math.floor(alpha / 4)
+        else:
+            a = z
+
+        b = a + 1524
+        c = math.floor((b - 122.1) / 365.25)
+        d = math.floor(365.25 * c)
+        e = math.floor((b - d) / 30.6001)
+        day = b - d - math.floor(30.6001 * e) + f
+        month = 0
+        year = 0
+
+        if e > 13:
+            month = e - 13
+        else:
+            month = e - 1
+
+        if month > 2:
+            year = c - 4716
+        else:
+            year = c - 4715
+
+        return year, month, round(day, self.ROUNDING_PLACES)
+
+    def gregorian_date_from_jd_1(self, jd, alt=False):
+        """
+        My algorithm
+        """
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
                else self.GREGORIAN_LEAP_YEAR)
         # Get the number of days since the Gregorian epoch.
@@ -543,6 +509,38 @@ class JulianPeriodTests:
             day += 28
 
         return (year, month, round(day, 6))
+
+    def _days_in_years(self, y, alt=False):
+        n_4 = y // 4
+
+        if alt:
+            n_128 = y // 128
+            n_leap_years = n_4 - n_128
+        else:
+            n_100 = y // 100
+            n_400 = y // 400
+            n_leap_years = n_4 - n_100 + n_400
+
+        a = y - n_leap_years # Non-leap years
+        b = y - a # Leap years
+        return a * 365 + b * 366
+
+    def date_from_ymdhms(self, date:tuple) -> tuple:
+        """
+        Convert (year, month, day, hour, minute, second) into a
+        (year, month, day.partial) date.
+        """
+        #self._check_valid_gregorian_month_day(date)
+        t_len = len(date)
+        year = date[0]
+        month = date[1]
+        day = date[2]
+        hour = date[3] if t_len > 3 and date[3] is not None else 0
+        minute = date[4] if t_len > 4 and date[4] is not None else 0
+        second = date[5] if t_len > 5 and date[5] is not None else 0
+        day += round(self.HR(hour) + self.MN(minute) + self.SEC(second),
+                     self.ROUNDING_PLACES)
+        return (year, month, day)
 
 
 if __name__ == "__main__":
@@ -630,7 +628,8 @@ if __name__ == "__main__":
         [print(item) for item in data]
     elif options.analyze_1:
         if options.start is None or options.end is None:
-            print("If option -1 is used, -S and -E must also be used.")
+            print("If option -1 is used, -S and -E must also be used.",
+                  file=sys.stderr)
             ret = 1
         else:
             data = [f"{str(date):<17} " # Initial Gregorian date
@@ -657,7 +656,8 @@ if __name__ == "__main__":
             [print(item) for item in data]
     elif options.analyze_2:
         if options.start is None or options.end is None:
-            print("If option -2 is used, -S and -E must also be used.")
+            print("If option -2 is used, -S and -E must also be used.",
+                  file.sys.stderr)
             ret = 1
         else:
             data = [f"{str(date):<16} " # Initial Gregorian date
@@ -684,7 +684,8 @@ if __name__ == "__main__":
         [print(item) for item in data]
     elif options.consecutive:
         if options.start is None or options.end is None:
-            print("If option -k is used, -S and -E must also be used.")
+            print("If option -k is used, -S and -E must also be used.",
+                  file.sys.stderr)
             ret = 1
         elif options.julian:
             data = [f"date: {str(date):<12} "
