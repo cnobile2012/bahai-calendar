@@ -310,6 +310,11 @@ class TestBaseCalendar(unittest.TestCase):
             ((1844, 3, 20), self.bc.latitude, offset, 90.89234108635455),
             ((1988, 3, 20), 42.3333, offset, 90.98306896131454), # AA Ex15.a
             ((2024, 6, 20), self.bc.latitude, offset, 109.9589991005709),
+            # Test for combinations of latitude and degrees that cause the
+            # cos_h0 value to be less than -1.
+            ((1844, 4, 10.5), 90, offset, 90.0),
+            # cos_h0 value to be greater than 1.
+            ((1844, 4, 13.5), -90, offset, 60.00000000000001),
             )
         msg = "Expected {}, for date {}, found {}."
 

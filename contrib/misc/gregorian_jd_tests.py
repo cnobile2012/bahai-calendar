@@ -167,6 +167,9 @@ class JulianPeriodTests:
 
         If the last column shows anything other than 0.0 then there are
         inconsistancies.
+
+        This test will display, to stderr a progress counter indicating
+        every 500 years.
         """
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
                else self.GREGORIAN_LEAP_YEAR)
@@ -191,6 +194,9 @@ class JulianPeriodTests:
                         jd1, alt=options.alt_leap)
                     data.append((date, leap, jd0, gd0, jd1, gd1))
 
+                    if year % 500 == 0 and month == 1 and day == 1:
+                        print(date, file=sys.stderr)
+
         return data
 
     def analyze_2(self, options):
@@ -204,6 +210,9 @@ class JulianPeriodTests:
 
         -2 with optional -A for alternete leap year calculation.
         -S and -E are manditory.
+
+        This test will display, to stderr a progress counter indicating
+        every 500 years.
         """
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
                else self.GREGORIAN_LEAP_YEAR)
@@ -238,7 +247,7 @@ class JulianPeriodTests:
         Compare the two leap year algorithms.
 
         If -c == 0 then all dates from 1 to 3004 are processed.
-        If -c == any year then only that year is processed.
+        If -c == any year, then only that year is processed.
 
                                        std alt
         Year  100 GLY_STD 0 GLY_ALT 1  1
@@ -292,7 +301,7 @@ class JulianPeriodTests:
         data = []
 
         if year <= 0:
-            for y in range(1, 3004):
+            for y in range(1, 3005):
                 y0 = self.GREGORIAN_LEAP_YEAR(y)
                 y1 = self.GREGORIAN_LEAP_YEAR_ALT(y)
 
@@ -321,7 +330,7 @@ class JulianPeriodTests:
         If -J is used the test is for consecutive Julian Period days using
         my algorithm.
 
-        Some long tests will display to stderr a completion counter for
+        Some tests will display, to stderr a progress counter indicating
         every 500 years.
         """
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
@@ -352,7 +361,7 @@ class JulianPeriodTests:
                             data.append((date, last_jd, jd))
 
                         last_jd = jd # Save the jd
-        else:
+        elif options.g_date:
             items = []
             last_date = ()
             GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
@@ -505,6 +514,7 @@ class JulianPeriodTests:
         day += f - (1.5 if f > 0.5 else 0.5)
 
         if day < 1:
+            print("TEST--day: {day:<8} month: {month:<2}", file.sys.stderr)
             month -= 1
             day += 28
 
@@ -570,7 +580,8 @@ if __name__ == "__main__":
         dest='consecutive', help=("Test for non consecutive days."))
     parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
-        dest='alt_leap', help="Use alternative leap year method.")
+        dest='alt_leap', help="Use the 4|128 rule instead of the 4|100|400 "
+        "rule.")
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
         help="Start year of sequence.")
@@ -582,11 +593,10 @@ if __name__ == "__main__":
         dest='meeus', help="Use Meeus' algorithm.")
     parser.add_argument(
         '-J', '--julian', action='store_true', default=False,
-        dest='julian', help=".")
+        dest='julian', help="Test for consecutive Julian Period days.")
     parser.add_argument(
-        '-X', '--exact', action='store_true', default=False, dest='exact',
-        help=("Use the 4|100|400 or the 4|128 rules from Julian Calendar "
-              "day one."))
+        '-G', '--g-date', action='store_true', default=False, dest='g_date',
+        help=("Test for consecutive Gregorian dates."))
     parser.add_argument(
         '-D', '--debug', action='store_true', default=False, dest='debug',
         help="Run in debug mode.")
@@ -692,7 +702,7 @@ if __name__ == "__main__":
                     f"d: {d:<9} "
                     f"jd: {jd:<9}"
                     for date, d, jd in jpt.consecutive_days(options)]
-        else:
+        elif options.g_date:
             data = [f"last_date: {str(last_date):<15} "
                     f"last_jd: {d:<9} "
                     f"item: {str(item):<15} "

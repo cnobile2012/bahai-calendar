@@ -1581,7 +1581,7 @@ if __name__ == "__main__":
     elif options.analyze:
         if options.start is None or options.end is None:
             # Set default Badi years.
-            options.start = -1842 # Gregorian year 1
+            options.start = -1842 # Julian year 1
             options.end = 1162    # Gregorian year 3004
 
         if options.graph:

@@ -265,7 +265,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _approx_local_hour_angle(self, tc:float, lat:float,
                                  offset:float=SUN_OFFSET) -> float:
         """
-        Approximate local hour angle, measured westwards from the South
+        Approximate local hour angle, measured westwards from the south
         in degrees.
 
         Hour angle, in astronomy, the angle between an observer’s meridian
@@ -301,12 +301,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         delta = self._sun_apparent_declination(tc)
         cos_h0 = ((self._sin_deg(-offset) - self._sin_deg(lat) *
                    self._sin_deg(delta)) / (self._cos_deg(lat) *
-                                           self._cos_deg(delta)))
+                                            self._cos_deg(delta)))
 
-        if cos_h0 < -1:
-            cos_h0 -= 6.283185307179586
-        elif cos_h0 > 1:
-            cos_h0 += 6.283185307179586
+        if cos_h0 < -1 or cos_h0 > 1:
+            cos_h0 -= math.floor(cos_h0)
 
         return math.degrees(math.acos(cos_h0))
 
