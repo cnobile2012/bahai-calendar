@@ -514,7 +514,7 @@ class JulianPeriodTests:
         day += f - (1.5 if f > 0.5 else 0.5)
 
         if day < 1:
-            print("TEST--day: {day:<8} month: {month:<2}", file.sys.stderr)
+            print("TEST--day: {day:<8} month: {month:<2}", file=sys.stderr)
             month -= 1
             day += 28
 
@@ -667,7 +667,7 @@ if __name__ == "__main__":
     elif options.analyze_2:
         if options.start is None or options.end is None:
             print("If option -2 is used, -S and -E must also be used.",
-                  file.sys.stderr)
+                  file=sys.stderr)
             ret = 1
         else:
             data = [f"{str(date):<16} " # Initial Gregorian date
@@ -695,7 +695,7 @@ if __name__ == "__main__":
     elif options.consecutive:
         if options.start is None or options.end is None:
             print("If option -k is used, -S and -E must also be used.",
-                  file.sys.stderr)
+                  file=sys.stderr)
             ret = 1
         elif options.julian:
             data = [f"date: {str(date):<12} "
@@ -710,8 +710,11 @@ if __name__ == "__main__":
                     f"date: {str(date):<15}"
                     for last_date, d, item, jd, date in jpt.consecutive_days(
                         options)]
+        else:
+            print("You must choose one of -[JG].", file=sys.stderr)
+            ret = 1
 
-        [print(item) for item in data]
+        if ret == 0: [print(item) for item in data]
     else:
         parser.print_help()
 

@@ -1,5 +1,5 @@
 [run]
-source = bahai_calendar
+source = badidatetime
 omit =
     */tests/*
     */examples/*

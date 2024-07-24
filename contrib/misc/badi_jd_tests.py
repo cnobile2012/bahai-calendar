@@ -11,7 +11,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from bahai_calendar import BahaiCalendar, GregorianCalendar
+from badidatetime import BahaiCalendar, GregorianCalendar
 
 
 class DateTests(BahaiCalendar):

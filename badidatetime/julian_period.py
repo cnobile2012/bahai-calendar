@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# bahai_calendar/julian_period.py
+# badidatetime/julian_period.py
 #
 __docformat__ = "restructuredtext en"
 

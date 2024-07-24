@@ -9,7 +9,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from bahai_calendar import BahaiCalendar
+from badidatetime import BahaiCalendar
 
 
 AL = (4.721964, 5.937458, 1.115589, 5.781616, 5.5474, 1.512, 4.1897, 1.163,

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# bahai_calendar/badi_calendar.py
+# badidatetime/badi_calendar.py
 #
 __docformat__ = "restructuredtext en"
 
 import math
 import datetime
 
-from bahai_calendar.base_calendar import BaseCalendar
-from bahai_calendar.gregorian_calendar import GregorianCalendar
+from badidatetime.base_calendar import BaseCalendar
+from badidatetime.gregorian_calendar import GregorianCalendar
 
 
 class BahaiCalendar(BaseCalendar):

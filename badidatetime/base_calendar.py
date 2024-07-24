@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# bahai_calendar/base_calendar.py
+# badidatetime/base_calendar.py
 #
 __docformat__ = "restructuredtext en"
 
@@ -10,8 +10,8 @@ import datetime
 from functools import reduce
 from operator import mul
 
-from bahai_calendar.julian_period import JulianPeriod
-from bahai_calendar.astronomical_terms import AstronomicalTerms
+from badidatetime.julian_period import JulianPeriod
+from badidatetime.astronomical_terms import AstronomicalTerms
 
 
 class BaseCalendar(AstronomicalTerms, JulianPeriod):

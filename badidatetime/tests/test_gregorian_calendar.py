@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# bahai_calendar/test/test_gregorian_calendar.py
+# badidatetime/test/test_gregorian_calendar.py
 #
 __docformat__ = "restructuredtext en"
 

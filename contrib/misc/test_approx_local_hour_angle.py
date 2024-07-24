@@ -10,7 +10,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from bahai_calendar.base_calendar import BaseCalendar
+from badidatetime.base_calendar import BaseCalendar
 
 
 class ApproxLHA(BaseCalendar):

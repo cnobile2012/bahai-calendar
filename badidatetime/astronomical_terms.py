@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# bahai_calendar/astronomical_terms.py
+# badidatetime/astronomical_terms.py
 #
 __docformat__ = "restructuredtext en"
 
