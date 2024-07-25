@@ -496,7 +496,7 @@ class BahaiCalendar(BaseCalendar):
 
     def kvymdhms_from_b_date(self, b_date:tuple, *, short:bool=False) -> tuple:
         """
-        Convert ((Kull-i-Shay, Váḥid, year, month, day.partial) into
+        Convert (Kull-i-Shay, Váḥid, year, month, day.partial) into
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
         """
         self._check_valid_badi_month_day(b_date)
@@ -529,7 +529,8 @@ class BahaiCalendar(BaseCalendar):
 
     def _check_valid_badi_month_day(self, b_date:tuple) -> bool:
         """
-        Check that the month and day values are valid.
+        Check that the Kull-i-Shay, Váḥids, year, month, day, hour, minute,
+        and day values are valid.
         """
         cycle = 20
         kull_i_shay, vahid, year, month, day = b_date[:5]
