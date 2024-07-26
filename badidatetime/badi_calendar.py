@@ -31,6 +31,7 @@ class BahaiCalendar(BaseCalendar):
         (14, 'Qawl'), (15, 'Masá’il'), (16, 'Sharaf'), (17, 'Sulṭán'),
         (18, 'Mulk'), (0, 'Ayyám-i-Há'), (19, "'Alá'")
         )
+    POSIX_EPOCH = 2440585.5
 
     def __init__(self):
         super().__init__()
@@ -72,13 +73,21 @@ class BahaiCalendar(BaseCalendar):
         self._bahai_date = representation
 
     def utc_sunset(self, date:tuple, lat:float=None, lon:float=None,
-                   zone:float=None) -> float:
+                   zone:float=None) -> tuple:
         """
-        Return the time of sunset for the given Badi Day.
+        Return the time of sunset in UTC time for the given Badi Day.
 
-        :param date: Short form Badi date.
+        :param date: A Badi date.
         :type date: tuple
-
+        :param lat: The latitude.
+        :type lat: float
+        :param lon: The longitude.
+        :type lon: float
+        :param zone: The time zone.
+        :type zone: float
+        :return: The hour, minute, and second of sunset based on the
+                 provided coordinates.
+        :rtype: tuple
         """
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
@@ -159,7 +168,7 @@ class BahaiCalendar(BaseCalendar):
 
         if month == 0: # Ayyam-i-Ha
             m = 18 * 19
-        elif month < 19:
+        elif month < 19: # month 1 - 18
             m = (month - 1) * 19
         else: # month == 19:
             m = 18 * 19 + (5 if self._is_leap_year(year) else 4)
@@ -437,12 +446,6 @@ class BahaiCalendar(BaseCalendar):
         diff = self._sun_setting(jd + 1, lat, lon, zone) % 1
         cor = (jd % 1) - diff
         day += cor if (day + cor) >= 1 else 0
-
-        #print('jd:', jd, 'md:', md,
-        #      'days:', days,
-        #      'diff:', diff,
-        #      'leap:', self._is_leap_year(year), 'date:', (year, month, day))
-
         date = self.long_date_from_short_date((year, month, day))
         return self.kvymdhms_from_b_date(date, short=short)
 
@@ -637,3 +640,7 @@ class BahaiCalendar(BaseCalendar):
         """
         jd = self.jd_from_badi_date(b_date, lat, lon, zone)
         return self._gc.gregorian_date_from_jd(jd, exact=exact)
+
+    def posix_timestamp(self, t:int, *, short=False) -> tuple:
+        jd = t / 86400 + self.POSIX_EPOCH
+        return self.badi_date_from_jd(jd, short=short)
