@@ -609,7 +609,7 @@ class BahaiCalendar(BaseCalendar):
         Parse the hours, minutes, and seconds correctly for either the
         short or long form Badi date.
 
-        :param date: A short or long form Badi date.
+        :param date: A long or short form Badi date.
         :type date: tuple
         :param short: If True then parse for a short date else if False
                       parse for a long date.
@@ -628,19 +628,51 @@ class BahaiCalendar(BaseCalendar):
                                       short:bool=False) -> tuple:
         """
         Get the Badi date from the Gregorian date.
+
+        :param g_date: A Gregorian date.
+        :type g_date: tuple
+        :param short: If True then parse for a short date else if False
+                      parse for a long date.
+        :type short: bool
+        :return: A Badi date long or short form.
+        :rtype: tuple
         """
         jd = self._gc.jd_from_gregorian_date(g_date, exact=True)
         return self.badi_date_from_jd(jd, short=short)
 
-    def gregorian_date_from_badi_date(self, b_date:tuple, lat:float=0,
-                                      lon:float=0, zone:float=0, *,
+    def gregorian_date_from_badi_date(self, b_date:tuple, lat:float=None,
+                                      lon:float=None, zone:float=None, *,
                                       exact=False) -> tuple:
         """
         Get the Gregorian date from the Badi date.
+
+        :param b_date: A Badi date short form.
+        :type b_date: tuple
+        :param lat: The latitude.
+        :type lat: float
+        :param lon: The longitude.
+        :type lon: float
+        :param zone: The standard time zone.
+        :type zone: float
+        :param exact: Use the more exact Julian Period algorintm.
+        :type exact: bool
+        :return: The Gregorian date.
+        :rtype: tuple
         """
         jd = self.jd_from_badi_date(b_date, lat, lon, zone)
         return self._gc.gregorian_date_from_jd(jd, exact=exact)
 
-    def posix_timestamp(self, t:int, *, short=False) -> tuple:
+    def posix_timestamp(self, t:float, *, short=False) -> tuple:
+        """
+        Get the Badi date from a POSIX timestamp.
+
+        :param t: Timestamp
+        :type t: float
+        :param short: If True then parse for a short date else if False
+                      parse for a long date.
+        :type short: bool
+        :return: A Badi date long or short form.
+        :rtype: tuple
+        """
         jd = t / 86400 + self.POSIX_EPOCH
         return self.badi_date_from_jd(jd, short=short)

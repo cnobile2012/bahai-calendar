@@ -644,3 +644,23 @@ class TestBadiCalendar(unittest.TestCase):
                                                             lon=lon, zone=zone)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_posix_timestamp(self):
+        """
+        Test that the posix_timestamp method returnds the correct Badi
+        date with a POSIX timestamp as input.
+        """
+        data = (
+            # 1970-01-01 -> UNIX Eppoch (1970, 1, 1.049148)
+            (1, False, (1, 7, 12, 16, 1, 7, 3, 59.5296)),
+            (1, True, (126, 16, 1, 7, 3, 59.5296)),
+            # 2024-07-24T06:55:08.688 *** TODO *** This was wrong was 4 AM
+            (1722067088.6303926, True, (181, 7, 15, 12, 45, 4.4928))
+            )
+        msg = "Expected {} for timestamp {}, found {}"
+
+        for t, short, expected_result in data:
+            result = self._bc.posix_timestamp(t, short=short)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, t, result))
