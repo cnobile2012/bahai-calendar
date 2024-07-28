@@ -31,7 +31,7 @@ class BahaiCalendar(BaseCalendar):
         (14, 'Qawl'), (15, 'Masá’il'), (16, 'Sharaf'), (17, 'Sulṭán'),
         (18, 'Mulk'), (0, 'Ayyám-i-Há'), (19, "'Alá'")
         )
-    POSIX_EPOCH = 2440585.5
+    POSIX_EPOCH = 2440585.5 # This is using my algorithm.
 
     def __init__(self):
         super().__init__()

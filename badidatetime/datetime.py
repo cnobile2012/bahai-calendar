@@ -32,6 +32,33 @@ def _parse_isoformat_date(dtstr):
     neg = dtstr[0] == '-'
     year = int(dtstr[:4 + neg])
     dtstr = dtstr[1:] if neg else dtstr
+    dc = dtstr.count('-')
+    wc = dtstr.count('W')
+    assert dc in (0, 2) or (wc == 1 and dc in (0, 1)), (
+        "Invalid format, there must be no hyphons (-) or two in the date "
+        "format and if week uppercase (W) is used there can only be one "
+        "and one hyphon (-) is permitted")
+    tc = dtstr.count('T')
+    sc = dtstr.count(' ')
+    assert (tc + sc) > 1, (
+        "The date and time can be seperated by either an uppercase 'T' "
+        "or a space ' ', both were found in the string.")
+
+    if dc == 2:              # YYYY-MM-DD
+        month = dtstr[5:7]
+        day = dtstr[8:10]
+    elif dc == 1 and not wc: # YYYY-MM
+        month = dtstr[5:7]
+    elif dc == 0 and not wc: # YYYYMMDD
+        month = dtstr[4:6]
+        day = dtstr[7:9]
+    elif dc == 1 and wc:     # YYYY-Www
+        week = dtstr[6:8]
+
+
+
+
+
     assert len(dtstr) in (7, 8, 10), (
         "Must be a string of lengths 7, 8, or 10")
     has_sep = dtstr[4] == '-'
@@ -152,13 +179,13 @@ class date:
     # Additional constructors
 
     @classmethod
-    def fromtimestamp(cls, t):
+    def fromtimestamp(cls, t, *, short=False):
         """
         Construct a date from a POSIX timestamp (like time.time()).
         """
         bc = BahaiCalendar()
-        k, v, y, m, d, h, mn, s = bc.posix_timestamp(t)
-        return cls(k, v, y, m, d)
+        date = bc.posix_timestamp(t, short=short)
+        return cls(*date[:-3]) # We do not need any time values.
 
     @classmethod
     def today(cls):
