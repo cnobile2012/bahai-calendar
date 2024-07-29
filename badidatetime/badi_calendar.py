@@ -579,12 +579,13 @@ class BahaiCalendar(BaseCalendar):
         :param date: This value can be either the Badi year or a long form
                      date.
         :type date: int or tuple
-        :return:
+        :return: A Boolean indicating if a leap year or not.
         :rtype: bool
         """
         if isinstance(date, tuple):
-            assert len(date) >= 3, ("If tuple it must be the Kull-i-Shay', "
-                                    f"Váḥid, and year, found {date}")
+            assert len(date) >= 3, (
+                "If a tuple it must be at least the Kull-i-Shay', Váḥid, "
+                f"and year, found {date}")
             year = (date[0] - 1) * 361 + (date[1] - 1) * 19 + date[2]
         else:
             year = date

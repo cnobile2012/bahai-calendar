@@ -576,12 +576,15 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, day, result))
 
+        # *** TODO *** Test for the assert error.
+
     @unittest.skip("Temporarily skipped")
     def test__days_in_year(self):
         """
         Test that the _days_in_year method returns the correct number of
         days in the current year.
         """
+        # *** TODO *** Write the test.
         pass
 
 
