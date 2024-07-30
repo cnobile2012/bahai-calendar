@@ -13,24 +13,67 @@ from .badi_calendar import BahaiCalendar
 MINYEAR = -1842
 MAXYEAR = 1161
 
-def _check_date_fields(self, a, b, c, d=None, e=None):
+def _days_before_year(bc, year):
+    """
+    year -> number of days before Bahá 1st of year.
+    """
+    jd0 = bc.jd_from_badi_date((MINYEAR, 1, 1))
+    jd1 = bc.jd_from_badi_date((year, 1, 1))
+    return _math.floor(jd1 - jd0)
+
+def _days_in_month(bc, year, month):
+    """
+    year, month -> number of days in that month in that year.
+    """
+    return 4 + bc._is_leap_year(year) if month == 0 else 19
+
+def _days_before_month(bc, year, month):
+    """
+    year, month -> number of days in year preceding first day of month.
+    """
+    assert 0 <= month <= 19, "Month must be in range of 0..19"
+    month -= -18 if month < 2 else 1 if 1 < month < 19 else 19
+
+    if 0 < month < 19:
+        dbm = month * 19
+    elif month == 19:
+        dbm = month * 19 + 4 + bc._is_leap_year(year - 1)
+    else:
+        dbm = 18 * 19 + 4 + bc._is_leap_year(year)
+
+    return dbm
+
+def _ymd2ord(bc, year, month, day):
+    """
+    year, month, day -> ordinal, considering -1842-01-01 as day 1.
+    """
+    assert 0 <= month <= 19, "Month must be in range of 0..19"
+    dim = _days_in_month(bc, month)
+    assert 1 <= day <= dim, (
+        f"Day for month {month} must be in range of 1..{dim}")
+    return (_days_before_year(bc, year)
+            + _days_before_month(bc, year, month) + day)
+
+def _ord2ymd(bc, n):
+
+    return
+
+def _check_date_fields(bc, a, b, c, d=None, e=None):
     if not (d and e):
-        b_date = self._bc.long_date_from_short_date((a, b, c))
+        b_date = bc.long_date_from_short_date((a, b, c))
     else:
         b_date = (a, b, c, d, e)
 
-    self._bc._check_valid_badi_month_day(b_date)
+    bc._check_valid_badi_month_day(b_date)
 
-
-def _parse_isoformat_date(dtstr):
+def _parse_isoformat_date_and_time(bc, dtstr):
     """
-    It is assumed that this is an ASCII-only string of lengths 7, 8 or 10,
-    unless the year is negative then add one to each length above.
-    See the comment on
-    Modules/_datetimemodule.c:_find_isoformat_datetime_separator
+    Parse a date time ISO formatted string.
     """
     neg = dtstr[0] == '-'
     year = int(dtstr[:4 + neg])
+    assert not MINYEAR <= year <= MAXYEAR, (
+        f"Year is out of range: {year}, min {MINYEAR}, max {MAXYEAR}.")
     dtstr = dtstr[1:] if neg else dtstr
     dc = dtstr.count('-')
     wc = dtstr.count('W')
@@ -40,61 +83,67 @@ def _parse_isoformat_date(dtstr):
         "and one hyphon (-) is permitted")
     tc = dtstr.count('T')
     sc = dtstr.count(' ')
+    assert (tc == 1 or sc == 1) and (tc or sc) and not (tc and sc), (
+        "Cannot have both a 'T' and a space or more than one of either to "
+        "indicate time.")
+
+    if sc:
+        dtstr[dtstr.index(' ')] = 'T'
+        del sc
+        tc = True
+
+    d_len = len(dtstr)
     assert (tc + sc) > 1, (
         "The date and time can be seperated by either an uppercase 'T' "
         "or a space ' ', both were found in the string.")
 
-    if dc == 2:              # YYYY-MM-DD
+    # Parse the date
+    if dc == 1 and not wc:   # YYYY-MM
         month = dtstr[5:7]
-        day = dtstr[8:10]
-    elif dc == 1 and not wc: # YYYY-MM
-        month = dtstr[5:7]
+        day = 1
     elif dc == 0 and not wc: # YYYYMMDD
         month = dtstr[4:6]
         day = dtstr[7:9]
-    elif dc == 1 and wc:     # YYYY-Www
-        week = dtstr[6:8]
+    elif dc == 2 and not wc: # YYYY-MM-DD
+        month = dtstr[5:7]
+        day = dtstr[8:10]
+    # YYYYWww
+    elif dc == 0 and wc and (d_len == 8 or (tc and dtstr.index('T') == 8)):
+        wday = dtstr[7:8] if len(dtstr) == 8 else dtstr[8:9]
+        year, month, day = _isoweek_to_badi(bc, year, dtstr[5:7], wday)
+    # YYYY-Www
+    elif dc == 1 and wc and (d_len == 9 or (tc and dtstr.index('T') == 9)):
+        year, month, day = _isoweek_to_badi(bc, year, dtstr[6:8], 1)
+    # YYYYDDD or YYYY-DDD
+    elif d_len in (7, 8) or (tc and dtstr.index('T') in (7, 8)):
+        day = dtstr[4:7] if dc == 0 else dtstr[5:8]
+
+    # Parse the time
+    if tc:
+        pass
 
 
+    return (year, month, day)
 
+def _isoweek_to_badi(bc, year, week, day):
+    if not 0 < week < 53:
+        out_of_range = True
 
+        if week == 53:
+            # ISO years have 53 weeks in them on years starting with a
+            # Istijlal (Thursday) and leap years starting on a `Idal
+            # (Wednesday)
+            pass
 
-    assert len(dtstr) in (7, 8, 10), (
-        "Must be a string of lengths 7, 8, or 10")
-    has_sep = dtstr[4] == '-'
-    pos = 4 + has_sep
+        assert not out_of_range, f"Invalid week: {week}"
 
-    if dtstr[pos:pos + 1] == "W":
-        # YYYY-?Www-?D?
-        pos += 1
-        weekno = int(dtstr[pos:pos + 2])
-        pos += 2
-        dayno = 1
-
-        if len(dtstr) > pos:
-            sd = dtstr[pos:pos + 1]
-
-            if (sd == '-') != has_sep:
-                raise ValueError(
-                    f"Inconsistent use of dash separator, found {sd}")
-
-            pos += has_sep
-
-            dayno = int(dtstr[pos:pos + 1])
-
-        return list(_isoweek_to_gregorian(year, weekno, dayno))
-    else:
-        month = int(dtstr[pos:pos + 2])
-        pos += 2
-        sd = dtstr[pos:pos + 1]
-
-        if (sd == "-") != has_sep:
-            raise ValueError(f"Inconsistent use of dash separator, found {sd}")
-
-        pos += has_sep
-        day = int(dtstr[pos:pos + 2])
-        return [year, month, day]
-
+    assert 0 < day < 8, f"Invalid weekday: {day} (range is 1..7)"
+    # Now compute the offset from (Y, 1, 1) in days:
+    day_offset = (week - 1) * 7 + (day - 1)
+    # Calculate the ordinal day for monday, week 1
+    day_1 = _isoweek1jalal(bc, year)
+    ord_day = day_1 + day_offset
+    return _ord2ymd(bc, ord_day)
 
 # tuple[int, int, int] -> tuple[int, int, int] version of date.fromisocalendar
 def _isoweek_to_gregorian(year, week, day):
@@ -132,13 +181,13 @@ def _isoweek_to_gregorian(year, week, day):
     return _ord2ymd(ord_day)
 
 
-def _isoweek1monday(year):
+def _isoweek1jalal(bc, year):
     """
-    Helper to calculate the day number of the Monday starting week 1
-    XXX This could be done more efficiently
+    Helper to calculate the day number of the Jalal (Staurday) starting
+    week 1.
     """
     THURSDAY = 3
-    firstday = _ymd2ord(year, 1, 1)
+    firstday = _ymd2ord(bc, year, 1, 1)
     firstweekday = (firstday + 6) % 7  # See weekday() above
     week1monday = firstday - firstweekday
 
@@ -160,7 +209,7 @@ class date:
             "A full short or long form Badi date must be used.")
         self = object.__new__(cls)
         self._bc = BahaiCalendar()
-        _check_date_fields(self, a, b, c, d, e)
+        _check_date_fields(self._bc, a, b, c, d, e)
 
         if long_f:
             self._kull_i_shay = a
@@ -185,6 +234,7 @@ class date:
         """
         bc = BahaiCalendar()
         date = bc.posix_timestamp(t, short=short)
+        del bc
         return cls(*date[:-3]) # We do not need any time values.
 
     @classmethod
@@ -193,27 +243,27 @@ class date:
         t = _time.time()
         return cls.fromtimestamp(t)
 
-    ## @classmethod
-    ## def fromordinal(cls, n, *, short=False):
-    ##     """
-    ##     Construct a date from a proleptic Badi ordinal.
+    @classmethod
+    def fromordinal(cls, n, *, short=False):
+        """
+        Construct a date from a proleptic Badi ordinal.
 
-    ##     Bahá 1 of year 1 is day 1. Only the year, month and day are
-    ##     non-zero in the result. It is more difficult to do this in the
-    ##     Badi Calendar because a Badi day can be more or less than 24
-    ##     hours depending on when sunset is.
-    ##     """
-    ##     bc = BahaiCalendar()
-    ##     jd0 = bc.jd_from_badi_date(bc.BADI_EPOCH - 1 + n - 1)
-    ##     jd1 = bc.jd_from_badi_date(bc.BADI_EPOCH - 1 + n)
-    ##     jd2 = bc.jd_from_badi_date(bc.BADI_EPOCH - 1 + n + 1)
+        Bahá 1 of year 1 is day 1. Only the year, month and day are
+        non-zero in the result. It is more difficult to do this in the
+        Badi Calendar because a Badi day can be more or less than 24
+        hours depending on when sunset is.
+        """
+        bc = BahaiCalendar()
+        jd0 = bc.jd_from_badi_date(bc.BADI_EPOCH - 1 + n - 1)
+        jd1 = bc.jd_from_badi_date(bc.BADI_EPOCH - 1 + n)
+        jd2 = bc.jd_from_badi_date(bc.BADI_EPOCH - 1 + n + 1)
 
 
-    ##     date = bc.badi_date_from_jd(jd, short=short)
+        date = bc.badi_date_from_jd(jd, short=short)
 
-    ##     print(date)
-
-    ##     return cls(*date)
+        print(date)
+        del bc
+        return cls(*date)
 
     @classmethod
     def fromisoformat(cls, date_string):
@@ -228,7 +278,7 @@ class date:
             raise ValueError(f'Invalid isoformat string: {date_string!r}')
 
         try:
-            return cls(*_parse_isoformat_date(date_string))
+            return cls(*_parse_isoformat_date_and_time(date_string))
         except Exception:
             raise ValueError(f'Invalid isoformat string: {date_string!r}')
 
@@ -242,11 +292,14 @@ class date:
     # Conversions to string
 
     def __repr__(self):
-        """Convert to formal string, for repr().
+        """
+        Convert to formal string, for repr().
 
-        >>> d = date(2010, 1, 1)
+        >>> d = date(181, 1, 1)
         >>> repr(d)
-        'datetime.date(2010, 1, 1)'
+        'datetime.date(181, 1, 1)'
+
+        Badi date 0181-01-01 is Gregorian date 2024-03-20
         """
         msg = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
 

@@ -523,7 +523,7 @@ class TestBadiCalendar(unittest.TestCase):
         for b_date, validity, err_msg in data:
             kull_i_shay, vahid, year, month, day = b_date[:5]
             hour, minute, second = self._bc._get_hms(b_date)
-            cycle = 5 if self._bc._is_leap_year(b_date) else 4
+            cycle = 4 + self._bc._is_leap_year(b_date)
 
             if validity: # Test for correct dates
                 if month == 0: # Ayyám-i-Há

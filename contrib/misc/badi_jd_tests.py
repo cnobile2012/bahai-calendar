@@ -941,7 +941,7 @@ class DateTests(BahaiCalendar):
             for year in range(options.start, options.end):
                 for month in months:
                     if month == 0:
-                        a = 5 if self._is_leap_year(year) else 4
+                        a = 4 + self._is_leap_year(year)
 
                         for day in range(1, a + 1):
                             items.append((year, month, day))
@@ -1003,7 +1003,7 @@ class DateTests(BahaiCalendar):
                 for year in range(options.start, options.end):
                     for month in months:
                         if month == 0:
-                            a = 5 if self._is_leap_year(year) else 4
+                            a = 4 + self._is_leap_year(year)
 
                             for day in range(1, a + 1):
                                 #sjd = self._jd_from_badi_date(
@@ -1160,7 +1160,7 @@ class DateTests(BahaiCalendar):
             m = (month - 1) * 19
         else: # month == 19:
             # _is_leap_year() calls `jd_from_badi_date` from BadiCalendar
-            m = 18 * 19 + (5 if self._is_leap_year(year) else 4)
+            m = 18 * 19 + 4 + self._is_leap_year(year)
 
         td = self._days_in_years(year-1)
         jd = td + math.floor(self.BADI_EPOCH) + m + day
@@ -1398,7 +1398,7 @@ class DateTests(BahaiCalendar):
         def get_leap_year_info(y):
             leap = self._is_leap_year(year)
             yds = 366 if leap else 365
-            ld = 5 if leap else 4
+            ld = 4 + leap
             return leap, yds, ld
 
         def check_and_fix_day(cjd, y, lat=None, lon=None, zone=None):

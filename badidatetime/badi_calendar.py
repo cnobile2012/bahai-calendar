@@ -171,7 +171,7 @@ class BahaiCalendar(BaseCalendar):
         elif month < 19: # month 1 - 18
             m = (month - 1) * 19
         else: # month == 19:
-            m = 18 * 19 + (5 if self._is_leap_year(year) else 4)
+            m = 18 * 19 + 4 + self._is_leap_year(year)
 
         td = self._days_in_years(year-1)
         jd = td + math.floor(self.BADI_EPOCH) + m + day
@@ -405,7 +405,7 @@ class BahaiCalendar(BaseCalendar):
         def get_leap_year_info(y):
             leap = self._is_leap_year(year)
             yds = 366 if leap else 365
-            ld = 5 if leap else 4
+            ld = 4 + leap
             return leap, yds, ld
 
         def check_and_fix_day(cjd, y, lat=None, lon=None, zone=None):
@@ -549,7 +549,7 @@ class BahaiCalendar(BaseCalendar):
 
         # This is Ayyām-i-Hā and could be 4 or 5 days depending on leap year.
         if month == 0:
-            cycle = 6 if self._is_leap_year(b_date) else 5
+            cycle = + 5 + self._is_leap_year(b_date)
 
         assert 1 <= day < (cycle), (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "
