@@ -7,7 +7,8 @@ __docformat__ = "restructuredtext en"
 import unittest
 import datetime
 
-from ..badi_calendar import BahaiCalendar, GregorianCalendar
+from ..badi_calendar import BahaiCalendar
+from ..gregorian_calendar import GregorianCalendar
 
 
 class TestBadiCalendar(unittest.TestCase):

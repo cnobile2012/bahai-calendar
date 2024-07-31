@@ -19,7 +19,7 @@ def _days_before_year(bc, year):
     """
     jd0 = bc.jd_from_badi_date((MINYEAR, 1, 1))
     jd1 = bc.jd_from_badi_date((year, 1, 1))
-    return _math.floor(jd1 - jd0)
+    return _math.floor(jd1 - jd0) + 1
 
 def _days_in_month(bc, year, month):
     """
@@ -46,9 +46,20 @@ def _days_before_month(bc, year, month):
 def _ymd2ord(bc, year, month, day):
     """
     year, month, day -> ordinal, considering -1842-01-01 as day 1.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: object
+    :param year: Badi year
+    :type year: int
+    :param month: Badi month (0..19)
+    :type month: int
+    :param day: Badi day
+    :type day: int
+    :return: The number of days since Badi year -1842 (Gregorian 0001-03-20).
+    :rtype: int
     """
     assert 0 <= month <= 19, "Month must be in range of 0..19"
-    dim = _days_in_month(bc, month)
+    dim = _days_in_month(bc, year, month)
     assert 1 <= day <= dim, (
         f"Day for month {month} must be in range of 1..{dim}")
     return (_days_before_year(bc, year)
@@ -126,6 +137,11 @@ def _parse_isoformat_date_and_time(bc, dtstr):
     return (year, month, day)
 
 def _isoweek_to_badi(bc, year, week, day):
+    """
+    We count the week from Jalal (Staurday) as the first day and
+    Istiqlal (Friday) the last day of the week. This is different from the
+    usual way ISO weeks are counted which is Monday to Sunday.
+    """
     if not 0 < week < 53:
         out_of_range = True
 
@@ -133,68 +149,34 @@ def _isoweek_to_badi(bc, year, week, day):
             # ISO years have 53 weeks in them on years starting with a
             # Istijlal (Thursday) and leap years starting on a `Idal
             # (Wednesday)
-            pass
+            first_weekday = _ymd2ord(bc, year, 1, 1) % 7
+
+            if (first_weekday == 4 or
+                (first_weekday == 3 and bc._is_leap_year(year))):
+                out_of_range = False
 
         assert not out_of_range, f"Invalid week: {week}"
 
     assert 0 < day < 8, f"Invalid weekday: {day} (range is 1..7)"
     # Now compute the offset from (Y, 1, 1) in days:
     day_offset = (week - 1) * 7 + (day - 1)
-    # Calculate the ordinal day for monday, week 1
+    # Calculate the ordinal day for Jalal, week 1
     day_1 = _isoweek1jalal(bc, year)
     ord_day = day_1 + day_offset
     return _ord2ymd(bc, ord_day)
 
-# tuple[int, int, int] -> tuple[int, int, int] version of date.fromisocalendar
-def _isoweek_to_gregorian(year, week, day):
-    """
-    Year is bounded this way because 9999-12-31 is (9999, 52, 5)
-    """
-    if not MINYEAR <= year <= MAXYEAR:
-        raise ValueError(f"Year is out of range: {year}, min {MINYEAR}, "
-                         f"max {MAXYEAR}.")
-
-    if not 0 < week < 53:
-        out_of_range = True
-
-        if week == 53:
-            # ISO years have 53 weeks in them on years starting with a
-            # Thursday and leap years starting on a Wednesday
-            first_weekday = _ymd2ord(year, 1, 1) % 7
-            if (first_weekday == 4 or (first_weekday == 3 and
-                                       _is_leap(year))):
-                out_of_range = False
-
-        if out_of_range:
-            raise ValueError(f"Invalid week: {week}")
-
-    if not 0 < day < 8:
-        raise ValueError(f"Invalid weekday: {day} (range is [1, 7])")
-
-    # Now compute the offset from (Y, 1, 1) in days:
-    day_offset = (week - 1) * 7 + (day - 1)
-
-    # Calculate the ordinal day for monday, week 1
-    day_1 = _isoweek1monday(year)
-    ord_day = day_1 + day_offset
-
-    return _ord2ymd(ord_day)
-
-
 def _isoweek1jalal(bc, year):
     """
-    Helper to calculate the day number of the Jalal (Staurday) starting
-    week 1.
+    Calculate the day number of the Jalal (Staurday) starting week 1.
     """
-    THURSDAY = 3
     firstday = _ymd2ord(bc, year, 1, 1)
-    firstweekday = (firstday + 6) % 7  # See weekday() above
-    week1monday = firstday - firstweekday
+    firstweekday = (firstday + 6) % 7
+    week1jalal = firstday - firstweekday
 
-    if firstweekday > THURSDAY:
-        week1monday += 7
+    if firstweekday > 3: # First week day > Fidal
+        week1jalal += 7
 
-    return week1monday
+    return week1jalal
 
 
 class date:
