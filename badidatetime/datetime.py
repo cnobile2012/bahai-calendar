@@ -17,9 +17,9 @@ def _days_before_year(bc, year):
     """
     year -> number of days before Bahá 1st of year.
     """
-    jd0 = bc.jd_from_badi_date((MINYEAR, 1, 1))
+    jd0 = bc.jd_from_badi_date((MINYEAR-1, 19, 19))
     jd1 = bc.jd_from_badi_date((year, 1, 1))
-    return _math.floor(jd1 - jd0) + 1
+    return _math.floor(jd1 - jd0) - 1
 
 def _days_in_month(bc, year, month):
     """
@@ -33,18 +33,20 @@ def _days_before_month(bc, year, month):
     """
     assert 0 <= month <= 19, "Month must be in range of 0..19"
     month -= -18 if month < 2 else 1 if 1 < month < 19 else 19
+    dbm = 0
 
     if 0 < month < 19:
-        dbm = month * 19
-    elif month == 19:
-        dbm = month * 19 + 4 + bc._is_leap_year(year - 1)
-    else:
-        dbm = 18 * 19 + 4 + bc._is_leap_year(year)
+        dbm += month * 19
+    elif month == 0:
+        dbm += 18 * 19 + 4 + bc._is_leap_year(year)
 
     return dbm
 
 def _ymd2ord(bc, year, month, day):
     """
+    Get the numver of days since Badi year -1842 (Gregorian 0001-03-20)
+    including the current day.
+
     year, month, day -> ordinal, considering -1842-01-01 as day 1.
 
     :param bc: BahaiCalendar instance.
@@ -55,7 +57,8 @@ def _ymd2ord(bc, year, month, day):
     :type month: int
     :param day: Badi day
     :type day: int
-    :return: The number of days since Badi year -1842 (Gregorian 0001-03-20).
+    :return: The number of days since Badi year -1842 including the
+             current day.
     :rtype: int
     """
     assert 0 <= month <= 19, "Month must be in range of 0..19"
@@ -70,7 +73,7 @@ def _ord2ymd(bc, n):
     return
 
 def _check_date_fields(bc, a, b, c, d=None, e=None):
-    if not (d and e):
+    if d == None or e == None:
         b_date = bc.long_date_from_short_date((a, b, c))
     else:
         b_date = (a, b, c, d, e)

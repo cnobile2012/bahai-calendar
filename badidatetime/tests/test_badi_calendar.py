@@ -493,11 +493,11 @@ class TestBadiCalendar(unittest.TestCase):
             ((1, 0, 1, 1, 1, 1, 1, 1), False, msg0.format(0)),
             ((1, 20, 1, 1, 1, 1, 1, 1), False, msg0.format(20)),
             # Invalid year
-            ((1, 10, 0, 1, 1, 1, 0, 0 ), False, msg1.format(0)),
-            ((1, 10, 20, 1, 1, 1, 0, 0 ), False, msg1.format(20)),
+            ((1, 10, 0, 1, 1, 1, 0, 0), False, msg1.format(0)),
+            ((1, 10, 20, 1, 1, 1, 0, 0), False, msg1.format(20)),
             # Invalid month
-            ((1, 10, 10, -1, 1, 1, 0, 0 ), False, msg2.format(-1)),
-            ((1, 10, 10, 20, 1, 1, 0, 0 ), False, msg2.format(20)),
+            ((1, 10, 10, -1, 1, 1, 0, 0), False, msg2.format(-1)),
+            ((1, 10, 10, 20, 1, 1, 0, 0), False, msg2.format(20)),
             # Invalid Ayyám-i-Há day
             ((1, 10, 3, 0, 0, 1, 1, 1), False, msg3.format(0, 0, 3)),
             ((1, 10, 3, 0, 6, 1, 1, 1), False, msg3.format(6, 0, 3)),
@@ -542,6 +542,7 @@ class TestBadiCalendar(unittest.TestCase):
                     with self.assertRaises(AssertionError) as cm:
                         self._bc._check_valid_badi_month_day(b_date)
                 except AssertionError as e:
+                    # Raise an error when an AssertionError is not raised.
                     raise AssertionError(
                         f"Váḥid {vahid}, year {year}, month {month}, "
                         f"day {day}, hour {hour}, minute {minute}, "
