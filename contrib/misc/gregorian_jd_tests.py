@@ -560,7 +560,8 @@ if __name__ == "__main__":
         description=("Test Julian Period methods."))
     parser.add_argument(
         '-a', '--analyze', action='store_true', default=False, dest='analyze',
-        help="Generate a list of Julian Period days using different methods.")
+        help=("Generate a list of Julian Period days for both Meeus and "
+              "my formulas."))
     parser.add_argument(
         '-1', '--analyze-1', action='store_true', default=False,
         dest='analyze_1',

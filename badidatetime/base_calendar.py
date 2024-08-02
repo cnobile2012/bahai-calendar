@@ -1288,7 +1288,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         m = self.PARTIAL_HOUR_TO_MINUTE(h)
         minute = math.floor(m)
         second = self.PARTIAL_MINUTE_TO_SECOND(m)
-        return hour, minute, second
+        return hour, minute, round(second, self.ROUNDING_PLACES)
 
     def _coterminal_angle(self, value:float) -> float:
         """
