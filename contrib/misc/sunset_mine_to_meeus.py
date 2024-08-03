@@ -40,8 +40,8 @@ class SunsetMineToMeeus(BahaiCalendar):
         ((1400, 3, 1, 17, 57),   (-444, 19, 1)),   # -11
         ((1500, 2, 28, 17, 56),  (-344, 0, 4)),    # -11
         ((1500, 3, 1, 17, 56),   (-344, 19, 1)),   # -12
-        ((1582, 10, 14, 17, 28), (-261, 11, 18, 0, 0, 0.2592)),  # -12
-        ((1582, 10, 15, 17, 27), (-261, 11, 19, 0, 0, 20.9952)), # -2
+        ((1582, 10, 14, 17, 28), (-261, 11, 18)),  # -12
+        ((1582, 10, 15, 17, 27), (-261, 11, 19)),  # -2
         )
 
     def __init__(self):
@@ -56,7 +56,7 @@ class SunsetMineToMeeus(BahaiCalendar):
             g_jd1 = self.gc.jd_from_gregorian_date(g_date, exact=True)
             b_jd = self.jd_from_badi_date(b_date)
             date = self.badi_date_from_jd(b_jd, short=True)
-            data.append((g_date, g_jd0, g_jd1, b_date, date, b_jd))
+            data.append((g_date, g_jd0, g_jd1, b_jd, b_date, date))
 
         return data
 
@@ -77,25 +77,25 @@ if __name__ == "__main__":
 
     if options.analyze:
         data = smtm.analyze(options)
-        print("g_date                 "
-              "g_jd0          "
-              "g_jd1          "
-              "expected b_date               "
-              "calculated date                 "
-              "b_jd           "
-              "g_jd0-b_jd "
+        print("g_date                  "
+              "g_jd0           "
+              "g_jd1           "
+              "b_jd            "
+              "expected b_date "
+              "calculated date                  "
+              "g_jd0-b_jd  "
               "g_jd1-b_jd"
               )
-        [print(f"{str(g_date):<22} "
-               f"{g_jd0:<14} "
-               f"{g_jd1:<14} "
-               f"{str(b_date):<29} "
-               f"{str(date):<31} "
-               f"{b_jd:<14} "
-               f"{round(g_jd0 - b_jd, 6):<9}  "
+        [print(f"{str(g_date):<22}  "
+               f"{g_jd0:<14}  "
+               f"{g_jd1:<14}  "
+               f"{b_jd:<14}  "
+               f"{str(b_date):<14}  "
+               f"{str(date):<31}  "
+               f"{round(g_jd0 - b_jd, 6):<9}   "
                f"{round(g_jd1 - b_jd, 6):<9}"
                )
-         for g_date, g_jd0, g_jd1, b_date, date, b_jd in data]
+         for g_date, g_jd0, g_jd1, b_jd, b_date, date in data]
     else:
         parser.print_help()
 
