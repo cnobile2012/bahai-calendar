@@ -13,23 +13,48 @@ from .badi_calendar import BahaiCalendar
 MINYEAR = -1842
 MAXYEAR = 1161
 
-def _days_before_year(bc, year):
+def _days_before_year(bc:BahaiCalendar, year:int) -> float:
     """
-    year -> number of days before Bahá 1st of year.
+    Get the number of days before the 1st of Baha of the year.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: object
+    :param year: Badi year
+    :type year: int
+    :return: The number of days since (-1841, 19, 19) of the Badi calendar.
+    :rtype: int
     """
     jd0 = bc.jd_from_badi_date((MINYEAR-1, 19, 19))
     jd1 = bc.jd_from_badi_date((year, 1, 1))
     return _math.floor(jd1 - jd0) - 1
 
-def _days_in_month(bc, year, month):
+def _days_in_month(bc:BahaiCalendar, year:int, month:int) -> int:
     """
-    year, month -> number of days in that month in that year.
+    The number of days in that month in that year.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param year: Badi year
+    :type year: int
+    :param month: Badi month (0..19)
+    :type month: int
+    :return: The number of in the current month.
+    :rtype: int
     """
     return 4 + bc._is_leap_year(year) if month == 0 else 19
 
-def _days_before_month(bc, year, month):
+def _days_before_month(bc:BahaiCalendar, year:int, month:int) -> int:
     """
-    year, month -> number of days in year preceding first day of month.
+    The number of days in the year preceding the first day of month.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param year: Badi year
+    :type year: int
+    :param month: Badi month (0..19)
+    :type month: int
+    :return: The number in the year preceding the first day of month.
+    :rtype: int
     """
     assert 0 <= month <= 19, "Month must be in range of 0..19"
     month -= -18 if month < 2 else 1 if 1 < month < 19 else 19
@@ -42,15 +67,15 @@ def _days_before_month(bc, year, month):
 
     return dbm
 
-def _ymd2ord(bc, year, month, day):
+def _ymd2ord(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     """
-    Get the numver of days since Badi year -1842 (Gregorian 0001-03-20)
+    Get the number of days since Badi year -1842 (Gregorian 0001-03-20)
     including the current day.
 
     year, month, day -> ordinal, considering -1842-01-01 as day 1.
 
     :param bc: BahaiCalendar instance.
-    :type bc: object
+    :type bc: BahaiCalendar
     :param year: Badi year
     :type year: int
     :param month: Badi month (0..19)
@@ -68,82 +93,48 @@ def _ymd2ord(bc, year, month, day):
     return (_days_before_year(bc, year)
             + _days_before_month(bc, year, month) + day)
 
-def _ord2ymd(bc, n):
-
-    return
-
-def _check_date_fields(bc, a, b, c, d=None, e=None):
-    if d == None or e == None:
-        b_date = bc.long_date_from_short_date((a, b, c))
-    else:
-        b_date = (a, b, c, d, e)
-
-    bc._check_valid_badi_month_day(b_date)
-
-def _parse_isoformat_date_and_time(bc, dtstr):
+def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     """
-    Parse a date time ISO formatted string.
+    It is more difficult to do this in the Badi Calendar because a Badi
+    day can be more or less than 24 hours depending on when sunset is
+    and the time of the year. From the summer Solstis to the winter solstis
+    the days get shorter so it's less than 24 hours and the inverse between
+    the winter solstis and the summer solstis. As such we just use the
+    BadiCalendar API.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param n: The ordinal number of days from the MINYEAR.
+    :type n: int
+    :param short: If True then parse for a short date else if False
+                  parse for a long date.
+    :type short: bool
+    :return: The Badi date.
+    :rtype: tuple
     """
-    neg = dtstr[0] == '-'
-    year = int(dtstr[:4 + neg])
-    assert not MINYEAR <= year <= MAXYEAR, (
-        f"Year is out of range: {year}, min {MINYEAR}, max {MAXYEAR}.")
-    dtstr = dtstr[1:] if neg else dtstr
-    dc = dtstr.count('-')
-    wc = dtstr.count('W')
-    assert dc in (0, 2) or (wc == 1 and dc in (0, 1)), (
-        "Invalid format, there must be no hyphons (-) or two in the date "
-        "format and if week uppercase (W) is used there can only be one "
-        "and one hyphon (-) is permitted")
-    tc = dtstr.count('T')
-    sc = dtstr.count(' ')
-    assert (tc == 1 or sc == 1) and (tc or sc) and not (tc and sc), (
-        "Cannot have both a 'T' and a space or more than one of either to "
-        "indicate time.")
+    jd = bc.jd_from_badi_date((MINYEAR-1, 19, 19)) + n
+    return bc.badi_date_from_jd(jd, short=short)
 
-    if sc:
-        dtstr[dtstr.index(' ')] = 'T'
-        del sc
-        tc = True
-
-    d_len = len(dtstr)
-    assert (tc + sc) > 1, (
-        "The date and time can be seperated by either an uppercase 'T' "
-        "or a space ' ', both were found in the string.")
-
-    # Parse the date
-    if dc == 1 and not wc:   # YYYY-MM
-        month = dtstr[5:7]
-        day = 1
-    elif dc == 0 and not wc: # YYYYMMDD
-        month = dtstr[4:6]
-        day = dtstr[7:9]
-    elif dc == 2 and not wc: # YYYY-MM-DD
-        month = dtstr[5:7]
-        day = dtstr[8:10]
-    # YYYYWww
-    elif dc == 0 and wc and (d_len == 8 or (tc and dtstr.index('T') == 8)):
-        wday = dtstr[7:8] if len(dtstr) == 8 else dtstr[8:9]
-        year, month, day = _isoweek_to_badi(bc, year, dtstr[5:7], wday)
-    # YYYY-Www
-    elif dc == 1 and wc and (d_len == 9 or (tc and dtstr.index('T') == 9)):
-        year, month, day = _isoweek_to_badi(bc, year, dtstr[6:8], 1)
-    # YYYYDDD or YYYY-DDD
-    elif d_len in (7, 8) or (tc and dtstr.index('T') in (7, 8)):
-        day = dtstr[4:7] if dc == 0 else dtstr[5:8]
-
-    # Parse the time
-    if tc:
-        pass
-
-
-    return (year, month, day)
-
-def _isoweek_to_badi(bc, year, week, day):
+def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
+                     short:bool=False) -> tuple:
     """
     We count the week from Jalal (Staurday) as the first day and
-    Istiqlal (Friday) the last day of the week. This is different from the
-    usual way ISO weeks are counted which is Monday to Sunday.
+    Istiqlal (Friday) the last day of the week. This is different from
+    the usual way ISO weeks are counted which is Monday to Sunday.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param year: Badi year
+    :type year: int
+    :param month: Badi month (0..19)
+    :type month: int
+    :param day: Badi day
+    :type day: int
+    :param short: If True then parse for a short date else if False
+                  parse for a long date.
+    :type short: bool
+    :return: A Badi date.
+    :rtype: tuple
     """
     if not 0 < week < 53:
         out_of_range = True
@@ -166,20 +157,127 @@ def _isoweek_to_badi(bc, year, week, day):
     # Calculate the ordinal day for Jalal, week 1
     day_1 = _isoweek1jalal(bc, year)
     ord_day = day_1 + day_offset
-    return _ord2ymd(bc, ord_day)
+    return _ord2ymd(bc, ord_day, short=short)
 
-def _isoweek1jalal(bc, year):
+def _isoweek1jalal(bc:BahaiCalendar, year:int) -> int:
     """
-    Calculate the day number of the Jalal (Staurday) starting week 1.
+    Calculate the day number of the first Jalal (Saturday) in the year
+    which would be the first week with 4 or more days in the year in
+    question.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param year: Badi year
+    :type year: int
+    :return: The number of the first Jalal in the Badi year.
+    :rtype: int
     """
     firstday = _ymd2ord(bc, year, 1, 1)
-    firstweekday = (firstday + 6) % 7
+    firstweekday = (firstday + 3) % 7
     week1jalal = firstday - firstweekday
 
     if firstweekday > 3: # First week day > Fidal
         week1jalal += 7
 
     return week1jalal
+
+def _parse_isoformat_date_and_time(bc:BahaiCalendar, dtstr:str) -> tuple:
+    """
+    Parse a date time ISO formatted string.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param dtstr: A ISO complient date string.
+    :type dtstr: str
+    :return: The year, month, day, hour, minute, second parsed from an
+             ISO string.
+    :rtype: tuple
+    """
+    neg = dtstr[0] == '-'
+    year = int(dtstr[:4 + neg])
+    assert MINYEAR <= year <= MAXYEAR, (
+        f"Year is out of range: {year}, min {MINYEAR}, max {MAXYEAR}.")
+    dtstr = dtstr[1:] if neg else dtstr
+    dc = dtstr.count('-')
+    wc = dtstr.count('W')
+    assert dc in (0, 1, 2) or (wc == 1 and dc in (0, 1)), (
+        "Invalid format, there must be between 1 and 3 hyphons (-) in the "
+        "date format or there can be one uppercase (W) week identifier and "
+        "no or one hyphon (-) used.")
+    tc = dtstr.count('T')
+    sc = dtstr.count(' ')
+    assert ((tc == 0 and sc == 0) or
+            (tc == 1 or sc == 1) and (tc or sc) and not (tc and sc)), (
+        "Cannot have both a 'T' and a space or more than one of either to "
+        "indicate time.")
+
+    if sc:
+        dtstr[dtstr.index(' ')] = 'T'
+        del sc
+        tc = 1
+
+    d_len = len(dtstr)
+    assert ((tc + sc) > 1) or ((tc + sc) == 0), (
+        "The date and time can be seperated by either an uppercase 'T' "
+        "or a space ' ', both were found in the string.")
+
+    # Parse the date
+    if dc == 1 and not wc:   # YYYY-MM
+        month = dtstr[5:7]
+        day = 1
+    elif dc == 0 and not wc: # YYYYMMDD
+        month = dtstr[4:6]
+        day = dtstr[7:9]
+    elif dc == 2 and not wc: # YYYY-MM-DD
+        month = dtstr[5:7]
+        day = dtstr[8:10]
+    elif wc and (7 <= d_len <=10 or (tc and 7 <= dtstr.index('T') <= 10)):
+        # YYYYWww, YYYY-Www, YYYYWwwD, YYYY-Www-D
+        pos = 5 if dc == 0 else 6
+        wday = int(dtstr[pos:pos+2])
+        pos += 2 if dc == 0 else 3
+        d = dtstr[pos:pos+1]
+        day = int(d) if d.isdigit() else 1
+        date = _isoweek_to_badi(bc, year, wday, day, short=True)
+        year, month, day = date[:3]
+    # YYYYDDD or YYYY-DDD
+    elif d_len in (7, 8) or (tc and dtstr.index('T') in (7, 8)):
+        day = dtstr[4:7] if dc == 0 else dtstr[5:8]
+        print(dc, wc, tc, d_len, day)
+
+    # Parse the time
+    if tc:
+        pass
+
+
+    return year, int(month), int(day)
+
+def _check_date_fields(bc:BahaiCalendar, a:int, b:int, c:int, d:int=None,
+                       e:int=None) -> None:
+    """
+    Check the validity of the date.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param a: The long form Kull-i-Shay or short form year.
+    :type a: int
+    :param b: The long form Váḥid or short form month.
+    :type b: int
+    :param c: The long form year or short form day.
+    :type c: int
+    :param d: The long form month.
+    :type d: int
+    :param e: The long form day.
+    :return: Nothing
+    :rtype: None
+    :raises AssertionError: If any of the year values are out of range.
+    """
+    if d == None or e == None:
+        b_date = bc.long_date_from_short_date((a, b, c))
+    else:
+        b_date = (a, b, c, d, e)
+
+    bc._check_valid_badi_month_day(b_date)
 
 
 class date:
@@ -234,21 +332,12 @@ class date:
         Construct a date from a proleptic Badi ordinal.
 
         Bahá 1 of year 1 is day 1. Only the year, month and day are
-        non-zero in the result. It is more difficult to do this in the
-        Badi Calendar because a Badi day can be more or less than 24
-        hours depending on when sunset is.
+        non-zero in the result.
         """
         bc = BahaiCalendar()
-        jd0 = bc.jd_from_badi_date(bc.BADI_EPOCH - 1 + n - 1)
-        jd1 = bc.jd_from_badi_date(bc.BADI_EPOCH - 1 + n)
-        jd2 = bc.jd_from_badi_date(bc.BADI_EPOCH - 1 + n + 1)
-
-
-        date = bc.badi_date_from_jd(jd, short=short)
-
-        print(date)
+        y, m, d = _ord2ymd(bc, n)
         del bc
-        return cls(*date)
+        return cls(y, m, d)
 
     @classmethod
     def fromisoformat(cls, date_string):
@@ -257,10 +346,12 @@ class date:
         We only can convert from short form Badi dates.
         """
         if not isinstance(date_string, str):
-            raise TypeError('fromisoformat: argument must be str')
+            raise TypeError('fromisoformat: argument must be a string.')
 
-        if len(date_string) not in (7, 8, 10):
-            raise ValueError(f'Invalid isoformat string: {date_string!r}')
+        if date_string.count('T') > 0 or date_string.count(' ') > 0:
+            raise ValueError("A time indicator was found, this is invalid "
+                             "for date parsing, isoformat string: "
+                             f"{date_string!r}.")
 
         try:
             return cls(*_parse_isoformat_date_and_time(date_string))

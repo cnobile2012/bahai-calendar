@@ -161,7 +161,81 @@ class TestBadiDatetime(unittest.TestCase):
         Test that the _ord2ymd function returns the year, month, and day
         from the Badi year -1842.
         """
-        pass
+        data = (
+            (1, False, (-5, 18, 1, 1, 1)),
+            (1, True, (-1842, 1, 1)),
+            (367, True, (-1841, 1, 1)),
+            (738887, True, (181, 1, 1)),
+            )
+        msg = "Expected {} with ordinal {} and short {}, found {}."
+
+        for ordinal, short, expected_result in data:
+            result = datetime._ord2ymd(self._bc, ordinal, short=short)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, ordinal, short, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__isoweek_to_badi(self):
+        """
+        Test that the _isoweek_to_badi function
+        """
+        data = (
+            ((-1842, 1, 1), False, (-5, 18, 1, 1, 3, 23, 56, 51.9072)),
+            ((-1842, 1, 1), True, (-1842, 1, 3, 23, 56, 51.9072)),
+            ((181, 1, 1), True, (181, 1, 2, 23, 57, 15.3216)),
+            ((182, 1, 1), True, (182, 1, 1, 23, 58, 20.3808)),
+            ((183, 1, 1), True, (182, 19, 18, 23, 59, 25.6128)),
+            ((181, 1, 7), True, (181, 1, 8, 23, 52, 2.9856)),
+            ((181, 20, 7), True, (181, 8, 8, 23, 12, 18.0)),
+            )
+        msg = "Expected {} with (year, week, day) {}, found {}."
+
+        for item, short, expected_result in data:
+            result = datetime._isoweek_to_badi(self._bc, *item, short=short)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, item, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__isoweek1jalal(self):
+        """
+        Test that the _isoweek1jalal function returns the day number of
+        the first week with more than 3 days in it.
+        """
+        data = (
+            (1, 673145),   # 1844-03-22
+            (181, 738889), # 2024-03-23
+            (182, 739253), # 2025-03-22
+            (183, 739617), # 2026-03-20
+            )
+        msg = "Expected {} with year {}, found {}."
+
+        for year, expected_result in data:
+            result = datetime._isoweek1jalal(self._bc, year)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__parse_isoformat_date_and_time(self):
+        """
+        Test that the _parse_isoformat_date_and_time function parses both
+        the date and time correctly into ISO standard formats.
+        """
+        data = (
+            ('0181-01', (181, 1, 1)),    # (181, 1, 2, 23, 57, 15.3216)
+            ('01810101', (181, 1, 1)),   # (181, 1, 2, 23, 57, 15.3216)
+            ('0181-01-01', (181, 1, 1)), # (181, 1, 2, 23, 57, 15.3216)
+            ('0181W01', (181, 1, 2)),    # (181, 1, 3, 23, 56, 23.0496)
+            ('0181-W01', (181, 1, 2)),   # (181, 1, 3, 23, 56, 23.0496)
+            ('0181W017', (181, 1, 8)),   # (181, 1, 8, 23, 52, 2.9856)
+            ('0181-W01-7', (181, 1, 8)), # (181, 1, 8, 23, 52, 2.9856)
+            ('0181W207', (181, 8, 8)),   # (181, 8, 8, 23, 12, 18.0)
+            )
+        msg = "Expected {} with ISO date {}, found {}."
+
+        for date, expected_result in data:
+            result = datetime._parse_isoformat_date_and_time(self._bc, date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__check_date_fields(self):
@@ -169,7 +243,7 @@ class TestBadiDatetime(unittest.TestCase):
         Test that the _check_date_fields function correctly raises
         assertion exceptions.
 
-        More complete test are in badidatetime/tests/test_badi_calendar.py.
+        A more complete test is in badidatetime/tests/test_badi_calendar.py.
         """
         msg0 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
                 "<= 19, found {}")
@@ -201,10 +275,15 @@ class TestBadiDatetime(unittest.TestCase):
             # Invalid normal day
             ((1, 10, 3, 2, 0), msg3.format(0, 2, 3)),
             ((1, 10, 3, 2, 20), msg3.format(20, 2, 3)),
+            # Test short form date.
+            ((181, 20, 1), msg2.format(20)),
             )
 
         for date, err_msg in data:
-            kull_i_shay, vahid, year, month, day = date[:5]
+            if len(date) == 5:
+                kull_i_shay, vahid, year, month, day = date[:5]
+            else:
+                year, month, day = date[:3]
 
             try:
                 with self.assertRaises(AssertionError) as cm:
