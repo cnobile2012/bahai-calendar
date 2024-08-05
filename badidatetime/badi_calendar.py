@@ -108,9 +108,9 @@ class BahaiCalendar(BaseCalendar):
         :type lon: float
         :param zone: The time zone.
         :type zone: float
-        :param hms: If True the output returns the hours, minutes, and second
+        :param hms: If True the output returns the hours, minutes, and seconds
                     as seperate fields. If False the day has a decimal value
-                    indicating the houirs, minutes, and seconds.
+                    indicating the hours, minutes, and seconds.
         :type hms: bool
         :return: A Gregorian date.
         :rtype: tuple
@@ -141,7 +141,7 @@ class BahaiCalendar(BaseCalendar):
         :type zone: float
         :param hms: If True the output returns the hours, minutes, and second
                     as seperate fields. If False the day has a decimal value
-                    indicating the houirs, minutes, and seconds.
+                    indicating the hours, minutes, and seconds.
         :type hms: bool
         :return: A Gregorian date.
         :rtype: tuple
@@ -181,21 +181,7 @@ class BahaiCalendar(BaseCalendar):
 
         # The diff value converts my jd to the Meeus algorithm for
         # determining the sunset jd.
-        date = (year, month, day)
-        date_diff = (
-            ((-1744, 0, 4), 0), ((-1644, 0, 4), 1), ((-1544, 0, 3), 2),
-            ((-1344, 0, 4), 3), ((-1244, 0, 4), 4), ((-1144, 0, 3), 5),
-            ((-944, 0, 4), 6),  ((-844, 0, 4), 7),  ((-744, 0, 3), 8),
-            ((-544, 0, 4), 9),  ((-444, 0, 4), 10), ((-344, 0, 3), 11),
-            ((-261, 11, 18), 12)
-            )
-        diff = 2
-
-        for d, df in date_diff:
-            if date < d:
-                diff = df
-                break
-
+        diff = self._meeus_algorithm_compinsation((year, month, day))
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_coff(year),
                      self.ROUNDING_PLACES)
@@ -451,7 +437,7 @@ class BahaiCalendar(BaseCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        # We add 1 to the JD to compinsate for the difference between
+        # We add 1 to the JD to compensate for the difference between
         # the Meeus algorithm and mine.
         diff = self._sun_setting(jd + 1, lat, lon, zone) % 1
         cor = (jd % 1) - diff
@@ -522,6 +508,67 @@ class BahaiCalendar(BaseCalendar):
         hms = self._trim_hms((hour, minute, second))
         date = (kull_i_shay, vahid, year, month, math.floor(day)) + hms
         return self.short_date_from_long_date(date) if short else date
+
+    def badi_date_from_gregorian_date(self, g_date:tuple, *,
+                                      short:bool=False, _exact=True) -> tuple:
+        """
+        Get the Badi date from the Gregorian date.
+
+        :param g_date: A Gregorian date.
+        :type g_date: tuple
+        :param short: If True then parse for a short date else if False
+                      parse for a long date.
+        :type short: bool
+        :param _exact: Use the more exact Julian Period algorithm. Default
+                       is True. This should generally be set to True, a
+                       False value will give inaccurate results and is used
+                       for testing only.
+        :type _exact: bool
+        :return: A Badi date long or short form.
+        :rtype: tuple
+        """
+        jd = self._gc.jd_from_gregorian_date(g_date, exact=_exact)
+        return self.badi_date_from_jd(jd, short=short)
+
+    def gregorian_date_from_badi_date(self, b_date:tuple, lat:float=None,
+                                      lon:float=None, zone:float=None, *,
+                                      _exact=True) -> tuple:
+        """
+        Get the Gregorian date from the Badi date.
+
+        :param b_date: A Badi date short form.
+        :type b_date: tuple
+        :param lat: The latitude.
+        :type lat: float
+        :param lon: The longitude.
+        :type lon: float
+        :param zone: The standard time zone.
+        :type zone: float
+        :param _exact: Use the more exact Julian Period algorithm. Default
+                       is True. This should generally be set to True, a
+                       False value will give inaccurate results and is used
+                       for testing only.
+        :type _exact: bool
+        :return: The Gregorian date.
+        :rtype: tuple
+        """
+        jd = self.jd_from_badi_date(b_date, lat, lon, zone)
+        return self._gc.gregorian_date_from_jd(jd, exact=_exact)
+
+    def posix_timestamp(self, t:float, *, short=False) -> tuple:
+        """
+        Get the Badi date from a POSIX timestamp.
+
+        :param t: Timestamp
+        :type t: float
+        :param short: If True then parse for a short date else if False
+                      parse for a long date.
+        :type short: bool
+        :return: A Badi date long or short form.
+        :rtype: tuple
+        """
+        jd = t / 86400 + self.POSIX_EPOCH
+        return self.badi_date_from_jd(jd, short=short)
 
     def _trim_hms(self, hms:tuple) -> tuple:
         """
@@ -635,63 +682,38 @@ class BahaiCalendar(BaseCalendar):
         second = date[s+2] if t_len > s+2 and date[s+2] is not None else 0
         return hour, minute, second
 
-    def badi_date_from_gregorian_date(self, g_date:tuple, *,
-                                      short:bool=False, _exact=True) -> tuple:
+    def _meeus_algorithm_compinsation(self, date:tuple) -> int:
         """
-        Get the Badi date from the Gregorian date.
+        The returned diff value converts my jd to the Meeus algorithm jd
+        for determining the sunset jd.
 
-        :param g_date: A Gregorian date.
-        :type g_date: tuple
-        :param short: If True then parse for a short date else if False
-                      parse for a long date.
-        :type short: bool
-        :param _exact: Use the more exact Julian Period algorithm. Default
-                       is True. This should generally be set to True, a
-                       False value will give inaccurate results and is used
-                       for testing only.
-        :type _exact: bool
-        :return: A Badi date long or short form.
-        :rtype: tuple
+        :param date: A Badi date.
+        :type date: tuple
+        :return: The difference to subtract from my jd algorithm to arrive
+                 at Meeus' algorithm so that all his algorithms can be use
+                 accurately.
+        :rtype: int
         """
-        jd = self._gc.jd_from_gregorian_date(g_date, exact=_exact)
-        return self.badi_date_from_jd(jd, short=short)
+        date_diff = (
+            ((-1744, 0, 4, 6, 2, 44.5056), 0),
+            ((-1644, 0, 4, 6, 3, 0.9216), 1),
+            ((-1544, 0, 3, 6, 3, 17.1648), 2),
+            ((-1344, 0, 4, 6, 2, 59.712), 3),
+            ((-1244, 0, 4, 6, 3, 18.1152), 4),
+            ((-1144, 0, 3, 6, 3, 37.9008), 5),
+            ((-944, 0, 4, 6, 3, 22.0032), 6),
+            ((-844, 0, 4, 6, 3, 42.048), 7),
+            ((-744, 0, 3, 6, 4, 1.3152), 8),
+            ((-544, 0, 4, 6, 3, 46.1088), 9),
+            ((-444, 0, 4, 6, 4, 6.24), 10),
+            ((-344, 0, 3, 6, 4, 27.6672), 11),
+            ((-261, 11, 18, 6, 32, 0.24), 12)
+            )
+        diff = 2
 
-    def gregorian_date_from_badi_date(self, b_date:tuple, lat:float=None,
-                                      lon:float=None, zone:float=None, *,
-                                      _exact=True) -> tuple:
-        """
-        Get the Gregorian date from the Badi date.
+        for d, df in date_diff:
+            if date < d:
+                diff = df
+                break
 
-        :param b_date: A Badi date short form.
-        :type b_date: tuple
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The standard time zone.
-        :type zone: float
-        :param _exact: Use the more exact Julian Period algorithm. Default
-                       is True. This should generally be set to True, a
-                       False value will give inaccurate results and is used
-                       for testing only.
-        :type _exact: bool
-        :return: The Gregorian date.
-        :rtype: tuple
-        """
-        jd = self.jd_from_badi_date(b_date, lat, lon, zone)
-        return self._gc.gregorian_date_from_jd(jd, exact=_exact)
-
-    def posix_timestamp(self, t:float, *, short=False) -> tuple:
-        """
-        Get the Badi date from a POSIX timestamp.
-
-        :param t: Timestamp
-        :type t: float
-        :param short: If True then parse for a short date else if False
-                      parse for a long date.
-        :type short: bool
-        :return: A Badi date long or short form.
-        :rtype: tuple
-        """
-        jd = t / 86400 + self.POSIX_EPOCH
-        return self.badi_date_from_jd(jd, short=short)
+        return diff

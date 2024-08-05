@@ -84,7 +84,7 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # Should be 1844-03-20T18:14:00
-            ((1, 1, 1, 2), lat, lon, zone, True, (18, 14, 39.12)),
+            ((1, 1, 1, 2), None, None, None, True, (18, 14, 39.12)),
             # Should be 2024-03-19T18:13:00
             ((180, 19, 19), lat, lon, zone, True, (18, 13, 59.1168)),
             # Should be 2064-03-19T18:13:00
@@ -458,6 +458,84 @@ class TestBadiCalendar(unittest.TestCase):
                              msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_badi_date_from_gregorian_date(self):
+        """
+        Test that the badi_date_from_gregorian_date method returns the
+        correct Badi date.
+        """
+        data = (
+            ((1844, 3, 20, 18, 14), False, True, (1, 1, 1, 1, 1, 0, 0, 12.96)),
+            ((1844, 3, 20, 18, 14), True, True, (1, 1, 1, 0, 0, 12.96)),
+            ((2024, 5, 14, 20), False, True, (1, 10, 10, 3, 18, 0, 58, 25.248)),
+            ((2024, 5, 14, 20), True, True, (181, 3, 18, 0, 58, 25.248)),
+            # The next tests may show the wrong month and day if
+            # exact=False is used.
+            # The exact=False condition is generally used in testing.
+            ((1844, 3, 20, 18, 14), True, False, (1, 1, 2, 23, 58, 28.848)),
+            ((2024, 5, 14, 20), True, False, (181, 4, 1, 0, 56, 46.2336)),
+            )
+        msg = "Expected {} for date {}, short {} and exact {}, found {}"
+
+        for date, short, exact, expected_result in data:
+            result = self._bc.badi_date_from_gregorian_date(
+                date, short=short, _exact=exact)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, short, exact, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_gregorian_date_from_badi_date(self):
+        """
+        Test that the gregorian_date_from_badi_date method returns the
+        correct Gregorian date.
+        """
+        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
+        data = (
+            # 1844-03-20T18:14:00
+            ((1, 1, 1), lat, lon, zone, True, (1844, 3, 20, 18, 14, 39.12)),
+            ((181, 3, 18, 20), lat, lon, zone, True,
+             (2024, 5, 15, 15, 3, 13.7088)),
+            ((181, 3, 19, 20), lat, lon, zone, True,
+             (2024, 5, 16, 15, 4, 2.6112)),
+            ((181, 4, 1, 17), lat, lon, zone, True,
+             (2024, 5, 17, 12, 4, 51.168)),
+            ((181, 4, 1, 20), lat, lon, zone, True,
+             (2024, 5, 17, 15, 4, 51.168)),
+            # The next tests show the wrong day if exact=False is used.
+            # The exact=False condition is generally used in testing.
+            ((1, 1, 1), lat, lon, zone, False, (1844, 3, 18, 18, 14, 39.12)),
+            ((181, 3, 18, 20), lat, lon, zone, False,
+             (2024, 5, 13, 15, 3, 13.7088)),
+            )
+        msg = "Expected {} for date {} and exact {}, found {}"
+
+        for date, lat, lon, zone, exact, expected_result in data:
+            g_date = self._bc.gregorian_date_from_badi_date(
+                date, lat=lat, lon=lon, zone=zone, _exact=exact)
+            result = self._gc.ymdhms_from_date(g_date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, exact, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_posix_timestamp(self):
+        """
+        Test that the posix_timestamp method returnds the correct Badi
+        date with a POSIX timestamp as input.
+        """
+        data = (
+            # 1970-01-01 -> UNIX Eppoch (1970, 1, 1.049148)
+            (1, False, (1, 7, 12, 16, 1, 7, 3, 59.5296)),
+            (1, True, (126, 16, 1, 7, 3, 59.5296)),
+            # 2024-07-24T06:55:08.688 *** TODO *** This was wrong was 4 AM
+            (1722067088.6303926, True, (181, 7, 15, 12, 45, 4.4928))
+            )
+        msg = "Expected {} for timestamp {}, found {}"
+
+        for t, short, expected_result in data:
+            result = self._bc.posix_timestamp(t, short=short)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, t, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__check_valid_badi_month_day(self):
         """
         Test that the _check_valid_badi_month_day method returns the
@@ -556,38 +634,52 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the _is_leap_year method returns the correct Boolean
         for the given year or long Badi date.
         """
+        err_msg = ("If a tuple it must be at least the Kull-i-Shay', Váḥid, "
+                   "and year, found {}")
         data = (
             # Start of years
-            (173, False),                 # 2016
-            ((1, 10, 2, 1, 1), False),    # (2016, 3, 20)
-            (174, True),                  # 2017
-            ((1, 10, 3, 1, 1), True),     # (2017, 3, 20)
-            (175, False),                 # 2018
-            ((1, 10, 4, 1, 1), False),    # (2018, 3, 21)
+            (173, True, False),                 # 2016
+            ((1, 10, 2, 1, 1), True, False),    # (2016, 3, 20)
+            (174, True, True),                  # 2017
+            ((1, 10, 3, 1, 1), True, True),     # (2017, 3, 20)
+            (175, True, False),                 # 2018
+            ((1, 10, 4, 1, 1), True, False),    # (2018, 3, 21)
             # End of years
-            ((1, 10, 2, 19, 19), False), # (2017, 3, 19)
-            ((1, 10, 3, 19, 19), True),  # (2017, 3, 19)
-            ((1, 10, 4, 19, 19), False), # (2018, 3, 20)
+            ((1, 10, 2, 19, 19), True, False), # (2017, 3, 19)
+            ((1, 10, 3, 19, 19), True, True),  # (2017, 3, 19)
+            ((1, 10, 4, 19, 19), True, False), # (2018, 3, 20)
+            ((181, 1), False, err_msg),        # Test assert error.
             )
         msg = "Expected {} for day {}, found {}"
 
-        for day, expected_result in data:
-            result = self._bc._is_leap_year(day)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, day, result))
+        for date, validity, expected_result in data:
+            if validity:
+                result = self._bc._is_leap_year(date)
+                self.assertEqual(expected_result, result,
+                                 msg.format(expected_result, date, result))
+            else:
+                with self.assertRaises(AssertionError) as cm:
+                    self._bc._is_leap_year(date)
 
-        # *** TODO *** Test for the assert error.
+                message = str(cm.exception)
+                self.assertEqual(expected_result.format(date), message)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__days_in_year(self):
         """
         Test that the _days_in_year method returns the correct number of
         days in the current year.
         """
-        # *** TODO *** Write the test.
-        pass
+        data = (
+            (1, 366),
+            (181, 365),
+            )
+        msg = "Expected {} for year {}, found {}"
 
-
+        for year, expected_result in data:
+            result = self._bc._days_in_year(year)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__get_hms(self):
@@ -608,79 +700,46 @@ class TestBadiCalendar(unittest.TestCase):
                              msg.format(expected_result, date, short, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_badi_date_from_gregorian_date(self):
+    def test__meeus_algorithm_compinsation(self):
         """
-        Test that the badi_date_from_gregorian_date method returns the
-        correct Badi date.
+        Test that the _meeus_algorithm_compinsation method returns the
+        correct difference needed to compinsate for the differences in
+        mime and Meesus' algorithms.
         """
         data = (
-            ((1844, 3, 20, 18, 14), False, True, (1, 1, 1, 1, 1, 0, 0, 12.96)),
-            ((1844, 3, 20, 18, 14), True, True, (1, 1, 1, 0, 0, 12.96)),
-            ((2024, 5, 14, 20), False, True, (1, 10, 10, 3, 18, 0, 58, 25.248)),
-            ((2024, 5, 14, 20), True, True, (181, 3, 18, 0, 58, 25.248)),
-            # The next tests may show the wrong month and day if
-            # exact=False is used.
-            # The exact=False condition is generally used in testing.
-            ((1844, 3, 20, 18, 14), True, False, (1, 1, 2, 23, 58, 28.848)),
-            ((2024, 5, 14, 20), True, False, (181, 4, 1, 0, 56, 46.2336)),
+            ((-1842, 1, 1), 0),
+            ((-1744, 0, 4, 6, 2, 44.5055), 0),
+            ((-1744, 0, 4, 6, 2, 44.5056), 1),
+            ((-1644, 0, 4, 6, 3, 0.9215), 1),
+            ((-1644, 0, 4, 6, 3, 0.9216), 2),
+            ((-1544, 0, 3, 6, 3, 17.1647), 2),
+            ((-1544, 0, 3, 6, 3, 17.1648), 3),
+            ((-1344, 0, 4, 6, 2, 59.711), 3),
+            ((-1344, 0, 4, 6, 2, 59.712), 4),
+            ((-1244, 0, 4, 6, 3, 18.1151), 4),
+            ((-1244, 0, 4, 6, 3, 18.1152), 5),
+            ((-1144, 0, 3, 6, 3, 37.9007), 5),
+            ((-1144, 0, 3, 6, 3, 37.9008), 6),
+            ((-944, 0, 4, 6, 3, 22.0031), 6),
+            ((-944, 0, 4, 6, 3, 22.0032), 7),
+            ((-844, 0, 4, 6, 3, 42.047), 7),
+            ((-844, 0, 4, 6, 3, 42.048), 8),
+            ((-744, 0, 3, 6, 4, 1.3151), 8),
+            ((-744, 0, 3, 6, 4, 1.3152), 9),
+            ((-544, 0, 4, 6, 3, 46.1087), 9),
+            ((-544, 0, 4, 6, 3, 46.1088), 10),
+            ((-444, 0, 4, 6, 4, 6.23), 10),
+            ((-444, 0, 4, 6, 4, 6.24), 11),
+            ((-344, 0, 3, 6, 4, 27.6671), 11),
+            ((-344, 0, 3, 6, 4, 27.6672), 12),
+            ((-261, 11, 18, 6, 32, 0.23), 12),
+            ((-261, 11, 18, 6, 32, 0.24), 2),
+            ((1, 1, 1), 2),
+            ((181, 1, 1), 2),
             )
-        msg = "Expected {} for date {}, short {} and exact {}, found {}"
+        msg = "Expected {} for date {}, found {}"
 
-        for date, short, exact, expected_result in data:
-            result = self._bc.badi_date_from_gregorian_date(
-                date, short=short, _exact=exact)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, short, exact, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_gregorian_date_from_badi_date(self):
-        """
-        Test that the gregorian_date_from_badi_date method returns the
-        correct Gregorian date.
-        """
-        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
-        data = (
-            # 1844-03-20T18:14:00
-            ((1, 1, 1), lat, lon, zone, True, (1844, 3, 20, 18, 14, 39.12)),
-            ((181, 3, 18, 20), lat, lon, zone, True,
-             (2024, 5, 15, 15, 3, 13.7088)),
-            ((181, 3, 19, 20), lat, lon, zone, True,
-             (2024, 5, 16, 15, 4, 2.6112)),
-            ((181, 4, 1, 17), lat, lon, zone, True,
-             (2024, 5, 17, 12, 4, 51.168)),
-            ((181, 4, 1, 20), lat, lon, zone, True,
-             (2024, 5, 17, 15, 4, 51.168)),
-            # The next tests show the wrong day if exact=False is used.
-            # The exact=False condition is generally used in testing.
-            ((1, 1, 1), lat, lon, zone, False, (1844, 3, 18, 18, 14, 39.12)),
-            ((181, 3, 18, 20), lat, lon, zone, False,
-             (2024, 5, 13, 15, 3, 13.7088)),
-            )
-        msg = "Expected {} for date {} and exact {}, found {}"
-
-        for date, lat, lon, zone, exact, expected_result in data:
-            g_date = self._bc.gregorian_date_from_badi_date(
-                date, lat=lat, lon=lon, zone=zone, _exact=exact)
-            result = self._gc.ymdhms_from_date(g_date)
+        for date, expected_result in data:
+            result = self._bc._meeus_algorithm_compinsation(date)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, exact, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_posix_timestamp(self):
-        """
-        Test that the posix_timestamp method returnds the correct Badi
-        date with a POSIX timestamp as input.
-        """
-        data = (
-            # 1970-01-01 -> UNIX Eppoch (1970, 1, 1.049148)
-            (1, False, (1, 7, 12, 16, 1, 7, 3, 59.5296)),
-            (1, True, (126, 16, 1, 7, 3, 59.5296)),
-            # 2024-07-24T06:55:08.688 *** TODO *** This was wrong was 4 AM
-            (1722067088.6303926, True, (181, 7, 15, 12, 45, 4.4928))
-            )
-        msg = "Expected {} for timestamp {}, found {}"
-
-        for t, short, expected_result in data:
-            result = self._bc.posix_timestamp(t, short=short)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, t, result))
+                             msg.format(expected_result, date, result))
