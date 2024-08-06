@@ -1031,69 +1031,6 @@ class TestBaseCalendar(unittest.TestCase):
                 expected_result, result,
                 msg.format(expected_result, seasons[season], result))
 
-    #
-    # Methods from Calendarical Calculations
-    #
-
-    #@unittest.skip("Temporarily skipped")
-    def test__sin_deg(self):
-        """
-        Test that the _sin_deg method returns the sine of theta
-        (given in degrees).
-        """
-        theta = 90.0
-        result = self.bc._sin_deg(theta)
-        expected_result = 1.0
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
-
-    #@unittest.skip("Temporarily skipped")
-    def test__cos_deg(self):
-        """
-        Test that the _cos_deg method returns the cosine of theta
-        (given in degrees).
-        """
-        theta = 90.0
-        result = self.bc._cos_deg(theta)
-        expected_result = 6.123233995736766e-17 # is 0?
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
-
-    #@unittest.skip("Temporarily skipped")
-    def test__sigma(self):
-        """
-        Test that the sigma method returns a sum of the provided lists
-        wuth the given function (condition).
-        """
-        lists = ((0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
-                 (1, 2, 3, 4, 5, 6, 7, 8, 9, 0),
-                 (2, 3, 4, 5, 6, 7, 8, 9, 0, 1))
-        func = lambda x, y, z, : x * y * z
-        result = self.bc._sigma(lists, func)
-        expected_result = 1260
-        msg = f"Expected {expected_result}, found {result}."
-        self.assertEqual(expected_result, result, msg)
-
-    #@unittest.skip("Temporarily skipped")
-    def test__poly(self):
-        """
-        Test the poly (polynomial) lambda.
-        """
-        # Test not 'x'
-        x = 10
-        a = ()
-        poly = self.bc._poly(x, a)
-        expected_poly = 0
-        msg = f"POLY should be {expected_poly}, found {poly}."
-        self.assertEqual(expected_poly, poly, msg)
-        # Test 'a' has a value
-        x = 0.1
-        a = (1, 2, 3, 4)
-        poly = self.bc._poly(x, a)
-        expected_poly = 1.234
-        msg = f"POLY should be {expected_poly}, found {poly}."
-        self.assertEqual(expected_poly, poly, msg)
-
     #@unittest.skip("Temporarily skipped")
     def test_decimal_from_dms(self):
         """
@@ -1241,6 +1178,24 @@ class TestBaseCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
+    @unittest.skip("Temporarily skipped")
+    def test_tz_hms_from_decimal(self):
+        """
+        Test that the tz_hms_from_decimal method returns converts a
+        decimal number to hours, minutes, and seconds.
+        """
+        pass
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_hms_from_decimal_day(self):
+        """
+        Test that the hms_from_decimal_day method returns hours, minutes,
+        and seconds deom a decimal number.
+        """
+        pass
+
+
     #@unittest.skip("Temporarily skipped")
     def test_tz_hms_from_decimal(self):
         """
@@ -1257,6 +1212,74 @@ class TestBaseCalendar(unittest.TestCase):
             result = self.bc.tz_hms_from_decimal(number)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, number, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__sin_deg(self):
+        """
+        Test that the _sin_deg method returns the sine of theta
+        (given in degrees).
+        """
+        theta = 90.0
+        result = self.bc._sin_deg(theta)
+        expected_result = 1.0
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test__cos_deg(self):
+        """
+        Test that the _cos_deg method returns the cosine of theta
+        (given in degrees).
+        """
+        theta = 90.0
+        result = self.bc._cos_deg(theta)
+        expected_result = 6.123233995736766e-17 # is 0?
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test__sigma(self):
+        """
+        Test that the sigma method returns a sum of the provided lists
+        wuth the given function (condition).
+        """
+        lists = ((0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+                 (1, 2, 3, 4, 5, 6, 7, 8, 9, 0),
+                 (2, 3, 4, 5, 6, 7, 8, 9, 0, 1))
+        func = lambda x, y, z, : x * y * z
+        result = self.bc._sigma(lists, func)
+        expected_result = 1260
+        msg = f"Expected {expected_result}, found {result}."
+        self.assertEqual(expected_result, result, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test__poly(self):
+        """
+        Test the poly (polynomial) lambda.
+        """
+        # Test not 'x'
+        x = 10
+        a = ()
+        poly = self.bc._poly(x, a)
+        expected_poly = 0
+        msg = f"POLY should be {expected_poly}, found {poly}."
+        self.assertEqual(expected_poly, poly, msg)
+        # Test 'a' has a value
+        x = 0.1
+        a = (1, 2, 3, 4)
+        poly = self.bc._poly(x, a)
+        expected_poly = 1.234
+        msg = f"POLY should be {expected_poly}, found {poly}."
+        self.assertEqual(expected_poly, poly, msg)
+
+    @unittest.skip("Temporarily skipped")
+    def test__days_in_years(self):
+        """
+        Test that the _days_in_years method returns the of days
+        including year one to the given year.
+        """
+        pass
+
 
     #@unittest.skip("Temporarily skipped")
     def test__coterminal_angle(self):

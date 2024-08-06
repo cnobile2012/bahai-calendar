@@ -1032,98 +1032,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                         lambda a, b, c: a * self._cos_deg(b + c * tc))
         return round(jde + (0.00001 * s) / dl, self.ROUNDING_PLACES)
 
-    def _sin_deg(self, theta:float) -> float:
-        """
-        (defun sin-degrees (theta)
-          ;; TYPE angle -> amplitude
-          ;; Sine of theta (given in degrees).
-          (sin (radians-from-degrees theta)))
-        """
-        return math.sin(math.radians(theta))
-
-    def _cos_deg(self, theta:float) -> float:
-        """
-        (defun cos-degrees (theta)
-          ;; TYPE angle -> amplitude
-          ;; Cosine of theta (given in degrees).
-          (cos (radians-from-degrees theta)))
-        """
-        return math.cos(math.radians(theta))
-
-    def _sigma(self, lists:tuple, func:object) -> float:
-        """
-        used
-
-        (defmacro sigma (list body)
-          ;; TYPE (list-of-pairs (list-of-reals->real))
-          ;; TYPE -> real
-          ;; list is of the form ((i1 l1)...(in ln)).
-          ;; Sum of body for indices i1...in
-          ;; running simultaneously thru lists l1...ln.
-          `(apply `+ (mapcar (function (lambda
-                                         ,(mapcar `car list)
-                                         ,body))
-                             ,@(mapcar `cadr list))))
-        """
-        # Ensure all lists have the same length
-        assert len(set(len(lst) for lst in lists)) == 1, (
-            "Lists must have the same length")
-        return sum(func(*e) for e in zip(*lists))
-
-    def _poly(self, x:float, a:list) -> float:
-        """
-        This is the Horner method used to eliminate the use of powers.
-        Insted of:
-        y = A + B * x + C * x^2 + D * x^3 + E * x^4
-        do this:
-        y = A + x * (B + x * (C + x * (D + x * E)))
-
-        used
-
-        (defun poly (x a)
-          ;; TYPE (real list-of-reals) -> real
-          ;; Sum powers of x with coefficients (from order 0 up) in list a.
-          (if (equal a nil)
-              0
-            (+ (first a) (* x (poly x (rest a))))))
-        """
-        return 0 if not a else a[0] + (x * self._poly(x, a[1:]))
-
-    #
-    # Additional methods
-    #
-
-    def _days_in_years(self, y:int, alt:bool=False) -> int:
-        """
-        Find the number of days up to the provided year.
-
-        :param y: The year to count to.
-        :type y: int
-        :param alt: If True use the 4|128 rule else if False use the 4|100|400
-                    rule. The default is False.
-        :return: The count of days including year one to the given year.
-        :rtype: int
-
-        .. note::
-
-           This method starts the count from year 1 of the Julian Calendar,
-           however, it uses one of the two leap rules described above instead
-           of the usual Julian Calendar leap year rule of every 4 year.
-        """
-        n_4 = y // 4
-
-        if alt:
-            n_128 = y // 128
-            n_leap_years = n_4 - n_128
-        else:
-            n_100 = y // 100
-            n_400 = y // 400
-            n_leap_years = n_4 - n_100 + n_400
-
-        a = y - n_leap_years # Non-leap years
-        b = y - a # Leap years
-        return a * 365 + b * 366
-
     def decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
                          direction:str='N') -> float:
         '''
@@ -1289,6 +1197,94 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         minute = math.floor(m)
         second = self.PARTIAL_MINUTE_TO_SECOND(m)
         return hour, minute, round(second, self.ROUNDING_PLACES)
+
+    def _sin_deg(self, theta:float) -> float:
+        """
+        (defun sin-degrees (theta)
+          ;; TYPE angle -> amplitude
+          ;; Sine of theta (given in degrees).
+          (sin (radians-from-degrees theta)))
+        """
+        return math.sin(math.radians(theta))
+
+    def _cos_deg(self, theta:float) -> float:
+        """
+        (defun cos-degrees (theta)
+          ;; TYPE angle -> amplitude
+          ;; Cosine of theta (given in degrees).
+          (cos (radians-from-degrees theta)))
+        """
+        return math.cos(math.radians(theta))
+
+    def _sigma(self, lists:tuple, func:object) -> float:
+        """
+        used
+
+        (defmacro sigma (list body)
+          ;; TYPE (list-of-pairs (list-of-reals->real))
+          ;; TYPE -> real
+          ;; list is of the form ((i1 l1)...(in ln)).
+          ;; Sum of body for indices i1...in
+          ;; running simultaneously thru lists l1...ln.
+          `(apply `+ (mapcar (function (lambda
+                                         ,(mapcar `car list)
+                                         ,body))
+                             ,@(mapcar `cadr list))))
+        """
+        # Ensure all lists have the same length
+        assert len(set(len(lst) for lst in lists)) == 1, (
+            "Lists must have the same length")
+        return sum(func(*e) for e in zip(*lists))
+
+    def _poly(self, x:float, a:list) -> float:
+        """
+        This is the Horner method used to eliminate the use of powers.
+        Insted of:
+        y = A + B * x + C * x^2 + D * x^3 + E * x^4
+        do this:
+        y = A + x * (B + x * (C + x * (D + x * E)))
+
+        used
+
+        (defun poly (x a)
+          ;; TYPE (real list-of-reals) -> real
+          ;; Sum powers of x with coefficients (from order 0 up) in list a.
+          (if (equal a nil)
+              0
+            (+ (first a) (* x (poly x (rest a))))))
+        """
+        return 0 if not a else a[0] + (x * self._poly(x, a[1:]))
+
+    def _days_in_years(self, y:int, alt:bool=False) -> int:
+        """
+        Find the number of days up to the provided year.
+
+        :param y: The year to count to.
+        :type y: int
+        :param alt: If True use the 4|128 rule else if False use the 4|100|400
+                    rule. The default is False.
+        :return: The count of days including year one to the given year.
+        :rtype: int
+
+        .. note::
+
+           This method starts the count from year 1 of the Julian Calendar,
+           however, it uses one of the two leap rules described above instead
+           of the usual Julian Calendar leap year rule of every 4 year.
+        """
+        n_4 = y // 4
+
+        if alt:
+            n_128 = y // 128
+            n_leap_years = n_4 - n_128
+        else:
+            n_100 = y // 100
+            n_400 = y // 400
+            n_leap_years = n_4 - n_100 + n_400
+
+        a = y - n_leap_years # Non-leap years
+        b = y - a # Leap years
+        return a * 365 + b * 366
 
     def _coterminal_angle(self, value:float) -> float:
         """
