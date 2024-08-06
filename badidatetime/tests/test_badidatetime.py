@@ -295,18 +295,18 @@ class TestBadiDatetime(unittest.TestCase):
             ('  ', True, err_msg_0),
             (':::', True, err_msg_1.format(3)),
             ('..', True, err_msg_2.format(2)),
-            #('T014.2', True, err_msg_3.format('T014.2')),
+            ('T014.2', True, err_msg_3.format('T014.2')),
             )
         msg = "Expected {} with ISO time {}, found {}."
 
         for time, validity, expected_result in data:
             if validity:
-                with (self.assertRaises(AssertionError) or
-                      self.assertRaises(ValueError)) as cm:
+                try:
                     datetime._parse_isoformat_time(self._bc, time)
-
-                message = str(cm.exception)
-                self.assertEqual(expected_result, message)
+                except AssertionError as e:
+                    self.assertEqual(expected_result, str(e))
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
             else:
                 result = datetime._parse_isoformat_time(self._bc, time)
                 self.assertEqual(expected_result, result,

@@ -183,6 +183,16 @@ def _isoweek1jalal(bc:BahaiCalendar, year:int) -> int:
 
 def _parse_isoformat_date_time(bc:BahaiCalendar, dtstr:str) -> tuple:
     """
+    Parse both the date and time represented in an ISO string into a
+    date and time tuple.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param dtstr: A ISO complient time string.
+    :type dtstr: str
+    :return: The year, month, and day parsed from a ISO string.
+    :rtype: tuple
+
     """
     assert ((tc + sc) > 1) or ((tc + sc) == 0), (
         "The date and time can be seperated by either an uppercase 'T' "
@@ -199,6 +209,8 @@ def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
     :type dtstr: str
     :return: The year, month, and day parsed from a ISO string.
     :rtype: tuple
+    :raises AssertionError: Rasied when the year is out of range or when too
+                            many hyphons are used.
     """
     neg = dtstr[0] == '-'
     year = int(dtstr[:4 + neg])
@@ -254,6 +266,12 @@ def _parse_isoformat_time(bc:BahaiCalendar, dtstr:str) -> tuple:
     :type dtstr: str
     :return: The hour, minute, and second parsed from an ISO string.
     :rtype: tuple
+    :raises AssertionError: Rasied when there are invalid time designators,
+                            when to many colons used, or when too many dots
+                            are used.
+    :raises ValueError: Rasied when an invalid string is being parsed to
+                        an integer or when an invalid ISO string is being
+                        parsed.
     """
     tc = dtstr.count('T')
     sc = dtstr.count(' ')
