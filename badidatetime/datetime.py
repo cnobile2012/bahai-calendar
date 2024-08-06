@@ -141,8 +141,8 @@ def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
 
         if week == 53:
             # ISO years have 53 weeks in them on years starting with a
-            # Istijlal (Thursday) and leap years starting on a `Idal
-            # (Wednesday)
+            # Fidal (Tuesday) and leap years starting on a Kamal
+            # (Monday). Badi weeks start on Jalal (Saturday).
             first_weekday = _ymd2ord(bc, year, 1, 1) % 7
 
             if (first_weekday == 4 or
@@ -181,16 +181,23 @@ def _isoweek1jalal(bc:BahaiCalendar, year:int) -> int:
 
     return week1jalal
 
-def _parse_isoformat_date_and_time(bc:BahaiCalendar, dtstr:str) -> tuple:
+def _parse_isoformat_date_time(bc:BahaiCalendar, dtstr:str) -> tuple:
     """
-    Parse a date time ISO formatted string.
+    """
+    assert ((tc + sc) > 1) or ((tc + sc) == 0), (
+        "The date and time can be seperated by either an uppercase 'T' "
+        "or a space ' ', both were found in the string.")
+
+
+def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
+    """
+    Parse a date ISO formatted string.
 
     :param bc: BahaiCalendar instance.
     :type bc: BahaiCalendar
-    :param dtstr: A ISO complient date string.
+    :param dtstr: A ISO complient time string.
     :type dtstr: str
-    :return: The year, month, day, hour, minute, second parsed from an
-             ISO string.
+    :return: The year, month, and day parsed from a ISO string.
     :rtype: tuple
     """
     neg = dtstr[0] == '-'
@@ -204,6 +211,50 @@ def _parse_isoformat_date_and_time(bc:BahaiCalendar, dtstr:str) -> tuple:
         "Invalid format, there must be between 1 and 3 hyphons (-) in the "
         "date format or there can be one uppercase (W) week identifier and "
         "no or one hyphon (-) used.")
+    d_len = len(dtstr)
+
+    # Parse the date
+    if dc == 1 and d_len == 7 and not wc:   # YYYY-MM
+        date = (year, int(dtstr[5:7]), 1)
+    elif dc == 0 and d_len == 8 and not wc: # YYYYMMDD
+        date = (year, int(dtstr[4:6]), int(dtstr[7:9]))
+    elif dc == 2 and not wc:                # YYYY-MM-DD
+        date = (year, int(dtstr[5:7]), int(dtstr[8:10]))
+    elif wc and (7 <= d_len <=10 or (tc and 7 <= dtstr.index('T') <= 10)):
+        # YYYYWww, YYYY-Www, YYYYWwwD, YYYY-Www-D
+        pos = 5 if dc == 0 else 6
+        wday = int(dtstr[pos:pos+2])
+        pos += 2 if dc == 0 else 3
+        d = dtstr[pos:pos+1]
+        day = int(d) if d.isdigit() else 1
+        date = _isoweek_to_badi(bc, year, wday, day, short=True)[:3]
+    # YYYYDDD or YYYY-DDD
+    elif d_len in (7, 8) or (tc and dtstr.index('T') in (7, 8)):
+        month_days = [(n, 19) for n, v in bc.BADI_MONTH_NAMES]
+        month_days[18] = (0, 4 + bc._is_leap_year(year))
+        days = int(dtstr[4:7] if dc == 0 else dtstr[5:8])
+
+        for month, ds in month_days:
+            if days <= ds: break
+            days -= ds
+
+        date = (year, month, days)
+    else:
+        date = ()
+
+    return date
+
+def _parse_isoformat_time(bc:BahaiCalendar, dtstr:str) -> tuple:
+    """
+    Parse a time ISO formatted string.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param dtstr: A ISO complient time string.
+    :type dtstr: str
+    :return: The hour, minute, and second parsed from an ISO string.
+    :rtype: tuple
+    """
     tc = dtstr.count('T')
     sc = dtstr.count(' ')
     assert ((tc == 0 and sc == 0) or
@@ -216,41 +267,47 @@ def _parse_isoformat_date_and_time(bc:BahaiCalendar, dtstr:str) -> tuple:
         del sc
         tc = 1
 
-    d_len = len(dtstr)
-    assert ((tc + sc) > 1) or ((tc + sc) == 0), (
-        "The date and time can be seperated by either an uppercase 'T' "
-        "or a space ' ', both were found in the string.")
+    cc = dtstr.count(':')
+    assert cc < 3, f"Invalid number of colons (:), can be 0 - 2, found {cc}"
+    pc = dtstr.count('.')
+    assert pc <= 1, f"Invalid number of dots (.), can be 0 - 1, found {pc}"
+    t_len = len(dtstr)
 
-    # Parse the date
-    if dc == 1 and not wc:   # YYYY-MM
-        month = dtstr[5:7]
-        day = 1
-    elif dc == 0 and not wc: # YYYYMMDD
-        month = dtstr[4:6]
-        day = dtstr[7:9]
-    elif dc == 2 and not wc: # YYYY-MM-DD
-        month = dtstr[5:7]
-        day = dtstr[8:10]
-    elif wc and (7 <= d_len <=10 or (tc and 7 <= dtstr.index('T') <= 10)):
-        # YYYYWww, YYYY-Www, YYYYWwwD, YYYY-Www-D
-        pos = 5 if dc == 0 else 6
-        wday = int(dtstr[pos:pos+2])
-        pos += 2 if dc == 0 else 3
-        d = dtstr[pos:pos+1]
-        day = int(d) if d.isdigit() else 1
-        date = _isoweek_to_badi(bc, year, wday, day, short=True)
-        year, month, day = date[:3]
-    # YYYYDDD or YYYY-DDD
-    elif d_len in (7, 8) or (tc and dtstr.index('T') in (7, 8)):
-        day = dtstr[4:7] if dc == 0 else dtstr[5:8]
-        print(dc, wc, tc, d_len, day)
+    if t_len > 2:
+        hour = int(dtstr[1:3])
+        pos0 = 1 if cc else 0
+        pos1 = 2 if cc == 2 else 0
 
-    # Parse the time
-    if tc:
-        pass
+        if t_len > 3:
+            if dtstr[3] == '.': # Thh.hhh
+                ph = float(dtstr[3:]) * 60
+                minute = _math.floor(ph)
+                second = (ph % 1) * 60
+                time = (hour, minute, second)
+            elif dtstr[5+pos0:6+pos0] == '.': # Thhmm.mmm or Thh:mm.mmm
+                minute = int(dtstr[3+pos0:5+pos0])
+                pm = float(dtstr[5+pos0:])
+                second = pm * 60
+                time = (hour, minute, second)
+            elif dtstr[7+pos0:8+pos0] == '.': # Thhmmss.sss or Thh:mm:ss.sss
+                minute = int(dtstr[3+pos0:5+pos0])
+                second = float(dtstr[5+pos0:])
+                time = (hour, minute, second)
+            elif t_len == 5+pos0: # Thhmm or Thh:mm
+                minute = int(dtstr[3+pos0:5+pos0])
+                time = (hour, minute, 0)
+            elif t_len >= 7+pos1: # Thhmmss.sss or Thh:mm:ss.sss
+                minute = int(dtstr[3+pos0:5+pos0])
+                second = float(dtstr[5+pos1:])
+                time = (hour, minute, second)
+            else:
+                raise ValueError(f"Invalid time string, found {dtstr}")
+        else: # Thh
+            time = (hour, 0, 0)
+    else:
+        time = ()
 
-
-    return year, int(month), int(day)
+    return time
 
 def _check_date_fields(bc:BahaiCalendar, a:int, b:int, c:int, d:int=None,
                        e:int=None) -> None:
