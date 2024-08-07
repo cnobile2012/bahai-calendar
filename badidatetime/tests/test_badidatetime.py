@@ -234,38 +234,62 @@ class TestBadiDatetime(unittest.TestCase):
         Test that the _parse_isoformat_date function parses the date
         correctly from ISO standard formats.
         """
+        err_msg_0 = "Year is out of range: {}, min {}, max {}."
+        err_msg_1 = ("Invalid format, there must be between 0 to 2 hyphons "
+                     "(-) in the date format or there can be one uppercase "
+                     "(W) week identifier and no or one hyphon (-) used.")
+        err_msg_2 = "string index out of range"
+        err_msg_3 = "invalid literal for int() with base 10: {}"
         data = (
-            ('0181-01', (181, 1, 1)),    # (181, 1, 2, 23, 57, 15.3216)
-            ('01810101', (181, 1, 1)),   # (181, 1, 2, 23, 57, 15.3216)
-            ('0181-01-01', (181, 1, 1)), # (181, 1, 2, 23, 57, 15.3216)
-            ('0181W01', (181, 1, 2)),    # (181, 1, 3, 23, 56, 23.0496)
-            ('0181-W01', (181, 1, 2)),   # (181, 1, 3, 23, 56, 23.0496)
-            ('0181W017', (181, 1, 8)),   # (181, 1, 8, 23, 52, 2.9856)
-            ('0181-W01-7', (181, 1, 8)), # (181, 1, 8, 23, 52, 2.9856)
-            ('0181W207', (181, 8, 8)),   # (181, 8, 8, 23, 12, 18.0)
-            ('0181001', (181, 1, 1)),
-            ('0181019', (181, 1, 19)),
-            ('0181324', (181, 18, 1)),
-            ('0181342', (181, 18, 19)),
-            ('0181343', (181, 0, 1)),
-            ('0181346', (181, 0, 4)),
-            ('0181347', (181, 19, 1)),
-            ('0181365', (181, 19, 19)),
-            ('0181-001', (181, 1, 1)),
-            ('0181-019', (181, 1, 19)),
-            ('0182-324', (182, 18, 1)),
-            ('0182-342', (182, 18, 19)),
-            ('0182-343', (182, 0, 1)),
-            ('0182-347', (182, 0, 5)),
-            ('0182-348', (182, 19, 1)),
-            ('0182-366', (182, 19, 19)),
+            ('0181-01', False, (181, 1, 1)),    # (181, 1, 2, 23, 57, 15.3216)
+            ('01810101', False, (181, 1, 1)),   # (181, 1, 2, 23, 57, 15.3216)
+            ('0181-01-01', False, (181, 1, 1)), # (181, 1, 2, 23, 57, 15.3216)
+            ('0181W01', False, (181, 1, 2)),    # (181, 1, 3, 23, 56, 23.0496)
+            ('0181-W01', False, (181, 1, 2)),   # (181, 1, 3, 23, 56, 23.0496)
+            ('0181W017', False, (181, 1, 8)),   # (181, 1, 8, 23, 52, 2.9856)
+            ('0181-W01-7', False, (181, 1, 8)), # (181, 1, 8, 23, 52, 2.9856)
+            ('0181W207', False, (181, 8, 8)),   # (181, 8, 8, 23, 12, 18.0)
+            ('0181001', False, (181, 1, 1)),
+            ('0181019', False, (181, 1, 19)),
+            ('0181324', False, (181, 18, 1)),
+            ('0181342', False, (181, 18, 19)),
+            ('0181343', False, (181, 0, 1)),
+            ('0181346', False, (181, 0, 4)),
+            ('0181347', False, (181, 19, 1)),
+            ('0181365', False, (181, 19, 19)),
+            ('0181-001', False, (181, 1, 1)),
+            ('0181-019', False, (181, 1, 19)),
+            ('0182-324', False, (182, 18, 1)),
+            ('0182-342', False, (182, 18, 19)),
+            ('0182-343', False, (182, 0, 1)),
+            ('0182-347', False, (182, 0, 5)),
+            ('0182-348', False, (182, 19, 1)),
+            ('0182-366', False, (182, 19, 19)),
+            ('-1843-01', True, err_msg_0.format(-1843, datetime.MINYEAR,
+                                                datetime.MAXYEAR)),
+            ('1162-01', True, err_msg_0.format(1162, datetime.MINYEAR,
+                                               datetime.MAXYEAR)),
+            ('0181-01-01-', True, err_msg_1),
+            ('0181-W101', True, err_msg_1),
+            ('', True, err_msg_2),
+            ('015s', True, err_msg_3.format("'015s'")),
             )
         msg = "Expected {} with ISO date {}, found {}."
 
-        for date, expected_result in data:
-            result = datetime._parse_isoformat_date(self._bc, date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, result))
+        for date, validity, expected_result in data:
+            if validity:
+                try:
+                    datetime._parse_isoformat_date(self._bc, date)
+                except AssertionError as e:
+                    self.assertEqual(expected_result, str(e))
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
+                except IndexError as e:
+                    self.assertEqual(expected_result, str(e))
+            else:
+                result = datetime._parse_isoformat_date(self._bc, date)
+                self.assertEqual(expected_result, result,
+                                 msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__parse_isoformat_time(self):

@@ -211,6 +211,9 @@ def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
     :rtype: tuple
     :raises AssertionError: Rasied when the year is out of range or when too
                             many hyphons are used.
+    :raises ValueError: Raised when an invalid string is being parsed to
+                        an integer or when an invalid ISO string is being
+                        parsed.
     """
     neg = dtstr[0] == '-'
     year = int(dtstr[:4 + neg])
@@ -219,20 +222,19 @@ def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
     dtstr = dtstr[1:] if neg else dtstr
     dc = dtstr.count('-')
     wc = dtstr.count('W')
-    assert dc in (0, 1, 2) or (wc == 1 and dc in (0, 1)), (
-        "Invalid format, there must be between 1 and 3 hyphons (-) in the "
+    assert (wc == 0 and dc in (0, 1, 2)) or (wc == 1 and dc in (0, 1, 2)), (
+        "Invalid format, there must be between 0 to 2 hyphons (-) in the "
         "date format or there can be one uppercase (W) week identifier and "
         "no or one hyphon (-) used.")
     d_len = len(dtstr)
 
-    # Parse the date
     if dc == 1 and d_len == 7 and not wc:   # YYYY-MM
         date = (year, int(dtstr[5:7]), 1)
     elif dc == 0 and d_len == 8 and not wc: # YYYYMMDD
         date = (year, int(dtstr[4:6]), int(dtstr[7:9]))
     elif dc == 2 and not wc:                # YYYY-MM-DD
         date = (year, int(dtstr[5:7]), int(dtstr[8:10]))
-    elif wc and (7 <= d_len <=10 or (tc and 7 <= dtstr.index('T') <= 10)):
+    elif wc and 7 <= d_len <=10:
         # YYYYWww, YYYY-Www, YYYYWwwD, YYYY-Www-D
         pos = 5 if dc == 0 else 6
         wday = int(dtstr[pos:pos+2])
@@ -241,7 +243,7 @@ def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
         day = int(d) if d.isdigit() else 1
         date = _isoweek_to_badi(bc, year, wday, day, short=True)[:3]
     # YYYYDDD or YYYY-DDD
-    elif d_len in (7, 8) or (tc and dtstr.index('T') in (7, 8)):
+    elif d_len in (7, 8):
         month_days = [(n, 19) for n, v in bc.BADI_MONTH_NAMES]
         month_days[18] = (0, 4 + bc._is_leap_year(year))
         days = int(dtstr[4:7] if dc == 0 else dtstr[5:8])
@@ -269,7 +271,7 @@ def _parse_isoformat_time(bc:BahaiCalendar, dtstr:str) -> tuple:
     :raises AssertionError: Rasied when there are invalid time designators,
                             when to many colons used, or when too many dots
                             are used.
-    :raises ValueError: Rasied when an invalid string is being parsed to
+    :raises ValueError: Raised when an invalid string is being parsed to
                         an integer or when an invalid ISO string is being
                         parsed.
     """
