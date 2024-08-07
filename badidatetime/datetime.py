@@ -194,10 +194,14 @@ def _parse_isoformat_date_time(bc:BahaiCalendar, dtstr:str) -> tuple:
     :rtype: tuple
 
     """
-    assert ((tc + sc) > 1) or ((tc + sc) == 0), (
-        "The date and time can be seperated by either an uppercase 'T' "
-        "or a space ' ', both were found in the string.")
-
+    tc = dtstr.count('T')
+    sc = dtstr.count(' ')
+    idx = dtstr.index('T') if tc else dtstr.index(' ') if sc else len(dtstr)
+    str_date = dtstr[:idx].strip('T ')
+    str_time = dtstr[idx:]
+    date = _parse_isoformat_date(bc, str_date) if str_date else ()
+    time = _parse_isoformat_time(bc, str_time) if str_time else ()
+    return date + time
 
 def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
     """
@@ -211,21 +215,24 @@ def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
     :rtype: tuple
     :raises AssertionError: Rasied when the year is out of range or when too
                             many hyphons are used.
+    :raises IndexError: When a string index is out of range.
     :raises ValueError: Raised when an invalid string is being parsed to
                         an integer or when an invalid ISO string is being
                         parsed.
     """
-    neg = dtstr[0] == '-'
-    year = int(dtstr[:4 + neg])
-    assert MINYEAR <= year <= MAXYEAR, (
-        f"Year is out of range: {year}, min {MINYEAR}, max {MAXYEAR}.")
-    dtstr = dtstr[1:] if neg else dtstr
+    if dtstr != '':
+        neg = dtstr[0] == '-'
+        year = int(dtstr[:4 + neg])
+        assert MINYEAR <= year <= MAXYEAR, (
+            f"Year is out of range: {year}, min {MINYEAR}, max {MAXYEAR}.")
+        dtstr = dtstr[1:] if neg else dtstr
+
     dc = dtstr.count('-')
     wc = dtstr.count('W')
     assert (wc == 0 and dc in (0, 1, 2)) or (wc == 1 and dc in (0, 1, 2)), (
         "Invalid format, there must be between 0 to 2 hyphons (-) in the "
         "date format or there can be one uppercase (W) week identifier and "
-        "no or one hyphon (-) used.")
+        "between 0 and 2 hyphons (-) used.")
     d_len = len(dtstr)
 
     if dc == 1 and d_len == 7 and not wc:   # YYYY-MM
@@ -239,7 +246,9 @@ def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
         pos = 5 if dc == 0 else 6
         wday = int(dtstr[pos:pos+2])
         pos += 2 if dc == 0 else 3
-        d = dtstr[pos:pos+1]
+        d = dtstr[pos:]
+        assert (dc == 1 and d_len == 8) or dc in (0, 2), (
+            f"Invalid ISO string {dtstr}.")
         day = int(d) if d.isdigit() else 1
         date = _isoweek_to_badi(bc, year, wday, day, short=True)[:3]
     # YYYYDDD or YYYY-DDD
@@ -283,7 +292,7 @@ def _parse_isoformat_time(bc:BahaiCalendar, dtstr:str) -> tuple:
         "indicate time.")
 
     if sc:
-        dtstr[dtstr.index(' ')] = 'T'
+        dtstr = "T" + dtstr[1:]
         del sc
         tc = 1
 

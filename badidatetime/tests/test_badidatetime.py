@@ -229,6 +229,27 @@ class TestBadiDatetime(unittest.TestCase):
                              msg.format(expected_result, year, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test__parse_isoformat_date_time(self):
+        """
+        Test trhat the _parse_isoformat_date_time function returns a
+        parsed date and time ISO string.
+        """
+        data = (
+            ('-18420101T120000', (-1842, 1, 1, 12, 0, 0.0)),
+            ('-1842-01-01T12:00:00', (-1842, 1, 1, 12, 0, 0.0)),
+            ('11610101T120000', (1161, 1, 1, 12, 0, 0.0)),
+            ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0.0)),
+            ('0181-W20T12:00:00', (181, 8, 2, 12, 0, 0.0)),
+            ('0181-W20-5T12:00:00', (181, 8, 6, 12, 0, 0.0)),
+            )
+        msg = "Expected {} with dtstr {}, found {}."
+
+        for dtstr, expected_result in data:
+            result = datetime._parse_isoformat_date_time(self._bc, dtstr)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, dtstr, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__parse_isoformat_date(self):
         """
         Test that the _parse_isoformat_date function parses the date
@@ -237,10 +258,12 @@ class TestBadiDatetime(unittest.TestCase):
         err_msg_0 = "Year is out of range: {}, min {}, max {}."
         err_msg_1 = ("Invalid format, there must be between 0 to 2 hyphons "
                      "(-) in the date format or there can be one uppercase "
-                     "(W) week identifier and no or one hyphon (-) used.")
-        err_msg_2 = "string index out of range"
-        err_msg_3 = "invalid literal for int() with base 10: {}"
+                     "(W) week identifier and between 0 and 2 hyphons (-) "
+                     "used.")
+        err_msg_2 = "invalid literal for int() with base 10: {}"
+        err_msg_3 = "Invalid ISO string {}."
         data = (
+            ('', False, ()),
             ('0181-01', False, (181, 1, 1)),    # (181, 1, 2, 23, 57, 15.3216)
             ('01810101', False, (181, 1, 1)),   # (181, 1, 2, 23, 57, 15.3216)
             ('0181-01-01', False, (181, 1, 1)), # (181, 1, 2, 23, 57, 15.3216)
@@ -270,22 +293,26 @@ class TestBadiDatetime(unittest.TestCase):
             ('1162-01', True, err_msg_0.format(1162, datetime.MINYEAR,
                                                datetime.MAXYEAR)),
             ('0181-01-01-', True, err_msg_1),
-            ('0181-W101', True, err_msg_1),
-            ('', True, err_msg_2),
-            ('015s', True, err_msg_3.format("'015s'")),
+            ('0181-W10-1-', True, err_msg_1),
+            ('015s', True, err_msg_2.format("'015s'")),
+            ('0181-W101', True, err_msg_3.format('0181-W101')),
             )
         msg = "Expected {} with ISO date {}, found {}."
 
         for date, validity, expected_result in data:
             if validity:
                 try:
-                    datetime._parse_isoformat_date(self._bc, date)
+                    result = datetime._parse_isoformat_date(self._bc, date)
                 except AssertionError as e:
                     self.assertEqual(expected_result, str(e))
                 except ValueError as e:
                     self.assertEqual(expected_result, str(e))
                 except IndexError as e:
                     self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date}' an error is not "
+                                         f"raised, with result {result}.")
             else:
                 result = datetime._parse_isoformat_date(self._bc, date)
                 self.assertEqual(expected_result, result,
@@ -305,6 +332,7 @@ class TestBadiDatetime(unittest.TestCase):
         data = (
             ('', False, ()),
             ('T14', False, (14, 0, 0)),
+            (' 14', False, (14, 0, 0)),
             ('T14.2', False, (14, 12, 0)),
             ('T1412', False, (14, 12, 0)),
             ('T1412.45', False, (14, 12, 27.0)),
@@ -326,11 +354,15 @@ class TestBadiDatetime(unittest.TestCase):
         for time, validity, expected_result in data:
             if validity:
                 try:
-                    datetime._parse_isoformat_time(self._bc, time)
+                    result = datetime._parse_isoformat_time(self._bc, time)
                 except AssertionError as e:
                     self.assertEqual(expected_result, str(e))
                 except ValueError as e:
                     self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {time} an error is not "
+                                         f"raised, with result {result}.")
             else:
                 result = datetime._parse_isoformat_time(self._bc, time)
                 self.assertEqual(expected_result, result,
