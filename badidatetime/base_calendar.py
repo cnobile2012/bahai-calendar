@@ -1255,7 +1255,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         return 0 if not a else a[0] + (x * self._poly(x, a[1:]))
 
-    def _days_in_years(self, y:int, alt:bool=False) -> int:
+    def _days_in_years(self, y:int, *, alt:bool=False) -> int:
         """
         Find the number of days up to the provided year.
 

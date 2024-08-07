@@ -1178,40 +1178,40 @@ class TestBaseCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_tz_hms_from_decimal(self):
         """
         Test that the tz_hms_from_decimal method returns converts a
         decimal number to hours, minutes, and seconds.
         """
-        pass
+        data = (
+            (0.41811342592592593, (10, 2, 5)),
+            (1.0, (24, 0, 0)),
+            )
+        msg = "Expected {} with decimal {}, found {}."
 
+        for dec, expected_result in data:
+            result = self.bc.tz_hms_from_decimal(dec)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, dec, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_hms_from_decimal_day(self):
         """
         Test that the hms_from_decimal_day method returns hours, minutes,
         and seconds deom a decimal number.
         """
-        pass
-
-
-    #@unittest.skip("Temporarily skipped")
-    def test_tz_hms_from_decimal(self):
-        """
-        Test that the tz_hms_from_decimal method converts a decimal number
-        to hours, minutes, and seconds correcty.
-        """
         data = (
-            (0.41811342592592593, (10, 2, 5)),
-            (1.0, (24, 0, 0)),
+            (0.5, (12, 0, 0.0)),
+            (0.25, (6, 0, 0.0)),
+            (0.1, (2, 24, 0.0))
             )
-        msg = "Expected {} with number {}, found {}."
+        msg = "Expected {} with decimal {}, found {}."
 
-        for number, expected_result in data:
-            result = self.bc.tz_hms_from_decimal(number)
+        for dec, expected_result in data:
+            result = self.bc.hms_from_decimal_day(dec)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, number, result))
+                             msg.format(expected_result, dec, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sin_deg(self):
@@ -1272,14 +1272,26 @@ class TestBaseCalendar(unittest.TestCase):
         msg = f"POLY should be {expected_poly}, found {poly}."
         self.assertEqual(expected_poly, poly, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__days_in_years(self):
         """
-        Test that the _days_in_years method returns the of days
-        including year one to the given year.
+        Test that the _days_in_years method returns the number of days
+        including year one (Gregorian) to the given year.
         """
-        pass
+        data = (
+            (1, False, 365),
+            (1, True, 365),
+            (2024, False, 739251),
+            (2024, True, 739251),
+            (3000, False, 1095727),
+            (3000, True, 1095727),
+            )
+        msg = "Expected {} with year {} and alt {}, found {}."
 
+        for year, alt, expected_result in data:
+            result = self.bc._days_in_years(year, alt=alt)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, year, alt, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__coterminal_angle(self):
