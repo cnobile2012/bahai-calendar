@@ -181,7 +181,7 @@ class BahaiCalendar(BaseCalendar):
 
         # The diff value converts my jd to the Meeus algorithm for
         # determining the sunset jd.
-        diff = self._meeus_algorithm_compinsation((year, month, day))
+        diff = self._meeus_algorithm_date_compensation((year, month, day))
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_coff(year),
                      self.ROUNDING_PLACES)
@@ -439,7 +439,8 @@ class BahaiCalendar(BaseCalendar):
 
         # We add 1 to the JD to compensate for the difference between
         # the Meeus algorithm and mine.
-        diff = self._sun_setting(jd + 1, lat, lon, zone) % 1
+        m_diff = self._meeus_algorithm_jd_compensation(jd)
+        diff = self._sun_setting(jd + m_diff, lat, lon, zone) % 1
         cor = (jd % 1) - diff
         day += cor if (day + cor) >= 1 else 0
         date = self.long_date_from_short_date((year, month, day))
@@ -682,7 +683,7 @@ class BahaiCalendar(BaseCalendar):
         second = date[s+2] if t_len > s+2 and date[s+2] is not None else 0
         return hour, minute, second
 
-    def _meeus_algorithm_compinsation(self, date:tuple) -> int:
+    def _meeus_algorithm_date_compensation(self, date:tuple) -> int:
         """
         The returned diff value converts my jd to the Meeus algorithm jd
         for determining the sunset jd.
@@ -713,6 +714,33 @@ class BahaiCalendar(BaseCalendar):
 
         for d, df in date_diff:
             if date < d:
+                diff = df
+                break
+
+        return diff
+
+    def _meeus_algorithm_jd_compensation(self, jd:float) -> int:
+        """
+        The returned diff value converts my jd to the Meeus algorithm jd
+        for determining the sunset jd.
+
+        :param jd: A Julian Period day.
+        :type jd: float
+        :return: The difference to subtract from my jd algorithm to arrive
+                 at Meeus' algorithm so that all his algorithms can be use
+                 accurately.
+        :rtype: int
+        """
+        jd_diff = (
+            (1757642.5, 0), (1794165.5, 1), (1830689.5, 2), (1903738.5, 3),
+            (1940262.5, 4), (1976786.5, 5), (2049835.5, 6), (2086359.5, 7),
+            (2122883.5, 8), (2195932.5, 9), (2232456.5, 10), (2268980.5, 11),
+            (2299158.5, 12),
+            )
+        diff = 2
+
+        for j, df in jd_diff:
+            if jd < j:
                 diff = df
                 break
 

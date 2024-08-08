@@ -57,11 +57,11 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # Badi epoch (Sunset 1844-03-20T18:14:00)
-            ((1844, 3, 20, 18, 14), False, (1, 1, 1, 1, 1, 0, 0, 12.96)),
+            ((1844, 3, 20, 18, 14), False, (1, 1, 1, 1, 1)),
             # CC ch#16 p271 First day of Riḍván
-            ((1930, 4, 21, 18, 41), False, (1, 5, 11, 2, 13, 0, 0, 25.7472)),
+            ((1930, 4, 21, 18, 41), False, (1, 5, 11, 2, 12, 23, 59, 33.648)),
             # B.E. 100 (Vernal Equinox 1943-03-21T12:03:04 DT)
-            ((1943, 3, 21, 18, 14), False, (1, 6, 5, 1, 1, 0, 0, 16.9344)),
+            ((1943, 3, 21, 18, 14), False, (1, 6, 5, 1, 1)),
             # World Centre update (Vernal Equinox 2015-03-20T22:46:16 DT)
             ((2015, 3, 21, 18, 14), True, (172, 1, 1)),
             )
@@ -312,22 +312,22 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # 0001-03-20T18:13:00
-            (1721502.259568, True, (-1842, 1, 1)),
+            (1721502.259568, True, (-1842, 1, 1, 0, 0, 47.2608)),
             ## # 0001-04-08T18:24:00
-            (1721520.269258, True, (-1842, 1, 19)),
+            (1721520.269258, True, (-1842, 1, 19, 0, 0, 46.4832)),
             ## # 0001-
-            (1721843.245527, True, (-1842, 18, 19)),
-            (1721844.246149, True, (-1842, 0, 1)),
-            (1721845.246766, True, (-1842, 0, 2)),
+            (1721843.245527, True, (-1842, 18, 19, 0, 0, 54.0)),
+            (1721844.246149, True, (-1842, 0, 1, 0, 0, 53.7408)),
+            (1721845.246766, True, (-1842, 0, 2, 0, 0, 53.3088)),
             ## # 0001-
-            (1721849.249193, True, (-1842, 19, 1)),
+            (1721849.249193, True, (-1842, 19, 1, 0, 0, 51.9264)),
             ## # 0001-
-            (1721853.251557, True, (-1842, 19, 5)),
+            (1721853.251557, True, (-1842, 19, 5, 0, 0, 50.544)),
             ## # 1583-03-19T18:11:33.5328
             (2299316.259821, True, (-260, 1, 1)),
             # 1844-03-20T18:12:2.3904
             (2394644.259572, True, (1, 1, 1)),
-            (2395009.260028, True, (1, 19, 19, 0, 0, 52.0992)),
+            (2395009.260028, True, (1, 19, 19)),
             # 1863-03-21T18:11:29.7312
             (2401584.259803, True, (20, 1, 1)),
             # 2015-03-21T18:14:00
@@ -336,18 +336,18 @@ class TestBadiCalendar(unittest.TestCase):
             # 2024-03-20T18:12:2.3904
             (2460388.259712, True, (181, 1, 1)),
             # 2024-04-20T18:39:5.1552
-            (2460419.278959, True, (181, 2, 13, 0, 0, 52.3584)),
+            (2460419.278959, True, (181, 2, 13)),
             # 1st day of Ayyám-i-Há -> 2022-02-25T17:50:24.2304
-            (2459634.245373, True, (178, 0, 1, 0, 0, 58.32)),
+            (2459634.245373, True, (178, 0, 1)),
             # 2022-03-01T17:54:18.2016
-            (2459638.248036, True, (178, 0, 5, 0, 0, 57.024)),
+            (2459638.248036, True, (178, 0, 5)),
             # 2022-03-02T17:55:15.9168
-            (2459639.248693, True, (178, 19, 1, 0, 0, 56.7648)),
+            (2459639.248693, True, (178, 19, 1)),
             # Badi short form -> 2024-05-14T18:59:54.3264
-            (2460443.293338, True, (181, 3, 18, 0, 0, 49.68)),
+            (2460443.293338, True, (181, 3, 18)),
             # Badi long form -> 2024-05-14T18:59:54.3264
-            (2460443.293338, False, (1, 10, 10, 3, 18, 0, 0, 49.68)),
-            (2460507.450424, True, (181, 7, 6, 3, 29, 25.7568)),
+            (2460443.293338, False, (1, 10, 10, 3, 18)),
+            (2460507.450424, True, (181, 7, 6, 3, 29, 59.9712)),
             )
         msg = "Expected {} for jd {}, found {}"
 
@@ -464,15 +464,15 @@ class TestBadiCalendar(unittest.TestCase):
         correct Badi date.
         """
         data = (
-            ((1844, 3, 20, 18, 14), False, True, (1, 1, 1, 1, 1, 0, 0, 12.96)),
-            ((1844, 3, 20, 18, 14), True, True, (1, 1, 1, 0, 0, 12.96)),
-            ((2024, 5, 14, 20), False, True, (1, 10, 10, 3, 18, 0, 58, 25.248)),
-            ((2024, 5, 14, 20), True, True, (181, 3, 18, 0, 58, 25.248)),
+            ((1844, 3, 20, 18, 14), False, True, (1, 1, 1, 1, 1)),
+            ((1844, 3, 20, 18, 14), True, True, (1, 1, 1)),
+            ((2024, 5, 14, 20), False, True, (1, 10, 10, 3, 18, 0, 57, 35.568)),
+            ((2024, 5, 14, 20), True, True, (181, 3, 18, 0, 57, 35.568)),
             # The next tests may show the wrong month and day if
             # exact=False is used.
             # The exact=False condition is generally used in testing.
-            ((1844, 3, 20, 18, 14), True, False, (1, 1, 2, 23, 58, 28.848)),
-            ((2024, 5, 14, 20), True, False, (181, 4, 1, 0, 56, 46.2336)),
+            ((1844, 3, 20, 18, 14), True, False, (1, 1, 2, 23, 57, 37.008)),
+            ((2024, 5, 14, 20), True, False, (181, 4, 1, 0, 55, 57.3312)),
             )
         msg = "Expected {} for date {}, short {} and exact {}, found {}"
 
@@ -523,10 +523,10 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # 1970-01-01 -> UNIX Eppoch (1970, 1, 1.049148)
-            (1, False, (1, 7, 12, 16, 1, 7, 3, 59.5296)),
-            (1, True, (126, 16, 1, 7, 3, 59.5296)),
+            (1, False, (1, 7, 12, 16, 1, 7, 3, 13.9104)),
+            (1, True, (126, 16, 1, 7, 3, 13.9104)),
             # 2024-07-24T06:55:08.688 *** TODO *** This was wrong was 4 AM
-            (1722067088.6303926, True, (181, 7, 15, 12, 45, 4.4928))
+            (1722067088.6303926, True, (181, 7, 15, 12, 45, 53.136))
             )
         msg = "Expected {} for timestamp {}, found {}"
 
@@ -700,11 +700,11 @@ class TestBadiCalendar(unittest.TestCase):
                              msg.format(expected_result, date, short, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__meeus_algorithm_compinsation(self):
+    def test__meeus_algorithm_date_compensation(self):
         """
-        Test that the _meeus_algorithm_compinsation method returns the
-        correct difference needed to compinsate for the differences in
-        mime and Meesus' algorithms.
+        Test that the _meeus_algorithm_date_compensation method returns
+        the correct difference needed to compensate for the differences
+        in mime and Meesus' algorithms.
         """
         data = (
             ((-1842, 1, 1), 0),
@@ -740,6 +740,49 @@ class TestBadiCalendar(unittest.TestCase):
         msg = "Expected {} for date {}, found {}"
 
         for date, expected_result in data:
-            result = self._bc._meeus_algorithm_compinsation(date)
+            result = self._bc._meeus_algorithm_date_compensation(date)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__meeus_algorithm_jd_compensation(self):
+        """
+        Test that the _meeus_algorithm_jd_compensation method returns
+        the correct difference needed to compensate for the differences
+        in mime and Meesus' algorithms.
+        """
+        data = (
+            (1757641.5, 0),
+            (1757642.5, 1),
+            (1794164.5, 1),
+            (1794165.5, 2),
+            (1830688.5, 2),
+            (1830689.5, 3),
+            (1903737.5, 3),
+            (1903738.5, 4),
+            (1940261.5, 4),
+            (1940262.5, 5),
+            (1976785.5, 5),
+            (1976786.5, 6),
+            (2049834.5, 6),
+            (2049835.5, 7),
+            (2086358.5, 7),
+            (2086359.5, 8),
+            (2122882.5, 8),
+            (2122883.5, 9),
+            (2195931.5, 9),
+            (2195932.5, 10),
+            (2232455.5, 10),
+            (2232456.5, 11),
+            (2268979.5, 11),
+            (2268980.5, 12),
+            (2299157.5, 12),
+            (2299158.5, 2),
+            (2460388.26032, 2),
+            )
+        msg = "Expected {} for jd {}, found {}"
+
+        for jd, expected_result in data:
+            result = self._bc._meeus_algorithm_jd_compensation(jd)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jd, result))

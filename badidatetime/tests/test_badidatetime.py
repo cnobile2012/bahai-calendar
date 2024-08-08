@@ -182,14 +182,14 @@ class TestBadiDatetime(unittest.TestCase):
         err_msg_0 = "Invalid week: {}"
         err_msg_1 = "Invalid weekday: {} (range is 1..7)"
         data = (
-            ((-1842, 1, 1), False, False, (-5, 18, 1, 1, 3, 23, 56, 51.9072)),
-            ((-1842, 1, 1), True, False, (-1842, 1, 3, 23, 56, 51.9072)),
-            ((181, 1, 1), True, False, (181, 1, 2, 23, 57, 15.3216)),
-            ((182, 1, 1), True, False, (182, 1, 1, 23, 58, 20.3808)),
-            ((183, 1, 1), True, False, (182, 19, 18, 23, 59, 25.6128)),
-            ((181, 1, 7), True, False, (181, 1, 8, 23, 52, 2.9856)),
-            ((181, 20, 7), True, False, (181, 8, 8, 23, 12, 18.0)),
-            ((182, 53, 1), True, False, (182, 19, 18, 23, 59, 25.6128)),
+            ((-1842, 1, 1), False, False, (-5, 18, 1, 1, 3, 23, 57, 38.736)),
+            ((-1842, 1, 1), True, False, (-1842, 1, 3, 23, 57, 38.736)),
+            ((181, 1, 1), True, False, (181, 1, 2, 23, 56, 23.0496)),
+            ((182, 1, 1), True, False, (182, 1, 1, 23, 57, 27.936)),
+            ((183, 1, 1), True, False, (182, 19, 18, 23, 58, 32.9952)),
+            ((181, 1, 7), True, False, (181, 1, 8, 23, 51, 11.1456)),
+            ((181, 20, 7), True, False, (181, 8, 8, 23, 13, 24.2688)),
+            ((182, 53, 1), True, False, (182, 19, 18, 23, 58, 32.9952)),
             ((181, 53, 1), False, True, err_msg_0.format(53)),
             ((181, 54, 1), False, True, err_msg_0.format(54)),
             ((181, 20, 10), False, True, err_msg_1.format(10)),
@@ -428,3 +428,22 @@ class TestBadiDatetime(unittest.TestCase):
                 num_days = cycle if month == 0 else 19
                 message = str(cm.exception)
                 self.assertEqual(err_msg.format(num_days), message)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_fromtimestamp(self):
+        """
+        Test that the fromtimestamp class method creates an instance of
+        date a POSIX timestamp.
+        """
+        data = (
+            (1723057467.0619307, False,
+             'badidatetime.datetime.date(1, 10, 10, 8, 8)'),
+            (1723057467.0619307, True,
+             'badidatetime.datetime.date(181, 8, 8)'),
+            )
+        msg = "Expected {} with timestamp {}, found {}."
+
+        for ts, short, expected_result in data:
+            result = datetime.date.fromtimestamp(ts, short=short)
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, ts, result))
