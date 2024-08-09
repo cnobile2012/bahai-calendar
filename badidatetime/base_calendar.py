@@ -107,6 +107,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     SUN_OFFSET = 0.8333333333333334
     STARS_PLANET_OFFSET = 0.5666666666666667
     ROUNDING_PLACES = 6
+    POSIX_EPOCH = 2440585.5 # This is using my algorithm.
 
     def __init__(self):
         self._time = None
@@ -343,7 +344,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         alpha = self._sun_apparent_right_ascension(tc_td)
         m = func0((alpha - lon - ast) / 360)
         md = self._transit_correction(tc, ast, dt, lon, m)
-        m += md + self.tz_decimal_from_hms(zone, 0, 0)
+        m += md + self.tz_decimal_from_dhms(0, zone, 0, 0)
         return m
 
     def _transit_correction(self, tc, ast, dt, lon, m):
@@ -490,7 +491,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             m += dm
             if abs(dm) < 0.0001: break
 
-        m += self.tz_decimal_from_hms(zone, 0, 0)
+        m += self.tz_decimal_from_dhms(0, zone, 0, 0)
         return m % 1
 
     def _rise_set_correction(self, tc, ast, dt, lat, lon, m, offset):
@@ -1135,45 +1136,62 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         s = (deg / 15 - h - m / 60) * 3600
         return h, m, s
 
-    def seconds_from_hms(self, hours:int, minutes:int, seconds:float) -> float:
+    def seconds_from_dhms(self, days:int, hours:int, minutes:int, seconds:float,
+                          zone:float=0) -> float:
         """
-        Convert hours, minutes, and seconds to seconds.
+        Convert days, hours, minutes, and seconds to seconds.
         """
-        return hours * 3600 + minutes * 60 + seconds
+        return (days * 86400+ (hours + zone) * 3600 + minutes * 60
+                + seconds + zone * 3600)
 
-    def hms_from_seconds(self, seconds:float) -> tuple:
+    def dhms_from_seconds(self, seconds:float, zone:float=0) -> tuple:
         """
-        Convert seconds into hours, minutes, and seconds.
+        Convert seconds into days, hours, minutes, and seconds. Depending
+        on the timezonw it the there could be an additional day added.
+
+        See: https://www.timeanddate.com/time/map/
+        Timezones can be from -11 to +14 based on the political timeszones
+        as of 2024-08-09.
         """
+        seconds += zone * 3600
         hours = math.floor(seconds / 3600)
         m = (seconds - hours * 3600) / 60
         minutes = math.floor(m)
-        return hours, minutes, (seconds - hours * 3600) - minutes * 60
 
-    def tz_decimal_from_hms(self, hours:int, minutes:int, seconds:int) -> int:
+        if hours < 24:
+            day = 0
+        else:
+            hours -= 24
+            day = 1
+            seconds -= 86400
+
+        return day, hours, minutes, (seconds - hours * 3600) - minutes * 60
+
+    def tz_decimal_from_dhms(self, days:int, hours:int, minutes:int,
+                             seconds:int) -> int:
         """
-        Convert hours, minutes, and seconds to a decimal number representing
-        percentage of one revolution around the Earth. Where the number 1
-        indicates one revolution.
+        Convert days, hours, minutes, and seconds to a decimal number
+        representing percentage of one revolution around the Earth. Where
+        the number 1 indicates one revolution.
 
         .. note::
 
            This method is used in determining time zones.
         """
-        return self.seconds_from_hms(hours, minutes, seconds) / 86400
+        return self.seconds_from_dhms(days, hours, minutes, seconds) / 86400
 
-    def tz_hms_from_decimal(self, dec:float) -> tuple:
+    def tz_dhms_from_decimal(self, dec:float) -> tuple:
         """
-        Convert a decimal number into hours, minutes, and seconds of a
-        time zone. The decimal number represents the percentage of one
-        revolution around the Earth. Where the number 1 indicates one
-        revolution.
+        Convert a decimal number into days, hours, minutes, and seconds
+        of a time zone. The decimal number represents the percentage of
+        one revolution around the Earth. Where the number 1 indicates
+        one revolution.
 
         .. note::
 
            This method is used in determining time zones.
          """
-        return self.hms_from_seconds(dec * 86400)
+        return self.dhms_from_seconds(dec * 86400)
 
     def hms_from_decimal_day(self, dec:float) -> tuple:
         """

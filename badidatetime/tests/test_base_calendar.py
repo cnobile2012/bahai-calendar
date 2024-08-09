@@ -1128,70 +1128,70 @@ class TestBaseCalendar(unittest.TestCase):
                              msg.format(expected_result, degrees, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_seconds_from_hms(self):
+    def test_seconds_from_dhms(self):
         """
-        Test that the seconds_from_hms method converts hours minutes,
+        Test that the seconds_from_dhms method converts hours minutes,
         and seconds to seconds.
         """
         data = (
-            ((10, 2, 5), 36125),
-            ((24, 0, 0), 86400),
+            ((0, 10, 2, 5), 36125),
+            ((1, 0, 0, 0), 86400),
             )
         msg = "Expected {} with h,m,s {}, found {}."
 
         for args, expected_result in data:
-            result = self.bc.seconds_from_hms(*args)
+            result = self.bc.seconds_from_dhms(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_hms_from_seconds(self):
+    def test_dhms_from_seconds(self):
         """
-        Test that the hms_from_seconds method converts seconds into
+        Test that the dhms_from_seconds method converts seconds into
         hours, minutes, and seconds properly.
         """
         data = (
-            (36125, (10, 2, 5)),
-            (86400, (24, 0, 0)),
+            (36125, (0, 10, 2, 5)),
+            (86400, (1, 0, 0, 0)),
             )
         msg = "Expected {} with seconds {}, found {}."
 
         for seconds, expected_result in data:
-            result = self.bc.hms_from_seconds(seconds)
+            result = self.bc.dhms_from_seconds(seconds)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, seconds, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_tz_decimal_from_hms(self):
+    def test_tz_decimal_from_dhms(self):
         """
-        Test that the tz_decimal_from_hms method converts hours, minutes,
+        Test that the tz_decimal_from_dhms method converts hours, minutes,
         and seconds of a time zone to a decimal number representing degrees.
         """
         data = (
-            ((10, 2, 5), 0.41811342592592593),
-            ((24, 0, 0), 1.0),
+            ((0, 10, 2, 5), 0.41811342592592593),
+            ((1, 0, 0, 0), 1.0),
             )
         msg = "Expected {} with h,m,s {}, found {}."
 
         for args, expected_result in data:
-            result = self.bc.tz_decimal_from_hms(*args)
+            result = self.bc.tz_decimal_from_dhms(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_tz_hms_from_decimal(self):
+    def test_tz_dhms_from_decimal(self):
         """
-        Test that the tz_hms_from_decimal method returns converts a
+        Test that the tz_dhms_from_decimal method returns converts a
         decimal number to hours, minutes, and seconds.
         """
         data = (
-            (0.41811342592592593, (10, 2, 5)),
-            (1.0, (24, 0, 0)),
+            (0.41811342592592593, (0, 10, 2, 5)),
+            (1.0, (1, 0, 0, 0)),
             )
         msg = "Expected {} with decimal {}, found {}."
 
         for dec, expected_result in data:
-            result = self.bc.tz_hms_from_decimal(dec)
+            result = self.bc.tz_dhms_from_decimal(dec)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, dec, result))
 
