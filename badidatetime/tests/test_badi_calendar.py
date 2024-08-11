@@ -57,11 +57,11 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # Badi epoch (Sunset 1844-03-20T18:14:00)
-            ((1844, 3, 20, 18, 14), False, (1, 1, 1, 1, 1)),
+            ((1844, 3, 20, 18, 14), False, (1, 1, 1, 1, 1, 0, 0, 12.96)),
             # CC ch#16 p271 First day of Riḍván
             ((1930, 4, 21, 18, 41), False, (1, 5, 11, 2, 12, 23, 59, 33.648)),
             # B.E. 100 (Vernal Equinox 1943-03-21T12:03:04 DT)
-            ((1943, 3, 21, 18, 14), False, (1, 6, 5, 1, 1)),
+            ((1943, 3, 21, 18, 14), False, (1, 6, 5, 1, 1, 0, 0, 16.9344)),
             # World Centre update (Vernal Equinox 2015-03-20T22:46:16 DT)
             ((2015, 3, 21, 18, 14), True, (172, 1, 1)),
             )
@@ -310,51 +310,63 @@ class TestBadiCalendar(unittest.TestCase):
         """
         Test that the badi_date_from_jd method returns the correct Badi date.
         """
+        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # 0001-03-20T18:13:00
-            (1721502.259568, True, (-1842, 1, 1, 0, 0, 47.2608)),
+            (1721502.259568, lat, lon, zone, True,
+             (-1842, 1, 1, 0, 0, 47.2608)),
             ## # 0001-04-08T18:24:00
-            (1721520.269258, True, (-1842, 1, 19, 0, 0, 46.4832)),
+            (1721520.269258, lat, lon, zone, True,
+             (-1842, 1, 19, 0, 0, 46.4832)),
             ## # 0001-
-            (1721843.245527, True, (-1842, 18, 19, 0, 0, 54.0)),
-            (1721844.246149, True, (-1842, 0, 1, 0, 0, 53.7408)),
-            (1721845.246766, True, (-1842, 0, 2, 0, 0, 53.3088)),
+            (1721843.245527, lat, lon, zone, True,
+             (-1842, 18, 19, 0, 0, 54.0)),
+            (1721844.246149, lat, lon, zone, True,
+             (-1842, 0, 1, 0, 0, 53.7408)),
+            (1721845.246766, lat, lon, zone, True,
+             (-1842, 0, 2, 0, 0, 53.3088)),
             ## # 0001-
-            (1721849.249193, True, (-1842, 19, 1, 0, 0, 51.9264)),
+            (1721849.249193, lat, lon, zone, True,
+             (-1842, 19, 1, 0, 0, 51.9264)),
             ## # 0001-
-            (1721853.251557, True, (-1842, 19, 5, 0, 0, 50.544)),
+            (1721853.251557, lat, lon, zone, True,
+             (-1842, 19, 5, 0, 0, 50.544)),
             ## # 1583-03-19T18:11:33.5328
-            (2299316.259821, True, (-260, 1, 1)),
+            (2299316.259821, lat, lon, zone, True, (-260, 1, 1)),
             # 1844-03-20T18:12:2.3904
-            (2394644.259572, True, (1, 1, 1)),
-            (2395009.260028, True, (1, 19, 19)),
+            (2394644.259572, lat, lon, zone, True, (1, 1, 1)),
+            (2395009.260028, lat, lon, zone, True, (1, 19, 19)),
             # 1863-03-21T18:11:29.7312
-            (2401584.259803, True, (20, 1, 1)),
+            (2401584.259803, lat, lon, zone, True, (20, 1, 1)),
+            # 1970-01-01T:00:00:00Z
+            (self._bc.POSIX_EPOCH, 51.4769, 0, 0, True,
+             (126, 16, 1, 7, 59, 32.4096)),
             # 2015-03-21T18:14:00
-            (2457101.259829, True, (172, 1, 1)),
-            (2457101.259722, True, (172, 1, 1)),
+            (2457101.259829, lat, lon, zone, True, (172, 1, 1)),
+            (2457101.259722, lat, lon, zone, True, (172, 1, 1)),
             # 2024-03-20T18:12:2.3904
-            (2460388.259712, True, (181, 1, 1)),
+            (2460388.259712, lat, lon, zone, True, (181, 1, 1)),
             # 2024-04-20T18:39:5.1552
-            (2460419.278959, True, (181, 2, 13)),
+            (2460419.278959, lat, lon, zone, True, (181, 2, 13)),
             # 1st day of Ayyám-i-Há -> 2022-02-25T17:50:24.2304
-            (2459634.245373, True, (178, 0, 1)),
+            (2459634.245373, lat, lon, zone, True, (178, 0, 1)),
             # 2022-03-01T17:54:18.2016
-            (2459638.248036, True, (178, 0, 5)),
+            (2459638.248036, lat, lon, zone, True, (178, 0, 5)),
             # 2022-03-02T17:55:15.9168
-            (2459639.248693, True, (178, 19, 1)),
+            (2459639.248693, lat, lon, zone, True, (178, 19, 1)),
             # Badi short form -> 2024-05-14T18:59:54.3264
-            (2460443.293338, True, (181, 3, 18)),
+            (2460443.293338, lat, lon, zone, True, (181, 3, 18)),
             # Badi long form -> 2024-05-14T18:59:54.3264
-            (2460443.293338, False, (1, 10, 10, 3, 18)),
-            (2460507.450424, True, (181, 7, 6, 3, 29, 59.9712)),
+            (2460443.293338, lat, lon, zone, False, (1, 10, 10, 3, 18)),
+            (2460507.450424, lat, lon, zone, True, (181, 7, 6, 3, 29, 59.9712)),
             )
-        msg = "Expected {} for jd {}, found {}"
+        msg = "Expected {} for jd {} for lat {}, lon {}, and zone {}, found {}"
 
-        for jd, short, expected_result in data:
-            result = self._bc.badi_date_from_jd(jd, short=short)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jd, result))
+        for jd, lat, lon, zone, short, expected_result in data:
+            result = self._bc.badi_date_from_jd(
+                jd, lat, lon, zone, short=short)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, jd, lat, lon, zone, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_short_date_from_long_date(self):
@@ -464,8 +476,8 @@ class TestBadiCalendar(unittest.TestCase):
         correct Badi date.
         """
         data = (
-            ((1844, 3, 20, 18, 14), False, True, (1, 1, 1, 1, 1)),
-            ((1844, 3, 20, 18, 14), True, True, (1, 1, 1)),
+            ((1844, 3, 20, 18, 14), False, True, (1, 1, 1, 1, 1, 0, 0, 12.96)),
+            ((1844, 3, 20, 18, 14), True, True, (1, 1, 1, 0, 0, 12.96)),
             ((2024, 5, 14, 20), False, True, (1, 10, 10, 3, 18, 0, 57, 35.568)),
             ((2024, 5, 14, 20), True, True, (181, 3, 18, 0, 57, 35.568)),
             # The next tests may show the wrong month and day if
@@ -522,16 +534,19 @@ class TestBadiCalendar(unittest.TestCase):
         date with a POSIX timestamp as input.
         """
         data = (
-            # 1970-01-01 -> UNIX Eppoch (1970, 1, 1.049148)
-            (1, False, (1, 7, 12, 16, 1, 7, 3, 13.9104)),
-            (1, True, (126, 16, 1, 7, 3, 13.9104)),
+            # 1970-01-01T00:00:00 -> UNIX Epoch at UTC
+            # sunset the day before 16:00 lat=51.4769, lon=0, zone=0
+            #                         (1, 7, 12, 16, 1, 8, 0, 0) == UTC 12am
+            (0, 51.4769, 0, 0, False, (1, 7, 12, 16, 1, 7, 3, 12.8736)),
+            (0, 51.4769, 0, 0, True, (126, 16, 1, 7, 3, 12.8736)),
             # 2024-07-24T06:55:08.688 *** TODO *** This was wrong was 4 AM
-            (1722067088.6303926, True, (181, 7, 15, 12, 45, 53.136))
+            (1722067088.6303926, 35.7796, -78.6382, -4, True,
+             (181, 7, 15, 12, 45, 53.136))
             )
         msg = "Expected {} for timestamp {}, found {}"
 
-        for t, short, expected_result in data:
-            result = self._bc.posix_timestamp(t, short=short)
+        for t, lat, lon, zone, short, expected_result in data:
+            result = self._bc.posix_timestamp(t, lat, lon, zone, short=short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, t, result))
 

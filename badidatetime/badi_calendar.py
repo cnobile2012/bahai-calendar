@@ -31,7 +31,6 @@ class BahaiCalendar(BaseCalendar):
         (14, 'Qawl'), (15, 'Masá’il'), (16, 'Sharaf'), (17, 'Sulṭán'),
         (18, 'Mulk'), (0, 'Ayyám-i-Há'), (19, "'Alá'")
         )
-    POSIX_EPOCH = 2440585.5 # This is using my algorithm.
 
     def __init__(self):
         super().__init__()
@@ -437,10 +436,10 @@ class BahaiCalendar(BaseCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        # We add 1 to the JD to compensate for the difference between
-        # the Meeus algorithm and mine.
+        # We compensate for the difference between the Meeus algorithm
+        # and mine.
         m_diff = self._meeus_algorithm_jd_compensation(jd)
-        diff = self._sun_setting(jd + m_diff, lat, lon, zone) % 1
+        diff = self._sun_setting(math.floor(jd + m_diff), lat, lon, zone) % 1
         cor = (jd % 1) - diff
         day += cor if (day + cor) >= 1 else 0
         date = self.long_date_from_short_date((year, month, day))
@@ -556,7 +555,8 @@ class BahaiCalendar(BaseCalendar):
         jd = self.jd_from_badi_date(b_date, lat, lon, zone)
         return self._gc.gregorian_date_from_jd(jd, exact=_exact)
 
-    def posix_timestamp(self, t:float, *, short=False) -> tuple:
+    def posix_timestamp(self, t:float, lat=None, lon=None, zone=None, *,
+                        short=False) -> tuple:
         """
         Get the Badi date from a POSIX timestamp.
 
@@ -568,7 +568,12 @@ class BahaiCalendar(BaseCalendar):
         :return: A Badi date long or short form.
         :rtype: tuple
         """
-        jd = t / 86400 + self.POSIX_EPOCH
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self.BAHAI_LOCATION[:3]
+
+        days = math.floor(t / 86400)
+        jd = days + self.POSIX_EPOCH
+        jd += t % 86400 / 86400
         return self.badi_date_from_jd(jd, short=short)
 
     def _trim_hms(self, hms:tuple) -> tuple:

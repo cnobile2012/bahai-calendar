@@ -4,6 +4,7 @@
 #
 __docformat__ = "restructuredtext en"
 
+import re
 import os
 import sys
 import unittest
@@ -182,10 +183,10 @@ class TestBadiDatetime(unittest.TestCase):
         err_msg_0 = "Invalid week: {}"
         err_msg_1 = "Invalid weekday: {} (range is 1..7)"
         data = (
-            ((-1842, 1, 1), False, False, (-5, 18, 1, 1, 3, 23, 57, 38.736)),
-            ((-1842, 1, 1), True, False, (-1842, 1, 3, 23, 57, 38.736)),
+            ((-1842, 1, 1), False, False, (-5, 18, 1, 1, 3, 23, 58, 25.6512)),
+            ((-1842, 1, 1), True, False, (-1842, 1, 3, 23, 58, 25.6512)),
             ((181, 1, 1), True, False, (181, 1, 2, 23, 56, 23.0496)),
-            ((182, 1, 1), True, False, (182, 1, 1, 23, 57, 27.936)),
+            ((182, 1, 1), True, False, (182, 1, 1, 23, 58, 20.3808)),
             ((183, 1, 1), True, False, (182, 19, 18, 23, 58, 32.9952)),
             ((181, 1, 7), True, False, (181, 1, 8, 23, 51, 11.1456)),
             ((181, 20, 7), True, False, (181, 8, 8, 23, 13, 24.2688)),
@@ -433,9 +434,10 @@ class TestBadiDatetime(unittest.TestCase):
     def test_fromtimestamp(self):
         """
         Test that the fromtimestamp class method creates an instance of
-        date a POSIX timestamp.
+        date from a POSIX timestamp.
         """
         data = (
+            (0, True, 'badidatetime.datetime.date(126, 16, 1)'),
             (1723057467.0619307, False,
              'badidatetime.datetime.date(1, 10, 10, 8, 8)'),
             (1723057467.0619307, True,
@@ -447,3 +449,30 @@ class TestBadiDatetime(unittest.TestCase):
             result = datetime.date.fromtimestamp(ts, short=short)
             self.assertEqual(expected_result, str(result),
                              msg.format(expected_result, ts, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_today(self):
+        """
+        Test that the today class method creates an instance of date
+        for today.
+        """
+        dt_reg = r'badidatetime\.datetime\.date\((?P<date>.+)\)'
+        data = (
+            (False, 5),
+            (True, 3),
+            )
+        msg = "Expected {}, found {}."
+
+        for short, num in data:
+            result = datetime.date.today(short=short)
+            date_str = re.search(dt_reg, str(result))
+
+            if date_str:
+                date = [int(num.strip())
+                        for num in date_str.group('date').split(',')]
+                self.assertEqual(len(date), num, msg.format(num, len(date)))
+            else:
+                self.assertIsNone(date_str, (
+                    f"For short {short} and num {num}, could not get a "
+                    "value from the regex."))
+

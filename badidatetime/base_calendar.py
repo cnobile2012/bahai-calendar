@@ -1196,7 +1196,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def hms_from_decimal_day(self, dec:float) -> tuple:
         """
         Convert a decimal day to hours, minutes, and seconds. If this
-        method is used for a Julian Period day a 0.5 must be added to the
+        method is used for a Julian Period day, 0.5 must be added to the
         value before being passed in.
 
         :param dec: A decimal number.

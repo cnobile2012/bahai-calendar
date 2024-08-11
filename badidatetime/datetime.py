@@ -407,10 +407,10 @@ class date:
         return cls(*date[:-3]) # We do not need any time values.
 
     @classmethod
-    def today(cls):
+    def today(cls, *, short=False):
         "Construct a date from time.time()."
         t = _time.time()
-        return cls.fromtimestamp(t)
+        return cls.fromtimestamp(t, short=short)
 
     @classmethod
     def fromordinal(cls, n, *, short=False):
