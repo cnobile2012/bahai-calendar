@@ -371,7 +371,29 @@ class date:
     Implements the date object for the Badi datetime.
     """
 
-    def __new__(cls, a, b, c, d=None, e=None):
+    def __new__(cls, a:int, b:int, c:int, d:int=None, e:int=None) -> object:
+        """
+        Instantiate the class.
+
+        :param cls: The class object.
+        :type cls: date class
+        :param a: Long form this value is the Kill-i-Shay and short form
+                  it's the year.
+        :type a: int
+        :param b: Long form this value is the Váḥid and short form it's
+                  the month.
+        :type b: int
+        :param c: Long form this is the year and short form it's the day.
+        :type c: int
+        :param d: Long for this value is the month and in the short form
+                  it's not used.
+        :type d: int
+        :param e: Long form this value is the day and in the short form
+                  it's not used.
+        :type e: int
+        :return: The instantiated class.
+        :rtype: date
+        """
         long_f = all((a, b, c, d, e))
         short_f = all((a, b, c))
         assert long_f or short_f, (
@@ -397,9 +419,19 @@ class date:
     # Additional constructors
 
     @classmethod
-    def fromtimestamp(cls, t, *, short=False):
+    def fromtimestamp(cls, t:float, *, short:bool=False) -> object:
         """
         Construct a date from a POSIX timestamp (like time.time()).
+
+        :param cls: The class object.
+        :type cls: date class
+        :param t: The POSIX timestamp.
+        :type t: float
+        :param short: If True the short for is returned. The default
+                      is False.
+        :type short: bool
+        :return: The instantiated class.
+        :rtype: date
         """
         bc = BahaiCalendar()
         date = bc.posix_timestamp(t, short=short)
@@ -407,32 +439,52 @@ class date:
         return cls(*date[:-3]) # We do not need any time values.
 
     @classmethod
-    def today(cls, *, short=False):
-        "Construct a date from time.time()."
+    def today(cls, *, short:bool=False) -> object:
+        """
+        Construct a date from time.time().
+
+        :param cls: The class object.
+        :type cls: date class
+        :param short: If True the short for is returned. The default
+                      is False.
+        :type short: bool
+        :return: The instantiated class.
+        :rtype: date
+        """
         t = _time.time()
         return cls.fromtimestamp(t, short=short)
 
     @classmethod
-    def fromordinal(cls, n, *, short=False):
+    def fromordinal(cls, n:int, *, short:bool=False) -> object:
         """
         Construct a date from a proleptic Badi ordinal.
 
         Bahá 1 of year 1 is day 1. Only the year, month and day are
         non-zero in the result.
+
+        :param cls: The class object.
+        :type cls: date class
+        :param n:
+        :type n:
+        :param short: If True the short for is returned. The default
+                      is False.
+        :type short: bool
+        :return: The instantiated class.
+        :rtype: date
         """
         bc = BahaiCalendar()
-        y, m, d = _ord2ymd(bc, n)
+        date = _ord2ymd(bc, n, short=short)
         del bc
-        return cls(y, m, d)
+        return cls(*date)
 
     @classmethod
-    def fromisoformat(cls, date_string):
+    def fromisoformat(cls, date_string:str, *, short:bool=False) -> object:
         """
         Construct a date from a string in ISO 8601 format.
         We only can convert from short form Badi dates.
         """
         if not isinstance(date_string, str):
-            raise TypeError('fromisoformat: argument must be a string.')
+            raise TypeError("fromisoformat: argument must be a string.")
 
         if date_string.count('T') > 0 or date_string.count(' ') > 0:
             raise ValueError("A time indicator was found, this is invalid "
@@ -440,15 +492,30 @@ class date:
                              f"{date_string!r}.")
 
         try:
-            return cls(*_parse_isoformat_date_and_time(date_string))
-        except Exception:
-            raise ValueError(f'Invalid isoformat string: {date_string!r}')
+            bc = BahaiCalendar()
+            date = _parse_isoformat_date(bc, date_string)
+        except Exception as e:
+            del bc
+            raise ValueError(str(e))
+        else:
+            if date == ():
+                raise ValueError(f"Invalid isoformat string: {date_string!r}.")
+
+            if short:
+                b_date = date
+            else:
+                b_date = bc.long_date_from_short_date(date)
+                del bc
+
+            return cls(*b_date)
 
     @classmethod
     def fromisocalendar(cls, year, week, day):
-        """Construct a date from the ISO year, week number and weekday.
+        """
+        Construct a date from the ISO year, week number and weekday.
 
-        This is the inverse of the date.isocalendar() function"""
+        This is the inverse of the date.isocalendar() function
+        """
         return cls(*_isoweek_to_gregorian(year, week, day))
 
     # Conversions to string

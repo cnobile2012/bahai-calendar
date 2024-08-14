@@ -40,7 +40,7 @@ class DateTests(BahaiCalendar):
     # Nur Mazandaran Province, Iran (City Center)
     # Nur: 36.569336, 52.0050234
     # I use coordinates and the sunset in the city of Nur to determine the
-    # yearly Badi epoch.
+    # yearly Badi epochs.
     TMP_ANS_DATES = (
         (   1, 3, 20, 18, 13), (   2, 3, 21, 18, 14), (   3, 3, 21, 18, 14),
         (   4, 3, 20, 18, 14), (   5, 3, 20, 18, 13), (   6, 3, 21, 18, 14),

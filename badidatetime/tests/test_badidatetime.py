@@ -476,3 +476,60 @@ class TestBadiDatetime(unittest.TestCase):
                     f"For short {short} and num {num}, could not get a "
                     "value from the regex."))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_fromordinal(self):
+        """
+        Test that the fromordinal class method creates a date instance
+        from a date ordinal number.
+        """
+        data = (
+            (1, False, 'badidatetime.datetime.date(-5, 18, 1, 1, 1)'),
+            (1, True, 'badidatetime.datetime.date(-1842, 1, 1)'),
+            (367, True, 'badidatetime.datetime.date(-1841, 1, 1)'),
+            (738887, True, 'badidatetime.datetime.date(181, 1, 1)'),
+            )
+        msg = "Expected {} with ordinal {}, found {}."
+
+        for n, short, expected_result in data:
+            result = datetime.date.fromordinal(n, short=short)
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, n, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_fromisoformat(self):
+        """
+        Test that the fromisoformat class method creates a date instance
+        from an ISO formatted string.
+        """
+        err_msg_0 = "fromisoformat: argument must be a string."
+        err_msg_1 = ("A time indicator was found, this is invalid for date "
+                     "parsing, isoformat string: {}.")
+        err_msg_2 = "Invalid isoformat string: {}."
+        data = (
+            ('0181-01', False, False,
+             'badidatetime.datetime.date(1, 10, 10, 1, 1)'),
+            ('01810101', False, False,
+             'badidatetime.datetime.date(1, 10, 10, 1, 1)'),
+            ('0181-01-01', False, False,
+             'badidatetime.datetime.date(1, 10, 10, 1, 1)'),
+            ('0181-01-01', True, False,
+             'badidatetime.datetime.date(181, 1, 1)'),
+
+
+            ('', False, True, err_msg_2.format("''")),
+            #(),
+            )
+        msg = "Expected {} with iso {} and short {}, found {}."
+
+        for iso, short, validity, expected_result in data:
+            if validity:
+                with self.assertRaises(ValueError) as cm:
+                    datetime.date.fromisoformat(iso, short=short)
+
+                message = str(cm.exception)
+                self.assertEqual(expected_result, message)
+            else:
+                result = datetime.date.fromisoformat(iso, short=short)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, iso, short, result))
+
