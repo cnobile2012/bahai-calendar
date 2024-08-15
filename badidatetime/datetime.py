@@ -12,6 +12,8 @@ from .badi_calendar import BahaiCalendar
 
 MINYEAR = -1842
 MAXYEAR = 1161
+_DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl',
+             '`Idāl', 'Istijlāl', 'Istiqlāl')
 
 def _days_before_year(bc:BahaiCalendar, year:int) -> float:
     """
@@ -135,6 +137,7 @@ def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
     :type short: bool
     :return: A Badi date.
     :rtype: tuple
+    :raises AssertionError: If the week or weekday is out of range.
     """
     if not 0 < week < 53:
         out_of_range = True
@@ -153,7 +156,7 @@ def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
 
     assert 0 < day < 8, f"Invalid weekday: {day} (range is 1..7)"
     # Now compute the offset from (Y, 1, 1) in days:
-    day_offset = (week - 1) * 7 + (day - 1)
+    day_offset = (week - 1) * 7 + day
     # Calculate the ordinal day for Jalal, week 1
     day_1 = _isoweek1jalal(bc, year)
     ord_day = day_1 + day_offset
@@ -400,6 +403,7 @@ class date:
             "A full short or long form Badi date must be used.")
         self = object.__new__(cls)
         self._bc = BahaiCalendar()
+        self._MONTHNAMES = [name for num, name in self._bc.BADI_MONTH_NAMES]
         _check_date_fields(self._bc, a, b, c, d, e)
 
         if long_f:
@@ -408,10 +412,14 @@ class date:
             self._year = c
             self._month = d
             self._day = e
+            self.__date = (a, b, c, d, e)
+            self.__short = False
         else:
             self._year = a
             self._month = b
             self._day = c
+            self.__date = (a, b, c)
+            self.__short = True
 
         self._hashcode = -1
         return self
@@ -510,13 +518,18 @@ class date:
             return cls(*b_date)
 
     @classmethod
-    def fromisocalendar(cls, year, week, day):
+    def fromisocalendar(cls, year:int, week:int, day:int, *,
+                        short:bool=False) -> object:
         """
         Construct a date from the ISO year, week number and weekday.
 
         This is the inverse of the date.isocalendar() function
         """
-        return cls(*_isoweek_to_gregorian(year, week, day))
+        bc = BahaiCalendar()
+        date = _isoweek_to_badi(bc, year, week, day, short=short)
+        del bc
+        b_date = date[:3] if short else date[:5]
+        return cls(*b_date)
 
     # Conversions to string
 
@@ -539,6 +552,216 @@ class date:
             msg += f"({self._year}, {self._month}, {self._day})"
 
         return msg
+
+    def ctime(self):
+        """
+        Return ctime() style string.
+        """
+        if not self.__short:
+            date = self._bc.short_date_from_long_date(self.__date)
+        else:
+            date = self.__date
+
+        year, month, day = date[:3]
+        weekday = self.toordinal() % 7 or 7
+        return "%s %s %2d 00:00:00 %04d" % (
+            _DAYNAMES[weekday], self._MONTHNAMES[month-1], day, year)
+
+    def strftime(self, fmt):
+        """
+        Format using strftime().
+
+        Example: "%d/%m/%Y, %H:%M:%S"
+        """
+        return _wrap_strftime(self, fmt, self.timetuple())
+
+##     def __format__(self, fmt):
+##         if not isinstance(fmt, str):
+##             raise TypeError("must be str, not %s" % type(fmt).__name__)
+##         if len(fmt) != 0:
+##             return self.strftime(fmt)
+##         return str(self)
+
+##     def isoformat(self):
+##         """Return the date formatted according to ISO.
+
+##         This is 'YYYY-MM-DD'.
+
+##         References:
+##         - http://www.w3.org/TR/NOTE-datetime
+##         - http://www.cl.cam.ac.uk/~mgk25/iso-time.html
+##         """
+##         return "%04d-%02d-%02d" % (self._year, self._month, self._day)
+
+##     __str__ = isoformat
+
+##     # Read-only field accessors
+##     @property
+##     def year(self):
+##         """year (1-9999)"""
+##         return self._year
+
+##     @property
+##     def month(self):
+##         """month (1-12)"""
+##         return self._month
+
+##     @property
+##     def day(self):
+##         """day (1-31)"""
+##         return self._day
+
+##     # Standard conversions, __eq__, __le__, __lt__, __ge__, __gt__,
+##     # __hash__ (and helpers)
+
+##     def timetuple(self):
+##         "Return local time tuple compatible with time.localtime()."
+##         return _build_struct_time(self._year, self._month, self._day,
+##                                   0, 0, 0, -1)
+
+    def toordinal(self):
+        """
+        Return proleptic Gregorian ordinal for the year, month and day.
+
+        January 1 of year 1 is day 1.  Only the year, month and day values
+        contribute to the result.
+        """
+        if not self.__short:
+            date = self._bc.short_date_from_long_date(self.__date)
+        else:
+            date = self.__date
+
+        return _ymd2ord(self._bc, *date)
+
+##     def replace(self, year=None, month=None, day=None):
+##         """Return a new date with new values for the specified fields."""
+##         if year is None:
+##             year = self._year
+##         if month is None:
+##             month = self._month
+##         if day is None:
+##             day = self._day
+##         return type(self)(year, month, day)
+
+##     # Comparisons of date objects with other.
+
+##     def __eq__(self, other):
+##         if isinstance(other, date):
+##             return self._cmp(other) == 0
+##         return NotImplemented
+
+##     def __le__(self, other):
+##         if isinstance(other, date):
+##             return self._cmp(other) <= 0
+##         return NotImplemented
+
+##     def __lt__(self, other):
+##         if isinstance(other, date):
+##             return self._cmp(other) < 0
+##         return NotImplemented
+
+##     def __ge__(self, other):
+##         if isinstance(other, date):
+##             return self._cmp(other) >= 0
+##         return NotImplemented
+
+##     def __gt__(self, other):
+##         if isinstance(other, date):
+##             return self._cmp(other) > 0
+##         return NotImplemented
+
+##     def _cmp(self, other):
+##         assert isinstance(other, date)
+##         y, m, d = self._year, self._month, self._day
+##         y2, m2, d2 = other._year, other._month, other._day
+##         return _cmp((y, m, d), (y2, m2, d2))
+
+##     def __hash__(self):
+##         "Hash."
+##         if self._hashcode == -1:
+##             self._hashcode = hash(self._getstate())
+##         return self._hashcode
+
+##     # Computations
+
+##     def __add__(self, other):
+##         "Add a date to a timedelta."
+##         if isinstance(other, timedelta):
+##             o = self.toordinal() + other.days
+##             if 0 < o <= _MAXORDINAL:
+##                 return type(self).fromordinal(o)
+##             raise OverflowError("result out of range")
+##         return NotImplemented
+
+##     __radd__ = __add__
+
+##     def __sub__(self, other):
+##         """Subtract two dates, or a date and a timedelta."""
+##         if isinstance(other, timedelta):
+##             return self + timedelta(-other.days)
+##         if isinstance(other, date):
+##             days1 = self.toordinal()
+##             days2 = other.toordinal()
+##             return timedelta(days1 - days2)
+##         return NotImplemented
+
+##     def weekday(self):
+##         "Return day of the week, where Monday == 0 ... Sunday == 6."
+##         return (self.toordinal() + 6) % 7
+
+##     # Day-of-the-week and week-of-the-year, according to ISO
+
+##     def isoweekday(self):
+##         "Return day of the week, where Monday == 1 ... Sunday == 7."
+##         # 1-Jan-0001 is a Monday
+##         return self.toordinal() % 7 or 7
+
+##     def isocalendar(self):
+##         """Return a named tuple containing ISO year, week number, and weekday.
+
+##         The first ISO week of the year is the (Mon-Sun) week
+##         containing the year's first Thursday; everything else derives
+##         from that.
+
+##         The first week is 1; Monday is 1 ... Sunday is 7.
+
+##         ISO calendar algorithm taken from
+##         http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
+##         (used with permission)
+##         """
+##         year = self._year
+##         week1monday = _isoweek1monday(year)
+##         today = _ymd2ord(self._year, self._month, self._day)
+##         # Internally, week and day have origin 0
+##         week, day = divmod(today - week1monday, 7)
+##         if week < 0:
+##             year -= 1
+##             week1monday = _isoweek1monday(year)
+##             week, day = divmod(today - week1monday, 7)
+##         elif week >= 52:
+##             if today >= _isoweek1monday(year+1):
+##                 year += 1
+##                 week = 0
+##         return _IsoCalendarDate(year, week+1, day+1)
+
+##     # Pickle support.
+
+##     def _getstate(self):
+##         yhi, ylo = divmod(self._year, 256)
+##         return bytes([yhi, ylo, self._month, self._day]),
+
+##     def __setstate(self, string):
+##         yhi, ylo, self._month, self._day = string
+##         self._year = yhi * 256 + ylo
+
+##     def __reduce__(self):
+##         return (self.__class__, self._getstate())
+
+## _date_class = date  # so functions w/ args named "date" can get at the class
+
+## date.min = date(1, 1, 1)
+## date.max = date(9999, 12, 31)
+## date.resolution = timedelta(days=1)
 
 
 

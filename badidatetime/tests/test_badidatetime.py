@@ -183,14 +183,14 @@ class TestBadiDatetime(unittest.TestCase):
         err_msg_0 = "Invalid week: {}"
         err_msg_1 = "Invalid weekday: {} (range is 1..7)"
         data = (
-            ((-1842, 1, 1), False, False, (-5, 18, 1, 1, 3, 23, 58, 25.6512)),
-            ((-1842, 1, 1), True, False, (-1842, 1, 3, 23, 58, 25.6512)),
-            ((181, 1, 1), True, False, (181, 1, 2, 23, 56, 23.0496)),
-            ((182, 1, 1), True, False, (182, 1, 1, 23, 58, 20.3808)),
-            ((183, 1, 1), True, False, (182, 19, 18, 23, 58, 32.9952)),
-            ((181, 1, 7), True, False, (181, 1, 8, 23, 51, 11.1456)),
-            ((181, 20, 7), True, False, (181, 8, 8, 23, 13, 24.2688)),
-            ((182, 53, 1), True, False, (182, 19, 18, 23, 58, 32.9952)),
+            ((-1842, 1, 1), False, False, (-5, 18, 1, 1, 4, 23, 57, 38.736)),
+            ((-1842, 1, 1), True, False, (-1842, 1, 4, 23, 57, 38.736)),
+            ((181, 1, 1), True, False, (181, 1, 3, 23, 55, 30.864)),
+            ((182, 1, 1), True, False, (182, 1, 2, 23, 56, 35.664)),
+            ((183, 1, 1), True, False, (183, 1, 1)),
+            ((181, 1, 7), True, False, (181, 1, 9, 23, 50, 19.392)),
+            ((181, 20, 7), True, False, (181, 8, 9, 23, 14, 31.6608)),
+            ((182, 53, 1), True, False, (183, 1, 1)),
             ((181, 53, 1), False, True, err_msg_0.format(53)),
             ((181, 54, 1), False, True, err_msg_0.format(54)),
             ((181, 20, 10), False, True, err_msg_1.format(10)),
@@ -240,8 +240,8 @@ class TestBadiDatetime(unittest.TestCase):
             ('-1842-01-01T12:00:00', (-1842, 1, 1, 12, 0, 0.0)),
             ('11610101T120000', (1161, 1, 1, 12, 0, 0.0)),
             ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0.0)),
-            ('0181-W20T12:00:00', (181, 8, 2, 12, 0, 0.0)),
-            ('0181-W20-5T12:00:00', (181, 8, 6, 12, 0, 0.0)),
+            ('0181-W20T12:00:00', (181, 8, 3, 12, 0, 0.0)),
+            ('0181-W20-5T12:00:00', (181, 8, 7, 12, 0, 0.0)),
             )
         msg = "Expected {} with dtstr {}, found {}."
 
@@ -265,14 +265,14 @@ class TestBadiDatetime(unittest.TestCase):
         err_msg_3 = "Invalid ISO string {}."
         data = (
             ('', False, ()),
-            ('0181-01', False, (181, 1, 1)),    # (181, 1, 2, 23, 57, 15.3216)
-            ('01810101', False, (181, 1, 1)),   # (181, 1, 2, 23, 57, 15.3216)
-            ('0181-01-01', False, (181, 1, 1)), # (181, 1, 2, 23, 57, 15.3216)
-            ('0181W01', False, (181, 1, 2)),    # (181, 1, 3, 23, 56, 23.0496)
-            ('0181-W01', False, (181, 1, 2)),   # (181, 1, 3, 23, 56, 23.0496)
-            ('0181W017', False, (181, 1, 8)),   # (181, 1, 8, 23, 52, 2.9856)
-            ('0181-W01-7', False, (181, 1, 8)), # (181, 1, 8, 23, 52, 2.9856)
-            ('0181W207', False, (181, 8, 8)),   # (181, 8, 8, 23, 12, 18.0)
+            ('0181-01', False, (181, 1, 1)),
+            ('01810101', False, (181, 1, 1)),
+            ('0181-01-01', False, (181, 1, 1)),
+            ('0181W01', False, (181, 1, 3)),
+            ('0181-W01', False, (181, 1, 3)),
+            ('0181W017', False, (181, 1, 9)),
+            ('0181-W01-7', False, (181, 1, 9)),
+            ('0181W207', False, (181, 8, 9)),
             ('0181001', False, (181, 1, 1)),
             ('0181019', False, (181, 1, 19)),
             ('0181324', False, (181, 18, 1)),
@@ -505,6 +505,8 @@ class TestBadiDatetime(unittest.TestCase):
         err_msg_1 = ("A time indicator was found, this is invalid for date "
                      "parsing, isoformat string: {}.")
         err_msg_2 = "Invalid isoformat string: {}."
+        err_msg_3 = (f"Year is out of range: {{}}, min {datetime.MINYEAR}, "
+                     f"max {datetime.MAXYEAR}.")
         data = (
             ('0181-01', False, False,
              'badidatetime.datetime.date(1, 10, 10, 1, 1)'),
@@ -514,22 +516,80 @@ class TestBadiDatetime(unittest.TestCase):
              'badidatetime.datetime.date(1, 10, 10, 1, 1)'),
             ('0181-01-01', True, False,
              'badidatetime.datetime.date(181, 1, 1)'),
-
-
+            # Test error messages.
+            (10, False, True, err_msg_0),
+            ('0181-01-01T00:00:00', False, True,
+             err_msg_1.format("'0181-01-01T00:00:00'")),
             ('', False, True, err_msg_2.format("''")),
-            #(),
+            # We only test one error that propigated up from
+            # the _parse_isoformat_date function.
+            ('-2000-01-01', False, True, err_msg_3.format(-2000)),
             )
         msg = "Expected {} with iso {} and short {}, found {}."
 
         for iso, short, validity, expected_result in data:
             if validity:
-                with self.assertRaises(ValueError) as cm:
-                    datetime.date.fromisoformat(iso, short=short)
-
-                message = str(cm.exception)
-                self.assertEqual(expected_result, message)
+                try:
+                    result = datetime.date.fromisoformat(iso, short=short)
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {iso} an error is not "
+                                         f"raised, with result {result}.")
             else:
                 result = datetime.date.fromisoformat(iso, short=short)
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, iso, short, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_fromisocalendar(self):
+        """
+        Test that the fromisocalendar class method creates a date instance
+        from an ISO calendar date.
+        """
+        err_msg = "Invalid weekday: {} (range is 1..7)"
+        data = (
+            ((181, 1, 1), False, False,
+             'badidatetime.datetime.date(1, 10, 10, 1, 3)'),
+            ((181, 1, 1), True, False,
+             'badidatetime.datetime.date(181, 1, 3)'),
+            ((181, 24, 7), True, False,
+             'badidatetime.datetime.date(181, 9, 18)'),
+            ((181, 1, 10), False, True, err_msg.format(10)),
+            )
+        msg = "Expected {} with iso {} and short {}, found {}."
+
+        for date, short, validity, expected_result in data:
+            if validity:
+                with self.assertRaises(AssertionError) as cm:
+                    datetime.date.fromisocalendar(*date, short=short)
+
+                message = str(cm.exception)
+                self.assertEqual(expected_result, message)
+            else:
+                result = datetime.date.fromisocalendar(*date, short=short)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, date, short, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_ctime(self):
+        """
+        Test that the ctime method creates a string indicating the date.
+        """
+        data = (
+            ((-1842, 1, 1), 'Jamál Bahá  1 00:00:00 -1842'),
+            ((1, 1, 1), 'Kamál Bahá  1 00:00:00 0001'),
+            ((181, 1, 1), 'Kamál Bahá  1 00:00:00 0181'),
+            ((181, 8, 15), 'Kamál Kamál 15 00:00:00 0181'),
+            ((1, 10, 10, 8, 15), 'Kamál Kamál 15 00:00:00 0181'),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.ctime()
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, date, result))
