@@ -449,7 +449,7 @@ class BahaiCalendar(BaseCalendar):
         """
         Convert a long date (kvymdhms) to a short date (ymdhms)
         """
-        self._check_valid_badi_month_day(b_date)
+        self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hour, minute, second = self._get_hms(b_date)
         y = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
@@ -477,7 +477,7 @@ class BahaiCalendar(BaseCalendar):
 
         hms = self._trim_hms((hour, minute, second))
         b_date = (kull_i_shay, vahid, y, month, day) + hms
-        self._check_valid_badi_month_day(b_date)
+        self._check_valid_badi_date(b_date)
         return b_date
 
     def date_from_kvymdhms(self, b_date:tuple, *, short:bool=False) -> tuple:
@@ -485,7 +485,7 @@ class BahaiCalendar(BaseCalendar):
         Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second)
         into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
         """
-        self._check_valid_badi_month_day(b_date)
+        self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hour, minute, second = self._get_hms(b_date)
         day += round(self.HR(hour) + self.MN(minute) + self.SEC(second),
@@ -498,7 +498,7 @@ class BahaiCalendar(BaseCalendar):
         Convert (Kull-i-Shay, Váḥid, year, month, day.partial) into
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
         """
-        self._check_valid_badi_month_day(b_date)
+        self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hd = self.PARTIAL_DAY_TO_HOURS(day)
         hour = math.floor(hd)
@@ -593,10 +593,10 @@ class BahaiCalendar(BaseCalendar):
 
         return tuple(reversed(items))
 
-    def _check_valid_badi_month_day(self, b_date:tuple) -> bool:
+    def _check_valid_badi_date(self, b_date:tuple) -> bool:
         """
         Check that the Kull-i-Shay, Váḥids, year, month, day, hour, minute,
-        and day values are valid.
+        and second values are valid.
         """
         cycle = 20
         kull_i_shay, vahid, year, month, day = b_date[:5]

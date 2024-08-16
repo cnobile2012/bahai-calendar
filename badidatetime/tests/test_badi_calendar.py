@@ -553,9 +553,9 @@ class TestBadiCalendar(unittest.TestCase):
                              msg.format(expected_result, t, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__check_valid_badi_month_day(self):
+    def test__check_valid_badi_date(self):
         """
-        Test that the _check_valid_badi_month_day method returns the
+        Test that the _check_valid_badi_date method returns the
         correct Boolean for valid and invalid dates.
 
         Note: The Boolean below in the data statements determines whether
@@ -624,16 +624,16 @@ class TestBadiCalendar(unittest.TestCase):
 
                     for d in range(1, cycle+1):
                         date = (kull_i_shay, vahid, year, month, d)
-                        self._bc._check_valid_badi_month_day(date)
+                        self._bc._check_valid_badi_date(date)
 
                 for m in range(1, 20):
                     for d in range(1, 20):
                         date = (kull_i_shay, vahid, year, m, d)
-                        self._bc._check_valid_badi_month_day(date)
+                        self._bc._check_valid_badi_date(date)
             else: # Test for invalid dates
                 try:
                     with self.assertRaises(AssertionError) as cm:
-                        self._bc._check_valid_badi_month_day(b_date)
+                        self._bc._check_valid_badi_date(b_date)
                 except AssertionError as e:
                     # Raise an error when an AssertionError is not raised.
                     raise AssertionError(
