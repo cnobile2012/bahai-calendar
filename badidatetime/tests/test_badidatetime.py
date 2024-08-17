@@ -7,6 +7,7 @@ __docformat__ = "restructuredtext en"
 import re
 import os
 import sys
+import time
 import unittest
 
 PWD = os.path.dirname(os.path.abspath(__file__))
@@ -18,7 +19,7 @@ from badidatetime import datetime
 from ..badi_calendar import BahaiCalendar
 
 
-class TestBadiDatetime(unittest.TestCase):
+class TestBadiDatetimeFunctions(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)
@@ -176,6 +177,25 @@ class TestBadiDatetime(unittest.TestCase):
                 expected_result, ordinal, short, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test__build_struct_time(self):
+        """
+        Test that the _build_struct_time function returns a struct of the
+        date and time.
+        """
+        data = (
+            ((1, 1, 1, 0, 0, 0, 0),
+             time.struct_time((1, 1, 1, 0, 0, 0, 1, 1, 0))),
+            ((181, 19, 19, 0, 0, 0, 0),
+             time.struct_time((181, 19, 19, 0, 0, 0, 1, 1, 0))),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            result = datetime._build_struct_time(self._bc, *date)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__isoweek_to_badi(self):
         """
         Test that the _isoweek_to_badi function
@@ -257,9 +277,9 @@ class TestBadiDatetime(unittest.TestCase):
         correctly from ISO standard formats.
         """
         err_msg_0 = "Year is out of range: {}, min {}, max {}."
-        err_msg_1 = ("Invalid format, there must be between 0 to 2 hyphons "
+        err_msg_1 = ("Invalid format, there must be between 0 to 2 hyphens "
                      "(-) in the date format or there can be one uppercase "
-                     "(W) week identifier and between 0 and 2 hyphons (-) "
+                     "(W) week identifier and between 0 and 2 hyphens (-) "
                      "used.")
         err_msg_2 = "invalid literal for int() with base 10: {}"
         err_msg_3 = "Invalid ISO string {}."
@@ -430,6 +450,49 @@ class TestBadiDatetime(unittest.TestCase):
                 message = str(cm.exception)
                 self.assertEqual(err_msg.format(num_days), message)
 
+    @unittest.skip("Temporarily skipped")
+    def test__wrap_strftime(self):
+        """
+        Test that the _wrap_strftime function returns a formatted time
+        string.
+        """
+        data = (
+            (datetime.date(181, 1, 1), '%d/%m/%Y, %H:%M:%S', (), False, ''),
+            )
+
+        for date, fmt, tt, validate, err_msg in data:
+            if validate:
+                try:
+                    with self.assertRaises(AssertionError) as cm:
+                        datetime._wrap_strftime(date, fmt, tt)
+                except AssertionError as e:
+                    # Raise an error when an AssertionError is not raised.
+                    raise AssertionError(f"Date {date}, format {fmt}, "
+                                             f"timetuple {tt}, {e}")
+                else:
+                    message = str(cm.exception)
+                    self.assertEqual(err_msg.format(num_days), message)
+            else:
+                result = datetime._wrap_strftime(date, fmt, tt)
+                self.assertEqual(expected_result, result,
+                                 msg.format(expected_result, time, result))
+
+
+
+
+class TestBadiDatetime_timedalta(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+
+
+
+class TestBadiDatetime_date(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+
     #@unittest.skip("Temporarily skipped")
     def test_fromtimestamp(self):
         """
@@ -580,11 +643,12 @@ class TestBadiDatetime(unittest.TestCase):
         Test that the ctime method creates a string indicating the date.
         """
         data = (
-            ((-1842, 1, 1), 'Jamál Bahá  1 00:00:00 -1842'),
-            ((1, 1, 1), 'Kamál Bahá  1 00:00:00 0001'),
-            ((181, 1, 1), 'Kamál Bahá  1 00:00:00 0181'),
-            ((181, 8, 15), 'Kamál Kamál 15 00:00:00 0181'),
-            ((1, 10, 10, 8, 15), 'Kamál Kamál 15 00:00:00 0181'),
+            ((-1842, 1, 1), 'Jalál Bahá  1 00:00:00 -1842'),
+            ((1, 1, 1), 'Jamál Bahá  1 00:00:00 0001'),
+            ((181, 1, 1), '`Idāl Bahá  1 00:00:00 0181'),
+            ((181, 8, 15), 'Istijlāl Kamál 15 00:00:00 0181'),
+            ((1, 10, 10, 8, 15), 'Istijlāl Kamál 15 00:00:00 0181'),
+            ((1, 10, 10, 8, 16) , 'Istiqlāl Kamál 16 00:00:00 0181'),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -593,3 +657,75 @@ class TestBadiDatetime(unittest.TestCase):
             result = d.ctime()
             self.assertEqual(expected_result, str(result),
                              msg.format(expected_result, date, result))
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_strftime(self):
+        """
+        Test that the strftime method returns a formatted date time string.
+        """
+        pass
+
+
+
+
+    #@unittest.skip("Temporarily skipped")
+    def test_toordinal(self):
+        """
+        Test that the toordinal method returns a proleptic Badi ordinal.
+        """
+        data = (
+            ((-1842, 1, 1), 1),
+            ((1, 1, 1), 673143),
+            ((181, 1, 1), 738887),
+            ((181, 8, 15), 739034),
+            ((1, 10, 10, 8, 15), 739034),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.toordinal()
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+
+
+
+
+class TestBadiDatetime_tzinfo(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+
+
+
+class TestBadiDatetime_IsoCalendarDate(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+
+
+
+class TestBadiDatetime_time(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+
+
+
+class TestBadiDatetime_datetime(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+
+
+
+class TestBadiDatetime_timezone(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)

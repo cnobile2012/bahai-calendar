@@ -32,7 +32,7 @@ class BahaiCalendar(BaseCalendar):
         (18, 'Mulk'), (0, 'Ayyám-i-Há'), (19, "'Alá'")
         )
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__()
         # kull_i_shay: 361-year (19^2) vahid (integer)
         # vahid: (integer) 19-year vahid

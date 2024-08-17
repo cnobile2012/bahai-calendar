@@ -99,9 +99,9 @@ def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     """
     It is more difficult to do this in the Badi Calendar because a Badi
     day can be more or less than 24 hours depending on when sunset is
-    and the time of the year. From the summer Solstis to the winter solstis
+    and the time of the year. From the summer Solstice to the winter solstice
     the days get shorter so it's less than 24 hours and the inverse between
-    the winter solstis and the summer solstis. As such we just use the
+    the winter solstice and the summer solstice. As such we just use the
     BadiCalendar API.
 
     :param bc: BahaiCalendar instance.
@@ -117,10 +117,15 @@ def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     jd = bc.jd_from_badi_date((MINYEAR-1, 19, 19)) + n
     return bc.badi_date_from_jd(jd, short=short)
 
+def _build_struct_time(bc, y, m, d, hh, mm, ss, dstflag):
+    wday = (_ymd2ord(bc, y, m, d) + 6) % 7
+    dnum = _days_before_month(bc, y, m) + d
+    return _time.struct_time((y, m, d, hh, mm, ss, wday, dnum, dstflag))
+
 def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
                      short:bool=False) -> tuple:
     """
-    We count the week from Jalal (Staurday) as the first day and
+    We count the week from Jalal (Saturday) as the first day and
     Istiqlal (Friday) the last day of the week. This is different from
     the usual way ISO weeks are counted which is Monday to Sunday.
 
@@ -191,7 +196,7 @@ def _parse_isoformat_date_time(bc:BahaiCalendar, dtstr:str) -> tuple:
 
     :param bc: BahaiCalendar instance.
     :type bc: BahaiCalendar
-    :param dtstr: A ISO complient time string.
+    :param dtstr: A ISO compliant time string.
     :type dtstr: str
     :return: The year, month, and day parsed from a ISO string.
     :rtype: tuple
@@ -212,12 +217,12 @@ def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
 
     :param bc: BahaiCalendar instance.
     :type bc: BahaiCalendar
-    :param dtstr: A ISO complient time string.
+    :param dtstr: A ISO compliant time string.
     :type dtstr: str
     :return: The year, month, and day parsed from a ISO string.
     :rtype: tuple
-    :raises AssertionError: Rasied when the year is out of range or when too
-                            many hyphons are used.
+    :raises AssertionError: Raised when the year is out of range or when too
+                            many hyphens are used.
     :raises IndexError: When a string index is out of range.
     :raises ValueError: Raised when an invalid string is being parsed to
                         an integer or when an invalid ISO string is being
@@ -233,9 +238,9 @@ def _parse_isoformat_date(bc:BahaiCalendar, dtstr:str) -> tuple:
     dc = dtstr.count('-')
     wc = dtstr.count('W')
     assert (wc == 0 and dc in (0, 1, 2)) or (wc == 1 and dc in (0, 1, 2)), (
-        "Invalid format, there must be between 0 to 2 hyphons (-) in the "
+        "Invalid format, there must be between 0 to 2 hyphens (-) in the "
         "date format or there can be one uppercase (W) week identifier and "
-        "between 0 and 2 hyphons (-) used.")
+        "between 0 and 2 hyphens (-) used.")
     d_len = len(dtstr)
 
     if dc == 1 and d_len == 7 and not wc:   # YYYY-MM
@@ -276,11 +281,11 @@ def _parse_isoformat_time(bc:BahaiCalendar, dtstr:str) -> tuple:
 
     :param bc: BahaiCalendar instance.
     :type bc: BahaiCalendar
-    :param dtstr: A ISO complient time string.
+    :param dtstr: A ISO compliant time string.
     :type dtstr: str
     :return: The hour, minute, and second parsed from an ISO string.
     :rtype: tuple
-    :raises AssertionError: Rasied when there are invalid time designators,
+    :raises AssertionError: Raised when there are invalid time designators,
                             when to many colons used, or when too many dots
                             are used.
     :raises ValueError: Raised when an invalid string is being parsed to
@@ -366,10 +371,97 @@ def _check_date_fields(bc:BahaiCalendar, a:int, b:int, c:int, d:int=None,
     else:
         b_date = (a, b, c, d, e)
 
-    bc._check_valid_badi_month_day(b_date)
+    bc._check_valid_badi_date(b_date)
+
+def _wrap_strftime(object, format, timetuple):
+    """
+    Correctly substitute for %z and %Z escapes in strftime formats.
+    """
+    # Don't call utcoffset() or tzname() unless actually needed.
+    freplace = None  # the string to use for %f
+    zreplace = None  # the string to use for %z
+    Zreplace = None  # the string to use for %Z
+
+    # Scan format for %z and %Z escapes, replacing as needed.
+    newformat = []
+    push = newformat.append
+    i, n = 0, len(format)
+
+    while i < n:
+        ch = format[i]
+        i += 1
+
+        if ch == '%':
+            if i < n:
+                ch = format[i]
+                i += 1
+
+                if ch == 'f':
+                    if freplace is None:
+                        freplace = '%06d' % getattr(object, 'microsecond', 0)
+
+                    newformat.append(freplace)
+                elif ch == 'z':
+                    if zreplace is None:
+                        zreplace = ""
+
+                        if hasattr(object, "utcoffset"):
+                            offset = object.utcoffset()
+
+                            if offset is not None:
+                                sign = '+'
+
+                                if offset.days < 0:
+                                    offset = -offset
+                                    sign = '-'
+
+                                h, rest = divmod(offset, timedelta(hours=1))
+                                m, rest = divmod(rest, timedelta(minutes=1))
+                                s = rest.seconds
+                                u = offset.microseconds
+
+                                if u:
+                                    zreplace = '%c%02d%02d%02d.%06d' % (
+                                        sign, h, m, s, u)
+                                elif s:
+                                    zreplace = '%c%02d%02d%02d' % (
+                                        sign, h, m, s)
+                                else:
+                                    zreplace = '%c%02d%02d' % (sign, h, m)
+
+                    assert '%' not in zreplace
+                    newformat.append(zreplace)
+                elif ch == 'Z':
+                    if Zreplace is None:
+                        Zreplace = ""
+
+                        if hasattr(object, "tzname"):
+                            s = object.tzname()
+
+                            if s is not None:
+                                # strftime is going to have at this: escape %
+                                Zreplace = s.replace('%', '%%')
+
+                    newformat.append(Zreplace)
+                else:
+                    push('%')
+                    push(ch)
+            else:
+                push('%')
+        else:
+            push(ch)
+
+    newformat = "".join(newformat)
+    return _time.strftime(newformat, timetuple)
 
 
-class date:
+class timedalta:
+    pass
+
+
+
+
+class date(BahaiCalendar):
     """
     Implements the date object for the Badi datetime.
     """
@@ -402,9 +494,10 @@ class date:
         assert long_f or short_f, (
             "A full short or long form Badi date must be used.")
         self = object.__new__(cls)
-        self._bc = BahaiCalendar()
-        self._MONTHNAMES = [name for num, name in self._bc.BADI_MONTH_NAMES]
-        _check_date_fields(self._bc, a, b, c, d, e)
+        super().__init__(self)
+        #self._bc = BahaiCalendar()
+        self._MONTHNAMES = [name for num, name in self.BADI_MONTH_NAMES]
+        _check_date_fields(self, a, b, c, d, e)
 
         if long_f:
             self._kull_i_shay = a
@@ -532,7 +625,6 @@ class date:
         return cls(*b_date)
 
     # Conversions to string
-
     def __repr__(self):
         """
         Convert to formal string, for repr().
@@ -553,25 +645,34 @@ class date:
 
         return msg
 
+    def __short_from_long_form(self):
+        """
+        Convert the long form Badi date to a short form Badi date.
+        """
+        if not self.__short:
+            date = self.short_date_from_long_date(self.__date)
+        else:
+            date = self.__date
+
+        return date
+
     def ctime(self):
         """
         Return ctime() style string.
         """
-        if not self.__short:
-            date = self._bc.short_date_from_long_date(self.__date)
-        else:
-            date = self.__date
-
+        date = self.__short_from_long_form()
         year, month, day = date[:3]
+        # The -3 below compensates for the difference in the starting
+        # point of Badi weeks.
         weekday = self.toordinal() % 7 or 7
         return "%s %s %2d 00:00:00 %04d" % (
-            _DAYNAMES[weekday], self._MONTHNAMES[month-1], day, year)
+            _DAYNAMES[weekday-1], self._MONTHNAMES[month-1], day, year)
 
     def strftime(self, fmt):
         """
         Format using strftime().
 
-        Example: "%d/%m/%Y, %H:%M:%S"
+        Example: '%d/%m/%Y, %H:%M:%S'
         """
         return _wrap_strftime(self, fmt, self.timetuple())
 
@@ -614,24 +715,21 @@ class date:
 ##     # Standard conversions, __eq__, __le__, __lt__, __ge__, __gt__,
 ##     # __hash__ (and helpers)
 
-##     def timetuple(self):
-##         "Return local time tuple compatible with time.localtime()."
-##         return _build_struct_time(self._year, self._month, self._day,
-##                                   0, 0, 0, -1)
+    def timetuple(self):
+        """
+        Return local time tuple compatible with time.localtime().
+        """
+        return _build_struct_time(*self.__short_from_long_form(), 0, 0, 0, -1)
 
     def toordinal(self):
         """
-        Return proleptic Gregorian ordinal for the year, month and day.
+        Return proleptic Badi ordinal for the year, month and day.
 
-        January 1 of year 1 is day 1.  Only the year, month and day values
-        contribute to the result.
+        Baha 1 of year -1842 is day 1. Only the year, month and day values
+        contribute to the result. If this class provides the long form
+        Badi date it is converted to the short form before processing.
         """
-        if not self.__short:
-            date = self._bc.short_date_from_long_date(self.__date)
-        else:
-            date = self.__date
-
-        return _ymd2ord(self._bc, *date)
+        return _ymd2ord(self, *self.__short_from_long_form())
 
 ##     def replace(self, year=None, month=None, day=None):
 ##         """Return a new date with new values for the specified fields."""
@@ -764,8 +862,91 @@ class date:
 ## date.resolution = timedelta(days=1)
 
 
+class tzinfo:
+    """
+    Abstract base class for time zone info classes.
+
+    Subclasses must override the tzname(), utcoffset() and dst() methods.
+    """
+    __slots__ = ()
+
+    def tzname(self, dt):
+        "datetime -> string name of time zone."
+        raise NotImplementedError("tzinfo subclass must override tzname()")
+
+    def utcoffset(self, dt):
+        """
+        datetime -> timedelta, positive for east of UTC, negative for west
+                    of UTC
+        """
+        raise NotImplementedError("tzinfo subclass must override utcoffset()")
+
+    def dst(self, dt):
+        """
+        datetime -> DST offset as timedelta, positive for east of UTC.
+
+        Return 0 if DST not in effect.  utcoffset() must include the DST
+        offset.
+        """
+        raise NotImplementedError("tzinfo subclass must override dst()")
+
+    def fromutc(self, dt):
+        """
+        datetime in UTC -> datetime in local time.
+        """
+
+        if not isinstance(dt, datetime):
+            raise TypeError("fromutc() requires a datetime argument")
+
+        if dt.tzinfo is not self:
+            raise ValueError("dt.tzinfo is not self")
+
+        dtoff = dt.utcoffset()
+
+        if dtoff is None:
+            raise ValueError("fromutc() requires a non-None utcoffset() "
+                             "result")
+
+        # See the long comment block at the end of this file for an
+        # explanation of this algorithm.
+        dtdst = dt.dst()
+
+        if dtdst is None:
+            raise ValueError("fromutc() requires a non-None dst() result")
+        delta = dtoff - dtdst
+
+        if delta:
+            dt += delta
+            dtdst = dt.dst()
+
+            if dtdst is None:
+                raise ValueError("fromutc(): dt.dst gave inconsistent "
+                                 "results; cannot convert")
+        return dt + dtdst
+
+    # Pickle support.
+    def __reduce__(self):
+        getinitargs = getattr(self, "__getinitargs__", None)
+
+        if getinitargs:
+            args = getinitargs()
+        else:
+            args = ()
+
+        return (self.__class__, args, self.__getstate__())
+
+
+class IsoCalendarDate:
+    pass
+
+
+class time:
+    pass
 
 
 class datetime(date):
     pass
 
+
+class timezone:
+    pass
