@@ -27,12 +27,12 @@ class DumpEstimatePriorSolarLongitude(BahaiCalendar):
         for year in range(1788, 2212):
             for day in range(19, 26):
                 date = (year, month, day)
-                tee = self.gc.fixed_from_gregorian(date)
-                est = self.find_moment_of_equinoxes_or_solstices(tee, lam)
+                jd = self.gc.jd_from_gregorian_date(date)
+                est = self.find_moment_of_equinoxes_or_solstices(jd, lam)
                 #est = self.estimate_prior_solar_longitude(lam, tee)
-                moment = self.gc.gregorian_from_fixed(est)
+                moment = self.gc.gregorian_date_from_jd(est)
                 if year != current_year: data.append("")
-                data.append(f"{str(date):<13} {tee:<6} {est:<17} "
+                data.append(f"{str(date):<13} {jd:<6} {est:<17} "
                             f"{str(moment):<13}")
                 current_year = year
 

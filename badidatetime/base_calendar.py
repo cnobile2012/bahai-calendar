@@ -129,14 +129,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # Meeus Astronomical Algorithms
     #
 
-    def delta_t(self, jd:float) -> float:
+    def delta_t(self, jd:float, *, seconds:bool=False) -> float:
         """
-        Calculate the value of ΔT=TT−UT.
-        Only the year and month are considered, days, hoursm minutes, and
-        seconds are ignored.
+        Calculate the value of ΔT = TD − UT, for TD = ΔT + UT, and for
+        UT = ΔT - TD. Only the year and month are considered, days, hours,
+        minutes, and seconds are ignored.
 
         :param jd: Julian day.
         :type jd: float
+        :param seconds: If True leave as seconds in a minute else convert to
+                        seconds of a day.
+        :type seconds: bool
         :return: The delta t.
         :rtype: float
 
@@ -201,7 +204,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         else: # 2150 >= year
             dt = func(year)
 
-        return dt
+        # Convert to seconds of a day where 66.9 dt == 2010
+        # Seconds of a day are 0.0007743055555555556
+        return dt if seconds else dt / 86400
 
     def _mean_sidereal_time_greenwich(self, tc:float) -> float:
         """
@@ -338,10 +343,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         zone = zone if not exact else lon / 15
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self.julian_centuries(jd)
-        ast = self._apparent_sidereal_time_greenwich(tc)
         dt = self.delta_t(jd)
-        tc_td = tc - (dt / (3600 * 24 * 36525))  # Convert to TD time.
+        tc_td = dt / 36525 + tc  # Compensate for the Julian Century
         alpha = self._sun_apparent_right_ascension(tc_td)
+        ast = self._apparent_sidereal_time_greenwich(tc)
         m = func0((alpha - lon - ast) / 360)
         md = self._transit_correction(tc, ast, dt, lon, m)
         m += md + self.tz_decimal_from_dhms(0, zone, 0, 0)
@@ -476,11 +481,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             f"Invalid value, should be one of '{flag}' found '{sr_ss}'.")
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self.julian_centuries(jd)
-        ast = self._apparent_sidereal_time_greenwich(tc)
         dt = self.delta_t(jd)
-        tc_td = tc - (dt / (3600 * 24 * 36525))  # Convert to TD time.
+        tc_td = dt / 36525 + tc # Compensate for the Julian Century
         alpha = self._sun_apparent_right_ascension(tc_td)
         delta = self._sun_apparent_declination(tc_td)
+        ast = self._apparent_sidereal_time_greenwich(tc)
         h0 = self._approx_local_hour_angle(tc, lat, offset=offset)
         m0 = func0((alpha - lon - ast) / 360)
         m = m0 - h0 / 360 if sr_ss == 'RISE' else m0 + h0 / 360
