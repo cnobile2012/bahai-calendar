@@ -1011,15 +1011,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         #print(f"year: {g_year}, Y: {y}")
         return jde
 
-    def find_moment_of_equinoxes_or_solstices(self, jd:float,
-                                              lam:int=SPRING) -> float:
+    def find_moment_of_equinoxes_or_solstices(self, jd:float, lam:int=SPRING,
+                                              zone:float=0) -> float:
         """
-        With the jd and time of year find an equinoxe or solstice.
+        With the jd and time of year find an equinoxe or solstice at
+        Greenwich.
 
         :param jd: Julian day.
         :type jd: float
         :param lam: Lambda is the season as in (SPRING, SUMMER, AUTUMN, WINTER)
         :type lam: int
+        :param zone: The time zone.
+        :type zone: float
         :return: The Julian day of the equinoxe or solstice.
         :rtype: float
 
@@ -1036,7 +1039,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         dl = 1 + 0.0334 * self._cos_deg(w + 0.0007) * self._cos_deg(2*w)
         s = self._sigma((self.EQ_SO_A, self.EQ_SO_B, self.EQ_SO_C),
                         lambda a, b, c: a * self._cos_deg(b + c * tc))
-        return round(jde + (0.00001 * s) / dl, self.ROUNDING_PLACES)
+        return round(jde + (0.00001 * s) / dl + self.HR(zone),
+                     self.ROUNDING_PLACES)
 
     def decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
                          direction:str='N') -> float:
@@ -1220,6 +1224,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         minute = math.floor(m)
         second = self.PARTIAL_MINUTE_TO_SECOND(m)
         return hour, minute, round(second, self.ROUNDING_PLACES)
+
+    def _sec_microsec_of_seconds(self, seconds:float) -> tuple:
+        """
+        Split the seconds and microseconds.
+        """
+        return math.floor(seconds), math.floor(seconds % 1 * 1000000)
 
     def _sin_deg(self, theta:float) -> float:
         """

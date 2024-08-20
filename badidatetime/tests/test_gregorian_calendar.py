@@ -184,6 +184,8 @@ class TestGregorianCalendar(unittest.TestCase):
             (2459188.99, True, False, (2020, 12, 7.49)),
             (2459189.31, False, False, (2020, 12, 5.81)),
             (2459189.31, True, False, (2020, 12, 7.81)),
+            # Tests the 0.nnn day issue.
+            (2460733.250321, True, False, (2025, 2, 28.750321)),
             )
         msg = "Expected '{}' for jd '{}', with exact '{}', alt '{}', found '{}'"
 

@@ -68,6 +68,8 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
     def __init__(self):
         super().__init__()
         self.gc = GregorianCalendar()
+        #self.location = self.BAHAI_LOCATION[:3]
+        self.location = (35.681117, 51.4016521, 3.5)
 
     def dump_sunset_after_ve(self):
         """
@@ -77,17 +79,17 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         data = []
 
         for year, item in self.WC_DATA.items():
-            wc_ss = item[0] # Get the Gregorian date
+            wc_ss = item[0] # Get the Gregorian WC date of sunset.
             first_of_march = (wc_ss[0], wc_ss[1], 1) # Replace day with the 1st
             jd = self.gc.jd_from_gregorian_date(first_of_march) # Get UT Julian
-            my_ve_jde = self.find_moment_of_equinoxes_or_solstices(jd)
+            my_ve_jde = self.find_moment_of_equinoxes_or_solstices(jd, zone=3.5)
             my_ve = my_ve_jde
             #my_ve = my_ve_jde - self.delta_t(my_ve_jde)
-            my_ss_jd = self._sun_setting(my_ve, *self.BAHAI_LOCATION[:3])
+            my_ss_jd = self._sun_setting(my_ve, *self.location)
             #print(year, my_ve, my_ss_jd)
 
             if my_ve > my_ss_jd:
-                my_ss = self._sun_setting(my_ve + 1, *self.BAHAI_LOCATION[:3])
+                my_ss = self._sun_setting(my_ve + 1, *self.location)
                 my_ss_jd = my_ve + 1 + my_ss
 
             my_g_ss = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
@@ -187,7 +189,7 @@ if __name__ == "__main__":
 
     if options.ve_ss:
         print("Year WC Sunset     My Gregorian Sunset            SS Diff  "
-              "NASA's Vernal Eqinox  My Vernal Equinox")
+              "NASA's Vernal Eqinox  My Vernal Equinox in Nur")
         print('-'*111)
         data = [f"{year}  "
                 f"{str(wc_ss):<13} "

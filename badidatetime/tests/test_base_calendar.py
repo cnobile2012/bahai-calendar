@@ -1215,6 +1215,14 @@ class TestBaseCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, dec, result))
 
+    @unittest.skip("Temporarily skipped")
+    def test__sec_microsec_of_seconds(self):
+        """
+        Test that the _sec_microsec_of_seconds method returns the seconds
+        and microseconds from a second + partian as in 10.75 seconds.
+        """
+        pass
+
     #@unittest.skip("Temporarily skipped")
     def test__sin_deg(self):
         """

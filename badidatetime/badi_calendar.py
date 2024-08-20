@@ -18,11 +18,12 @@ class BahaiCalendar(BaseCalendar):
     # WGS84:          35.689252, 51.3896 1595m 3.5
     # WGS84--https://coordinates-converter.com/
     # https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-
-# https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
-    #BAHAI_LOCATION = (35.696111, 51.423056, 3.5, 0)
+#https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
+#https://www.google.com/maps/place/Tehran,+Tehran+Province,+Iran/@35.9098957,51.51371,9.49z/data=!4m6!3m5!1s0x3f8e02c69b919039:0x17c26479772c5928!8m2!3d35.6891975!4d51.3889736!16s%2Fm%2F025zk75?entry=ttu
+    # https://gml.noaa.gov/grad/solcalc/ Sunset data
     # Nur Mazandaran Province, Iran (City Center)
-# https://www.google.com/maps/place/Nur,+Mazandaran+Province,+Iran/@36.569336,52.0050234,15z/data=!3m1!4b1!4m6!3m5!1s0x3f8efdf2a3fc7385:0x1f76f83486da57be!8m2!3d36.5763485!4d52.0133073!16zL20vMGJ6cjl6?entry=ttu
-    BAHAI_LOCATION = (36.569336, 52.0050234, 3.5, 0)
+    #BAHAI_LOCATION = (36.569336, 52.0050234, 3.5, 0)
+    BAHAI_LOCATION = (35.681117, 51.4016521, 3.5, 0) # Moniriyeh Square Tehran
     BADI_EPOCH = 2394644.259572 # 2394646.259572 using Meeus' algorithm
     BADI_MONTH_NAMES = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -182,8 +183,7 @@ class BahaiCalendar(BaseCalendar):
         # determining the sunset jd.
         diff = self._meeus_algorithm_date_compensation((year, month, day))
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
-        return round(jd + ss_a + self._get_coff(year),
-                     self.ROUNDING_PLACES)
+        return round(jd + ss_a + self._get_coff(year), self.ROUNDING_PLACES)
 
     def _get_coff(self, year):
         def process_segment(y, coff1, coff2, onoff):
