@@ -152,8 +152,9 @@ class GregorianCalendar(BaseCalendar):
             day += f - (1.5 if f > 0.5 else 0.5)
 
             if day < 1:
-                month -= 1
-                day += 28
+                month -= 1 if month > 1 else -11
+                day = month_days[month-1] + day
+                year -= 1 if month == 12 else 0
 
             date = (year, month, round(day, self.ROUNDING_PLACES))
             #print('jd', jd, 'md', md, 'td', td, 'days', days, 'd', d,
