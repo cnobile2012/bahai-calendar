@@ -12,6 +12,8 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
+from badidatetime import BahaiCalendar, GregorianCalendar
+
 
 class JulianPeriodTests:
 
@@ -125,6 +127,10 @@ class JulianPeriodTests:
         ## (3100, 12, 31), (3101, 1, 1), # 22
         ## (3200, 12, 31), (3201, 1, 1),
         )
+
+    def __init__(self):
+        self._bc = BahaiCalendar()
+        self._gc = GregorianCalendar()
 
     def analyze(self, options):
         """
@@ -392,6 +398,66 @@ class JulianPeriodTests:
         #[print(item) for item in items]
         return data
 
+    def julian_day_with_sunset(self, options):
+        """
+        Generate a list of Julian days with sunset data. This must be done
+        in the historically correct Julian day count or the sunsets will
+        not be correct.
+
+        This is used in some Badi tests.
+
+        -j with -S and -E which are manditory.
+        """
+        data = []
+        alt_lat_lon = {
+            1970: (51.4769, 0, 0)
+            }
+        hm = {
+            (1, 3, 20):    (18, 16),
+            (1, 4, 8):     (18, 30),
+            (2, 2, 24):    (17, 56),
+            (2, 2, 25):    (17, 57),
+            (2, 2, 26):    (17, 58),
+            (2, 3, 2):     (18, 1),
+            (2, 3, 6):     (18, 5),
+            (1583, 3, 21): (18, 16),
+            (1844, 3, 20): (18, 16),
+            (1845, 3, 20): (18, 16),
+            (1863, 3, 21): (18, 16),
+            (2015, 3, 21): (18, 16),
+            (2022, 2, 25): (17, 56),
+            (2022, 3, 1):  (17, 59),
+            (2022, 3, 2):  (18, 0),
+            (2024, 3, 20): (18, 16),
+            (2024, 4, 20): (18, 42),
+            (2024, 5, 14): (19, 2),
+            (2024, 7, 17): (19, 19),
+            }
+
+        for year in range(options.start, options.end):
+            leap = (self.JULIAN_LEAP_YEAR(year) if year < 1583
+                    else self.GREGORIAN_LEAP_YEAR(year))
+            location = (alt_lat_lon[year] if year in alt_lat_lon
+                        else self._bc.BAHAI_LOCATION[:3])
+
+            for month, days in enumerate(self.MONTHS, start=1):
+                if month == 2 and not leap:
+                    max_days = days - 1
+                else:
+                    max_days = days
+
+                for day in range(1, max_days + 1):
+                    date = (year, month, day)
+                    date += hm[date] if date in hm else ()
+                    jd = self._gc.jd_from_gregorian_date(date)
+                    jdss = self._gc._sun_setting(jd, *location)
+                    # Convert to my jd count.
+                    ejd = self._gc.jd_from_gregorian_date(date, exact=True)
+                    ss = math.floor(ejd) + jdss % 1
+                    data.append((date, ss))
+
+        return data
+
     def jd_from_gregorian_date_0(self, g_date, alt=False):
         """
         Meeus algorithm
@@ -578,7 +644,11 @@ if __name__ == "__main__":
               "A value <= 0 processes dates from 1 to 3004"))
     parser.add_argument(
         '-k', '--consecutive', action='store_true', default=False,
-        dest='consecutive', help=("Test for non consecutive days."))
+        dest='consecutive', help="Test for non consecutive days.")
+    parser.add_argument(
+        '-j', '--julian-day', action='store_true', default=False,
+        dest='julian_day', help=("Generate list of Julian days with sunset "
+                                 "data days."))
     parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help="Use the 4|128 rule instead of the 4|100|400 "
@@ -716,6 +786,17 @@ if __name__ == "__main__":
             ret = 1
 
         if ret == 0: [print(item) for item in data]
+    elif options.julian_day:
+        if options.start is None or options.end is None:
+            print("If option -j is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            data = [
+                f"{str(date):<23} "
+                f"{jdss:<14}"
+                for date, jdss in jpt.julian_day_with_sunset(options)]
+            [print(item) for item in data]
     else:
         parser.print_help()
 

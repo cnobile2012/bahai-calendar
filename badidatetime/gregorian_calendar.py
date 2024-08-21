@@ -18,6 +18,7 @@ class GregorianCalendar(BaseCalendar):
     # https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/calendar_calculations.htm
     GREGORIAN_EPOCH = 1721423.5
     MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
     GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
@@ -229,14 +230,24 @@ class GregorianCalendar(BaseCalendar):
         second = round(self.PARTIAL_MINUTE_TO_SECOND(md), self.ROUNDING_PLACES)
         return (year, month, math.floor(day), hour, minute, second)
 
-    def _check_valid_gregorian_month_day(self, g_date:tuple) -> bool:
+    def _check_valid_gregorian_month_day(self, g_date:tuple,
+                                         historical:bool=False) -> None:
         """
         Check that the month and day values are valid.
+
+        :param g_date: The date to check.
+        :type g_date: tuple
+        :param historical: If True use the Julian leap year before 1883.
+        :type historical: bool
+        :return: Nothing
+        :rtype: None
         """
         t_len = len(g_date)
         year = g_date[0]
         month = abs(g_date[1])
         day = abs(g_date[2])
+        LY = (self.JULIAN_LEAP_YEAR if historical and year < 1883
+              else self.GREGORIAN_LEAP_YEAR)
         hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
         minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
         second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
@@ -244,7 +255,7 @@ class GregorianCalendar(BaseCalendar):
         days = self.MONTHS[month - 1]
 
         if month == 2: # Subtract 0 or 1 from Febuary if leap year.
-            days -= 0 if self.GREGORIAN_LEAP_YEAR(year) else 1
+            days -= 0 if LY(year) else 1
 
         assert 1 <= math.floor(day) <= days, (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "

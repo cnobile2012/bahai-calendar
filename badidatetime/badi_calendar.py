@@ -24,7 +24,7 @@ class BahaiCalendar(BaseCalendar):
     # Nur Mazandaran Province, Iran (City Center)
     #BAHAI_LOCATION = (36.569336, 52.0050234, 3.5, 0)
     BAHAI_LOCATION = (35.681117, 51.4016521, 3.5, 0) # Moniriyeh Square Tehran
-    BADI_EPOCH = 2394644.259572 # 2394646.259572 using Meeus' algorithm
+    BADI_EPOCH = 2394644.261791 # 2394646.261791 using Meeus' algorithm
     BADI_MONTH_NAMES = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
         (6, 'Raḥmat'), (7, 'Kalimát'), (8, 'Kamál'), (9, "Asmá'"),
@@ -729,7 +729,7 @@ class BahaiCalendar(BaseCalendar):
         The returned diff value converts my jd to the Meeus algorithm jd
         for determining the sunset jd.
 
-        :param jd: A Julian Period day.
+        :param jd: My Julian Period day.
         :type jd: float
         :return: The difference to subtract from my jd algorithm to arrive
                  at Meeus' algorithm so that all his algorithms can be use
