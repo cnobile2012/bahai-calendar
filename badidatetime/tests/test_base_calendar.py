@@ -1216,9 +1216,17 @@ class TestBaseCalendar(unittest.TestCase):
                              msg.format(expected_result, dec, result))
 
     @unittest.skip("Temporarily skipped")
-    def test__sec_microsec_of_seconds(self):
+    def test_decimal_day_from_hms(self):
         """
-        Test that the _sec_microsec_of_seconds method returns the seconds
+        Test that the decimal_day_from_hms method returns the correct
+        decimal part of the day.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test__sec_microsec_from_seconds(self):
+        """
+        Test that the _sec_microsec_from_seconds method returns the seconds
         and microseconds from a second + partian as in 10.75 seconds.
         """
         pass

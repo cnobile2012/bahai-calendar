@@ -440,7 +440,7 @@ class BahaiCalendar(BaseCalendar):
         # and mine.
         m_diff = self._meeus_algorithm_jd_compensation(jd)
         diff = self._sun_setting(math.floor(jd + m_diff), lat, lon, zone) % 1
-        cor = (jd % 1) - diff
+        cor = jd % 1 - diff
         day += cor if (day + cor) >= 1 else 0
         date = self.long_date_from_short_date((year, month, day))
         return self.kvymdhms_from_b_date(date, short=short)
@@ -546,8 +546,8 @@ class BahaiCalendar(BaseCalendar):
         :type zone: float
         :param _exact: Use the more exact Julian Period algorithm. Default
                        is True. This should generally be set to True, a
-                       False value will give inaccurate results and is used
-                       for testing only.
+                       False value, in this method will give inaccurate
+                       results and is used for testing only.
         :type _exact: bool
         :return: The Gregorian date.
         :rtype: tuple
@@ -572,9 +572,15 @@ class BahaiCalendar(BaseCalendar):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
         days = math.floor(t / 86400)
+        #seconds = t % 86400
+        #hours = math.floor(seconds / 3600)
+        #seconds = seconds % 3600
+        #minutes = math.floor(seconds / 60)
+        #seconds = seconds % 60
+
         jd = days + self.POSIX_EPOCH
         jd += t % 86400 / 86400
-        return self.badi_date_from_jd(jd, short=short)
+        return self.badi_date_from_jd(jd, lat, lon, zone, short=short)
 
     def _trim_hms(self, hms:tuple) -> tuple:
         """

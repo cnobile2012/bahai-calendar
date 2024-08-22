@@ -1225,7 +1225,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         second = self.PARTIAL_MINUTE_TO_SECOND(m)
         return hour, minute, round(second, self.ROUNDING_PLACES)
 
-    def _sec_microsec_of_seconds(self, seconds:float) -> tuple:
+    def decimal_day_from_hms(self, h:int, m:int, s:float) -> float:
+        """
+        Convert hours, minutes, and seconds to a decimal day.
+        """
+        return (h * 60 * 60 + m * 60 + s) / 86400
+
+    def _sec_microsec_from_seconds(self, seconds:float) -> tuple:
         """
         Split the seconds and microseconds.
         """
@@ -1251,8 +1257,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _sigma(self, lists:tuple, func:object) -> float:
         """
-        used
-
         (defmacro sigma (list body)
           ;; TYPE (list-of-pairs (list-of-reals->real))
           ;; TYPE -> real
@@ -1276,8 +1280,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         y = A + B * x + C * x^2 + D * x^3 + E * x^4
         do this:
         y = A + x * (B + x * (C + x * (D + x * E)))
-
-        used
 
         (defun poly (x a)
           ;; TYPE (real list-of-reals) -> real

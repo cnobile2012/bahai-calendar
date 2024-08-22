@@ -70,7 +70,7 @@ class TestBadiCalendar(unittest.TestCase):
 
         for g_date, short, expected_result in data:
             if len(g_date) == 6:
-                sm = self._bc._sec_microsec_of_seconds(g_date[-1])
+                sm = self._bc._sec_microsec_from_seconds(g_date[-1])
             else:
                 sm = ()
 
@@ -511,7 +511,7 @@ class TestBadiCalendar(unittest.TestCase):
         data = (
             # 1844-03-20T18:14:00
             ((1, 1, 1), lat, lon, zone, True, (1844, 3, 20, 18, 16, 58.7424)),
-            ((126, 16, 1), lat, lon, zone, True, (1970, 12, 31)),
+            ((126, 16, 1), lat, lon, zone, True, (1969, 12, 31, 17, 1, 33.888)),
             ((181, 3, 18, 20), lat, lon, zone, True,
              (2024, 5, 15, 15, 3, 36.0864)),
             ((181, 3, 19, 20), lat, lon, zone, True,
@@ -547,13 +547,16 @@ class TestBadiCalendar(unittest.TestCase):
         data = (
             # 1970-01-01T00:00:00 -> UNIX Epoch at UTC
             # sunset the day before 16:01 lat=51.4769, lon=0, zone=0
-            #                         (1, 7, 12, 16, 1, 8, 0, 0) == UTC 12am
-            (0, 51.477928, -0.001545, 0, True, (126, 16, 1, 7, 59, 33.1872)),
+            #                      UTC 12am == (126, 16, 1, 8, 0, 0)
+            (0, 51.477928, -0.001545, 0, True, (126, 16, 1, 7, 59, 32.496)),
+            #                      UTC 12am == (1, 7, 12, 16, 1, 8, 0, 0)
             (0, 51.477928, -0.001545, 0, False,
-             (1, 7, 12, 16, 1, 7, 59, 33.1872)),
-            # 2024-07-24T06:55:08.688 *** TODO *** This was wrong was 4 AM
-            (1722067088.6303926, 35.7796, -78.6382, -4, True,
-             (181, 7, 15, 12, 45, 53.2224))
+             (1, 7, 12, 16, 1, 7, 59, 32.496)),
+            # 2024-08-24T14:33:46.24610090255737 -- Raleigh, NC USA
+            # The h, m, & s are counted from the beginning of the Badi day
+            # which would be the previous Gregorian day.
+            (1724265226.246101, 35.7796, -78.6382, -4, True,
+             (181, 9, 2, 22, 37, 46.992)),
             )
         msg = "Expected {} for timestamp {}, found {}"
 
