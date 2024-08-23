@@ -562,6 +562,12 @@ class BahaiCalendar(BaseCalendar):
 
         :param t: Timestamp
         :type t: float
+        :param lat: The latitude.
+        :type lat: float
+        :param lon: The longitude.
+        :type lon: float
+        :param zone: The time zone.
+        :type zone: float
         :param short: If True then parse for a short date else if False
                       parse for a long date.
         :type short: bool
@@ -572,12 +578,6 @@ class BahaiCalendar(BaseCalendar):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
         days = math.floor(t / 86400)
-        #seconds = t % 86400
-        #hours = math.floor(seconds / 3600)
-        #seconds = seconds % 3600
-        #minutes = math.floor(seconds / 60)
-        #seconds = seconds % 60
-
         jd = days + self.POSIX_EPOCH
         jd += t % 86400 / 86400
         return self.badi_date_from_jd(jd, lat, lon, zone, short=short)
@@ -586,6 +586,12 @@ class BahaiCalendar(BaseCalendar):
         """
         Trim the hours, minutes, or seconds off if zero unless a lower
         value was not zero.
+
+        :param hms: An hour, minute, and second object.
+        :type hms: tuple
+        :return: An object with the lower order parts stripped off if
+                 they have a zero value.
+        :rtype: tuple
         """
         items = []
         has = False
@@ -599,10 +605,17 @@ class BahaiCalendar(BaseCalendar):
 
         return tuple(reversed(items))
 
-    def _check_valid_badi_date(self, b_date:tuple) -> bool:
+    def _check_valid_badi_date(self, b_date:tuple) -> None:
         """
         Check that the Kull-i-Shay, Váḥids, year, month, day, hour, minute,
         and second values are valid.
+
+        :param b_date: A long form Badi date.
+        :type b_date: tuple
+        :return: Nothing
+        :rtype: None
+        :raises AssertionError: When a date Váḥid, year, month, day, hour,
+                                minute, or second are out of range.
         """
         cycle = 20
         kull_i_shay, vahid, year, month, day = b_date[:5]

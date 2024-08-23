@@ -199,6 +199,35 @@ class TestGregorianCalendar(unittest.TestCase):
                                         alt, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_ymdhms_from_posix_time(self):
+        """
+        Test that the ymdhms_from_posix_time method returns the year, month,
+        day, hours, minutes, and seconds for a POSIX timestamp.
+        """
+        data = (
+            # POSIX epoch -> 1970-01-01T00:00:00
+            (0, -0.001545, 0, (1970, 1, 1, 0, 0, 0)),
+            # Tehran Iran Friday, August 23, 2024 (GMT+3:30)
+            (1724362982.984497, 51.4016521, 3.5,
+             (2024, 8, 23, 1, 13, 2.9844970703125)),
+            # Tehran Iran Friday, August 23, 2024 3:35 (GMT+3:30
+            (1724371535.5798125, 51.4016521, 3.5,
+             (2024, 8, 23, 3, 35, 35.57981252670288)),
+            # Greenwich UK Friday, August 23, 2024 0:05 (GMT+0:00)
+            (1724371535.5798125, -0.001545, 0,
+             (2024, 8, 23, 0, 5, 35.57981252670288)),
+            # Raleigh NC Thursday, August 22, 2024 08:05 (GMT-4:00)
+            (1724371535.5798125, -78.6382, -4,
+             (2024, 8, 22, 8, 5, 35.57981252670288)),
+            )
+        msg = "Expected {} with t {}, lon {}, and zone {}, found {}"
+
+        for t, lon, zone, expected_result in data:
+            result = self._gc.ymdhms_from_posix_time(t, lon=lon, zone=zone)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, t, lon, zone, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test_gregorian_year_from_jd(self):
         """
         Test that the gregorian_year_from_jd method returns a
@@ -206,8 +235,8 @@ class TestGregorianCalendar(unittest.TestCase):
         """
         data = (
             (2394646.5, 1844),
-            (2451544.5, 2000), # Start of day 12 noon
-            (2451545.0, 2000), # Middle of day 12 midnight
+            (2451544.5, 2000), # Middle of day 12 midnight
+            (2451545.0, 2000), # Start of day 12 noon
             )
         msg = "Expected {} for Julian day {}, found {}"
 

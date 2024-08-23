@@ -192,6 +192,57 @@ class GregorianCalendar(BaseCalendar):
 
         return date
 
+    def ymdhms_from_posix_time(self, t:float, *, lon:float=0,
+                               zone:float=None) -> tuple:
+        """
+        Find the year, month, day, hours, minutes, and seconds from a
+        POSIX timestamp updated for timezone.
+        """
+        if zone is None: zone = lon / 15
+        days = math.floor(t / 86400)
+        year = 1970
+        leap = False
+
+        while True:
+            leap = self.GREGORIAN_LEAP_YEAR(year)
+            diy = 366 if leap else 365
+            if days < diy: break
+            days -= diy
+            year += 1
+
+        month_days = list(self.MONTHS)
+        month_days[1] -= 0 if leap else 1
+        days_in_month = 0
+
+        for month, ds in enumerate(month_days, start=1):
+            days_in_month += ds
+            if days > days_in_month: continue
+            day = math.ceil(days - (days_in_month - ds)) + 1
+            break
+
+        seconds = t % 86400
+        hours = math.floor(seconds / 3600 + zone)
+        tzp = zone % 1
+        seconds = seconds % 3600
+        minutes = math.floor(seconds / 60)
+        minutes += tzp * 60
+        print(year, month, day, hours, minutes)
+
+
+
+        if hours < 0:
+            day -= abs(hours) - 24 + 1
+            hours = hours + 24
+        elif hours >= 24:
+            day += 1
+            hours -= 24
+
+            if minutes >= 60:
+                minutes -= 60
+
+        seconds = seconds % 60
+        return year, month, day, hours, minutes, seconds
+
     def gregorian_year_from_jd(self, jde:float) -> int:
         """
         Find the Gregorian year from a Julian Period day.
