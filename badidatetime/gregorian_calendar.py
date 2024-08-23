@@ -198,7 +198,7 @@ class GregorianCalendar(BaseCalendar):
         Find the year, month, day, hours, minutes, and seconds from a
         POSIX timestamp updated for timezone.
         """
-        if zone is None: zone = lon / 15
+        if zone is None and lon: zone = lon / 15
         days = math.floor(t / 86400)
         year = 1970
         leap = False
@@ -226,13 +226,11 @@ class GregorianCalendar(BaseCalendar):
         seconds = seconds % 3600
         minutes = math.floor(seconds / 60)
         minutes += tzp * 60
-        print(year, month, day, hours, minutes)
-
-
+        #print('POOP0', year, month, day, hours, minutes)
 
         if hours < 0:
-            day -= abs(hours) - 24 + 1
-            hours = hours + 24
+            day -= 1
+            hours += 24
         elif hours >= 24:
             day += 1
             hours -= 24

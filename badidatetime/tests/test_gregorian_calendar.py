@@ -206,26 +206,24 @@ class TestGregorianCalendar(unittest.TestCase):
         """
         data = (
             # POSIX epoch -> 1970-01-01T00:00:00
-            (0, -0.001545, 0, (1970, 1, 1, 0, 0, 0)),
+            (0, 0, (1970, 1, 1, 0, 0, 0)),
             # Tehran Iran Friday, August 23, 2024 (GMT+3:30)
-            (1724362982.984497, 51.4016521, 3.5,
-             (2024, 8, 23, 1, 13, 2.9844970703125)),
-            # Tehran Iran Friday, August 23, 2024 3:35 (GMT+3:30
-            (1724371535.5798125, 51.4016521, 3.5,
-             (2024, 8, 23, 3, 35, 35.57981252670288)),
-            # Greenwich UK Friday, August 23, 2024 0:05 (GMT+0:00)
-            (1724371535.5798125, -0.001545, 0,
-             (2024, 8, 23, 0, 5, 35.57981252670288)),
-            # Raleigh NC Thursday, August 22, 2024 08:05 (GMT-4:00)
-            (1724371535.5798125, -78.6382, -4,
-             (2024, 8, 22, 8, 5, 35.57981252670288)),
-            )
-        msg = "Expected {} with t {}, lon {}, and zone {}, found {}"
+            (1724362982.984497, 3.5, (2024, 8, 23, 1, 13, 2.9844970703125)),
+            # Tehran Iran Friday, August 23, 2024 3:35 (UTC+3:30)
+            (1724371535.5798125, 3.5, (2024, 8, 23, 3, 35, 35.57981252670288)),
+            # Greenwich UK Friday, August 23, 2024 0:05 (UTC+0:00)
+            (1724371535.5798125, 0, (2024, 8, 23, 0, 5, 35.57981252670288)),
+            # Raleigh NC Thursday, August 22, 2024 20:05 (UTC-4:00)
+            (1724371535.5798125, -4, (2024, 8, 22, 20, 5, 35.57981252670288)),
+            # Parts of Australia Friday, August 23 2024 8:50 (UTC+8:45)
+            (1724371535.5798125, 8.75, (2024, 8, 23, 8, 50, 35.57981252670288)),
+             )
+        msg = "Expected {} with t {}, and zone {}, found {}"
 
-        for t, lon, zone, expected_result in data:
-            result = self._gc.ymdhms_from_posix_time(t, lon=lon, zone=zone)
+        for t, zone, expected_result in data:
+            result = self._gc.ymdhms_from_posix_time(t, zone=zone)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, t, lon, zone, result))
+                             msg.format(expected_result, t, zone, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_gregorian_year_from_jd(self):
