@@ -14,7 +14,7 @@ class GregorianCalendar(BaseCalendar):
     """
     Implementation of the Gregorian Calendar.
     """
-    # Julian date for the gregorian epoch
+    # Julian date for the Gregorian epoch
     # https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/calendar_calculations.htm
     GREGORIAN_EPOCH = 1721423.5
     MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
@@ -47,10 +47,10 @@ class GregorianCalendar(BaseCalendar):
         Convert Gregorian dates to Julian day count with the 1582 10, 15
         correction.
 
-        :param g_date: A Gregorinan date in the (year, month, day) format.
+        :param g_date: A Gregorian date in the (year, month, day) format.
         :type g_date: tuple
         :param exact: Julian days as if the Gregorian calendar started on
-                      year 1. This astronomicaly correct but not
+                      year 1. This astronomically correct but not
                       historically correct.
         :type exact: bool
         :param alt: Use a more accurate leap year calculation, only valid when
@@ -109,6 +109,13 @@ class GregorianCalendar(BaseCalendar):
 
         :param jd: A Julian period day.
         :type jd: float
+        :param exact: If True use the astronomically correct algorithm
+                      else is False use the historically correct algorithm.
+                      The default is False.
+        :type exact: bool
+        :param alt: If True use the 4/128 algorithm for leap years else
+                    use the 4/100/400 algorithm. The default is False.
+        :type alt: bool
         :return: A Gregorian date in the (year, month, day) format.
         :rtype: tuple
 
@@ -192,13 +199,18 @@ class GregorianCalendar(BaseCalendar):
 
         return date
 
-    def ymdhms_from_posix_time(self, t:float, *, lon:float=0,
-                               zone:float=None) -> tuple:
+    def ymdhms_from_posix_time(self, t:float, *, zone:float=0) -> tuple:
         """
         Find the year, month, day, hours, minutes, and seconds from a
         POSIX timestamp updated for timezone.
+
+        :param t: POSIX timestamp
+        :type t: float
+        :param zone: Timezone
+        :type zone: float
+        :return: The time of the day corrected for the timezone.
+        :rtype: tuple
         """
-        if zone is None and lon: zone = lon / 15
         days = math.floor(t / 86400)
         year = 1970
         leap = False
@@ -226,7 +238,6 @@ class GregorianCalendar(BaseCalendar):
         seconds = seconds % 3600
         minutes = math.floor(seconds / 60)
         minutes += tzp * 60
-        #print('POOP0', year, month, day, hours, minutes)
 
         if hours < 0:
             day -= 1
@@ -234,23 +245,31 @@ class GregorianCalendar(BaseCalendar):
         elif hours >= 24:
             day += 1
             hours -= 24
-
-            if minutes >= 60:
-                minutes -= 60
+            minutes -= 60 if minutes >= 60 else 0
 
         seconds = seconds % 60
         return year, month, day, hours, minutes, seconds
 
-    def gregorian_year_from_jd(self, jde:float) -> int:
+    def gregorian_year_from_jd(self, jd:float) -> int:
         """
         Find the Gregorian year from a Julian Period day.
+
+        :param jd: The Julian Period day.
+        :type jd: float
+        :return: The year portion of the Julian day.
+        :rtype: int
         """
-        return self.gregorian_date_from_jd(jde)[0]
+        return self.gregorian_date_from_jd(jd)[0]
 
     def date_from_ymdhms(self, date:tuple) -> tuple:
         """
         Convert (year, month, day, hour, minute, second) into a
         (year, month, day.partial) date.
+
+        :param date: A six part date (y, m, d, hh, mm, ss).
+        :type: tuple
+        :return: The three part (y, m, d.nnn).
+        :rtype: tuple
         """
         self._check_valid_gregorian_month_day(date)
         t_len = len(date)
@@ -262,12 +281,17 @@ class GregorianCalendar(BaseCalendar):
         second = date[5] if t_len > 5 and date[5] is not None else 0
         day += round(self.HR(hour) + self.MN(minute) + self.SEC(second),
                      self.ROUNDING_PLACES)
-        return (year, month, day)
+        return year, month, day
 
     def ymdhms_from_date(self, date:tuple) -> tuple:
         """
         Convert (year, month, day.partial) into a
         (year, month, day, hour, minute, second).
+
+        :param date: A three part date (y, m, d.nnn).
+        :type date: tuple
+        :return: A six part date (y, m, d, hh, mm, ss).
+        :rtype: tuple
         """
         self._check_valid_gregorian_month_day(date)
         year = date[0]
@@ -304,7 +328,7 @@ class GregorianCalendar(BaseCalendar):
         assert 1 <= month <= 12, f"Invalid month '{month}', should be 1 - 12."
         days = self.MONTHS[month - 1]
 
-        if month == 2: # Subtract 0 or 1 from Febuary if leap year.
+        if month == 2: # Subtract 0 or 1 from February if leap year.
             days -= 0 if LY(year) else 1
 
         assert 1 <= math.floor(day) <= days, (
