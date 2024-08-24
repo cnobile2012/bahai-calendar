@@ -204,6 +204,8 @@ class GregorianCalendar(BaseCalendar):
         Find the year, month, day, hours, minutes, and seconds from a
         POSIX timestamp updated for timezone.
 
+        *** TODO *** Fix for years before 1070
+
         :param t: POSIX timestamp
         :type t: float
         :param zone: Timezone
@@ -214,13 +216,16 @@ class GregorianCalendar(BaseCalendar):
         days = math.floor(t / 86400)
         year = 1970
         leap = False
+        neg = days < 0
+        days = abs(days)
 
         while True:
             leap = self.GREGORIAN_LEAP_YEAR(year)
             diy = 366 if leap else 365
+            #days = diy - days if neg else days
             if days < diy: break
             days -= diy
-            year += 1
+            year += -1 if neg else 1
 
         month_days = list(self.MONTHS)
         month_days[1] -= 0 if leap else 1
@@ -247,7 +252,10 @@ class GregorianCalendar(BaseCalendar):
             hours -= 24
             minutes -= 60 if minutes >= 60 else 0
 
-        seconds = seconds % 60
+        #if neg and 1970 > (year + 1):
+        #    day -= 1
+
+        seconds = round(seconds % 60, self.ROUNDING_PLACES)
         return year, month, day, hours, minutes, seconds
 
     def gregorian_year_from_jd(self, jd:float) -> int:

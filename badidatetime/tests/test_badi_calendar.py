@@ -552,6 +552,8 @@ class TestBadiCalendar(unittest.TestCase):
             #                      UTC 12am == (1, 7, 12, 16, 1, 8, 0, 0)
             (0, 51.477928, -0.001545, 0, False,
              (1, 7, 12, 16, 1, 7, 59, 32.496)),
+            # 1969-12-31T23:59:59 This is one second before the POSIX epoch
+            (-1, 51.477928, -0.001545, 0, True, (126, 16, 1, 7, 59, 31.4592)),
             # 2024-08-24T14:33:46.24610090255737 -- Raleigh, NC USA
             # The h, m, & s are counted from the beginning of the Badi day
             # which would be the previous Gregorian day.
