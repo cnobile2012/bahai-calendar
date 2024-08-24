@@ -83,9 +83,8 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
             jd = self.gc.jd_from_gregorian_date(first_of_march) # Get UT Julian
             my_ve_jde = self.find_moment_of_equinoxes_or_solstices(jd, zone=3.5)
             my_ve = my_ve_jde
-            #my_ve = my_ve_jde + self.delta_t(my_ve_jde)
+            #my_ve = my_ve_jde - self.delta_t(my_ve_jde)
             my_ss_jd = self._sun_setting(my_ve, *self.location)
-            #print(year, my_ve, my_ss_jd)
 
             if my_ve > my_ss_jd:
                 my_ss = self._sun_setting(my_ve + 1, *self.location)
@@ -95,12 +94,15 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
                 my_ss_jd))
             my_ve_g = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
                 my_ve))
-            data.append((year,                     # Baha'i year
-                         wc_ss,                    # WC sunset
-                         my_g_ss,                  # My Gregorian sunset
-                         round(my_ss_jd-my_ve, 6), # Sunset difference
-                         nasa_ve,                  # NASA VE
-                         my_ve_g,                  # My VE
+            nasa_ve_jd = self.gc.jd_from_gregorian_date(nasa_ve) + self.HR(3.5)
+            #print(year, my_ve, nasa_ve_jd, file=sys.stderr)
+            data.append((year,                       # Baha'i year
+                         wc_ss,                      # WC sunset
+                         my_g_ss,                    # My Gregorian sunset
+                         round(my_ss_jd-my_ve, 6),   # Sunset difference
+                         nasa_ve,                    # NASA VE
+                         my_ve_g,                    # My VE
+                         round(my_ve-nasa_ve_jd, 6), # VE difference
                          ))
 
         return data
@@ -185,16 +187,22 @@ if __name__ == "__main__":
     data = []
 
     if options.ve_ss:
+        print("The SS Diff is the difference between the Julian Period days "
+              "of the World Centre and my sunset times in Tehran and the\nVE "
+              "Diff is the difference of the Julian Period days between "
+              "the NASA Vernal Equinox, after converting to Tehran time,\nand "
+              "my Vernal Equinox which is already in Tehran time.\n")
         print("Year WC Sunset     My Gregorian Sunset            SS Diff  "
-              "NASA's Vernal Eqinox  My Vernal Equinox in Tehran")
-        print('-'*111)
+              "NASA's VE (Greenwich) My Vernal Equinox (Tehran)     VE Diff")
+        print('-'*121)
         data = [f"{year}  "
                 f"{str(wc_ss):<13} "
                 f"{str(my_g_ss):<30} "
-                f"{diff:<8} "
+                f"{ss_diff:<8} "
                 f"{str(nasa_ve):<21} "
                 f"{str(my_ve):<30} "
-                for (year, wc_ss, my_g_ss, diff, nasa_ve, my_ve)
+                f"{ve_diff:>9.6f}"
+                for (year, wc_ss, my_g_ss, ss_diff, nasa_ve, my_ve, ve_diff)
                 in cfmes.dump_sunset_after_ve()]
         [print(line) for line in data]
     elif options.days_in_years:

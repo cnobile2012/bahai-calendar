@@ -1008,7 +1008,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                 jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
                                      -0.00823, 0.00032))
 
-        #print(f"year: {g_year}, Y: {y}")
         return jde
 
     def find_moment_of_equinoxes_or_solstices(self, jd:float, lam:int=SPRING,
@@ -1023,7 +1022,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lam: int
         :param zone: The time zone.
         :type zone: float
-        :return: The Julian day of the equinoxe or solstice.
+        :return: The Julian day of the equinox or solstice.
         :rtype: float
 
         .. note::
