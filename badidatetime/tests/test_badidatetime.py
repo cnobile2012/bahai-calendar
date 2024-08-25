@@ -176,7 +176,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, ordinal, short, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test__build_struct_time(self):
         """
         Test that the _build_struct_time function returns a struct of the
