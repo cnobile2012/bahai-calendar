@@ -20,18 +20,6 @@ class TestBadiCalendar(unittest.TestCase):
     This means the Badi epoch was sunset at 18:11 Wednesday, March 20, 1844.
     https://www.timeanddate.com/sun/@112931?month=3&year=1844
 
-    In [1]: from sunrisesunset import SunriseSunset
-    In [2]:import datetime
-    In [3]: import pytz
-    In [4]: dt = datetime.datetime(1844, 3, 20)
-    In [5]: zone = pytz.timezone('Asia/Tehran')
-    In [6]: dt = dt.astimezone(zone)
-    In [7]: ss = SunriseSunset(dt, 35.696111, 51.423056, 'official')
-    In [8]: ss.sun_rise_set
-    Out[8]:
-    (datetime.datetime(1844, 3, 20, 6, 5, 51, 164827, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>),
-     datetime.datetime(1844, 3, 20, 18, 11, 6, 983600, tzinfo=<DstTzInfo 'Asia/Tehran' LMT+3:26:00 STD>))
-
     Alternative latitude and longitude coordinates can be found at:
     https://latitude.to/map/us/united-states/cities/fuquay-varina
     """

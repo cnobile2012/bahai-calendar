@@ -189,8 +189,8 @@ if __name__ == "__main__":
     if options.ve_ss:
         print("The SS Diff is the difference between the Julian Period days "
               "of the World Centre and my sunset times in Tehran and the\nVE "
-              "Diff is the difference of the Julian Period days between "
-              "the NASA Vernal Equinox, after converting to Tehran time,\nand "
+              "Diff is the difference between the Julian Period days of the "
+              "NASA Vernal Equinox, after converting to Tehran time,\nand "
               "my Vernal Equinox which is already in Tehran time.\n")
         print("Year WC Sunset     My Gregorian Sunset            SS Diff  "
               "NASA's VE (Greenwich) My Vernal Equinox (Tehran)     VE Diff")

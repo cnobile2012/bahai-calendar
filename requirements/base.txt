@@ -1,9 +1,9 @@
-# Non-Com Financial
+# Badi Calendar
 
 #sunrisesunset
 #varname
-pytz
 #mpmath
 #novas
 #novas_de405
 
+tzdata
