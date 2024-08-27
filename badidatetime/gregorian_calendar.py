@@ -291,13 +291,17 @@ class GregorianCalendar(BaseCalendar):
                      self.ROUNDING_PLACES)
         return year, month, day
 
-    def ymdhms_from_date(self, date:tuple) -> tuple:
+    def ymdhms_from_date(self, date:tuple, ms:bool=False) -> tuple:
         """
         Convert (year, month, day.partial) into a
         (year, month, day, hour, minute, second).
 
         :param date: A three part date (y, m, d.nnn).
         :type date: tuple
+        :param ms: If True return microseconds as seperate field from
+                   seconds else return seconds with partial seconds.
+                   Default is False.
+        :type ms: bool
         :return: A six part date (y, m, d, hh, mm, ss).
         :rtype: tuple
         """
@@ -310,7 +314,14 @@ class GregorianCalendar(BaseCalendar):
         md = self.PARTIAL_HOUR_TO_MINUTE(hd)
         minute = math.floor(md)
         second = round(self.PARTIAL_MINUTE_TO_SECOND(md), self.ROUNDING_PLACES)
-        return (year, month, math.floor(day), hour, minute, second)
+        date = (year, month, math.floor(day), hour, minute)
+
+        if ms:
+            date += self._sec_microsec_from_seconds(second)
+        else:
+            date += (second,)
+
+        return date
 
     def _check_valid_gregorian_month_day(self, g_date:tuple,
                                          historical:bool=False) -> None:
