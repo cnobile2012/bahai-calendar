@@ -7,3 +7,4 @@
 #novas_de405
 
 tzdata
+tzlocal

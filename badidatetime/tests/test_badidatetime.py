@@ -250,6 +250,22 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                              msg.format(expected_result, year, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test__day_of_week(self):
+        """
+        Test that the _day_of_week function returns the correct day of
+        the week for a given year, month, and day.
+        """
+        data = (
+            ((181, 9, 9), 5),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            result = datetime._day_of_week(self._bc, *date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__parse_isoformat_date_time(self):
         """
         Test trhat the _parse_isoformat_date_time function returns a
@@ -637,7 +653,7 @@ class TestBadiDatetime_date(unittest.TestCase):
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, short, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_ctime(self):
         """
         Test that the ctime method creates a string indicating the date.

@@ -447,20 +447,26 @@ class BahaiCalendar(BaseCalendar):
 
     def short_date_from_long_date(self, b_date:tuple) -> tuple:
         """
-        Convert a long date (kvymdhms) to a short date (ymdhms)
+        Convert a long date (kvymdhms) to a short date (ymdhms). In either
+        case microseconds could also be provided.
+
+        :param b_date: A long form date with or without microseconds.
+        :type b_date: tuple
+        :return: The short Badi date.
+        :rtype: tuple
         """
         self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
-        hour, minute, second = self._get_hms(b_date)
+        hour, minute, second, ms = self._get_hms(b_date)
         y = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
-        return (y, month, day) + self._trim_hms((hour, minute, second))
+        return (y, month, day) + self._trim_hms((hour, minute, second, ms))
 
     def long_date_from_short_date(self, date:tuple) -> tuple:
         """
         Convert a date to a short date (ymdhms) to a long date (kvymdhms).
         """
         year, month, day = date[:3]
-        hour, minute, second = self._get_hms(date, short=True)
+        hour, minute, second, ms = self._get_hms(date, short=True)
         k = year / 361
         k0 = self._truncate_decimal(k % 1, self.ROUNDING_PLACES)
         v = k0 / 19 * 361
@@ -475,42 +481,74 @@ class BahaiCalendar(BaseCalendar):
             y = math.ceil(self._truncate_decimal(
                 v % 1, self.ROUNDING_PLACES) * 19)
 
-        hms = self._trim_hms((hour, minute, second))
+        hms = self._trim_hms((hour, minute, second, ms))
         b_date = (kull_i_shay, vahid, y, month, day) + hms
         self._check_valid_badi_date(b_date)
         return b_date
 
     def date_from_kvymdhms(self, b_date:tuple, *, short:bool=False) -> tuple:
         """
-        Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second)
+        Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second, ms)
         into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
         """
         self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
-        hour, minute, second = self._get_hms(b_date)
-        day += round(self.HR(hour) + self.MN(minute) + self.SEC(second),
-                     self.ROUNDING_PLACES)
+        hour, minute, second, ms = self._get_hms(b_date)
+
+
+        day += round(self.HR(hour) + self.MN(minute) + self.SEC(second) +
+                     self.MS(ms), self.ROUNDING_PLACES)
         date = (kull_i_shay, vahid, year, month, day)
         return self.short_date_from_long_date(date) if short else date
 
-    def kvymdhms_from_b_date(self, b_date:tuple, *, short:bool=False) -> tuple:
+    def kvymdhms_from_b_date(self, b_date:tuple, *, ms:bool=False,
+                             short:bool=False) -> tuple:
         """
         Convert (Kull-i-Shay, Váḥid, year, month, day.partial) into
-        (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
+        (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second) or if
+        short is True (year, month, day, hour, minute, second). If ms is
+        True the seconds are split to second and microsecond.
+
+        :param b_date: The Badi date in long form.
+        :type b_date: tuple
+        :param ms: If True the seconds are split to seconds amd microsecends
+                   else if False the seconds has a partial day as a decimal.
+        :type ms: bool
+        :param short: If True the short form Badi date is returned else the
+                      long form is returned.
+        :type short: bool
+        :return: The long or short form Badi date with hours, minutes,
+                 seconds, and microseconds if set.
+        :rtype: tuple
         """
         self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
-        hd = self.PARTIAL_DAY_TO_HOURS(day)
-        hour = math.floor(hd)
-        md = self.PARTIAL_HOUR_TO_MINUTE(hd)
-        minute = math.floor(md)
-        second = round(self.PARTIAL_MINUTE_TO_SECOND(md), self.ROUNDING_PLACES)
-        hms = self._trim_hms((hour, minute, second))
-        date = (kull_i_shay, vahid, year, month, math.floor(day)) + hms
+        dlen = len(b_date)
+
+        if dlen == 5:
+            hd = self.PARTIAL_DAY_TO_HOURS(day)
+            hour = math.floor(hd)
+            md = self.PARTIAL_HOUR_TO_MINUTE(hd)
+            minute = math.floor(md)
+            second = round(self.PARTIAL_MINUTE_TO_SECOND(md),
+                           self.ROUNDING_PLACES)
+        else:
+            hour = b_date[5] if dlen > 5 else 0
+            minute = b_date[6] if dlen > 6 else 0
+            second = b_date[7] if dlen > 7 else 0
+
+        date = (kull_i_shay, vahid, year, month, math.floor(day))
+
+        if ms:
+            hms = (hour, minute, *self._sec_microsec_from_seconds(second))
+        else:
+            hms = (hour, minute, second)
+
+        date += self._trim_hms(hms)
         return self.short_date_from_long_date(date) if short else date
 
-    def badi_date_from_gregorian_date(self, g_date:tuple, *,
-                                      short:bool=False, _exact=True) -> tuple:
+    def badi_date_from_gregorian_date(self, g_date:tuple, *, short:bool=False,
+                                      _exact=True) -> tuple:
         """
         Get the Badi date from the Gregorian date.
 
@@ -584,8 +622,8 @@ class BahaiCalendar(BaseCalendar):
 
     def _trim_hms(self, hms:tuple) -> tuple:
         """
-        Trim the hours, minutes, or seconds off if zero unless a lower
-        value was not zero.
+        Trim the hours, minutes, seconds or microseconds off if zero unless
+        a lower value was not zero.
 
         :param hms: An hour, minute, and second object.
         :type hms: tuple
@@ -619,7 +657,7 @@ class BahaiCalendar(BaseCalendar):
         """
         cycle = 20
         kull_i_shay, vahid, year, month, day = b_date[:5]
-        hour, minute, second = self._get_hms(b_date)
+        hour, minute, second, ms = self._get_hms(b_date)
         assert 1 <= vahid < cycle, (
             f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or <= 19, "
             f"found {vahid}")
@@ -653,6 +691,10 @@ class BahaiCalendar(BaseCalendar):
         if second:
             assert not minute % 1, (
                 "If there is a part minute then there can be no seconds.")
+
+        if ms:
+            assert ms < 1000000, (
+                f"Microsecond value {ms} > 1000000.")
 
     def _is_leap_year(self, date:tuple) -> bool:
         """
@@ -689,8 +731,8 @@ class BahaiCalendar(BaseCalendar):
 
     def _get_hms(self, date:tuple, *, short:bool=False) -> tuple:
         """
-        Parse the hours, minutes, and seconds correctly for either the
-        short or long form Badi date.
+        Parse the hours, minutes, seconds, and microseconds, if they exist,
+        correctly for either the short or long form Badi date.
 
         :param date: A long or short form Badi date.
         :type date: tuple
@@ -705,7 +747,8 @@ class BahaiCalendar(BaseCalendar):
         hour = date[s] if t_len > s and date[s] is not None else 0
         minute = date[s+1] if t_len > s+1 and date[s+1] is not None else 0
         second = date[s+2] if t_len > s+2 and date[s+2] is not None else 0
-        return hour, minute, second
+        ms = date[s+3] if t_len > s+3 and date[s+3] is not None else 0
+        return hour, minute, second, ms
 
     def _meeus_algorithm_date_compensation(self, date:tuple) -> int:
         """

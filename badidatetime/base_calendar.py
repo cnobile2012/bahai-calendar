@@ -58,6 +58,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     #  (/ x 3600))
     SECS = lambda self, x: x / 3600
 
+    # Convert microseconds to a partial second.
+    MS = lambda self, x: x / 1000000
+
     #(defun angle (d m s)
     #  ;; TYPE (integer integer real) -> angle
     #  ;; d degrees, m arcminutes, s arcseconds.
@@ -1227,14 +1230,32 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def decimal_day_from_hms(self, h:int, m:int, s:float) -> float:
         """
         Convert hours, minutes, and seconds to a decimal day.
+
+        :param h: Integer of the hour.
+        :type: int
+        :param m: Integer of the minute.
+        :type m: int
+        :param s: Float of the second.
+        :type s: float
+        :return: A decimal value representing the day with a partial that
+                 indicates the hours, minutes, and seconds.
+        :rtype: float
         """
         return (h * 60 * 60 + m * 60 + s) / 86400
 
-    def _sec_microsec_from_seconds(self, seconds:float) -> tuple:
+    def _sec_microsec_from_seconds(self, second:float) -> tuple:
         """
-        Split the seconds and microseconds.
+        Split the second and microseconds.
+
+        :param second: The second with a partial indication the microseconds.
+        :type second: float
+        :return: The second split between the second and microseconds.
+        :rtype: tuple
         """
-        return math.floor(seconds), math.floor(seconds % 1 * 1000000)
+        p = second % 1
+        s = abs(second) - p
+        s *= -1 if second < 0 else 1
+        return math.floor(s), math.floor(p * 1000000)
 
     def _sin_deg(self, theta:float) -> float:
         """

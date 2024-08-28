@@ -366,7 +366,7 @@ class TestBadiCalendar(unittest.TestCase):
     def test_short_date_from_long_date(self):
         """
         Test that the short_date_from_long_date method returns the correct
-        (year, month, day) date.
+        (year, month, day, hour, minute, seconds, ms) date.
         """
         data = (
             # 1844-03-20T00:00:00
@@ -384,6 +384,9 @@ class TestBadiCalendar(unittest.TestCase):
             # 1483-03-12T00:00:00
             ((-1, 19, 19, 1, 1), (-361, 1, 1)),
             ((-2, 19, 19, 1, 1), (-722, 1, 1)),
+            # 2024-08-27T13:37:58.651870-4:00
+            ((1, 10, 10, 9, 8, 19, 1, 3, 532799),
+             (181, 9, 8, 19, 1, 3, 532799)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -452,16 +455,21 @@ class TestBadiCalendar(unittest.TestCase):
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
         """
         data = (
-            ((1, 1, 1, 1, 1.761111), False, (1, 1, 1, 1, 1, 18, 15, 59.9904)),
-            ((1, 1, 1, 1, 1.761111), True, (1, 1, 1, 18, 15, 59.9904)),
-            ((0, 6, 6, 1, 1, 1), True, (-260, 1, 1)),
+            ((1, 1, 1, 1, 1.761111), False, False,
+             (1, 1, 1, 1, 1, 18, 15, 59.9904)),
+            ((1, 1, 1, 1, 1.761111), False, True, (1, 1, 1, 18, 15, 59.9904)),
+            ((0, 6, 6, 1, 1, 1), False, True, (-260, 1, 1, 1)),
+            ((1, 10, 10, 9, 8, 19, 1, 3.5328), True, False,
+             (1, 10, 10, 9, 8, 19, 1, 3, 532799)),
+            ((1, 10, 10, 9, 8, 19, 1, 3.5328), True, True,
+             (181, 9, 8, 19, 1, 3, 532799)),
             )
-        msg = "Expected {} for date {}, found {}"
+        msg = "Expected {} for date {} with ms {} and short {}, found {}"
 
-        for date, short, expected_result in data:
-            result = self._bc.kvymdhms_from_b_date(date, short=short)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, result))
+        for date, ms, short, expected_result in data:
+            result = self._bc.kvymdhms_from_b_date(date, ms=ms, short=short)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, ms, short, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_badi_date_from_gregorian_date(self):
@@ -547,6 +555,9 @@ class TestBadiCalendar(unittest.TestCase):
             # which would be the previous Gregorian day.
             (1724265226.246101, 35.7796, -78.6382, -4, True,
              (181, 9, 2, 22, 37, 46.992)),
+            # Test with zone 3.5 (Tehran Iran) 2024-08-28T01:00:00+3:30
+            (1724794198.5490103, None, None, None, True,
+             (181, 9, 9, 2, 53, 4.1568)),
             )
         msg = "Expected {} for timestamp {}, found {}"
 
@@ -578,6 +589,7 @@ class TestBadiCalendar(unittest.TestCase):
         msg7 = ("If there is a part hour then there can be no minutes or "
                 "seconds.")
         msg8 = "If there is a part minute then there can be no seconds."
+        msg9 = "Microsecond value {} > 1000000."
         data = (
             ((1, 1, 1, 1, 1), True, ''),  # Non leap year
             ((1, 10, 3, 1, 1), True, ''), # Known leap year
@@ -585,6 +597,7 @@ class TestBadiCalendar(unittest.TestCase):
             ((-1, 1, 1, 1, 1), True, ''), # Before Badi epoch
             ((1, 10, 2, 0, 1), True, ''), # During Ayyám-i-Há non leap year
             ((1, 10, 3, 0, 1), True, ''), # During Ayyám-i-Há leap year
+            ((1, 10, 10, 9, 8, 19, 1, 3, 532799), True, ''),
             # Invalid Váḥid
             ((1, 0, 1, 1, 1, 1, 1, 1), False, msg0.format(0)),
             ((1, 20, 1, 1, 1, 1, 1, 1), False, msg0.format(20)),
@@ -615,11 +628,13 @@ class TestBadiCalendar(unittest.TestCase):
             ((1, 10, 3, 2, 1, 1.5, 0, 1), False, msg7),
             # Invalid partial minute
             ((1, 10, 3, 2, 1, 1, 1.5, 1), False, msg8),
+            # Invalid microsecond
+            ((1, 10, 10, 9, 8, 19, 1, 3, 1532799), False, msg9.format(1532799)),
             )
 
         for b_date, validity, err_msg in data:
             kull_i_shay, vahid, year, month, day = b_date[:5]
-            hour, minute, second = self._bc._get_hms(b_date)
+            hour, minute, second, ms = self._bc._get_hms(b_date)
             cycle = 4 + self._bc._is_leap_year(b_date)
 
             if validity: # Test for correct dates
@@ -709,8 +724,8 @@ class TestBadiCalendar(unittest.TestCase):
         Test both the long and short for od the Badi Date.
         """
         data = (
-            ((1, 1, 1, 1, 1, 18, 16), False, (18, 16, 0)),
-            ((1, 1, 1, 18, 16), True, (18, 16, 0)),
+            ((1, 1, 1, 1, 1, 18, 16), False, (18, 16, 0, 0)),
+            ((1, 1, 1, 18, 16), True, (18, 16, 0, 0)),
             )
         msg = "Expected {} for date {} amd short {}, found {}"
 

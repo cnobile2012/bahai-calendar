@@ -1208,7 +1208,8 @@ class TestBaseCalendar(unittest.TestCase):
         data = (
             (0.5, (12, 0, 0.0)),
             (0.25, (6, 0, 0.0)),
-            (0.1, (2, 24, 0.0))
+            (0.1, (2, 24, 0.0)),
+            (.1774306, (4, 15, 30.0384))
             )
         msg = "Expected {} with decimal {}, found {}."
 
@@ -1217,21 +1218,42 @@ class TestBaseCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, dec, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_decimal_day_from_hms(self):
         """
         Test that the decimal_day_from_hms method returns the correct
         decimal part of the day.
         """
-        pass
+        data = (
+            ((12, 0, 0.0), 0.5),
+            ((6, 0, 0.0), 0.25),
+            ((2, 24, 0.0), 0.1),
+            ((4, 15, 30), 0.17743055555555556),
+            )
+        msg = "Expected {} with hms {}, found {}."
 
-    @unittest.skip("Temporarily skipped")
+        for hms, expected_result in data:
+            result = self.bc.decimal_day_from_hms(*hms)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, hms, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__sec_microsec_from_seconds(self):
         """
         Test that the _sec_microsec_from_seconds method returns the seconds
         and microseconds from a second + partian as in 10.75 seconds.
         """
-        pass
+        data = (
+            (-18000, (-18000, 0)),
+            (-18000.5, (-18000, 500000)),
+            (100.125, (100, 125000)),
+            )
+        msg = "Expected {} with second {}, found {}."
+
+        for second, expected_result in data:
+            result = self.bc._sec_microsec_from_seconds(second)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, second, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sin_deg(self):

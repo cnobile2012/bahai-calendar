@@ -8,6 +8,7 @@ import time as _time
 import math as _math
 
 from .badi_calendar import BahaiCalendar
+from .structures import struct_time
 
 
 MINYEAR = -1842
@@ -92,8 +93,8 @@ def _ymd2ord(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     dim = _days_in_month(bc, year, month)
     assert 1 <= day <= dim, (
         f"Day for month {month} must be in range of 1..{dim}")
-    return (_days_before_year(bc, year)
-            + _days_before_month(bc, year, month) + day)
+    return (_days_before_year(bc, year) +
+            _days_before_month(bc, year, month) + day)
 
 def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     """
@@ -188,6 +189,23 @@ def _isoweek1jalal(bc:BahaiCalendar, year:int) -> int:
         week1jalal += 7
 
     return week1jalal
+
+def _day_of_week(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
+    """
+    Find the day of the week.
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param year: Badi year
+    :type year: int
+    :param month: Badi month (0..19)
+    :type month: int
+    :param day: Badi day
+    :type day: int
+    :return: The numerical day of the week.
+    :rtype: int
+    """
+    return (_ymd2ord(bc, year, month, day) + 4) % 7
 
 def _parse_isoformat_date_time(bc:BahaiCalendar, dtstr:str) -> tuple:
     """
