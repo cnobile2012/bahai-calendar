@@ -11,7 +11,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from badidatetime import BahaiCalendar, GregorianCalendar
+from badidatetime import BahaiCalendar, GregorianCalendar, datetime
 
 
 class DateTests(BahaiCalendar):
@@ -862,6 +862,7 @@ class DateTests(BahaiCalendar):
         # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
         # 365.2421897
         #self.MEAN_TROPICAL_YEAR = 365.2421897
+        self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
         self.gc = GregorianCalendar()
 
     def check_long_date_from_short_date(self, data):
@@ -939,14 +940,10 @@ class DateTests(BahaiCalendar):
 
             for year in range(options.start, options.end):
                 for month in months:
-                    if month == 0:
-                        a = 4 + self._is_leap_year(year)
+                    dm = 19 if month != 0 else 4 + self._is_leap_year(year)
 
-                        for day in range(1, a + 1):
-                            items.append((year, month, day))
-                    else:
-                        for day in range(1, 20):
-                            items.append((year, month, day))
+                    for day in range(1, dm + 1):
+                        items.append((year, month, day))
 
             for item in items:
                 #jd = self.jd_from_badi_date(item)
@@ -1001,32 +998,19 @@ class DateTests(BahaiCalendar):
 
                 for year in range(options.start, options.end):
                     for month in months:
-                        if month == 0:
-                            a = 4 + self._is_leap_year(year)
+                        dm = 19 if month != 0 else 4 + self._is_leap_year(year)
 
-                            for day in range(1, a + 1):
-                                #sjd = self._jd_from_badi_date(
-                                #    (year, month, day), options=options)
-                                #sss = self._sun_setting(sjd)
+                        for day in range(1, dm + 1):
+                            #sjd = self._jd_from_badi_date(
+                            #    (year, month, day), options=options)
+                            #sss = self._sun_setting(sjd)
 
-                                for hour in range(24):
-                                    date = twentyfour(year, month, day, hour)
-                                    jd = self._jd_from_badi_date(
-                                        date, options=options)
-                                    b_date = self._badi_date_from_jd_alt(jd)
-                                    data.append((date, jd, b_date))
-                        else:
-                            for day in range(1, 20):
-                                #sjd = self._jd_from_badi_date(
-                                #    (year, month, day), options=options)
-                                #sss = self._sun_setting(sjd)
-
-                                for hour in range(24):
-                                    date = twentyfour(year, month, day, hour)
-                                    jd = self._jd_from_badi_date(
-                                        date, options=options)
-                                    b_date = self._badi_date_from_jd_alt(jd)
-                                    data.append((date, jd, b_date))
+                            for hour in range(24):
+                                date = twentyfour(year, month, day, hour)
+                                jd = self._jd_from_badi_date(
+                                    date, options=options)
+                                b_date = self._badi_date_from_jd_alt(jd)
+                                data.append((date, jd, b_date))
 
         return data
 
@@ -1148,6 +1132,44 @@ class DateTests(BahaiCalendar):
 
         return data
 
+    def find_leap_years(self, options):
+        """
+        -e
+
+        Find all the leap years between -1842 and 1161.
+        """
+        data = []
+        months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                  12, 13, 14, 15, 16, 17, 18, 0, 19)
+        start = options.start
+        end = options.end
+        assert -1843 < start < 1162, (
+            f"Start '{start}' must be from -1842 to 1161.")
+        assert -1842 < end < 1163, (
+            f"End '{end}' must be from -1841 to 1162")
+
+        for year in range(start, end):
+            is_leap = self._is_leap_year(year)
+            days = 365 + is_leap
+            total = 0
+
+            for month in months:
+                dm = 19 if month != 0 else 4 + self._is_leap_year(year)
+
+                for day in range(1, dm + 1):
+                    date = (year, month, day)
+                    g_date = self.gregorian_date_from_badi_date(date)
+                    # weekday, wd_name, m_name
+                    weektuple = self._day_of_week(*date)
+                    total += 1
+                    data.append((date, g_date, *weektuple,
+                                 is_leap, days, total))
+
+        return data
+
+    #
+    # Supporing methods
+    #
     def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None, *,
                            options=None):
         year, month, day = self.date_from_kvymdhms(
@@ -1514,6 +1536,13 @@ class DateTests(BahaiCalendar):
         for d in reversed(range(1, days)):
             data.append(((k, v, y, m, d), (year, m, d)))
 
+    def _day_of_week(self, year, month, day):
+        wd = (datetime._ymd2ord(self, year, month, day) + 3) % 7
+        weekday = 7 if wd == 0 else wd
+        wd_name = datetime._DAYNAMES[weekday]
+        m_name = self._MONTHNAMES[month]
+        return weekday, wd_name, m_name
+
 
 if __name__ == "__main__":
     import argparse
@@ -1546,6 +1575,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '-g', '--g-dates', action='store_true', default=False, dest='g_dates',
         help="Convert Badi to Gregorian dates.")
+    parser.add_argument(
+        '-e', '--leap-years', action='store_true', default=False,
+        dest='leap_years', help="Convert Badi to Gregorian dates.")
     parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help="Use alternative leap year method.")
@@ -1741,6 +1773,22 @@ if __name__ == "__main__":
                    )
              for (b_date, bjd, g_date,
                   gjd, diff, offby) in dt.find_gregorian_dates(options)]
+    elif options.leap_years:
+        if options.start is None or options.end is None:
+            print("If option -e is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            [print(f"{str(date):<14} "
+                   f"{str(g_date):<21} "
+                   f"{weekday} "
+                   f"{wd_name:<8} "
+                   f"{m_name:<10} "
+                   f"{str(leap):5s} "
+                   f"{days:<3} "
+                   f"{total:>3}"
+                   ) for (date, g_date, weekday, wd_name, m_name,
+                          leap, days, total) in dt.find_leap_years(options)]
     else:
         parser.print_help()
 

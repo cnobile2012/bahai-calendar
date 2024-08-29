@@ -135,10 +135,10 @@ class struct_time(BahaiCalendar):
                    "one of (-1, 0, 1).")
             raise ValueError(msg)
 
-        if not short:
-            b_date = bc.short_date_from_long_date(date[:8])
-        else:
+        if short:
             b_date = date[:6]
+        else:
+            b_date = bc.short_date_from_long_date(date[:8])
 
         g_date = gc.ymdhms_from_date(bc.gregorian_date_from_badi_date(
             b_date), ms=True)

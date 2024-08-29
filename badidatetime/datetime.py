@@ -13,8 +13,8 @@ from .structures import struct_time
 
 MINYEAR = -1842
 MAXYEAR = 1161
-_DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl',
-             '`Idāl', 'Istijlāl', 'Istiqlāl')
+_DAYNAMES = {1: 'Jalál', 2: 'Jamál', 3: 'Kamál', 4: 'Fiḍāl',
+             5: '`Idāl', 6: 'Istijlāl', 7: 'Istiqlāl'}
 
 def _days_before_year(bc:BahaiCalendar, year:int) -> float:
     """
@@ -205,7 +205,8 @@ def _day_of_week(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     :return: The numerical day of the week.
     :rtype: int
     """
-    return (_ymd2ord(bc, year, month, day) + 4) % 7
+    wd = (_ymd2ord(bc, year, month, day) + 3) % 7
+    return 7 if wd == 0 else wd
 
 def _parse_isoformat_date_time(bc:BahaiCalendar, dtstr:str) -> tuple:
     """
@@ -507,29 +508,28 @@ class date(BahaiCalendar):
         :return: The instantiated class.
         :rtype: date
         """
-        long_f = all((a, b, c, d, e))
-        short_f = all((a, b, c))
-        assert long_f or short_f, (
+        date = [x for x in (a, b, c, d, e) if x is not None]
+        date_len = len(date)
+        assert date_len in (3, 5), (
             "A full short or long form Badi date must be used.")
         self = object.__new__(cls)
         super().__init__(self)
-        #self._bc = BahaiCalendar()
-        self._MONTHNAMES = [name for num, name in self.BADI_MONTH_NAMES]
+        self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
         _check_date_fields(self, a, b, c, d, e)
 
-        if long_f:
+        if date_len == 5:
             self._kull_i_shay = a
             self._vahid = b
             self._year = c
             self._month = d
             self._day = e
-            self.__date = (a, b, c, d, e)
+            self.__date = date
             self.__short = False
         else:
             self._year = a
             self._month = b
             self._day = c
-            self.__date = (a, b, c)
+            self.__date = date
             self.__short = True
 
         self._hashcode = -1
@@ -667,24 +667,24 @@ class date(BahaiCalendar):
         """
         Convert the long form Badi date to a short form Badi date.
         """
-        if not self.__short:
-            date = self.short_date_from_long_date(self.__date)
-        else:
+        if self.__short:
             date = self.__date
+        else:
+            date = self.short_date_from_long_date(self.__date)
 
         return date
 
     def ctime(self):
         """
-        Return ctime() style string.
+        Return ctime() style string in the short form Badi date.
         """
         date = self.__short_from_long_form()
         year, month, day = date[:3]
-        # The -3 below compensates for the difference in the starting
-        # point of Badi weeks.
-        weekday = self.toordinal() % 7 or 7
-        return "%s %s %2d 00:00:00 %04d" % (
-            _DAYNAMES[weekday-1], self._MONTHNAMES[month-1], day, year)
+        weekday = _day_of_week(self, *date[:3])
+        wd_name = _DAYNAMES[weekday]
+        m_name = self._MONTHNAMES[month]
+        y_shim = 4 if year > -1 else 5
+        return f"{wd_name} {m_name} {day:2d} 00:00:00 {year:0{y_shim}d}"
 
     def strftime(self, fmt):
         """
