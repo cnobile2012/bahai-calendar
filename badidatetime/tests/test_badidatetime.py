@@ -176,25 +176,6 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, ordinal, short, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test__build_struct_time(self):
-        """
-        Test that the _build_struct_time function returns a struct of the
-        date and time.
-        """
-        data = (
-            ((1, 1, 1, 0, 0, 0, 0),
-             time.struct_time((1, 1, 1, 0, 0, 0, 1, 1, 0))),
-            ((181, 19, 19, 0, 0, 0, 0),
-             time.struct_time((181, 19, 19, 0, 0, 0, 1, 1, 0))),
-            )
-        msg = "Expected {} with date {}, found {}."
-
-        for date, expected_result in data:
-            result = datetime._build_struct_time(self._bc, *date)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, result))
-
     #@unittest.skip("Temporarily skipped")
     def test__isoweek_to_badi(self):
         """
@@ -256,6 +237,9 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         the week for a given year, month, and day.
         """
         data = (
+            ((-1842, 1, 1), 4),
+            ((-91, 9, 15), 1),
+            ((-91, 10, 8), 6),
             ((181, 9, 9), 4),
             )
         msg = "Expected {} with date {}, found {}."
@@ -516,11 +500,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         date from a POSIX timestamp.
         """
         data = (
-            (0, True, 'badidatetime.datetime.date(126, 16, 1)'),
-            (1723057467.0619307, False,
-             'badidatetime.datetime.date(1, 10, 10, 8, 8)'),
-            (1723057467.0619307, True,
-             'badidatetime.datetime.date(181, 8, 8)'),
+            (0, True, '0126-16-01'),
+            (1723057467.0619307, False, '0181-08-08'),
+            (1723057467.0619307, True, '0181-08-08'),
             )
         msg = "Expected {} with timestamp {}, found {}."
 
@@ -562,10 +544,10 @@ class TestBadiDatetime_date(unittest.TestCase):
         from a date ordinal number.
         """
         data = (
-            (1, False, 'badidatetime.datetime.date(-5, 18, 1, 1, 1)'),
-            (1, True, 'badidatetime.datetime.date(-1842, 1, 1)'),
-            (367, True, 'badidatetime.datetime.date(-1841, 1, 1)'),
-            (738887, True, 'badidatetime.datetime.date(181, 1, 1)'),
+            (1, False, '-1842-01-01'),
+            (1, True, '-1842-01-01'),
+            (367, True, '-1841-01-01'),
+            (738887, True, '0181-01-01'),
             )
         msg = "Expected {} with ordinal {}, found {}."
 
@@ -587,14 +569,10 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg_3 = (f"Year is out of range: {{}}, min {datetime.MINYEAR}, "
                      f"max {datetime.MAXYEAR}.")
         data = (
-            ('0181-01', False, False,
-             'badidatetime.datetime.date(1, 10, 10, 1, 1)'),
-            ('01810101', False, False,
-             'badidatetime.datetime.date(1, 10, 10, 1, 1)'),
-            ('0181-01-01', False, False,
-             'badidatetime.datetime.date(1, 10, 10, 1, 1)'),
-            ('0181-01-01', True, False,
-             'badidatetime.datetime.date(181, 1, 1)'),
+            ('0181-01', False, False, '0181-01-01'),
+            ('01810101', False, False, '0181-01-01'),
+            ('0181-01-01', False, False, '0181-01-01'),
+            ('0181-01-01', True, False, '0181-01-01'),
             # Test error messages.
             (10, False, True, err_msg_0),
             ('0181-01-01T00:00:00', False, True,
@@ -631,12 +609,10 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         err_msg = "Invalid weekday: {} (range is 1..7)"
         data = (
-            ((181, 1, 1), False, False,
-             'badidatetime.datetime.date(1, 10, 10, 1, 3)'),
-            ((181, 1, 1), True, False,
-             'badidatetime.datetime.date(181, 1, 3)'),
-            ((181, 24, 7), True, False,
-             'badidatetime.datetime.date(181, 9, 18)'),
+            # year, week, day in week
+            ((181,  1,    1), False, False, '0181-01-03'),
+            ((181,  1,    1), True, False, '0181-01-03'),
+            ((181,  24,   7), True, False, '0181-09-18'),
             ((181, 1, 10), False, True, err_msg.format(10)),
             )
         msg = "Expected {} with iso {} and short {}, found {}."
@@ -710,16 +686,167 @@ class TestBadiDatetime_date(unittest.TestCase):
             self.assertEqual(expected_result, str(result),
                              msg.format(expected_result, date, result))
 
-
     @unittest.skip("Temporarily skipped")
     def test_strftime(self):
         """
         Test that the strftime method returns a formatted date time string.
         """
+        data = (
+            ((181, 1, 1), '', ''),
+            )
+        msg = "Expected {} with date {} and format {}, found {}."
+
+        for date, fmt, expected_result in data:
+            d = datetime.date(*date)
+            result = d.strftime(fmt)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, fmt, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test___format__(self):
+        """
+        """
         pass
 
+    #@unittest.skip("Temporarily skipped")
+    def test_isoformat(self):
+        """
+        Test that the isoformat method return the ISO formated version of
+        the date represented by this class.
+        """
+        data = (
+            ((181, 1, 1), '0181-01-01'),
+            ((1, 10, 10, 8, 15), '0181-08-15'),
+            )
+        msg = "Expected {} with date {}, found {}."
 
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.isoformat()
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test___str__(self):
+        """
+        Test that the __str__ method returns the ISO formated version of
+        the date represented by the class object.
+        """
+        data = (
+            ((181, 1, 1), '0181-01-01'),
+            ((1, 10, 10, 8, 15), '0181-08-15'),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            result = datetime.date(*date)
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, date, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_kull_i_shay(self):
+        """
+        Test that the kull_i_shay property returns the kull_i_shay value.
+        """
+        data = (
+            ((1, 10, 10, 1, 1), 1),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.kull_i_shay
+            self.assertEqual(expected_result, d.kull_i_shay,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_vahid(self):
+        """
+        Test that the vahid property returns the vahid value.
+        """
+        data = (
+            ((1, 10, 10, 1, 1), 10),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.vahid
+            self.assertEqual(expected_result, d.vahid,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_year(self):
+        """
+        Test that the year property returns the year value.
+        """
+        data = (
+            ((181, 1, 1), 181),
+            ((1, 10, 10, 1, 1), 10),
+             )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.year
+            self.assertEqual(expected_result, d.year,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_month(self):
+        """
+        Test that the month property returns the month value.
+        """
+        data = (
+            ((181, 1, 1), 1),
+            ((1, 10, 10, 1, 1), 1),
+             )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.month
+            self.assertEqual(expected_result, d.month,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_day(self):
+        """
+        Test that the day property returns the day value.
+        """
+        data = (
+            ((181, 1, 1), 1),
+            ((1, 10, 10, 1, 1), 1),
+             )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.day
+            self.assertEqual(expected_result, d.day,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_timetuple(self):
+        """
+        Test that the timetuple returns the correct long or short form object.
+        """
+        data = (
+            ((181, 9, 6),
+             'ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, tm_hour=0, '
+             'tm_min=0, tm_sec=0, tm_wday=1, tm_yday=158, tm_isdst=1)'),
+            ((1, 10, 10, 9, 6),
+             "LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, tm_year=10, "
+              "tm_mon=9, tm_mday=6, tm_hour=0, tm_min=0, tm_sec=0, "
+              "tm_wday=1, tm_yday=158, tm_isdst=1)")
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.timetuple()
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_toordinal(self):
@@ -740,6 +867,59 @@ class TestBadiDatetime_date(unittest.TestCase):
             result = d.toordinal()
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_replace(self):
+        """
+        Test that the replace method returns a new date object with the
+        replaced values.
+        """
+        def execute_replace(date2):
+            if short:
+                year, month, day = date2
+                result = d.replace(year=year, month=month, day=day)
+            else:
+                kull_i_shay, vahid, year, month, day = date2
+                result = d.replace(kull_i_shay=kull_i_shay, vahid=vahid,
+                                   year=year, month=month, day=day)
+
+            return result
+
+        err_msg0 = ("If converting from a short to a long form date all long "
+                    "form fields must be entered.")
+        err_msg1 = ("If converting from a long to a short form date all short "
+                    "form fields must be entered.")
+        data = (
+            # Normal replace for a short date
+            ((181, 1, 1), (182, None, None), True, False, '0182-01-01'),
+            # Normal replace for a long date
+            ((1, 10, 10, 1, 1), (None, None, 11, None, None), False, False,
+             '0182-01-01'),
+            # 
+            #((1, 10, 10, 1, 1), (), True, True, ''),
+            )
+        msg = "Expected {} with date1 {}, date2 {}, and short {}, found {}."
+
+        for date1, date2, short, validity, expected_result in data:
+            d = datetime.date(*date1)
+
+            if validity:
+                try:
+                    result = execute_replace(date2)
+                #except AssertionError as e:
+                #    self.assertEqual(expected_result, str(e))
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
+                #except IndexError as e:
+                #    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date1}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = execute_replace(date2)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, date1, date2, short, str(result)))
 
 
 

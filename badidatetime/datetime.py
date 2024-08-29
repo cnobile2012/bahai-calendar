@@ -118,11 +118,6 @@ def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     jd = bc.jd_from_badi_date((MINYEAR-1, 19, 19)) + n
     return bc.badi_date_from_jd(jd, short=short)
 
-def _build_struct_time(bc, y, m, d, hh, mm, ss, dstflag):
-    wday = (_ymd2ord(bc, y, m, d) + 6) % 7
-    dnum = _days_before_month(bc, y, m) + d
-    return _time.struct_time((y, m, d, hh, mm, ss, wday, dnum, dstflag))
-
 def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
                      short:bool=False) -> tuple:
     """
@@ -508,7 +503,7 @@ class date(BahaiCalendar):
         :return: The instantiated class.
         :rtype: date
         """
-        date = [x for x in (a, b, c, d, e) if x is not None]
+        date = tuple([x for x in (a, b, c, d, e) if x is not None])
         date_len = len(date)
         assert date_len in (3, 5), (
             "A full short or long form Badi date must be used.")
@@ -534,6 +529,10 @@ class date(BahaiCalendar):
 
         self._hashcode = -1
         return self
+
+    @property
+    def is_short(self):
+        return self.__short
 
     # Additional constructors
 
@@ -694,50 +693,62 @@ class date(BahaiCalendar):
         """
         return _wrap_strftime(self, fmt, self.timetuple())
 
-##     def __format__(self, fmt):
-##         if not isinstance(fmt, str):
-##             raise TypeError("must be str, not %s" % type(fmt).__name__)
-##         if len(fmt) != 0:
-##             return self.strftime(fmt)
-##         return str(self)
+    def __format__(self, fmt):
+        if not isinstance(fmt, str):
+            raise TypeError("must be str, not %s" % type(fmt).__name__)
 
-##     def isoformat(self):
-##         """Return the date formatted according to ISO.
+        if len(fmt) != 0:
+            return self.strftime(fmt)
 
-##         This is 'YYYY-MM-DD'.
+        return str(self)
 
-##         References:
-##         - http://www.w3.org/TR/NOTE-datetime
-##         - http://www.cl.cam.ac.uk/~mgk25/iso-time.html
-##         """
-##         return "%04d-%02d-%02d" % (self._year, self._month, self._day)
+    def isoformat(self):
+        """
+        Return the date formatted according to ISO.
 
-##     __str__ = isoformat
+        This is 'YYYY-MM-DD'.
 
-##     # Read-only field accessors
-##     @property
-##     def year(self):
-##         """year (1-9999)"""
-##         return self._year
+        References:
+        - http://www.w3.org/TR/NOTE-datetime
+        - http://www.cl.cam.ac.uk/~mgk25/iso-time.html
+        """
+        year, month, day = self.__short_from_long_form()
+        return f"{year:04d}-{month:02d}-{day:02d}"
 
-##     @property
-##     def month(self):
-##         """month (1-12)"""
-##         return self._month
+    __str__ = isoformat
 
-##     @property
-##     def day(self):
-##         """day (1-31)"""
-##         return self._day
+    # Read-only field accessors
+    @property
+    def kull_i_shay(self):
+        return self._kull_i_shay
 
-##     # Standard conversions, __eq__, __le__, __lt__, __ge__, __gt__,
-##     # __hash__ (and helpers)
+    @property
+    def vahid(self):
+        return self._vahid
+
+    @property
+    def year(self):
+        """year (1-9999)"""
+        return self._year
+
+    @property
+    def month(self):
+        """month (1-12)"""
+        return self._month
+
+    @property
+    def day(self):
+        """day (1-31)"""
+        return self._day
+
+    # Standard conversions, __eq__, __le__, __lt__, __ge__, __gt__,
+    # __hash__ (and helpers)
 
     def timetuple(self):
         """
         Return local time tuple compatible with time.localtime().
         """
-        return _build_struct_time(*self.__short_from_long_form(), 0, 0, 0, -1)
+        return struct_time(self.__date + (0, 0, 0, 0, 0, -1))
 
     def toordinal(self):
         """
@@ -749,17 +760,53 @@ class date(BahaiCalendar):
         """
         return _ymd2ord(self, *self.__short_from_long_form())
 
-##     def replace(self, year=None, month=None, day=None):
-##         """Return a new date with new values for the specified fields."""
-##         if year is None:
-##             year = self._year
-##         if month is None:
-##             month = self._month
-##         if day is None:
-##             day = self._day
-##         return type(self)(year, month, day)
+    def replace(self, *, kull_i_shay:int=None, vahid:int=None, year:int=None,
+                month:int=None, day:int=None) -> object:
+        """
+        Return a new date with new values for the specified fields.
+        """
+        l_form = (kull_i_shay, vahid, year, month, day)
+        s_form = (year, month, day)
 
-##     # Comparisons of date objects with other.
+        if (self.__short and (kull_i_shay or vahid)
+            and not all(l_form)):
+            msg = ("If converting from a short to a long form date all long "
+                   "form fields must be entered.")
+            raise ValueError(msg)
+        elif not self.__short and any(l_form):
+            short = self.__short
+        elif not self.__short and not all(s_form):
+            msg = ("If converting from a long to a short form date all short "
+                   "form fields must be entered.")
+            raise ValueError(msg)
+        elif self.__short:
+            short = self.__short
+        else:
+            short = False if kull_i_shay and vahid else True
+
+        if kull_i_shay is None and not self.__short:
+            kull_i_shay = self._kull_i_shay
+
+        if vahid is None and not self.__short:
+            vahid = self._vahid
+
+        if year is None:
+            year = self._year
+
+        if month is None:
+            month = self._month
+
+        if day is None:
+            day = self._day
+
+        if short:
+            obj = type(self)(year, month, day)
+        else:
+            obj = type(self)(kull_i_shay, vahid, year, month, day)
+
+        return obj
+
+    # Comparisons of date objects with other.
 
 ##     def __eq__(self, other):
 ##         if isinstance(other, date):
