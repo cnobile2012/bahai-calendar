@@ -95,12 +95,14 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
             my_ve_g = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
                 my_ve))
             nasa_ve_jd = self.gc.jd_from_gregorian_date(nasa_ve) + self.HR(3.5)
+            nasa_ve_3p5 = self.gc.ymdhms_from_date(
+                self.gc.gregorian_date_from_jd(nasa_ve_jd))
             #print(year, my_ve, nasa_ve_jd, file=sys.stderr)
             data.append((year,                       # Baha'i year
                          wc_ss,                      # WC sunset
                          my_g_ss,                    # My Gregorian sunset
                          round(my_ss_jd-my_ve, 6),   # Sunset difference
-                         nasa_ve,                    # NASA VE
+                         nasa_ve_3p5,                # NASA VE
                          my_ve_g,                    # My VE
                          round(my_ve-nasa_ve_jd, 6), # VE difference
                          ))
@@ -188,22 +190,24 @@ if __name__ == "__main__":
 
     if options.ve_ss:
         print("The SS Diff is the difference between the Julian Period days "
-              "of the World Centre and my sunset times in Tehran and the\nVE "
-              "Diff is the difference between the Julian Period days of the "
-              "NASA Vernal Equinox, after converting to Tehran time,\nand "
-              "my Vernal Equinox which is already in Tehran time.\n")
+              "of the World Centre and my sunset times in Tehran and the "
+              "VE Diff\nis the difference between the Julian Period days of "
+              "the NASA Vernal Equinox, and my Vernal Equinox. The NASA "
+              "Vernal Equinox date\nand time was originally in UTC time "
+              "which I converted to Tehran standard time. (+3:30)\n")
         print("Year WC Sunset     My Gregorian Sunset            SS Diff  "
-              "NASA's VE (Greenwich) My Vernal Equinox (Tehran)     VE Diff")
-        print('-'*121)
+              "NASA's Vernal Equinox (Tehran) My Vernal Equinox (Tehran)     "
+              "VE Diff")
+        print('-'*130)
         data = [f"{year}  "
                 f"{str(wc_ss):<13} "
                 f"{str(my_g_ss):<30} "
                 f"{ss_diff:<8} "
-                f"{str(nasa_ve):<21} "
+                f"{str(nasa_ve):<30} "
                 f"{str(my_ve):<30} "
                 f"{ve_diff:>9.6f}"
-                for (year, wc_ss, my_g_ss, ss_diff, nasa_ve, my_ve, ve_diff)
-                in cfmes.dump_sunset_after_ve()]
+                for (year, wc_ss, my_g_ss, ss_diff,
+                     nasa_ve, my_ve, ve_diff) in cfmes.dump_sunset_after_ve()]
         [print(line) for line in data]
     elif options.days_in_years:
         data = cfmes.number_of_days()
