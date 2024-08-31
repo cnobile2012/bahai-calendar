@@ -501,7 +501,7 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         data = (
             (0, True, '0126-16-01'),
-            (1723057467.0619307, False, '0181-08-08'),
+            (1723057467.0619307, False, '01-10-10-08-08'),
             (1723057467.0619307, True, '0181-08-08'),
             )
         msg = "Expected {} with timestamp {}, found {}."
@@ -544,7 +544,7 @@ class TestBadiDatetime_date(unittest.TestCase):
         from a date ordinal number.
         """
         data = (
-            (1, False, '-1842-01-01'),
+            (1, False, '-05-18-01-01-01'),
             (1, True, '-1842-01-01'),
             (367, True, '-1841-01-01'),
             (738887, True, '0181-01-01'),
@@ -569,9 +569,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg_3 = (f"Year is out of range: {{}}, min {datetime.MINYEAR}, "
                      f"max {datetime.MAXYEAR}.")
         data = (
-            ('0181-01', False, False, '0181-01-01'),
-            ('01810101', False, False, '0181-01-01'),
-            ('0181-01-01', False, False, '0181-01-01'),
+            ('0181-01', False, False, '01-10-10-01-01'),
+            ('01810101', False, False, '01-10-10-01-01'),
+            ('0181-01-01', False, False, '01-10-10-01-01'),
             ('0181-01-01', True, False, '0181-01-01'),
             # Test error messages.
             (10, False, True, err_msg_0),
@@ -610,10 +610,10 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg = "Invalid weekday: {} (range is 1..7)"
         data = (
             # year, week, day in week
-            ((181,  1,    1), False, False, '0181-01-03'),
-            ((181,  1,    1), True, False, '0181-01-03'),
-            ((181,  24,   7), True, False, '0181-09-18'),
-            ((181, 1, 10), False, True, err_msg.format(10)),
+            ((181,   1,    1), False, False, '01-10-10-01-03'),
+            ((181,   1,    1), True, False, '0181-01-03'),
+            ((181,  24,    7), True, False, '0181-09-18'),
+            ((181,   1,   10), False, True, err_msg.format(10)),
             )
         msg = "Expected {} with iso {} and short {}, found {}."
 
@@ -734,7 +734,7 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         data = (
             ((181, 1, 1), '0181-01-01'),
-            ((1, 10, 10, 8, 15), '0181-08-15'),
+            ((1, 10, 10, 8, 15), '01-10-10-08-15'),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -868,7 +868,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_replace(self):
         """
         Test that the replace method returns a new date object with the
@@ -885,18 +885,22 @@ class TestBadiDatetime_date(unittest.TestCase):
 
             return result
 
-        err_msg0 = ("If converting from a short to a long form date all long "
-                    "form fields must be entered.")
-        err_msg1 = ("If converting from a long to a short form date all short "
-                    "form fields must be entered.")
+        err_msg0 = "Cannot convert from a short to a long form date."
+        err_msg1 = ("Cannot convert from a long to a short form date. The "
+                    "value {} is not valid for long form dates.")
         data = (
             # Normal replace for a short date
             ((181, 1, 1), (182, None, None), True, False, '0182-01-01'),
+            ((181, 1, 1), (None, 9, 12), True, False, '0181-09-12'),
             # Normal replace for a long date
             ((1, 10, 10, 1, 1), (None, None, 11, None, None), False, False,
-             '0182-01-01'),
-            # 
-            #((1, 10, 10, 1, 1), (), True, True, ''),
+             '01-10-11-01-01'),
+            ((1, 10, 10, 1, 1), (None, 9, 10, None, None), False, False,
+             '01-09-10-01-01'),
+            # Error conditions.
+            ((181, 1, 1), (1, 10, None, None, None), False, True, err_msg0),
+            ((1, 10, 10, 1, 1), (181, 1, None), True, True,
+             err_msg1.format(181)),
             )
         msg = "Expected {} with date1 {}, date2 {}, and short {}, found {}."
 
@@ -906,12 +910,8 @@ class TestBadiDatetime_date(unittest.TestCase):
             if validity:
                 try:
                     result = execute_replace(date2)
-                #except AssertionError as e:
-                #    self.assertEqual(expected_result, str(e))
                 except ValueError as e:
                     self.assertEqual(expected_result, str(e))
-                #except IndexError as e:
-                #    self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
                     raise AssertionError(f"With '{date1}' an error is not "

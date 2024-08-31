@@ -506,7 +506,8 @@ class date(BahaiCalendar):
         date = tuple([x for x in (a, b, c, d, e) if x is not None])
         date_len = len(date)
         assert date_len in (3, 5), (
-            "A full short or long form Badi date must be used.")
+            "A full short or long form Badi date must be used, found "
+            f"{date_len} fields.")
         self = object.__new__(cls)
         super().__init__(self)
         self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
@@ -715,7 +716,22 @@ class date(BahaiCalendar):
         year, month, day = self.__short_from_long_form()
         return f"{year:04d}-{month:02d}-{day:02d}"
 
-    __str__ = isoformat
+    def _str_convertion(self):
+        """
+        Return a string representation od the date. In the case of a short
+        from date the returned Badi date is in ISO format. Thre is not iso
+        standard for the long form Badi date.
+        """
+        if self.__short:
+            ret = self.isoformat()
+        else:
+            ind = 3 if self._kull_i_shay < 0 else 2
+            ret = (f"{self._kull_i_shay:0{ind}d}-{self._vahid:02d}-"
+                   f"{self._year:02d}-{self._month:02d}-{self._day:02d}")
+
+        return ret
+
+    __str__ = _str_convertion
 
     # Read-only field accessors
     @property
@@ -765,29 +781,44 @@ class date(BahaiCalendar):
         """
         Return a new date with new values for the specified fields.
         """
-        l_form = (kull_i_shay, vahid, year, month, day)
-        s_form = (year, month, day)
-
-        if (self.__short and (kull_i_shay or vahid)
-            and not all(l_form)):
-            msg = ("If converting from a short to a long form date all long "
-                   "form fields must be entered.")
+        if self.__short and (kull_i_shay or vahid):
+            msg = "Cannot convert from a short to a long form date."
             raise ValueError(msg)
-        elif not self.__short and any(l_form):
-            short = self.__short
-        elif not self.__short and not all(s_form):
-            msg = ("If converting from a long to a short form date all short "
-                   "form fields must be entered.")
+        elif not self.__short and (year < 1 or year > 19):
+            msg = ("Cannot convert from a long to a short form date. The "
+                   f"value {year} is not valid for long form dates.")
             raise ValueError(msg)
         elif self.__short:
-            short = self.__short
+            obj = self._replace_short(year=year, month=month, day=day)
         else:
-            short = False if kull_i_shay and vahid else True
+            obj = self._replace_long(kull_i_shay=kull_i_shay, vahid=vahid,
+                                     year=year, month=month, day=day)
 
-        if kull_i_shay is None and not self.__short:
+        return obj
+
+    def _replace_short(self, *, year:int=None, month:int=None,
+                       day:int=None) -> object:
+        """
+        """
+        if year is None:
+            year = self._year
+
+        if month is None:
+            month = self._month
+
+        if day is None:
+            day = self._day
+
+        return type(self)(year, month, day, None, None)
+
+    def _replace_long(self, *, kull_i_shay:int=None, vahid:int=None,
+                      year:int=None, month:int=None, day:int=None) -> object:
+        """
+        """
+        if kull_i_shay is None:
             kull_i_shay = self._kull_i_shay
 
-        if vahid is None and not self.__short:
+        if vahid is None:
             vahid = self._vahid
 
         if year is None:
@@ -799,39 +830,34 @@ class date(BahaiCalendar):
         if day is None:
             day = self._day
 
-        if short:
-            obj = type(self)(year, month, day)
-        else:
-            obj = type(self)(kull_i_shay, vahid, year, month, day)
-
-        return obj
+        return type(self)(kull_i_shay, vahid, year, month, day)
 
     # Comparisons of date objects with other.
 
-##     def __eq__(self, other):
-##         if isinstance(other, date):
-##             return self._cmp(other) == 0
-##         return NotImplemented
+    def __eq__(self, other):
+        if isinstance(other, date):
+            return self._cmp(other) == 0
+        return NotImplemented
 
-##     def __le__(self, other):
-##         if isinstance(other, date):
-##             return self._cmp(other) <= 0
-##         return NotImplemented
+    def __le__(self, other):
+        if isinstance(other, date):
+            return self._cmp(other) <= 0
+        return NotImplemented
 
-##     def __lt__(self, other):
-##         if isinstance(other, date):
-##             return self._cmp(other) < 0
-##         return NotImplemented
+    def __lt__(self, other):
+        if isinstance(other, date):
+            return self._cmp(other) < 0
+        return NotImplemented
 
-##     def __ge__(self, other):
-##         if isinstance(other, date):
-##             return self._cmp(other) >= 0
-##         return NotImplemented
+    def __ge__(self, other):
+        if isinstance(other, date):
+            return self._cmp(other) >= 0
+        return NotImplemented
 
-##     def __gt__(self, other):
-##         if isinstance(other, date):
-##             return self._cmp(other) > 0
-##         return NotImplemented
+    def __gt__(self, other):
+        if isinstance(other, date):
+            return self._cmp(other) > 0
+        return NotImplemented
 
 ##     def _cmp(self, other):
 ##         assert isinstance(other, date)
