@@ -475,11 +475,13 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         string.
         """
         data = (
-            (datetime.date(181, 1, 1), '%d/%m/%Y, %H:%M:%S', (), False, ''),
+            (datetime.date(181, 1, 1), '%d/%m/%Y, %H:%M:%S', False, ''),
             )
 
-        for date, fmt, tt, validate, err_msg in data:
-            if validate:
+        for date, fmt, validity, err_msg in data:
+            tt = date.timetuple()
+
+            if validity:
                 try:
                     with self.assertRaises(AssertionError) as cm:
                         datetime._wrap_strftime(date, fmt, tt)
@@ -496,8 +498,6 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                                  msg.format(expected_result, time, result))
 
 
-
-
 class TestBadiDatetime_timedalta(unittest.TestCase):
 
     def __init__(self, name):
@@ -510,6 +510,24 @@ class TestBadiDatetime_date(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_is_short(self):
+        """
+        Test that the is_short property properly indicates if the Badi
+        date is in the short or long form.
+        """
+        data = (
+            ((181, 9, 16), True),
+            ((1, 10, 10, 9, 16), False),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.is_short
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_fromtimestamp(self):
@@ -646,6 +664,24 @@ class TestBadiDatetime_date(unittest.TestCase):
                 result = datetime.date.fromisocalendar(*date, short=short)
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, short, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___repr__(self):
+        """
+        Test that the __repr__ returns the expected formatted text.
+        """
+        data = (
+            ((181, 9, 16), 'badidatetime.datetime.date(181, 9, 16)'),
+            ((1, 10, 10, 9, 16),
+             'badidatetime.datetime.date(1, 10, 10, 9, 16)'),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = repr(d)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_ctime(self):

@@ -573,8 +573,7 @@ class date(BahaiCalendar):
         :return: The instantiated class.
         :rtype: date
         """
-        t = _time.time()
-        return cls.fromtimestamp(t, short=short)
+        return cls.fromtimestamp(_time.time(), short=short)
 
     @classmethod
     def fromordinal(cls, n:int, *, short:bool=False) -> object:
@@ -882,28 +881,33 @@ class date(BahaiCalendar):
             self._hashcode = hash(self._getstate())
         return self._hashcode
 
-##     # Computations
+    # Computations
 
-##     def __add__(self, other):
-##         "Add a date to a timedelta."
-##         if isinstance(other, timedelta):
-##             o = self.toordinal() + other.days
-##             if 0 < o <= _MAXORDINAL:
-##                 return type(self).fromordinal(o)
-##             raise OverflowError("result out of range")
-##         return NotImplemented
+    def __add__(self, other):
+        "Add a date to a timedelta."
+        if isinstance(other, timedelta):
+            od = self.toordinal() + other.days
 
-##     __radd__ = __add__
+            if 0 < od <= _MAXORDINAL:
+                return type(self).fromordinal(o)
 
-##     def __sub__(self, other):
-##         """Subtract two dates, or a date and a timedelta."""
-##         if isinstance(other, timedelta):
-##             return self + timedelta(-other.days)
-##         if isinstance(other, date):
-##             days1 = self.toordinal()
-##             days2 = other.toordinal()
-##             return timedelta(days1 - days2)
-##         return NotImplemented
+            raise OverflowError("result out of range")
+
+        return NotImplemented
+
+    __radd__ = __add__
+
+    def __sub__(self, other):
+        """Subtract two dates, or a date and a timedelta."""
+        if isinstance(other, timedelta):
+            return self + timedelta(-other.days)
+
+        if isinstance(other, date):
+            days1 = self.toordinal()
+            days2 = other.toordinal()
+            return timedelta(days1 - days2)
+
+        return NotImplemented
 
     def weekday(self):
         """
