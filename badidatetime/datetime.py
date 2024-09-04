@@ -13,8 +13,12 @@ from .structures import struct_time
 
 MINYEAR = -1842
 MAXYEAR = 1161
-_DAYNAMES = {1: 'Jalál', 2: 'Jamál', 3: 'Kamál', 4: 'Fiḍāl',
-             5: '`Idāl', 6: 'Istijlāl', 7: 'Istiqlāl'}
+DAYNAMES = ('Kamál', 'Fiḍāl', '`Idāl', 'Istijlāl',
+            'Istiqlāl', 'Jalál', 'Jamál')
+
+
+def _cmp(x, y):
+    return 0 if x == y else 1 if x > y else -1
 
 def _days_before_year(bc:BahaiCalendar, year:int) -> float:
     """
@@ -69,6 +73,23 @@ def _days_before_month(bc:BahaiCalendar, year:int, month:int) -> int:
         dbm += 18 * 19 + 4 + bc._is_leap_year(year)
 
     return dbm
+
+def _day_of_week(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
+    """
+    Find the day of the week where .
+
+    :param bc: BahaiCalendar instance.
+    :type bc: BahaiCalendar
+    :param year: Badi year
+    :type year: int
+    :param month: Badi month (0..19)
+    :type month: int
+    :param day: Badi day
+    :type day: int
+    :return: The numerical day of the week.
+    :rtype: int
+    """
+    return (_ymd2ord(bc, year, month, day) % 7 + 7) % 7
 
 def _ymd2ord(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     """
@@ -184,24 +205,6 @@ def _isoweek1jalal(bc:BahaiCalendar, year:int) -> int:
         week1jalal += 7
 
     return week1jalal
-
-def _day_of_week(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
-    """
-    Find the day of the week.
-
-    :param bc: BahaiCalendar instance.
-    :type bc: BahaiCalendar
-    :param year: Badi year
-    :type year: int
-    :param month: Badi month (0..19)
-    :type month: int
-    :param day: Badi day
-    :type day: int
-    :return: The numerical day of the week.
-    :rtype: int
-    """
-    wd = (_ymd2ord(bc, year, month, day) + 3) % 7
-    return 7 if wd == 0 else wd
 
 def _parse_isoformat_date_time(bc:BahaiCalendar, dtstr:str) -> tuple:
     """
@@ -679,9 +682,9 @@ class date(BahaiCalendar):
         Return ctime() style string in the short form Badi date.
         """
         date = self.__short_from_long_form()
-        year, month, day = date[:3]
         weekday = _day_of_week(self, *date[:3])
-        wd_name = _DAYNAMES[weekday]
+        wd_name = DAYNAMES[weekday]
+        year, month, day = date[:3]
         m_name = self._MONTHNAMES[month]
         y_shim = 4 if year > -1 else 5
         return f"{wd_name} {m_name} {day:2d} 00:00:00 {year:0{y_shim}d}"
@@ -859,17 +862,25 @@ class date(BahaiCalendar):
             return self._cmp(other) > 0
         return NotImplemented
 
-##     def _cmp(self, other):
-##         assert isinstance(other, date)
-##         y, m, d = self._year, self._month, self._day
-##         y2, m2, d2 = other._year, other._month, other._day
-##         return _cmp((y, m, d), (y2, m2, d2))
+    def _cmp(self, other):
+        assert isinstance(other, date)
 
-##     def __hash__(self):
-##         "Hash."
-##         if self._hashcode == -1:
-##             self._hashcode = hash(self._getstate())
-##         return self._hashcode
+        if self.__short:
+            d0 = self._year, self._month, self._day
+            d1 = other._year, other._month, other._day
+        else:
+            d0 = (self._kull_i_shay, self._vahid, self._year,
+                  self._month, self._day)
+            d1 = (other._kull_i_shay, other._vahid, other._year,
+                  other._month, other._day)
+
+        return _cmp(d0, d1)
+
+    def __hash__(self):
+        "Hash."
+        if self._hashcode == -1:
+            self._hashcode = hash(self._getstate())
+        return self._hashcode
 
 ##     # Computations
 
@@ -894,54 +905,61 @@ class date(BahaiCalendar):
 ##             return timedelta(days1 - days2)
 ##         return NotImplemented
 
-##     def weekday(self):
-##         "Return day of the week, where Monday == 0 ... Sunday == 6."
-##         return (self.toordinal() + 6) % 7
+    def weekday(self):
+        """
+        Return day of the week, where Jalál (Saturday) == 0 ...
+        Istiqlāl (Friday) == 6.
+        """
+        date = self.__short_from_long_form()
+        return _day_of_week(self, *date[:3])
 
-##     # Day-of-the-week and week-of-the-year, according to ISO
+    # Day-of-the-week and week-of-the-year, according to ISO
 
-##     def isoweekday(self):
-##         "Return day of the week, where Monday == 1 ... Sunday == 7."
-##         # 1-Jan-0001 is a Monday
-##         return self.toordinal() % 7 or 7
+    def isoweekday(self):
+        "Return day of the week, where Monday == 1 ... Sunday == 7."
+        # 1-Jan-0001 is a Monday
+        return self.toordinal() % 7 or 7
 
-##     def isocalendar(self):
-##         """Return a named tuple containing ISO year, week number, and weekday.
+    def isocalendar(self):
+        """
+        Return a named tuple containing ISO year, week number, and weekday.
 
-##         The first ISO week of the year is the (Mon-Sun) week
-##         containing the year's first Thursday; everything else derives
-##         from that.
+        The first ISO week of the year is the (Mon-Sun) week
+        containing the year's first Thursday; everything else derives
+        from that.
 
-##         The first week is 1; Monday is 1 ... Sunday is 7.
+        The first week is 1; Monday is 1 ... Sunday is 7.
 
-##         ISO calendar algorithm taken from
-##         http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
-##         (used with permission)
-##         """
-##         year = self._year
-##         week1monday = _isoweek1monday(year)
-##         today = _ymd2ord(self._year, self._month, self._day)
-##         # Internally, week and day have origin 0
-##         week, day = divmod(today - week1monday, 7)
-##         if week < 0:
-##             year -= 1
-##             week1monday = _isoweek1monday(year)
-##             week, day = divmod(today - week1monday, 7)
-##         elif week >= 52:
-##             if today >= _isoweek1monday(year+1):
-##                 year += 1
-##                 week = 0
-##         return _IsoCalendarDate(year, week+1, day+1)
+        ISO calendar algorithm taken from
+        http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
+        (used with permission)
+        """
+        year = self._year
+        week1monday = _isoweek1monday(year)
+        today = _ymd2ord(self._year, self._month, self._day)
+        # Internally, week and day have origin 0
+        week, day = divmod(today - week1monday, 7)
+
+        if week < 0:
+            year -= 1
+            week1monday = _isoweek1monday(year)
+            week, day = divmod(today - week1monday, 7)
+        elif week >= 52:
+            if today >= _isoweek1monday(year+1):
+                year += 1
+                week = 0
+
+        return _IsoCalendarDate(year, week+1, day+1)
 
 ##     # Pickle support.
 
-##     def _getstate(self):
-##         yhi, ylo = divmod(self._year, 256)
-##         return bytes([yhi, ylo, self._month, self._day]),
+    def _getstate(self):
+        yhi, ylo = divmod(self._year, 256)
+        return bytes([yhi, ylo, self._month, self._day]),
 
-##     def __setstate(self, string):
-##         yhi, ylo, self._month, self._day = string
-##         self._year = yhi * 256 + ylo
+    def __setstate(self, string):
+        yhi, ylo, self._month, self._day = string
+        self._year = yhi * 256 + ylo
 
 ##     def __reduce__(self):
 ##         return (self.__class__, self._getstate())

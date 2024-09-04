@@ -31,12 +31,12 @@ class TestStructures(unittest.TestCase):
         data = (
             ((181, 9, 6, 8, 45, 1, 0, 0, -1), False,
              ("ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, tm_hour=8, "
-              "tm_min=45, tm_sec=1, tm_wday=1, tm_yday=158, tm_isdst=1)",
+              "tm_min=45, tm_sec=1, tm_wday=5, tm_yday=158, tm_isdst=1)",
               'EDT', -14400)),
             ((1, 10, 10, 9, 6, 8, 45, 1, 1, 158, -1), False,
              ("LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, tm_year=10, "
               "tm_mon=9, tm_mday=6, tm_hour=8, tm_min=45, tm_sec=1, "
-              "tm_wday=1, tm_yday=158, tm_isdst=1)",
+              "tm_wday=5, tm_yday=158, tm_isdst=1)",
               'EDT', -14400)),
             ((181, 9, 6, 8, 45, 1, 0, 0, -1, 999), True, err_msg0.format(10)),
             ((1, 0, 10, 9, 6, 8, 45, 1, 1, 158, -1), True, err_msg1.format(0)),

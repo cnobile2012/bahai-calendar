@@ -28,6 +28,24 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         self._bc = BahaiCalendar()
 
     #@unittest.skip("Temporarily skipped")
+    def test__cmp(self):
+        """
+        Test that the _cmp method returns the the correct value for the
+        caparison.
+        """
+        data = (
+            (10, 10, 0),
+            (10, 9, 1),
+            (10, 11, -1),
+            )
+        msg = "Expected {} with x {} and y {}, found {}."
+
+        for x, y, expected_result in data:
+            result = datetime._cmp(x, y)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, x, y, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__days_before_year(self):
         """
         Test that the _days_before_year function returns the correct
@@ -86,7 +104,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
     def test__days_before_month(self):
         """
         Test that the _days_before_month function returns the correct
-        number in days in year preceeding the first day in the currect
+        number of days in the year proceedings the first day in the correct
         month.
         """
         err_msg = "Month must be in range of 0..19"
@@ -127,6 +145,25 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 result = datetime._days_before_month(self._bc, year, month)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, year, month, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__day_of_week(self):
+        """
+        Test that the _day_of_week function returns the correct day of
+        the week for a given year, month, and day.
+        """
+        data = (
+            ((-1842, 1, 1), 1),
+            ((-91, 9, 15), 5),
+            ((-91, 10, 8), 3),
+            ((181, 9, 9), 1),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            result = datetime._day_of_week(self._bc, *date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__ymd2ord(self):
@@ -231,28 +268,9 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                              msg.format(expected_result, year, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__day_of_week(self):
-        """
-        Test that the _day_of_week function returns the correct day of
-        the week for a given year, month, and day.
-        """
-        data = (
-            ((-1842, 1, 1), 4),
-            ((-91, 9, 15), 1),
-            ((-91, 10, 8), 6),
-            ((181, 9, 9), 4),
-            )
-        msg = "Expected {} with date {}, found {}."
-
-        for date, expected_result in data:
-            result = datetime._day_of_week(self._bc, *date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test__parse_isoformat_date_time(self):
         """
-        Test trhat the _parse_isoformat_date_time function returns a
+        Test that the _parse_isoformat_date_time function returns a
         parsed date and time ISO string.
         """
         data = (
@@ -639,12 +657,12 @@ class TestBadiDatetime_date(unittest.TestCase):
         The Gregorian Calendar was adopted and compinsated 11 days.
         """
         data = (
-            # 0001-03-20 Saturday (Fiḍāl -> Tuesday)
+            # 0001-03-20 Sunday (Fiḍāl -> Tuesday)
             ((-1842, 1, 1), 'Fiḍāl Bahá  1 00:00:00 -1842'),
-            # 1582-10-15 Monday (Istijlāl -> Thursday)
-            ((-261, 11, 18), 'Istijlāl Mashíyyat 18 00:00:00 -0261'),
             # 1582-10-04 Thursday (Jamál -> Sunday)
             ((-261, 11, 7), 'Jamál Mashíyyat  7 00:00:00 -0261'),
+            # 1582-10-15 Monday (Istijlāl -> Thursday)
+            ((-261, 11, 18), 'Istijlāl Mashíyyat 18 00:00:00 -0261'),
             # 1700-03-20 Wednesday (Jalál -> Saturday)
             ((-143, 1, 1), 'Jalál Bahá  1 00:00:00 -0143'),
             # 1752-09-02 Wednesday (Jalál -> Saturday)
@@ -653,11 +671,13 @@ class TestBadiDatetime_date(unittest.TestCase):
             ((-91, 10, 8), "Istijlāl 'Izzat  8 00:00:00 -0091"),
             # 1800-03-21 Friday
             ((-43, 1, 1), 'Istiqlāl Bahá  1 00:00:00 -0043'),
+            # 1817-11-12 Wednesday Birthday of Bahá’u’lláh
+            ((-26, 13, 9), '`Idāl Qudrat  9 00:00:00 -0026'),
             # 1825-03-21 Monday
             ((-18, 1, 1), 'Kamál Bahá  1 00:00:00 -0018'),
             # 1843-03-21 Tuesday
             ((0, 1, 1), 'Fiḍāl Bahá  1 00:00:00 0000'),
-            # 1844-03-20 Wednesday
+            # 1844-03-20 Thursday
             ((1, 1, 1), '`Idāl Bahá  1 00:00:00 0001'),
             # 1862-03-21 Friday
             ((19, 1, 1), 'Istiqlāl Bahá  1 00:00:00 0019'),
@@ -834,11 +854,11 @@ class TestBadiDatetime_date(unittest.TestCase):
         data = (
             ((181, 9, 6),
              'ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, tm_hour=0, '
-             'tm_min=0, tm_sec=0, tm_wday=1, tm_yday=158, tm_isdst=1)'),
+             'tm_min=0, tm_sec=0, tm_wday=5, tm_yday=158, tm_isdst=1)'),
             ((1, 10, 10, 9, 6),
              "LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, tm_year=10, "
               "tm_mon=9, tm_mday=6, tm_hour=0, tm_min=0, tm_sec=0, "
-              "tm_wday=1, tm_yday=158, tm_isdst=1)")
+              "tm_wday=5, tm_yday=158, tm_isdst=1)")
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -920,6 +940,182 @@ class TestBadiDatetime_date(unittest.TestCase):
                 result = execute_replace(date2)
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date1, date2, short, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___eq__(self):
+        """
+        Test that the __eq__ method returns True if equal and False if
+        not equal.
+        """
+        data = (
+            ((181, 9, 14), (181, 9, 14), True),
+            ((181, 9, 14), (181, 9, 13), False),
+            ((181, 9, 14), (181, 9, 15), False),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 14), True),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 13), False),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 15), False),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.date(*date0)
+            d1 = datetime.date(*date1)
+            result = d0 == d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___le__(self):
+        """
+        Test that the __le__ method returns True if less than or equal and
+        False if not less than or equal.
+        """
+        data = (
+            ((181, 9, 14), (181, 9, 14), True),
+            ((181, 9, 14), (181, 9, 13), False),
+            ((181, 9, 14), (181, 9, 15), True),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 14), True),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 13), False),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 15), True),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.date(*date0)
+            d1 = datetime.date(*date1)
+            result = d0 <= d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___lt__(self):
+        """
+        Test that the __lt__ method returns True if less than and False
+        if not less than.
+        """
+        data = (
+            ((181, 9, 14), (181, 9, 14), False),
+            ((181, 9, 14), (181, 9, 13), False),
+            ((181, 9, 14), (181, 9, 15), True),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 14), False),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 13), False),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 15), True),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.date(*date0)
+            d1 = datetime.date(*date1)
+            result = d0 < d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___ge__(self):
+        """
+        Test that the __ge__ method returns True if greater than or equal
+        and False if not greater than or equal.
+        """
+        data = (
+            ((181, 9, 14), (181, 9, 14), True),
+            ((181, 9, 14), (181, 9, 13), True),
+            ((181, 9, 14), (181, 9, 15), False),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 14), True),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 13), True),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 15), False),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.date(*date0)
+            d1 = datetime.date(*date1)
+            result = d0 >= d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___gt__(self):
+        """
+        Test that the __gt__ method returns True if greater than and False
+        if not greater than.
+        """
+        data = (
+            ((181, 9, 14), (181, 9, 14), False),
+            ((181, 9, 14), (181, 9, 13), True),
+            ((181, 9, 14), (181, 9, 15), False),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 14), False),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 13), True),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 15), False),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.date(*date0)
+            d1 = datetime.date(*date1)
+            result = d0 > d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__cmp(self):
+        """
+        Test that the _cmp method returns 1 if the two dates are equal, +1
+        if the current date is greater than the test date, and -1 if the
+        inverse.
+        """
+        data = (
+            ((181, 9, 14), (181, 9, 14), 0),
+            ((181, 9, 14), (181, 9, 13), 1),
+            ((181, 9, 14), (181, 9, 15), -1),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 14), 0),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 13), 1),
+            ((1, 10, 10, 9, 14), (1, 10, 10, 9, 15), -1),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.date(*date0)
+            d1 = datetime.date(*date1)
+            result = d0._cmp(d1)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test___hash__(self):
+        """
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test___add__(self):
+        """
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test___radd__(self):
+        """
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test___sub__(self):
+        """
+        """
+        pass
+
+    #@unittest.skip("Temporarily skipped")
+    def test_weekday(self):
+        """
+        Test that the weekday method returns the correct weekday number.
+        """
+        data = (
+            ((), ),
+            )
+
+
+
+
 
 
 

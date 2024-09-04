@@ -1134,7 +1134,7 @@ class DateTests(BahaiCalendar):
 
     def find_leap_years(self, options):
         """
-        -e
+        -e and -S and -E
 
         Find all the leap years between -1842 and 1161.
         """
@@ -1164,6 +1164,55 @@ class DateTests(BahaiCalendar):
                     total += 1
                     data.append((date, g_date, *weektuple,
                                  is_leap, days, total))
+
+        return data
+
+    def find_day_of_week(self, options):
+        """
+        Dump both the Badi and Gregorian weekdays.
+        -w  and -S and -E
+        Optional -R to change the referance day from Jalál to whatever.
+        """
+        data = []
+        months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                  12, 13, 14, 15, 16, 17, 18, 0, 19)
+        _daynames = ['Jalál', 'Jamál', 'Kamál', 'Fiḍāl',
+                     '`Idāl', 'Istijlāl', 'Istiqlāl']
+        _g_daynames = ['Saturday', 'Sunday', 'Monday', 'Tuesday',
+                       'Wednesday', 'Thursday', 'Friday']
+        start = options.start
+        end = options.end
+        assert -1843 < start < 1162, (
+            f"Start '{start}' must be from -1842 to 1161.")
+        assert -1842 < end < 1163, (
+            f"End '{end}' must be from -1841 to 1162")
+        ref_day = options.ref_day
+
+        if ref_day != 'Jalál':
+            if ref_day in _daynames:
+                r_idx = _daynames.index(ref_day)
+                _daynames = _daynames[r_idx:] + _daynames[:r_idx]
+                _g_daynames = _g_daynames[r_idx:] + _g_daynames[:r_idx]
+            else:
+                raise ValueError(f"Invalid reference_day {options.ref_day}. "
+                                 "Must be a valid day of the week.")
+
+        for year in range(start, end):
+            is_leap = self._is_leap_year(year)
+            days = 365 + is_leap
+            total = 0
+
+            for month in months:
+                dm = 19 if month != 0 else 4 + self._is_leap_year(year)
+
+                for day in range(1, dm + 1):
+                    date = (year, month, day)
+                    idx = (datetime._ymd2ord(
+                        self, year, month, day) % 7 + 7) % 7
+                    badi_weekday = _daynames[idx]
+                    greg_weekday = _g_daynames[idx]
+                    data.append((date, ref_day, idx,
+                                 badi_weekday, greg_weekday))
 
         return data
 
@@ -1537,9 +1586,8 @@ class DateTests(BahaiCalendar):
             data.append(((k, v, y, m, d), (year, m, d)))
 
     def _day_of_week(self, year, month, day):
-        wd = (datetime._ymd2ord(self, year, month, day) + 3) % 7
-        weekday = 7 if wd == 0 else wd
-        wd_name = datetime._DAYNAMES[weekday]
+        weekday = (datetime._ymd2ord(self, year, month, day) % 7 + 7) % 7
+        wd_name = datetime.DAYNAMES[weekday]
         m_name = self._MONTHNAMES[month]
         return weekday, wd_name, m_name
 
@@ -1579,6 +1627,9 @@ if __name__ == "__main__":
         '-e', '--leap-years', action='store_true', default=False,
         dest='leap_years', help="Convert Badi to Gregorian dates.")
     parser.add_argument(
+        '-w', '--weekday', action='store_true', default=False,
+        dest='weekday', help="Dump consecutive Badi and Gregorian weekdays.")
+    parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help="Use alternative leap year method.")
     parser.add_argument(
@@ -1611,6 +1662,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '-H', '--hours', action='store_true', default=False, dest='hours',
         help="Test for the consecutive hours.")
+    parser.add_argument(
+        '-R', '--ref-day', type=str, default='Jalál', dest='ref_day',
+        help="Change the referance day. Default is Jalál.")
     options = parser.parse_args()
     exclusive_error = (options.list, options.ck_dates, options.analyze,
                        options.consecutive, options.range != 0)
@@ -1789,6 +1843,19 @@ if __name__ == "__main__":
                    f"{total:>3}"
                    ) for (date, g_date, weekday, wd_name, m_name,
                           leap, days, total) in dt.find_leap_years(options)]
+    elif options.weekday:
+        if options.start is None or options.end is None:
+            print("If option -w is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            [print(f"{str(date):15} "
+                   f"{r_day:8} "
+                   f"{idx} "
+                   f"{bwd:8} "
+                   f"{gwd:9}"
+                   ) for (date, r_day, idx,
+                       bwd, gwd) in dt.find_day_of_week(options)]
     else:
         parser.print_help()
 
