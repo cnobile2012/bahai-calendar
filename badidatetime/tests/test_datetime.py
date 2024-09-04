@@ -889,12 +889,13 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         data = (
             ((181, 9, 6),
-             'ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, tm_hour=0, '
-             'tm_min=0, tm_sec=0, tm_wday=5, tm_yday=158, tm_isdst=1)'),
+             "structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
+             "tm_hour=0, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=158, "
+             "tm_isdst=1)"),
             ((1, 10, 10, 9, 6),
-             "LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, tm_year=10, "
-              "tm_mon=9, tm_mday=6, tm_hour=0, tm_min=0, tm_sec=0, "
-              "tm_wday=5, tm_yday=158, tm_isdst=1)")
+             "structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
+             "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=0, tm_min=0, tm_sec=0, "
+             "tm_wday=5, tm_yday=158, tm_isdst=1)")
             )
         msg = "Expected {} with date {}, found {}."
 

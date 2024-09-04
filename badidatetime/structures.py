@@ -31,7 +31,7 @@ class ShortFormStruct(NamedTuple):
     tm_gmtoff: int = 0 # offset east of UTC in seconds
 
     def __repr__(self) -> str:
-        return (f"ShortFormStruct(tm_year={self.tm_year}, "
+        return (f"structures.ShortFormStruct(tm_year={self.tm_year}, "
                 f"tm_mon={self.tm_mon}, tm_mday={self.tm_mday}, "
                 f"tm_hour={self.tm_hour}, tm_min={self.tm_min}, "
                 f"tm_sec={self.tm_sec}, tm_wday={self.tm_wday}, "
@@ -57,7 +57,8 @@ class LongFormStruct(NamedTuple):
     tm_gmtoff: int = 0   # offset east of UTC in seconds
 
     def __repr__(self) -> str:
-        return (f"LongFormStruct(tm_kull_i_shay={self.tm_kull_i_shay}, "
+        return (f"structures.LongFormStruct("
+                f"tm_kull_i_shay={self.tm_kull_i_shay}, "
                 f"tm_vahid={self.tm_vahid}, tm_year={self.tm_year}, "
                 f"tm_mon={self.tm_mon}, tm_mday={self.tm_mday}, "
                 f"tm_hour={self.tm_hour}, tm_min={self.tm_min}, "
@@ -131,8 +132,8 @@ class struct_time(BahaiCalendar):
         org_tm_isdst = date[-1]
 
         if org_tm_isdst not in (-1, 0, 1):
-            msg = (f"Invalid value for tm_isdst, found {tm_isdst}, should be "
-                   "one of (-1, 0, 1).")
+            msg = (f"Invalid value for tm_isdst, found {org_tm_isdst}, "
+                   "should be one of (-1, 0, 1).")
             raise ValueError(msg)
 
         if short:
