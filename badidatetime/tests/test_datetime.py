@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# badidatetime/test/test_badidatetime.py
+# badidatetime/test/test_datetime.py
 #
 __docformat__ = "restructuredtext en"
 
