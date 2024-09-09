@@ -811,13 +811,12 @@ class BahaiCalendar(BaseCalendar):
         ss1 = self._sun_setting(mjd1, lat, lon, zone)
         ss_diff = ss1 - ss0
         p_ss_diff = ss_diff % 1
+        p = jd % 1 - p_ss_diff
 
         if ss_diff < 0: # The day is shorter than 24 hours.
-            p = jd % 1 - p_ss_diff
             fraction = 1 + p if p > 0 else 1
-            print(fraction)
         else: # ss_diff >= 0 The day is longer than or equal to 24 hours.
-            fraction = 0
+            fraction = p if p < 0 else 0
 
         if hms:
             value = self.hms_from_decimal_day(ss_diff)
