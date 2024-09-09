@@ -800,11 +800,11 @@ class TestBadiCalendar(unittest.TestCase):
             (2460391.2603,  lat, lon, zone, None, True, (0, 0, 49.8528)),
             # Test day mode
             # 1844-03-23 (1844, 3, 23.7603)
-            (2394644.261791, lat, lon, zone, 1, False, 1.0005769999697804),
-            # 1844-03-23 (1844, 3, 23.7603) *** TODO ***
-            (2394647.2603, lat, lon, zone, 3, False, 2.9967869999818504),
-            # 2024-03-04 (2024, 3, 23.7603) *** TODO ***
-            (2460391.2603, lat, lon, zone, 3, False, 2.996640000026673),
+            (2394644.261791, lat, lon, zone, 1, False, 1),
+            # 1844-03-23 (1844, 3, 23.7603) (1, 1, 4)
+            (2394647.2603, lat, lon, zone, 4, False, 4),
+            # 2024-03-04 (2024, 3, 23.7603) (181, 1, 4)
+            (2460391.2603, lat, lon, zone, 4, False, 4),
             )
         msg = "Expected {} for value {}, day {}, and hms {}, found {}"
 

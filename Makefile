@@ -23,7 +23,7 @@ TEST_PATH	= # The path to run tests on.
 all	: help
 
 #----------------------------------------------------------------------
-.PHONY: help
+.PHONY	: help
 help	:
 	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : \
                 2>/dev/null | awk -v RS= \
@@ -33,7 +33,7 @@ help	:
 
 .PHONY	: tar
 tar	: clobber
-	@(cd ..; tar -czvf $(PACKAGE_DIR).tar.gz --exclude=".git" \
+	@(cd ..; tar -cJvf $(PACKAGE_DIR).tar.xz --exclude=".git" \
           --exclude="__pycache__" --exclude=".pytest_cache" $(BASE_DIR))
 
 # Run all tests

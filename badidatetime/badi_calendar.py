@@ -780,7 +780,7 @@ class BahaiCalendar(BaseCalendar):
 
     def _adjust_day_for_24_hours(self, jd:float, lat:float, lon:float,
                                  zone:float, *, day:float=None,
-                                 hms:bool=False) -> float:
+                                 hms:bool=False) -> float|tuple:
         """
         This method does two things. It corrects the Badi time which starts
         at sunset when given a Julian Period day which starts at noon. It
@@ -809,25 +809,26 @@ class BahaiCalendar(BaseCalendar):
         mjd1 = jd1 + diff1
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
         ss1 = self._sun_setting(mjd1, lat, lon, zone)
+        ss_diff = ss1 - ss0
+        p_ss_diff = ss_diff % 1
+
+        if ss_diff < 0: # The day is shorter than 24 hours.
+            p = jd % 1 - p_ss_diff
+            fraction = 1 + p if p > 0 else 1
+            print(fraction)
+        else: # ss_diff >= 0 The day is longer than or equal to 24 hours.
+            fraction = 0
 
         if hms:
-            value = self.hms_from_decimal_day(ss1 - ss0)
-        elif day is None:
-            if ss1 <= mjd0: # Return the Julian day value.
-                # We take the difference between the sunset and Meeus' Julian
-                # day. Since Meeus' day is greater than the sunset we add 1
-                # and the fractional difference in the day.
-                value = jd0 + 1 + (mjd0 - ss1)
-            else: # ss1 > jd0a
-                value = jd
+            value = self.hms_from_decimal_day(ss_diff)
+        elif day is None: # Return the Julian day value.
+            value = jd0 + fraction
         else: # Return the day of the month value.
             # By subtracting the fractional part of the sunset from the
             # fractional part of the Julian Period day you get the time
             # into the Badi day.
-            cor = jd % 1 - ss0 % 1
-            #print((mjd0 - ss1), ss1 <= mjd0)
-
-
-            value = day + (cor if (day + cor) >= 1 else 0)
+            #cor = jd % 1 - ss0 % 1
+            #value = day + (cor if (day + cor) >= 1 else 0)
+            value = day + fraction
 
         return value
