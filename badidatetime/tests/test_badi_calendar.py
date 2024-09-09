@@ -199,7 +199,7 @@ class TestBadiCalendar(unittest.TestCase):
             # A day in Ayyám-i-Há 2022-02-25T17:53:20.2272
             ((178, 0, 1), 2459634.248233),
             ((181, 3, 19, 20), 2460445.128049),     # 2024-05-16T15:03:13.7088
-            # Test one date for each coefficent.
+            # Test one date for each coefficient.
             ((-1842, 1, 1), 1721502.260821),
             ((-1800, 1, 1), 1736843.260751),
             ((-1750, 1, 1), 1755105.260724),
@@ -534,7 +534,7 @@ class TestBadiCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_posix_timestamp(self):
         """
-        Test that the posix_timestamp method returnds the correct Badi
+        Test that the posix_timestamp method returns the correct Badi
         date with a POSIX timestamp as input.
 
         The lat and lon at GMT is:
@@ -735,51 +735,6 @@ class TestBadiCalendar(unittest.TestCase):
                              msg.format(expected_result, date, short, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__meeus_algorithm_date_compensation(self):
-        """
-        Test that the _meeus_algorithm_date_compensation method returns
-        the correct difference needed to compensate for the differences
-        in mime and Meesus' algorithms.
-        """
-        data = (
-            ((-1842, 1, 1), 0),
-            ((-1744, 0, 4, 6, 2, 44.5055), 0),
-            ((-1744, 0, 4, 6, 2, 44.5056), 1),
-            ((-1644, 0, 4, 6, 3, 0.9215), 1),
-            ((-1644, 0, 4, 6, 3, 0.9216), 2),
-            ((-1544, 0, 3, 6, 3, 17.1647), 2),
-            ((-1544, 0, 3, 6, 3, 17.1648), 3),
-            ((-1344, 0, 4, 6, 2, 59.711), 3),
-            ((-1344, 0, 4, 6, 2, 59.712), 4),
-            ((-1244, 0, 4, 6, 3, 18.1151), 4),
-            ((-1244, 0, 4, 6, 3, 18.1152), 5),
-            ((-1144, 0, 3, 6, 3, 37.9007), 5),
-            ((-1144, 0, 3, 6, 3, 37.9008), 6),
-            ((-944, 0, 4, 6, 3, 22.0031), 6),
-            ((-944, 0, 4, 6, 3, 22.0032), 7),
-            ((-844, 0, 4, 6, 3, 42.047), 7),
-            ((-844, 0, 4, 6, 3, 42.048), 8),
-            ((-744, 0, 3, 6, 4, 1.3151), 8),
-            ((-744, 0, 3, 6, 4, 1.3152), 9),
-            ((-544, 0, 4, 6, 3, 46.1087), 9),
-            ((-544, 0, 4, 6, 3, 46.1088), 10),
-            ((-444, 0, 4, 6, 4, 6.23), 10),
-            ((-444, 0, 4, 6, 4, 6.24), 11),
-            ((-344, 0, 3, 6, 4, 27.6671), 11),
-            ((-344, 0, 3, 6, 4, 27.6672), 12),
-            ((-261, 11, 18, 6, 32, 0.23), 12),
-            ((-261, 11, 18, 6, 32, 0.24), 2),
-            ((1, 1, 1), 2),
-            ((181, 1, 1), 2),
-            )
-        msg = "Expected {} for date {}, found {}"
-
-        for date, expected_result in data:
-            result = self._bc._meeus_algorithm_date_compensation(date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test__meeus_algorithm_jd_compensation(self):
         """
         Test that the _meeus_algorithm_jd_compensation method returns
@@ -821,3 +776,40 @@ class TestBadiCalendar(unittest.TestCase):
             result = self._bc._meeus_algorithm_jd_compensation(jd)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__adjust_day_for_24_hours(self):
+        """
+        Test that the _adjust_day_for_24_hours method returns the
+        correct length of day between two sunsets.
+        """
+        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
+        data = (
+            # Test hms mode
+            # 2024-03-20 Vernal Equinox
+            (2460388.261923, lat, lon, zone, None, True, (0, 0, 50.2848)),
+            # 2024-06-20 Summer Solstice
+            (2460479.5, lat, lon, zone, None, True, (0, 0, 12.6144)),
+            # 2024-09-22 Fall Equinox
+            (2460573.5, lat, lon, zone, None, True, (23, 58, 31.9584)),
+            # 2024-12-21 Winter Solstice
+            (2460663.5, lat, lon, zone, None, True, (0, 0, 31.0176)),
+            # 1844-03-23 (1844, 3, 23.7603)
+            (2394647.2603,  lat, lon, zone, None, True, (0, 0, 49.3344)),
+            # 2024-03-04 (2024, 3, 23.7603)
+            (2460391.2603,  lat, lon, zone, None, True, (0, 0, 49.8528)),
+            # Test day mode
+            # 1844-03-23 (1844, 3, 23.7603)
+            (2394644.261791, lat, lon, zone, 1, False, 1.0005769999697804),
+            # 1844-03-23 (1844, 3, 23.7603) *** TODO ***
+            (2394647.2603, lat, lon, zone, 3, False, 2.9967869999818504),
+            # 2024-03-04 (2024, 3, 23.7603) *** TODO ***
+            (2460391.2603, lat, lon, zone, 3, False, 2.996640000026673),
+            )
+        msg = "Expected {} for value {}, day {}, and hms {}, found {}"
+
+        for value, lat, lon, zone, day, hms, expected_result in data:
+            result = self._bc._adjust_day_for_24_hours(value, lat, lon, zone,
+                                                       day=day, hms=hms)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, value, day, hms, result))

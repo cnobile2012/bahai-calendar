@@ -1,4 +1,5 @@
 # Badi Calendar
+# Base requierment packages
 
 #sunrisesunset
 #varname
@@ -6,5 +7,6 @@
 #novas
 #novas_de405
 
+pip
 tzdata
 tzlocal

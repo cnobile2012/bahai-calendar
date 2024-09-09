@@ -181,7 +181,7 @@ class BahaiCalendar(BaseCalendar):
 
         # The diff value converts my jd to the Meeus algorithm for
         # determining the sunset jd.
-        diff = self._meeus_algorithm_date_compensation((year, month, day))
+        diff = self._meeus_algorithm_jd_compensation(jd)
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_coff(year), self.ROUNDING_PLACES)
 
@@ -436,12 +436,13 @@ class BahaiCalendar(BaseCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        # We compensate for the difference between the Meeus algorithm
-        # and mine.
-        m_diff = self._meeus_algorithm_jd_compensation(jd)
-        diff = self._sun_setting(math.floor(jd + m_diff), lat, lon, zone) % 1
-        cor = jd % 1 - diff
-        day += cor if (day + cor) >= 1 else 0
+        ## # We compensate for the difference between the Meeus algorithm
+        ## # and mine.
+        ## m_diff = self._meeus_algorithm_jd_compensation(jd)
+        ## diff = self._sun_setting(math.floor(jd + m_diff), lat, lon, zone) % 1
+        ## cor = jd % 1 - diff
+        ## day += cor if (day + cor) >= 1 else 0
+        day = self._adjust_day_for_24_hours(jd, lat, lon, zone, day=day)
         date = self.long_date_from_short_date((year, month, day))
         return self.kvymdhms_from_b_date(date, short=short)
 
@@ -511,7 +512,7 @@ class BahaiCalendar(BaseCalendar):
 
         :param b_date: The Badi date in long form.
         :type b_date: tuple
-        :param ms: If True the seconds are split to seconds amd microsecends
+        :param ms: If True the seconds are split to seconds amd microseconds
                    else if False the seconds has a partial day as a decimal.
         :type ms: bool
         :param short: If True the short form Badi date is returned else the
@@ -750,42 +751,6 @@ class BahaiCalendar(BaseCalendar):
         ms = date[s+3] if t_len > s+3 and date[s+3] is not None else 0
         return hour, minute, second, ms
 
-    def _meeus_algorithm_date_compensation(self, date:tuple) -> int:
-        """
-        The returned diff value converts my jd to the Meeus algorithm jd
-        for determining the sunset jd.
-
-        :param date: A Badi date.
-        :type date: tuple
-        :return: The difference to subtract from my jd algorithm to arrive
-                 at Meeus' algorithm so that all his algorithms can be use
-                 accurately.
-        :rtype: int
-        """
-        date_diff = (
-            ((-1744, 0, 4, 6, 2, 44.5056), 0),
-            ((-1644, 0, 4, 6, 3, 0.9216), 1),
-            ((-1544, 0, 3, 6, 3, 17.1648), 2),
-            ((-1344, 0, 4, 6, 2, 59.712), 3),
-            ((-1244, 0, 4, 6, 3, 18.1152), 4),
-            ((-1144, 0, 3, 6, 3, 37.9008), 5),
-            ((-944, 0, 4, 6, 3, 22.0032), 6),
-            ((-844, 0, 4, 6, 3, 42.048), 7),
-            ((-744, 0, 3, 6, 4, 1.3152), 8),
-            ((-544, 0, 4, 6, 3, 46.1088), 9),
-            ((-444, 0, 4, 6, 4, 6.24), 10),
-            ((-344, 0, 3, 6, 4, 27.6672), 11),
-            ((-261, 11, 18, 6, 32, 0.24), 12)
-            )
-        diff = 2
-
-        for d, df in date_diff:
-            if date < d:
-                diff = df
-                break
-
-        return diff
-
     def _meeus_algorithm_jd_compensation(self, jd:float) -> int:
         """
         The returned diff value converts my jd to the Meeus algorithm jd
@@ -794,8 +759,8 @@ class BahaiCalendar(BaseCalendar):
         :param jd: My Julian Period day.
         :type jd: float
         :return: The difference to subtract from my jd algorithm to arrive
-                 at Meeus' algorithm so that all his algorithms can be use
-                 accurately.
+                 at Meeus' jd algorithm so that all his algorithms can be
+                 use accurately.
         :rtype: int
         """
         jd_diff = (
@@ -812,3 +777,57 @@ class BahaiCalendar(BaseCalendar):
                 break
 
         return diff
+
+    def _adjust_day_for_24_hours(self, jd:float, lat:float, lon:float,
+                                 zone:float, *, day:float=None,
+                                 hms:bool=False) -> float:
+        """
+        This method does two things. It corrects the Badi time which starts
+        at sunset when given a Julian Period day which starts at noon. It
+        also corrects the day and the fraction of the day when the Badi day
+        is more or less 24 hours.
+
+
+        There are three different outputs that can be had.
+          1. The adjusted Julian Period day.
+          2. The adjusted day.
+          3. The hour, minute, and seconds of the days offset either less
+             than or more than 24 hours.
+        """
+        if day is not None and hms:
+            raise ValueError(
+                "Cannot use the day and hms arguments at the same time.")
+
+        jd0 = math.floor(jd)
+        jd1 = jd0 + 1
+        # The diff values converts my jd to the Meeus algorithm jd so
+        # that the sunset can be determined properly. The fractional day
+        # of either algorithm would be the same.
+        diff0 = self._meeus_algorithm_jd_compensation(jd0)
+        diff1 = self._meeus_algorithm_jd_compensation(jd1)
+        mjd0 = jd0 + diff0
+        mjd1 = jd1 + diff1
+        ss0 = self._sun_setting(mjd0, lat, lon, zone)
+        ss1 = self._sun_setting(mjd1, lat, lon, zone)
+
+        if hms:
+            value = self.hms_from_decimal_day(ss1 - ss0)
+        elif day is None:
+            if ss1 <= mjd0: # Return the Julian day value.
+                # We take the difference between the sunset and Meeus' Julian
+                # day. Since Meeus' day is greater than the sunset we add 1
+                # and the fractional difference in the day.
+                value = jd0 + 1 + (mjd0 - ss1)
+            else: # ss1 > jd0a
+                value = jd
+        else: # Return the day of the month value.
+            # By subtracting the fractional part of the sunset from the
+            # fractional part of the Julian Period day you get the time
+            # into the Badi day.
+            cor = jd % 1 - ss0 % 1
+            #print((mjd0 - ss1), ss1 <= mjd0)
+
+
+            value = day + (cor if (day + cor) >= 1 else 0)
+
+        return value

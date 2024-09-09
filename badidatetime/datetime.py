@@ -13,8 +13,10 @@ from .structures import struct_time
 
 MINYEAR = -1842
 MAXYEAR = 1161
-DAYNAMES = ('Kamál', 'Fiḍāl', '`Idāl', 'Istijlāl',
-            'Istiqlāl', 'Jalál', 'Jamál')
+# This keeps the Badi day count in par with the Gregorian day count.
+DAYS_BEFORE_1ST_YEAR = 78
+DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl',
+            '`Idāl', 'Istijlāl', 'Istiqlāl')
 
 
 def _cmp(x, y):
@@ -89,7 +91,9 @@ def _day_of_week(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     :return: The numerical day of the week.
     :rtype: int
     """
-    return (_ymd2ord(bc, year, month, day) % 7 + 7) % 7
+    # Since the usual start day is Monday (Kamál) a properly aligned
+    # day number to the day name we need to add 2 to the ordinal.
+    return ((_ymd2ord(bc, year, month, day) + 1) % 7 + 7) % 7
 
 def _ymd2ord(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     """
@@ -114,7 +118,9 @@ def _ymd2ord(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     dim = _days_in_month(bc, year, month)
     assert 1 <= day <= dim, (
         f"Day for month {month} must be in range of 1..{dim}")
-    return (_days_before_year(bc, year) +
+    # We add 78 days to the total so that the ordinal number can be
+    # compared to the ordinals in the standard datetime package.
+    return (DAYS_BEFORE_1ST_YEAR + _days_before_year(bc, year) +
             _days_before_month(bc, year, month) + day)
 
 def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
@@ -136,15 +142,17 @@ def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     :return: The Badi date.
     :rtype: tuple
     """
-    jd = bc.jd_from_badi_date((MINYEAR-1, 19, 19)) + n
+    # We subtract 78 days from the total so that the Badi date will
+    # be the same as the date value passed into _ymd2ord.
+    jd = bc.jd_from_badi_date((MINYEAR-1, 19, 19)) - DAYS_BEFORE_1ST_YEAR + n
     return bc.badi_date_from_jd(jd, short=short)
 
 def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
                      short:bool=False) -> tuple:
     """
-    We count the week from Jalal (Saturday) as the first day and
-    Istiqlal (Friday) the last day of the week. This is different from
-    the usual way ISO weeks are counted which is Monday to Sunday.
+    The week counts from Jalal (Saturday) as the first day and Istiqlal
+    (Friday) the last day of the week. This is different from the usual
+    way ISO weeks are counted which is Monday to Sunday.
 
     :param bc: BahaiCalendar instance.
     :type bc: BahaiCalendar
@@ -170,15 +178,15 @@ def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
             # (Monday). Badi weeks start on Jalal (Saturday).
             first_weekday = _ymd2ord(bc, year, 1, 1) % 7
 
-            if (first_weekday == 4 or
-                (first_weekday == 3 and bc._is_leap_year(year))):
+            if (first_weekday == 4 or (first_weekday == 3 and
+                                       bc._is_leap_year(year))):
                 out_of_range = False
 
         assert not out_of_range, f"Invalid week: {week}"
 
     assert 0 < day < 8, f"Invalid weekday: {day} (range is 1..7)"
     # Now compute the offset from (Y, 1, 1) in days:
-    day_offset = (week - 1) * 7 + day
+    day_offset = (week - 1) * 7 + (day - 1)
     # Calculate the ordinal day for Jalal, week 1
     day_1 = _isoweek1jalal(bc, year)
     ord_day = day_1 + day_offset
@@ -186,9 +194,8 @@ def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
 
 def _isoweek1jalal(bc:BahaiCalendar, year:int) -> int:
     """
-    Calculate the day number of the first Jalal (Saturday) in the year
-    which would be the first week with 4 or more days in the year in
-    question.
+    Calculate the day number of Jalal (Saturday) starting week 1. It
+    would be the first week with 4 or more days in the year in question.
 
     :param bc: BahaiCalendar instance.
     :type bc: BahaiCalendar
@@ -198,10 +205,10 @@ def _isoweek1jalal(bc:BahaiCalendar, year:int) -> int:
     :rtype: int
     """
     firstday = _ymd2ord(bc, year, 1, 1)
-    firstweekday = (firstday + 3) % 7
+    firstweekday = (firstday - 6) % 7
     week1jalal = firstday - firstweekday
 
-    if firstweekday > 3: # First week day > Fidal
+    if firstweekday > 3: # First week day >= Fidal
         week1jalal += 7
 
     return week1jalal

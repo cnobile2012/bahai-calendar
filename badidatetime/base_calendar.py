@@ -1217,8 +1217,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           If a whole number as in 10.5 is passed in, the 10 will be
-           stripped off before calculations are done.
+           If a whole number as in 10.5 is passed in, the value to the left
+           of the decimal will stripped off before calculations are done.
         """
         h = self.PARTIAL_DAY_TO_HOURS(dec)
         hour = math.floor(h)

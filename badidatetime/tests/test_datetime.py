@@ -153,10 +153,10 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         the week for a given year, month, and day.
         """
         data = (
-            ((-1842, 1, 1), 1),
-            ((-91, 9, 15), 5),
-            ((-91, 10, 8), 3),
-            ((181, 9, 9), 1),
+            ((-1842, 1, 1), 3),
+            ((-91, 9, 15), 0),
+            ((-91, 10, 8), 5),
+            ((181, 9, 9), 3),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -174,9 +174,9 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         err_msg_0 = "Month must be in range of 0..19"
         err_msg_1 = "Day for month {} must be in range of 1..{}"
         data = (
-            ((-1842, 1, 1), False, 1),
-            ((-1841, 1, 1), False, 367),
-            ((181, 1, 1), False, 738887),
+            ((-1842, 1, 1), False, 79),
+            ((-1841, 1, 1), False, 445),
+            ((181, 1, 1), False, 738965),
             ((181, 20, 1), True, err_msg_0),
             ((181, 19, 20), True, err_msg_1.format(19, 19)),
             )
@@ -201,10 +201,10 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         from the Badi year -1842.
         """
         data = (
-            (1, False, (-5, 18, 1, 1, 1)),
-            (1, True, (-1842, 1, 1)),
-            (367, True, (-1841, 1, 1)),
-            (738887, True, (181, 1, 1)),
+            (79, False, (-5, 18, 1, 1, 1)),
+            (79, True, (-1842, 1, 1)),
+            (445, True, (-1841, 1, 1)),
+            (738965, True, (181, 1, 1)),
             )
         msg = "Expected {} with ordinal {} and short {}, found {}."
 
@@ -216,22 +216,24 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test__isoweek_to_badi(self):
         """
-        Test that the _isoweek_to_badi function
+        Test that the _isoweek_to_badi function returns the ordinal for the
+        year, month, and day using the year week number and day in the week.
         """
         err_msg_0 = "Invalid week: {}"
         err_msg_1 = "Invalid weekday: {} (range is 1..7)"
         data = (
-            ((-1842, 1, 1), False, False, (-5, 18, 1, 1, 4, 23, 57, 45.3888)),
-            ((-1842, 1, 1), True, False, (-1842, 1, 4, 23, 57, 45.3888)),
-            ((181, 1, 1), True, False, (181, 1, 3, 23, 55, 9.696)),
-            ((182, 1, 1), True, False, (182, 1, 2, 23, 56, 11.6448)),
-            ((183, 1, 1), True, False, (183, 1, 1)),
-            ((181, 1, 7), True, False, (181, 1, 9, 23, 50, 11.7024)),
-            ((181, 20, 7), True, False, (181, 8, 9, 23, 15, 32.0544)),
-            ((182, 53, 1), True, False, (183, 1, 1)),
-            ((181, 53, 1), False, True, err_msg_0.format(53)),
-            ((181, 54, 1), False, True, err_msg_0.format(54)),
-            ((181, 20, 10), False, True, err_msg_1.format(10)),
+            # year  week day
+            ((-1842,  1,  1), False, False, (-5, 18, 1, 1, 2, 23, 58, 30.144)),
+            ((-1842,  1,  1), True,  False, (-1842, 1, 2, 23, 58, 30.144)),
+            ((  181,  1,  1), True,  False, (181, 1, 1, 23, 57, 39.7728)),
+            ((  182,  1,  1), True,  False, (182, 1, 1)),
+            ((  183,  1,  1), True,  False, (183, 1, 1)),
+            ((  181,  1,  7), True,  False, (181, 1, 9, 23, 50, 11.7024)),
+            ((  181, 20,  7), True,  False, (181, 8, 9, 23, 15, 32.0544)),
+            ((  182, 53,  1), True,  False, (183, 1, 1)),
+            ((  181, 53,  1), False, True, err_msg_0.format(53)),
+            ((  181, 54,  1), False, True, err_msg_0.format(54)),
+            ((  181, 20, 10), False, True, err_msg_1.format(10)),
             )
         msg = "Expected {} with (year, week, day) {}, found {}."
 
@@ -255,10 +257,10 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         the first week with more than 3 days in it.
         """
         data = (
-            (1, 673145),   # 1844-03-22
-            (181, 738889), # 2024-03-23
-            (182, 739253), # 2025-03-22
-            (183, 739617), # 2026-03-20
+            (  1, 673224), # 1844-03-23 The 4th day in Baha
+            (181, 738968), # 2024-03-23
+            (182, 739332), # 2025-03-22
+            (183, 739696), # 2026-03-21
             )
         msg = "Expected {} with year {}, found {}."
 
@@ -580,10 +582,10 @@ class TestBadiDatetime_date(unittest.TestCase):
         from a date ordinal number.
         """
         data = (
-            (1, False, '-05-18-01-01-01'),
-            (1, True, '-1842-01-01'),
-            (367, True, '-1841-01-01'),
-            (738887, True, '0181-01-01'),
+            (79, False, '-05-18-01-01-01'),
+            (79, True, '-1842-01-01'),
+            (445, True, '-1841-01-01'),
+            (738965, True, '0181-01-01'),
             )
         msg = "Expected {} with ordinal {}, found {}."
 
@@ -647,8 +649,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         data = (
             # year, week, day in week
             ((181,   1,    1), False, False, '01-10-10-01-03'),
-            ((181,   1,    1), True, False, '0181-01-03'),
-            ((181,  24,    7), True, False, '0181-09-18'),
+            ((181,   1,    1), True,  False, '0181-01-03'),
+            ((181,  24,    7), True,  False, '0181-09-18'),
             ((181,   1,   10), False, True, err_msg.format(10)),
             )
         msg = "Expected {} with iso {} and short {}, found {}."
@@ -890,12 +892,12 @@ class TestBadiDatetime_date(unittest.TestCase):
         data = (
             ((181, 9, 6),
              "structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
-             "tm_hour=0, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=158, "
+             "tm_hour=0, tm_min=0, tm_sec=0, tm_wday=0, tm_yday=158, "
              "tm_isdst=1)"),
             ((1, 10, 10, 9, 6),
              "structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
              "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=0, tm_min=0, tm_sec=0, "
-             "tm_wday=5, tm_yday=158, tm_isdst=1)")
+             "tm_wday=0, tm_yday=158, tm_isdst=1)")
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -911,11 +913,11 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the toordinal method returns a proleptic Badi ordinal.
         """
         data = (
-            ((-1842, 1, 1), 1),
-            ((1, 1, 1), 673143),
-            ((181, 1, 1), 738887),
-            ((181, 8, 15), 739034),
-            ((1, 10, 10, 8, 15), 739034),
+            ((-1842, 1, 1), 79),
+            ((1, 1, 1), 673221),
+            ((181, 1, 1), 738965),
+            ((181, 8, 15), 739112),
+            ((1, 10, 10, 8, 15), 739112),
             )
         msg = "Expected {} with date {}, found {}."
 
