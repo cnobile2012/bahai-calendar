@@ -790,21 +790,24 @@ class TestBadiCalendar(unittest.TestCase):
             (2460388.261923, lat, lon, zone, None, True, (0, 0, 50.2848)),
             # 2024-06-20 Summer Solstice
             (2460479.5, lat, lon, zone, None, True, (0, 0, 12.6144)),
-            # 2024-09-22 Fall Equinox
-            (2460573.5, lat, lon, zone, None, True, (23, 58, 31.9584)),
+            # 2024-09-22T19:44:00+3:30 Fall Equinox
+            (2460574.322222, lat, lon, zone, None, True, (23, 58, 32.1312)),
             # 2024-12-21 Winter Solstice
             (2460663.5, lat, lon, zone, None, True, (0, 0, 31.0176)),
             # 1844-03-23 (1844, 3, 23.7603)
             (2394647.2603,  lat, lon, zone, None, True, (0, 0, 49.3344)),
             # 2024-03-04 (2024, 3, 23.7603)
             (2460391.2603,  lat, lon, zone, None, True, (0, 0, 49.8528)),
-            # Test day mode
-            # 1844-03-23 (1844, 3, 23.7603)
-            (2394644.261791, lat, lon, zone, 1, False, 1),
+            # Test > 24 day mode
+            # 1844-03-20 (1844, 3, 20.761791)
+            (2394644.261791, lat, lon, zone, 1, False, 1.261214000172913),
             # 1844-03-23 (1844, 3, 23.7603) (1, 1, 4)
-            (2394647.2603, lat, lon, zone, 4, False, 4),
+            (2394647.2603, lat, lon, zone, 4, False, 4.259729000274092),
             # 2024-03-04 (2024, 3, 23.7603) (181, 1, 4)
-            (2460391.2603, lat, lon, zone, 4, False, 4),
+            (2460391.2603, lat, lon, zone, 4, False, 4.259723000228405),
+            # Test < 24 day mode
+            # 2024-09-22T19:44:00+3:30 Fall Equinox (181, 10, 16.073624)
+            (2460574.322222, lat, lon, zone, 15, False, 16.073624),
             )
         msg = "Expected {} for value {}, day {}, and hms {}, found {}"
 

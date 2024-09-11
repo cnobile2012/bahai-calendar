@@ -782,10 +782,11 @@ class BahaiCalendar(BaseCalendar):
                                  zone:float, *, day:float=None,
                                  hms:bool=False) -> float|tuple:
         """
+        We have to deal with days that are either more or less than 24 hours.
         This method does two things. It corrects the Badi time which starts
         at sunset when given a Julian Period day which starts at noon. It
         also corrects the day and the fraction of the day when the Badi day
-        is more or less 24 hours.
+        is more or less than 24 hours.
 
         :param jd: The Julian Period day possibly with a fraction.
         :type jd: float
@@ -813,15 +814,6 @@ class BahaiCalendar(BaseCalendar):
                  less than or more than 24 hours.
            2. Determine what to do with the fractional part of either a day
               or a Julian day.
-              a. With a positive difference between the sunset for the
-                 next Julian day minus the sunset of the provided day.
-                 1. With a positive fractional difference of the jd minus
-                    the sunset difference.
-                 2. With a negative fractional difference of the jd minus
-                    the sunset difference.
-              b. With a negative difference between the sunset for the
-                 next Julian day minus the sunset of the provided day.
-
         """
         if day is not None and hms:
             raise ValueError(
@@ -839,27 +831,30 @@ class BahaiCalendar(BaseCalendar):
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
         ss1 = self._sun_setting(mjd1, lat, lon, zone)
         ss_diff = ss1 - ss0
-        p_ss_diff = ss_diff % 1
-        p = jd % 1 - p_ss_diff
-
-        if ss_diff < 0: # The day is shorter than 24 hours.
-            fraction = 1 + p if p > 0 else 1
-            print('POOP0', ss_diff, fraction, p)
-        else: # ss_diff >= 0 The day is longer than or equal to 24 hours.
-            fraction = p if p < 0 else 0
-            print('POOP1', ss_diff, fraction, p)
 
         if hms:
             value = self.hms_from_decimal_day(ss_diff)
-        elif day is None: # Return the Julian day value.
-            value = jd0 + fraction
-        else: # Return the day of the month value.
-            # By subtracting the fractional part of the sunset from the
-            # fractional part of the Julian Period day you get the time
-            # into the Badi day.
-            #cor = jd % 1 - ss0 % 1
-            #value = day + (cor if (day + cor) >= 1 else 0)
-            value = day + fraction
+        else:
+            p_ss_diff = ss_diff % 1
+            # Subtract the sunset difference from the fractional jd.
+            p = jd % 1 - p_ss_diff
+
+            if ss_diff < 1: # The day is shorter than 24 hours.
+                fraction = 1 + p if p > 0 else - (p + jd % 1 - 0.5)
+                print('POOP0', ss_diff, fraction, p, )
+            else: # ss_diff >= 1 The day is longer than or equal to 24 hours.
+                fraction = p
+                print('POOP1', ss_diff, fraction, p)
+
+            if day is None: # Return the Julian day value.
+                value = jd0 + fraction
+            else: # Return the day of the month value.
+                # By subtracting the fractional part of the sunset from the
+                # fractional part of the Julian Period day you get the time
+                # into the Badi day.
+                #cor = jd % 1 - ss0 % 1
+                #value = day + (cor if (day + cor) >= 1 else 0)
+                value = day + fraction
 
         #print(jd, day, hms, ss_diff, p, fraction, value)
         return value
