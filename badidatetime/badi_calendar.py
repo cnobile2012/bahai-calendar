@@ -787,12 +787,41 @@ class BahaiCalendar(BaseCalendar):
         also corrects the day and the fraction of the day when the Badi day
         is more or less 24 hours.
 
+        :param jd: The Julian Period day possibly with a fraction.
+        :type jd: float
+        :param lat: The latitude.
+        :type lat: float
+        :param lon: The longitude.
+        :type lon: float
+        :param zone: The standard time zone.
+        :type zone: float
+        :param day: The day that gets modified. This parameter is optional.
+        :type day: float
+        :param hms: If True the returned value is a tuple in the form of
+                    (hh, mm, ss) indicating the length of the day else if
+                    False one of the other two values are returned.
+        :type hms: bool
+        :return: See the below note.
+        :rtype: float | tuple
 
-        There are three different outputs that can be had.
-          1. The adjusted Julian Period day.
-          2. The adjusted day.
-          3. The hour, minute, and seconds of the days offset either less
-             than or more than 24 hours.
+        .. note::
+
+           1. There are three different outputs that can be returned.
+              a. The adjusted Julian Period day.
+              b. The adjusted day.
+              c. The hour, minute, and seconds of the days offset either
+                 less than or more than 24 hours.
+           2. Determine what to do with the fractional part of either a day
+              or a Julian day.
+              a. With a positive difference between the sunset for the
+                 next Julian day minus the sunset of the provided day.
+                 1. With a positive fractional difference of the jd minus
+                    the sunset difference.
+                 2. With a negative fractional difference of the jd minus
+                    the sunset difference.
+              b. With a negative difference between the sunset for the
+                 next Julian day minus the sunset of the provided day.
+
         """
         if day is not None and hms:
             raise ValueError(
@@ -815,8 +844,10 @@ class BahaiCalendar(BaseCalendar):
 
         if ss_diff < 0: # The day is shorter than 24 hours.
             fraction = 1 + p if p > 0 else 1
+            print('POOP0', ss_diff, fraction, p)
         else: # ss_diff >= 0 The day is longer than or equal to 24 hours.
             fraction = p if p < 0 else 0
+            print('POOP1', ss_diff, fraction, p)
 
         if hms:
             value = self.hms_from_decimal_day(ss_diff)
@@ -830,4 +861,5 @@ class BahaiCalendar(BaseCalendar):
             #value = day + (cor if (day + cor) >= 1 else 0)
             value = day + fraction
 
+        #print(jd, day, hms, ss_diff, p, fraction, value)
         return value
