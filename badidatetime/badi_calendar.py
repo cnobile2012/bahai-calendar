@@ -837,14 +837,14 @@ class BahaiCalendar(BaseCalendar):
         else:
             p_ss_diff = ss_diff % 1
             # Subtract the sunset difference from the fractional jd.
-            p = jd % 1 - p_ss_diff
+            p = round(jd % 1 - p_ss_diff, self.ROUNDING_PLACES)
 
             if ss_diff < 1: # The day is shorter than 24 hours.
-                fraction = 1 + p if p > 0 else - (p + jd % 1 - 0.5)
-                print('POOP0', ss_diff, fraction, p, )
+                fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES)
+                #print('POOP0', ss_diff, fraction, p, ss1 % 1)
             else: # ss_diff >= 1 The day is longer than or equal to 24 hours.
                 fraction = p
-                print('POOP1', ss_diff, fraction, p)
+                #print('POOP1', ss_diff, fraction, p)
 
             if day is None: # Return the Julian day value.
                 value = jd0 + fraction

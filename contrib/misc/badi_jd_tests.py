@@ -18,13 +18,12 @@ class DateTests(BahaiCalendar):
     # The following three must be updated in unison.
     # This must be the first Gregorian date in TMP_ANS_DATES below.
     TRAN_COFF = 1843
+    # Equinox and Solstices, Perihelion, and Aphelion
     # https://www.timeanddate.com/sun/@112931?month=3&year=1844
     # The site below is where I've gotten the Vernal Equinox data it uses
     # the 4, 100, and 400 algorithm, so we must also. The 4 and 128 algorithm
     # is more accurate, but I've not found Vernal Equinox data that uses it.
     # https://data.giss.nasa.gov/modelE/ar5plots/srvernal.html
-    #------------------------------------------------------------------------
-    # Equinox and Solstices, Perihelion, and Aphelion
     # https://aa.usno.navy.mil/data/Earth_Seasons
     # https://www.astropixels.com/ephemeris/soleq2001.html
     # https://stellafane.org/misc/equinox.html
@@ -854,6 +853,8 @@ class DateTests(BahaiCalendar):
         ((182, 0, 1), (2026, 2, 25, 17, 57, 29.0592)),
         ((182, 0, 5), (2026, 3, 1, 18, 1, 8.9472)),
         )
+    MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+              12, 13, 14, 15, 16, 17, 18, 0, 19)
 
     def __init__(self):
         super().__init__()
@@ -921,8 +922,6 @@ class DateTests(BahaiCalendar):
         There should be no output so any output indicates inconsecutive years.
         """
         data = []
-        months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                  12, 13, 14, 15, 16, 17, 18, 0, 19)
         py = 0
 
         if options.year:
@@ -939,7 +938,7 @@ class DateTests(BahaiCalendar):
             last_date = ()
 
             for year in range(options.start, options.end):
-                for month in months:
+                for month in self.MONTHS:
                     dm = 19 if month != 0 else 4 + self._is_leap_year(year)
 
                     for day in range(1, dm + 1):
@@ -997,7 +996,7 @@ class DateTests(BahaiCalendar):
                     return date
 
                 for year in range(options.start, options.end):
-                    for month in months:
+                    for month in self.MONTHS:
                         dm = 19 if month != 0 else 4 + self._is_leap_year(year)
 
                         for day in range(1, dm + 1):
@@ -1139,8 +1138,6 @@ class DateTests(BahaiCalendar):
         Find all the leap years between -1842 and 1161.
         """
         data = []
-        months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                  12, 13, 14, 15, 16, 17, 18, 0, 19)
         start = options.start
         end = options.end
         assert -1843 < start < 1162, (
@@ -1153,7 +1150,7 @@ class DateTests(BahaiCalendar):
             days = 365 + is_leap
             total = 0
 
-            for month in months:
+            for month in self.MONTHS:
                 dm = 19 if month != 0 else 4 + self._is_leap_year(year)
 
                 for day in range(1, dm + 1):
@@ -1170,12 +1167,10 @@ class DateTests(BahaiCalendar):
     def find_day_of_week(self, options):
         """
         Dump both the Badi and Gregorian weekdays.
-        -w  and -S and -E
+        -w and -S and -E
         Optional -R to change the referance day from Jalál to whatever.
         """
         data = []
-        months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-                  12, 13, 14, 15, 16, 17, 18, 0, 19)
         _daynames = ['Jalál', 'Jamál', 'Kamál', 'Fiḍāl',
                      '`Idāl', 'Istijlāl', 'Istiqlāl']
         _g_daynames = ['Saturday', 'Sunday', 'Monday', 'Tuesday',
@@ -1202,7 +1197,7 @@ class DateTests(BahaiCalendar):
             days = 365 + is_leap
             total = 0
 
-            for month in months:
+            for month in self.MONTHS:
                 dm = 19 if month != 0 else 4 + self._is_leap_year(year)
 
                 for day in range(1, dm + 1):
@@ -1213,6 +1208,48 @@ class DateTests(BahaiCalendar):
                     greg_weekday = _g_daynames[idx]
                     data.append((date, ref_day, idx,
                                  badi_weekday, greg_weekday))
+
+        return data
+
+    def twenty_four_hours(self, options):
+        """
+        Dump the hours, minutes, and seconds of the day.
+        -t and -S and -E
+        """
+        data = []
+        start = options.start
+        end = options.end
+        assert -1843 < start < 1162, (
+            f"Start '{start}' must be from -1842 to 1161.")
+        assert -1842 < end < 1163, (
+            f"End '{end}' must be from -1841 to 1162")
+        lat, lon, zone = self.BAHAI_LOCATION[:3]
+
+        for year in range(start, end):
+            is_leap = self._is_leap_year(year)
+            days = 365 + is_leap
+            total = 0
+
+            for month in self.MONTHS:
+                dm = 19 if month != 0 else 4 + self._is_leap_year(year)
+
+                for day in range(1, dm + 1):
+                    date = (year, month, day)
+                    jd = self.jd_from_badi_date(date, lat, lon, zone)
+                    g_date = self.gc.gregorian_date_from_jd(jd, exact=True)
+                    jd0 = math.floor(jd)
+                    jd1 = jd0 + 1
+                    diff0 = self._meeus_algorithm_jd_compensation(jd0)
+                    diff1 = self._meeus_algorithm_jd_compensation(jd1)
+                    mjd0 = jd0 + diff0
+                    mjd1 = jd1 + diff1
+                    ss0 = self._sun_setting(mjd0, lat, lon, zone)
+                    ss1 = self._sun_setting(mjd1, lat, lon, zone)
+                    b_date = self.badi_date_from_jd(jd, short=True)
+                    ss_diff = ss1 - ss0
+                    hms = self.hms_from_decimal_day(ss_diff)
+                    data.append((b_date, g_date, round(ss0 % 1, 6),
+                                 round(ss1 % 1, 6), round(ss_diff, 6), hms))
 
         return data
 
@@ -1630,6 +1667,9 @@ if __name__ == "__main__":
         '-w', '--weekday', action='store_true', default=False,
         dest='weekday', help="Dump consecutive Badi and Gregorian weekdays.")
     parser.add_argument(
+        '-t', '--twenty-four', action='store_true', default=False,
+        dest='twenty_four', help="Find day length.")
+    parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help="Use alternative leap year method.")
     parser.add_argument(
@@ -1856,6 +1896,22 @@ if __name__ == "__main__":
                    f"{gwd:9}"
                    ) for (date, r_day, idx,
                        bwd, gwd) in dt.find_day_of_week(options)]
+    elif options.twenty_four:
+        if options.start is None or options.end is None:
+            print("If option -t is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            print("Badi Date                          Gregorian Date        "
+                  "SS1 Frac SS2 Frac SS2-SS1  HMS Diff")
+            [print(f"{str(b_date):<34} "
+                   f"{str(g_date):<21} "
+                   f"{fss0:<8} "
+                   f"{fss1:<8} "
+                   f"{ss_diff:<8} "
+                   f"{str(hms):19}"
+                   ) for (b_date, g_date, fss0, fss1,
+                          ss_diff, hms) in dt.twenty_four_hours(options)]
     else:
         parser.print_help()
 
