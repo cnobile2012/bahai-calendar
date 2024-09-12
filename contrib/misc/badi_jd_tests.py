@@ -1903,9 +1903,9 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
-            print("Badi Date              Gregorian Date        "
+            print("Badi Date         Gregorian Date        "
                   "SS1 Frac SS2 Frac SS2-SS1  HMS Diff")
-            [print(f"{str(b_date):<22} "
+            [print(f"{str(b_date):<17} "
                    f"{str(g_date):<21} "
                    f"{fss0:<8} "
                    f"{fss1:<8} "

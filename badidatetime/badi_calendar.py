@@ -834,16 +834,7 @@ class BahaiCalendar(BaseCalendar):
         if hms:
             value = self.hms_from_decimal_day(ss_diff)
         else:
-            p_ss_diff = ss_diff % 1
-
-            if ss_diff < 1: # The day is shorter than 24 hours.
-                fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES)
-                #print('POOP0', ss_diff, fraction, ss1 % 1)
-            else: # ss_diff >= 1 The day is longer than or equal to 24 hours.
-                # Subtract the sunset difference from the fractional jd.
-                fraction = round(jd % 1 - p_ss_diff, self.ROUNDING_PLACES)
-                #import sys
-                #print('POOP1', jd, ss_diff, fraction, file=sys.stderr)
+            fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES)
 
             if day is None: # Return the Julian day value.
                 value = jd0 + fraction
@@ -851,8 +842,8 @@ class BahaiCalendar(BaseCalendar):
                 # By subtracting the fractional part of the sunset from the
                 # fractional part of the Julian Period day you get the time
                 # into the Badi day.
-                value = round(day + fraction, self.ROUNDING_PLACES)
+                value = 1 if (day + fraction) < 1 else day + fraction
                 #import sys
-                #print('POOP2', jd, ss_diff, fraction, value, file=sys.stderr)
+                #print('POOP0', jd, ss_diff, fraction, value, file=sys.stderr)
 
         return value
