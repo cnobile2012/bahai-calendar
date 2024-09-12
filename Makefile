@@ -5,7 +5,7 @@ include include.mk
 
 TODAY		= $(shell date +"%Y-%m-%dT%H:%M:%S.%N%:z")
 PREFIX		= $(shell pwd)
-BASE_DIR	= $(shell echo $${PWD\#\#*/})
+BASE_DIR	= $(shell basename $(PREFIX))
 TEST_TAG	= # Define the rc<version>
 PACKAGE_DIR	= $(BASE_DIR)-$(VERSION)$(TEST_TAG)
 APP_NAME	= bahai_calendar
