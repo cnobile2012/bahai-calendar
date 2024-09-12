@@ -393,7 +393,8 @@ class BahaiCalendar(BaseCalendar):
         return coff
 
     def badi_date_from_jd(self, jd:float, lat:float=None, lon:float=None,
-                          zone:float=None, *, short:bool=False) -> tuple:
+                          zone:float=None, *, short:bool=False,
+                          fraction:bool=False) -> tuple:
         """
         Convert a Julian period day to a Badi date.
         """
@@ -436,15 +437,15 @@ class BahaiCalendar(BaseCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        ## # We compensate for the difference between the Meeus algorithm
-        ## # and mine.
-        ## m_diff = self._meeus_algorithm_jd_compensation(jd)
-        ## diff = self._sun_setting(math.floor(jd + m_diff), lat, lon, zone) % 1
-        ## cor = jd % 1 - diff
-        ## day += cor if (day + cor) >= 1 else 0
         day = self._adjust_day_for_24_hours(jd, lat, lon, zone, day=day)
-        date = self.long_date_from_short_date((year, month, day))
-        return self.kvymdhms_from_b_date(date, short=short)
+
+        if not fraction:
+            date = self.long_date_from_short_date((year, month, day))
+            b_date = self.kvymdhms_from_b_date(date, short=short)
+        else:
+            b_date = (year, month, day)
+
+        return b_date
 
     def short_date_from_long_date(self, b_date:tuple) -> tuple:
         """
@@ -812,8 +813,6 @@ class BahaiCalendar(BaseCalendar):
               b. The adjusted day.
               c. The hour, minute, and seconds of the days offset either
                  less than or more than 24 hours.
-           2. Determine what to do with the fractional part of either a day
-              or a Julian day.
         """
         if day is not None and hms:
             raise ValueError(
@@ -836,15 +835,15 @@ class BahaiCalendar(BaseCalendar):
             value = self.hms_from_decimal_day(ss_diff)
         else:
             p_ss_diff = ss_diff % 1
-            # Subtract the sunset difference from the fractional jd.
-            p = round(jd % 1 - p_ss_diff, self.ROUNDING_PLACES)
 
             if ss_diff < 1: # The day is shorter than 24 hours.
                 fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES)
-                #print('POOP0', ss_diff, fraction, p, ss1 % 1)
+                #print('POOP0', ss_diff, fraction, ss1 % 1)
             else: # ss_diff >= 1 The day is longer than or equal to 24 hours.
-                fraction = p
-                #print('POOP1', ss_diff, fraction, p)
+                # Subtract the sunset difference from the fractional jd.
+                fraction = round(jd % 1 - p_ss_diff, self.ROUNDING_PLACES)
+                #import sys
+                #print('POOP1', jd, ss_diff, fraction, file=sys.stderr)
 
             if day is None: # Return the Julian day value.
                 value = jd0 + fraction
@@ -852,9 +851,8 @@ class BahaiCalendar(BaseCalendar):
                 # By subtracting the fractional part of the sunset from the
                 # fractional part of the Julian Period day you get the time
                 # into the Badi day.
-                #cor = jd % 1 - ss0 % 1
-                #value = day + (cor if (day + cor) >= 1 else 0)
-                value = day + fraction
+                value = round(day + fraction, self.ROUNDING_PLACES)
+                #import sys
+                #print('POOP2', jd, ss_diff, fraction, value, file=sys.stderr)
 
-        #print(jd, day, hms, ss_diff, p, fraction, value)
         return value

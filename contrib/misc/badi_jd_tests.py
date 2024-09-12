@@ -1245,7 +1245,8 @@ class DateTests(BahaiCalendar):
                     mjd1 = jd1 + diff1
                     ss0 = self._sun_setting(mjd0, lat, lon, zone)
                     ss1 = self._sun_setting(mjd1, lat, lon, zone)
-                    b_date = self.badi_date_from_jd(jd, short=True)
+                    b_date = self.badi_date_from_jd(jd, short=True,
+                                                    fraction=True)
                     ss_diff = ss1 - ss0
                     hms = self.hms_from_decimal_day(ss_diff)
                     data.append((b_date, g_date, round(ss0 % 1, 6),
@@ -1902,9 +1903,9 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
-            print("Badi Date                          Gregorian Date        "
+            print("Badi Date              Gregorian Date        "
                   "SS1 Frac SS2 Frac SS2-SS1  HMS Diff")
-            [print(f"{str(b_date):<34} "
+            [print(f"{str(b_date):<22} "
                    f"{str(g_date):<21} "
                    f"{fss0:<8} "
                    f"{fss1:<8} "
