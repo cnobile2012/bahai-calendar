@@ -311,67 +311,76 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # 0001-03-20T18:16:00
-            (1721502.2603, lat, lon, zone, True, (-1842, 1, 1, 6, 14, 4.9056)),
+            (1721502.2603, lat, lon, zone, True, False,
+             (-1842, 1, 1, 6, 14, 4.9056)),
             # 0001-04-08T18:30:00
-            (1721521.270049, lat, lon, zone, True,
+            (1721521.270049, lat, lon, zone, True, False,
              (-1842, 2, 1, 6, 28, 7.9104)),
             # 0002-02-24T17:56:00
-            (1721843.246795, lat, lon, zone, True,
+            (1721843.246795, lat, lon, zone, True, False,
              (-1842, 18, 19, 5, 54, 31.248)),
             # 0002-02-25T17:57:00
-            (1721844.247395, lat, lon, zone, True,
+            (1721844.247395, lat, lon, zone, True, False,
              (-1842, 0, 1, 5, 55, 23.3472)),
             # 0002-02-26T17:58:00
-            (1721845.247992, lat, lon, zone, True,
+            (1721845.247992, lat, lon, zone, True, False,
              (-1842, 0, 2, 5, 56, 15.36)),
             # 0002-03-02T18:01:00
-            (1721849.250336, lat, lon, zone, True,
+            (1721849.250336, lat, lon, zone, True, False,
              (-1842, 19, 1, 5, 59, 39.3504)),
             # 0002-03-06T18:05:00
-            (1721853.252614, lat, lon, zone, True,
+            (1721853.252614, lat, lon, zone, True, False,
              (-1842, 19, 5, 6, 2, 57.3792)),
             # 1583-03-21T18:16:00
-            (2299316.26202, lat, lon, zone, True,
+            (2299316.26202, lat, lon, zone, True, False,
              (-260, 1, 1, 6, 16, 29.3664)),
             # 1844-03-20T18:16:00
-            (2394644.261791, lat, lon, zone, True, (1, 1, 1, 6, 16, 8.8896)),
+            (2394644.261791, lat, lon, zone, True,  False,
+             (1, 1, 1, 6, 16, 8.8896)),
             # 1845-03-20T18:16:00
-            (2395009.26165, lat, lon, zone, True, (1, 19, 19, 6, 16, 46.56)),
+            (2395009.26165, lat, lon, zone, True,  False,
+             (1, 19, 19, 6, 16, 46.56)),
             # 1863-03-21T18:16:00
-            (2401584.26201, lat, lon, zone, True, (20, 1, 1, 6, 16, 27.8976)),
+            (2401584.26201, lat, lon, zone, True,  False,
+             (20, 1, 1, 6, 16, 27.8976)),
             # 1970-01-01T:00:00:00Z
-            (self._bc.POSIX_EPOCH, 51.477928, -0.001545, 0, True,
+            (self._bc.POSIX_EPOCH, 51.477928, -0.001545, 0, True, False,
              (126, 16, 1, 11, 58, 59.0016)),
             # 2015-03-21T18:16:00
-            (2457101.262034, lat, lon, zone, True,
+            (2457101.262034, lat, lon, zone, True, False,
              (172, 1, 1, 6, 16, 29.5392)),
             # 2024-03-20T18:16:00
-            (2460388.261923, lat, lon, zone, True,
+            (2460388.261923, lat, lon, zone, True, False,
              (181, 1, 1, 6, 16, 19.8624)),
             # 2024-04-20T18:42:00
-            (2460419.27977, lat, lon, zone, True, (181, 2, 13, 6, 42, 1.8432)),
+            (2460419.27977, lat, lon, zone, True,  False,
+             (181, 2, 13, 6, 42, 1.8432)),
             # 1st day of Ayyám-i-Há -> 2022-02-25T17:56:00
-            (2459634.247588, lat, lon, zone, True,
+            (2459634.247588, lat, lon, zone, True, False,
              (178, 0, 1, 5, 55, 35.8752)),
             # 2022-03-01T17:59:00
-            (2459638.250148, lat, lon, zone, True,
+            (2459638.250148, lat, lon, zone, True, False,
              (178, 0, 5, 5, 59, 18.2688)),
             # 2022-03-02T18:00:00
-            (2459639.250779, lat, lon, zone, True,
+            (2459639.250779, lat, lon, zone, True, False,
              (178, 19, 1, 6, 0, 13.1328)),
             # Badi short form -> 2024-05-14T19:02:00
-            (2460443.293616, lat, lon, zone, True, (181, 3, 18, 7, 2, 0.7296)),
+            (2460443.293616, lat, lon, zone, True,  False,
+             (181, 3, 18, 7, 2, 0.7296)),
             # Badi long form -> 2024-05-14T19:02:00
-            (2460443.293616, lat, lon, zone, False,
+            (2460443.293616, lat, lon, zone, False, False,
              (1, 10, 10, 3, 18, 7, 2, 0.7296)),
             # 2024-07-17T19:19:00
-            (2460507.30472, lat, lon, zone, True, (181, 7, 6, 0, 0, 34.56)),
+            (2460507.30472, lat, lon, zone, True, False,
+             (181, 7, 6, 0, 0, 34.56)),
+            # 2024-07-17T19:19:00 Test fractional day.
+            (2460507.30472, lat, lon, zone, True, True, (181, 7, 6.0004)),
             )
         msg = "Expected {} for jd {} for lat {}, lon {}, and zone {}, found {}"
 
-        for jd, lat, lon, zone, short, expected_result in data:
+        for jd, lat, lon, zone, short, fraction, expected_result in data:
             result = self._bc.badi_date_from_jd(
-                jd, lat, lon, zone, short=short)
+                jd, lat, lon, zone, short=short, fraction=fraction)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, jd, lat, lon, zone, result))
 

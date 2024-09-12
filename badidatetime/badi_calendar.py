@@ -439,11 +439,11 @@ class BahaiCalendar(BaseCalendar):
 
         day = self._adjust_day_for_24_hours(jd, lat, lon, zone, day=day)
 
-        if not fraction:
+        if fraction:
+            b_date = (year, month, day)
+        else:
             date = self.long_date_from_short_date((year, month, day))
             b_date = self.kvymdhms_from_b_date(date, short=short)
-        else:
-            b_date = (year, month, day)
 
         return b_date
 
