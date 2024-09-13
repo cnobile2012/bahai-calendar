@@ -843,7 +843,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         l4 = self._sigma((self.L4_A, self.L4_B, self.L4_C), func)
         l5 = self._sigma((self.L5_A, self.L5_B, self.L5_C), func)
         l = self._poly(tm, (l0, l1, l2, l3, l4, l5)) / 10**8
-        return self._coterminal_angle(math.degrees(l)) if degrees else l
+        return round(self._coterminal_angle(math.degrees(l)) if degrees else l,
+                     self.ROUNDING_PLACES)
 
     def _heliocentric_ecliptical_latitude(self, tm:float,
                                           degrees:bool=False) -> float:
@@ -867,7 +868,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         b0 = self._sigma((self.B0_A, self.B0_B, self.B0_C), func)
         b1 = self._sigma((self.B1_A, self.B1_B, self.B1_C), func)
         b = self._poly(tm, (b0, b1)) / 10**8
-        return self._coterminal_angle(math.degrees(b)) if degrees else b
+        return round(self._coterminal_angle(math.degrees(b)) if degrees else b,
+                     self.ROUNDING_PLACES)
 
     def _radius_vector(self, tm:float, degrees:bool=False) -> float:
         """
@@ -893,7 +895,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         r3 = self._sigma((self.R3_A, self.R3_B, self.R3_C), func)
         r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
         r = self._poly(tm, (r0, r1, r2, r3, r4)) / 10**8
-        return self._coterminal_angle(math.degrees(r)) if degrees else r
+        return round(self._coterminal_angle(math.degrees(r)) if degrees else r,
+                     self.ROUNDING_PLACES)
 
     def apparent_solar_longitude(self, jde:float, degrees:bool=True) -> float:
         """
@@ -914,7 +917,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         if degrees:
            l = self._coterminal_angle(math.degrees(l))
 
-        return l
+        return round(l, self.ROUNDING_PLACES)
 
     def apparent_solar_latitude(self, jde:float, degrees:bool=True) -> float:
         """
@@ -936,7 +939,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         if degrees:
             b = self._coterminal_angle(math.degrees(b))
 
-        return b
+        return round(b, self.ROUNDING_PLACES)
 
     def _aberration(self, tm:float, fixed:bool=True) -> float:
         """
@@ -971,7 +974,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             aberration += math.radians(a) * tm**2 * self._sin_deg(b + c * tm)
 
         r = self._radius_vector(tm, degrees=False)
-        return self.decimal_from_dms(0, 0, -0.005775518 * r * aberration)
+        return round(self.decimal_from_dms(0, 0, -0.005775518 * r * aberration),
+                     self.ROUNDING_PLACES)
 
     def approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
                                                      lam:int=SPRING) -> float:
