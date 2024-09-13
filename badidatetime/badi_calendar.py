@@ -802,7 +802,8 @@ class BahaiCalendar(BaseCalendar):
                     (hh, mm, ss) indicating the length of the day else if
                     False one of the other two values are returned.
         :type hms: bool
-        :param rtd: Round to closest day.
+        :param rtd: Round to closest day only when the day is used. Has no
+                    effect if hms is True.
         :type rtd: bool
         :return: See the below note.
         :rtype: float | tuple
@@ -837,6 +838,7 @@ class BahaiCalendar(BaseCalendar):
             value = self.hms_from_decimal_day(ss1 - ss0)
         else:
             fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES)
-            value = 1 if (day + fraction) < 1 else day + fraction
+            v = 1 if (day + fraction) < 1 else day + fraction
+            value = round(v) if rtd else v
 
-        return round(value) if rtd else value
+        return value
