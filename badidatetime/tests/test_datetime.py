@@ -223,9 +223,9 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         err_msg_1 = "Invalid weekday: {} (range is 1..7)"
         data = (
             # year  week day
-            #((-1842,  1,  1), False, False,
-            # (-5, 17, 19, 19, 17, 0, 1, 30.4608)),
-            #((-1842,  1,  1), True,  False, (-1843, 19, 17, 0, 1, 30.4608)),
+            ((-1842,  1,  1), False, False, (-5, 17, 19, 19, 17)),
+            ((-1842,  1,  1), True,  False, (-1843, 19, 17)),
+            # jd = 2394647.2603 should be 2394647.264084 to be exactly day 4.
             ((  181,  1,  1), True,  False, (181, 1, 4)),
             ((  182,  1,  1), True,  False, (182, 1, 3)),
             ((  183,  1,  1), True,  False, (183, 1, 1)),
@@ -281,8 +281,8 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             ('-1842-01-01T12:00:00', (-1842, 1, 1, 12, 0, 0.0)),
             ('11610101T120000', (1161, 1, 1, 12, 0, 0.0)),
             ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0.0)),
-            ('0181-W20T12:00:00', (181, 8, 3, 12, 0, 0.0)),
-            ('0181-W20-5T12:00:00', (181, 8, 7, 12, 0, 0.0)),
+            ('0181-W20T12:00:00', (181, 8, 4, 12, 0, 0.0)),
+            ('0181-W20-5T12:00:00', (181, 8, 8, 12, 0, 0.0)),
             )
         msg = "Expected {} with dtstr {}, found {}."
 
@@ -309,11 +309,11 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             ('0181-01', False, (181, 1, 1)),
             ('01810101', False, (181, 1, 1)),
             ('0181-01-01', False, (181, 1, 1)),
-            ('0181W01', False, (181, 1, 3)),
-            ('0181-W01', False, (181, 1, 3)),
-            ('0181W017', False, (181, 1, 9)),
-            ('0181-W01-7', False, (181, 1, 9)),
-            ('0181W207', False, (181, 8, 9)),
+            ('0181W01', False, (181, 1, 4)),
+            ('0181-W01', False, (181, 1, 4)),
+            ('0181W017', False, (181, 1, 10)),
+            ('0181-W01-7', False, (181, 1, 10)),
+            ('0181W207', False, (181, 8, 10)),
             ('0181001', False, (181, 1, 1)),
             ('0181019', False, (181, 1, 19)),
             ('0181324', False, (181, 18, 1)),
@@ -649,9 +649,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg = "Invalid weekday: {} (range is 1..7)"
         data = (
             # year, week, day in week
-            ((181,   1,    1), False, False, '01-10-10-01-03'),
-            ((181,   1,    1), True,  False, '0181-01-03'),
-            ((181,  24,    7), True,  False, '0181-09-18'),
+            ((181,   1,    1), False, False, '01-10-10-01-04'),
+            ((181,   1,    1), True,  False, '0181-01-04'),
+            ((181,  24,    7), True,  False, '0181-09-19'),
             ((181,   1,   10), False, True, err_msg.format(10)),
             )
         msg = "Expected {} with iso {} and short {}, found {}."

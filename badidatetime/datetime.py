@@ -127,9 +127,10 @@ def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     """
     It is more difficult to do this in the Badi Calendar because a Badi
     day can be more or less than 24 hours depending on when sunset is
-    and the time of the year. From the summer Solstice to the winter solstice
-    the days get shorter so it's less than 24 hours and the inverse between
-    the winter solstice and the summer solstice. As such we just use the
+    and the time of the year. From the summer Solstice to the winter
+    Solstice the days get shorter. The day slowly comes down to 24 hours
+    around the Fall Equinox and then below 24 hours. The inverse happens
+    between the Winter Solstice and the Summer Solstice. We just use the
     BadiCalendar API.
 
     :param bc: BahaiCalendar instance.
@@ -145,7 +146,7 @@ def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     # We subtract 78 days from the total so that the Badi date will
     # be the same as the date value passed into _ymd2ord.
     jd = bc.jd_from_badi_date((MINYEAR-1, 19, 19)) - DAYS_BEFORE_1ST_YEAR + n
-    return bc.badi_date_from_jd(jd, short=short)
+    return bc.badi_date_from_jd(jd, short=short, rtd=True)
 
 def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
                      short:bool=False) -> tuple:

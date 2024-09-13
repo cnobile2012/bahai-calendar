@@ -394,7 +394,7 @@ class BahaiCalendar(BaseCalendar):
 
     def badi_date_from_jd(self, jd:float, lat:float=None, lon:float=None,
                           zone:float=None, *, short:bool=False,
-                          fraction:bool=False) -> tuple:
+                          fraction:bool=False, rtd=False) -> tuple:
         """
         Convert a Julian period day to a Badi date.
         """
@@ -437,7 +437,8 @@ class BahaiCalendar(BaseCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        day = self._adjust_day_for_24_hours(jd, lat, lon, zone, day=day)
+        day = self._adjust_day_for_24_hours(
+            jd, lat, lon, zone, day=day, rtd=rtd)
 
         if fraction:
             b_date = (year, month, day)
@@ -496,8 +497,6 @@ class BahaiCalendar(BaseCalendar):
         self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hour, minute, second, ms = self._get_hms(b_date)
-
-
         day += round(self.HR(hour) + self.MN(minute) + self.SEC(second) +
                      self.MS(ms), self.ROUNDING_PLACES)
         date = (kull_i_shay, vahid, year, month, day)
@@ -781,7 +780,7 @@ class BahaiCalendar(BaseCalendar):
 
     def _adjust_day_for_24_hours(self, jd:float, lat:float, lon:float,
                                  zone:float, *, day:float=None,
-                                 hms:bool=False) -> float|tuple:
+                                 hms:bool=False, rtd=False) -> float|tuple:
         """
         We have to deal with days that are either more or less than 24 hours.
         This method does two things. It corrects the Badi time which starts
@@ -803,6 +802,8 @@ class BahaiCalendar(BaseCalendar):
                     (hh, mm, ss) indicating the length of the day else if
                     False one of the other two values are returned.
         :type hms: bool
+        :param rtd: Round to closest day.
+        :type rtd: bool
         :return: See the below note.
         :rtype: float | tuple
 
@@ -838,4 +839,4 @@ class BahaiCalendar(BaseCalendar):
             fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES)
             value = 1 if (day + fraction) < 1 else day + fraction
 
-        return value
+        return round(value) if rtd else value
