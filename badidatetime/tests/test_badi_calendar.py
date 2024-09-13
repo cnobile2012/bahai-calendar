@@ -488,17 +488,16 @@ class TestBadiCalendar(unittest.TestCase):
         correct Badi date.
         """
         data = (
-            ((1844, 3, 20, 18, 16), False, True,
-             (1, 1, 1, 1, 1, 6, 15, 10.1376)),
-            ((1844, 3, 20, 18, 16), True, True, (1, 1, 1, 6, 15, 10.1376)),
+            ((1844, 3, 20, 18, 16), False, True, (1, 1, 1, 1, 1)),
+            ((1844, 3, 20, 18, 16), True, True, (1, 1, 1)),
             ((2024, 5, 14, 20), False, True,
-             (1, 10, 10, 3, 18, 7, 59, 12.2784)),
-            ((2024, 5, 14, 20), True, True, (181, 3, 18, 7, 59, 12.2784)),
+             (1, 10, 10, 3, 18, 0, 56, 23.856)),
+            ((2024, 5, 14, 20), True, True, (181, 3, 18, 0, 56, 23.856)),
             # The next tests may show the wrong month and day if
             # exact=False is used.
             # The exact=False condition is generally used in testing.
-            ((1844, 3, 20, 18, 16), True, False, (1, 1, 3, 6, 15, 10.4832)),
-            ((2024, 5, 14, 20), True, False, (181, 4, 1, 7, 59, 13.056)),
+            ((1844, 3, 20, 18, 16), True, False, (1, 1, 2, 23, 56, 32.4672)),
+            ((2024, 5, 14, 20), True, False, (181, 4, 1, 0, 54, 49.5936)),
             )
         msg = "Expected {} for date {}, short {} and exact {}, found {}"
 
@@ -555,20 +554,20 @@ class TestBadiCalendar(unittest.TestCase):
             # 1970-01-01T00:00:00 -> UNIX Epoch at UTC
             # sunset the day before 16:01 lat=51.4769, lon=0, zone=0
             #                      UTC 12am == (126, 16, 1, 8, 0, 0)
-            (0, 51.477928, -0.001545, 0, True, (126, 16, 1, 11, 8)),
+            (0, 51.477928, -0.001545, 0, True, (126, 16, 1, 7, 58, 31.4976)),
             #                      UTC 12am == (1, 7, 12, 16, 1, 8, 0, 0)
             (0, 51.477928, -0.001545, 0, False,
-             (1, 7, 12, 16, 1, 7, 59, 32.496)),
+             (1, 7, 12, 16, 1, 7, 58, 31.4976)),
             # 1969-12-31T23:59:59 This is one second before the POSIX epoch
-            (-1, 51.477928, -0.001545, 0, True, (126, 16, 1, 7, 59, 31.4592)),
+            (-1, 51.477928, -0.001545, 0, True, (126, 16, 1, 7, 58, 30.4608)),
             # 2024-08-24T14:33:46.24610090255737 -- Raleigh, NC USA
             # The h, m, & s are counted from the beginning of the Badi day
             # which would be the previous Gregorian day.
             (1724265226.246101, 35.7796, -78.6382, -4, True,
-             (181, 9, 2, 22, 37, 46.992)),
+             (181, 9, 2, 22, 39, 4.5792)),
             # Test with zone 3.5 (Tehran Iran) 2024-08-28T01:00:00+3:30
             (1724794198.5490103, None, None, None, True,
-             (181, 9, 9, 2, 53, 4.1568)),
+             (181, 9, 9, 2, 54, 26.1504)),
             )
         msg = "Expected {} for timestamp {}, found {}"
 
@@ -794,39 +793,58 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the _adjust_day_for_24_hours method returns the
         correct length of day between two sunsets.
         """
+        err_msg0 = "Cannot use the day and hms arguments at the same time."
+        err_msg1 = "Must provide a day or hms must be True."
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # Test hms mode
             # 2024-03-20T06:36:00+03:30 Vernal Equinox
-            (2460387.775, lat, lon, zone, None, True, (0, 0, 0)),
+            (2460387.775, lat, lon, zone, None, True, False, (0, 0, 0)),
             # 2024-06-21T00:21:00+03:30 Summer Solstice
-            (2460480.514583, lat, lon, zone, None, True, (0, 0, 11.0592)),
+            (2460480.514583, lat, lon, zone, None, True, False,
+             (0, 0, 11.0592)),
             # 2024-09-22T16:14:00+03:30 Fall Equinox
-            (2460574.176389, lat, lon, zone, None, True, (23, 58, 32.1312)),
+            (2460574.176389, lat, lon, zone, None, True, False,
+             (23, 58, 32.1312)),
             # 2024-12-21T12:50:00+03:30 Winter Solstice
-            (2460664.034722, lat, lon, zone, None, True, (0, 0, 32.6592)),
+            (2460664.034722, lat, lon, zone, None, True, False,
+             (0, 0, 32.6592)),
             # 1844-03-23 (1844, 3, 23.7603)
-            (2394647.2603,  lat, lon, zone, None, True, (0, 0, 49.3344)),
+            (2394647.2603, lat, lon, zone, None, True, False, (0, 0, 49.3344)),
             # 2024-03-04 (2024, 3, 23.7603)
-            (2460391.2603,  lat, lon, zone, None, True, (0, 0, 49.8528)),
+            (2460391.2603, lat, lon, zone, None, True, False, (0, 0, 49.8528)),
             # Test > 24 day mode
             # 0001-03-20T18:16:00
-            (1721502.2603, lat, lon, zone, 1, False, 1.0),
+            (1721502.2603, lat, lon, zone, 1, False, False, 1.0),
             # 1844-03-20 (1844, 3, 20.761791)
-            (2394644.261791, lat, lon, zone, 1, False, 1.0),
+            (2394644.261791, lat, lon, zone, 1, False, False, 1.0),
             # 1844-03-23 (1844, 3, 23.7603) (1, 1, 4)
-            (2394647.2603, lat, lon, zone, 4, False, 3.996216),
+            (2394647.2603, lat, lon, zone, 4, False, False, 3.996216),
             # 2024-03-04 (2024, 3, 23.7603) (181, 1, 4)
-            (2460391.2603, lat, lon, zone, 4, False, 3.996063),
+            (2460391.2603, lat, lon, zone, 4, False, False, 3.996063),
             # Test < 24 day mode
             # 2024-09-22T16:14:00+03:30 Fall Equinox (181, 10, 15.927791)
             # 0.927791 = 1 + 0.176389 (JD) - 0.248598 (SS next day)
-            (2460574.176389, lat, lon, zone, 16, False, 15.927791),
+            (2460574.176389, lat, lon, zone, 16, False, False, 15.927791),
+            # Test error conditions
+            (2460574.176389, lat, lon, zone, 16, True, True, err_msg0),
+            (2460574.176389, lat, lon, zone, None, False, True, err_msg1),
             )
         msg = "Expected {} for value {}, day {}, and hms {}, found {}"
 
-        for value, lat, lon, zone, day, hms, expected_result in data:
-            result = self._bc._adjust_day_for_24_hours(value, lat, lon, zone,
-                                                       day=day, hms=hms)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, value, day, hms, result))
+        for value, lat, lon, zone, day, hms, validity, expected_result in data:
+            if validity:
+                try:
+                    result = self._bc._adjust_day_for_24_hours(
+                        value, lat, lon, zone, day=day, hms=hms)
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{value}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = self._bc._adjust_day_for_24_hours(
+                    value, lat, lon, zone, day=day, hms=hms)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, value, day, hms, result))

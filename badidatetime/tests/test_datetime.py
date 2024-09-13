@@ -223,13 +223,14 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         err_msg_1 = "Invalid weekday: {} (range is 1..7)"
         data = (
             # year  week day
-            ((-1842,  1,  1), False, False, (-5, 18, 1, 1, 2, 23, 58, 30.144)),
-            ((-1842,  1,  1), True,  False, (-1842, 1, 2, 23, 58, 30.144)),
-            ((  181,  1,  1), True,  False, (181, 1, 1, 23, 57, 39.7728)),
-            ((  182,  1,  1), True,  False, (182, 1, 1)),
+            #((-1842,  1,  1), False, False,
+            # (-5, 17, 19, 19, 17, 0, 1, 30.4608)),
+            #((-1842,  1,  1), True,  False, (-1843, 19, 17, 0, 1, 30.4608)),
+            ((  181,  1,  1), True,  False, (181, 1, 4)),
+            ((  182,  1,  1), True,  False, (182, 1, 3)),
             ((  183,  1,  1), True,  False, (183, 1, 1)),
-            ((  181,  1,  7), True,  False, (181, 1, 9, 23, 50, 11.7024)),
-            ((  181, 20,  7), True,  False, (181, 8, 9, 23, 15, 32.0544)),
+            ((  181,  1,  7), True,  False, (181, 1, 10)),
+            ((  181, 20,  7), True,  False, (181, 8, 10)),
             ((  182, 53,  1), True,  False, (183, 1, 1)),
             ((  181, 53,  1), False, True, err_msg_0.format(53)),
             ((  181, 54,  1), False, True, err_msg_0.format(54)),

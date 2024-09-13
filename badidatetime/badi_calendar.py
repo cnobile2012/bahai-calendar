@@ -809,41 +809,33 @@ class BahaiCalendar(BaseCalendar):
         .. note::
 
            1. There are three different outputs that can be returned.
-              a. The adjusted Julian Period day.
-              b. The adjusted day.
-              c. The hour, minute, and seconds of the days offset either
+              a. The adjusted day.
+              b. The hour, minute, and seconds of the days offset either
                  less than or more than 24 hours.
         """
         if day is not None and hms:
             raise ValueError(
                 "Cannot use the day and hms arguments at the same time.")
 
+        if day is None and not hms:
+            raise ValueError("Must provide a day or hms must be True.")
+
         jd0 = math.floor(jd)
         jd1 = jd0 + 1
         # The diff values converts my jd to the Meeus algorithm jd so
         # that the sunset can be determined properly. The fractional day
         # of either algorithm would be the same.
-        diff0 = self._meeus_algorithm_jd_compensation(jd0)
         diff1 = self._meeus_algorithm_jd_compensation(jd1)
-        mjd0 = jd0 + diff0
         mjd1 = jd1 + diff1
-        ss0 = self._sun_setting(mjd0, lat, lon, zone)
         ss1 = self._sun_setting(mjd1, lat, lon, zone)
-        ss_diff = ss1 - ss0
 
         if hms:
-            value = self.hms_from_decimal_day(ss_diff)
+            diff0 = self._meeus_algorithm_jd_compensation(jd0)
+            mjd0 = jd0 + diff0
+            ss0 = self._sun_setting(mjd0, lat, lon, zone)
+            value = self.hms_from_decimal_day(ss1 - ss0)
         else:
             fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES)
-
-            if day is None: # Return the Julian day value.
-                value = jd0 + fraction
-            else: # Return the day of the month value.
-                # By subtracting the fractional part of the sunset from the
-                # fractional part of the Julian Period day you get the time
-                # into the Badi day.
-                value = 1 if (day + fraction) < 1 else day + fraction
-                #import sys
-                #print('POOP0', jd, ss_diff, fraction, value, file=sys.stderr)
+            value = 1 if (day + fraction) < 1 else day + fraction
 
         return value
