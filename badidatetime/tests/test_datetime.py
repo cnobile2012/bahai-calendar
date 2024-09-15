@@ -686,6 +686,14 @@ class TestBadiDatetime_date(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
+    @unittest.skip("Temporarily skipped")
+    def test___short_from_long_form(self):
+        """
+        Test that the __short_from_long_form method returns the short form
+        Badi date.
+        """
+        pass
+
     #@unittest.skip("Temporarily skipped")
     def test_ctime(self):
         """
@@ -1150,10 +1158,89 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the weekday method returns the correct weekday number.
         """
         data = (
-            ((), ),
+            ((181, 1, 1), 4),
+            ((181, 10, 8), 0),
             )
+        msg = "Expected {} with date {}, found {}."
 
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.weekday()
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_isoweekday(self):
+        """
+        Test that the weekday method returns the correct weekday number.
+        """
+        data = (
+            ((181, 1, 1), 5),
+            ((181, 10, 8), 1),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d.isoweekday()
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_isocalendar(self):
+        """
+        Test that the isocalendar method the correct ISO Calendar tuple.
+        """
+        data = (
+            ((181, 1, 1), (180, 0, 5)),       # Short form
+            ((1, 10, 10, 1, 1), (180, 0, 5)), # Long form
+            ((181, 0, 1), (181, 49, 4)),   # 0 < week < 52
+            ((181, 19, 19), (181, 52, 5)), # 0 < week < 52
+            ((182, 1, 1), (181, 0, 6)),    # Week < 0 starts in previous year
+            ((183, 19, 19), (184, 1, 1)),  # Week >= 52 starts in previous year
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = tuple(d.isocalendar())
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__getstate(self):
+        """
+        Test that the _getstate method returns the state of the class.
+        """
+        data = (
+            ((datetime.MINYEAR, 1, 1), (b'\x00\x00\x01\x01',)),
+            ((1, 1, 1), (b'\x073\x01\x01',)),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d._getstate()
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___setstate(self):
+        """
+        Test that the __setstate method sets the year properly.
+        """
+        data = (
+            ((datetime.MINYEAR, 1, 1), b'\x00\x00\x01\x01', datetime.MINYEAR),
+            ((1, 1, 1), b'\x073\x01\x01', 1),
+            )
+        msg = "Expected {} with date {} and bytes_str {}, found {}."
+
+        for date, bytes_str, expected_result in data:
+            d = datetime.date(*date)
+            d._date__setstate(bytes_str)
+            result = d._year
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, bytes_str, result))
 
 
 
@@ -1169,7 +1256,7 @@ class TestBadiDatetime_tzinfo(unittest.TestCase):
 
 
 
-class TestBadiDatetime_IsoCalendarDate(unittest.TestCase):
+class TestBadiDatetime__IsoCalendarDate(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)

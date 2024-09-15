@@ -799,44 +799,52 @@ class TestBadiCalendar(unittest.TestCase):
         data = (
             # Test hms mode
             # 2024-03-20T06:36:00+03:30 Vernal Equinox
-            (2460387.775, lat, lon, zone, None, True, False, (0, 0, 0)),
+            (2460387.775, lat, lon, zone, None, True, False, False, (0, 0, 0)),
             # 2024-06-21T00:21:00+03:30 Summer Solstice
-            (2460480.514583, lat, lon, zone, None, True, False,
+            (2460480.514583, lat, lon, zone, None, True, False, False,
              (0, 0, 11.0592)),
             # 2024-09-22T16:14:00+03:30 Fall Equinox
-            (2460574.176389, lat, lon, zone, None, True, False,
+            (2460574.176389, lat, lon, zone, None, True, False, False,
              (23, 58, 32.1312)),
             # 2024-12-21T12:50:00+03:30 Winter Solstice
-            (2460664.034722, lat, lon, zone, None, True, False,
+            (2460664.034722, lat, lon, zone, None, True, False, False,
              (0, 0, 32.6592)),
             # 1844-03-23 (1844, 3, 23.7603)
-            (2394647.2603, lat, lon, zone, None, True, False, (0, 0, 49.3344)),
+            (2394647.2603, lat, lon, zone, None, True, False, False,
+             (0, 0, 49.3344)),
             # 2024-03-04 (2024, 3, 23.7603)
-            (2460391.2603, lat, lon, zone, None, True, False, (0, 0, 49.8528)),
+            (2460391.2603, lat, lon, zone, None, True, False, False,
+             (0, 0, 49.8528)),
             # Test > 24 day mode
             # 0001-03-20T18:16:00
-            (1721502.2603, lat, lon, zone, 1, False, False, 1.0),
+            (1721502.2603, lat, lon, zone, 1, False, False, False, 1.0),
             # 1844-03-20 (1844, 3, 20.761791)
-            (2394644.261791, lat, lon, zone, 1, False, False, 1.0),
+            (2394644.261791, lat, lon, zone, 1, False, False, False, 1.0),
             # 1844-03-23 (1844, 3, 23.7603) (1, 1, 4)
-            (2394647.2603, lat, lon, zone, 4, False, False, 3.996216),
+            (2394647.2603, lat, lon, zone, 4, False, False, False, 3.996216),
             # 2024-03-04 (2024, 3, 23.7603) (181, 1, 4)
-            (2460391.2603, lat, lon, zone, 4, False, False, 3.996063),
+            (2460391.2603, lat, lon, zone, 4, False, False, False, 3.996063),
             # Test < 24 day mode
             # 2024-09-22T16:14:00+03:30 Fall Equinox (181, 10, 15.927791)
             # 0.927791 = 1 + 0.176389 (JD) - 0.248598 (SS next day)
-            (2460574.176389, lat, lon, zone, 16, False, False, 15.927791),
+            (2460574.176389, lat, lon, zone, 16, False, False, False,
+             15.927791),
+            # Test the round to closest day mode.
+            # 1844-03-23 (1844, 3, 23.7603) (1, 1, 4)
+            (2394647.2603, lat, lon, zone, 4, False, True, False, 4),
             # Test error conditions
-            (2460574.176389, lat, lon, zone, 16, True, True, err_msg0),
-            (2460574.176389, lat, lon, zone, None, False, True, err_msg1),
+            (2460574.176389, lat, lon, zone, 16, True, False, True, err_msg0),
+            (2460574.176389, lat, lon, zone, None, False, False, True,
+             err_msg1),
             )
-        msg = "Expected {} for value {}, day {}, and hms {}, found {}"
+        msg = "Expected {} for value {}, day {}, hms {}, and rtd {}--found {}"
 
-        for value, lat, lon, zone, day, hms, validity, expected_result in data:
+        for (value, lat, lon, zone, day, hms, rtd,
+             validity, expected_result) in data:
             if validity:
                 try:
                     result = self._bc._adjust_day_for_24_hours(
-                        value, lat, lon, zone, day=day, hms=hms)
+                        value, lat, lon, zone, day=day, hms=hms, rtd=rtd)
                 except ValueError as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -845,6 +853,6 @@ class TestBadiCalendar(unittest.TestCase):
                                          f"raised, with result {result}.")
             else:
                 result = self._bc._adjust_day_for_24_hours(
-                    value, lat, lon, zone, day=day, hms=hms)
+                    value, lat, lon, zone, day=day, hms=hms, rtd=rtd)
                 self.assertEqual(expected_result, result, msg.format(
-                    expected_result, value, day, hms, result))
+                    expected_result, value, day, hms, rtd, result))

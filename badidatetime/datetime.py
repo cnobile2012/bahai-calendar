@@ -78,7 +78,8 @@ def _days_before_month(bc:BahaiCalendar, year:int, month:int) -> int:
 
 def _day_of_week(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     """
-    Find the day of the week where .
+    Find the day of the week where 0 == Jalál (Saturday) and
+    6 == Istiqlāl (Friday). For ISO compatability add 1 to the result.
 
     :param bc: BahaiCalendar instance.
     :type bc: BahaiCalendar
@@ -92,7 +93,7 @@ def _day_of_week(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     :rtype: int
     """
     # Since the usual start day is Monday (Kamál) a properly aligned
-    # day number to the day name we need to add 2 to the ordinal.
+    # day number to the day name we need to add 1 to the ordinal.
     return ((_ymd2ord(bc, year, month, day) + 1) % 7 + 7) % 7
 
 def _ymd2ord(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
@@ -928,58 +929,59 @@ class date(BahaiCalendar):
     # Day-of-the-week and week-of-the-year, according to ISO
 
     def isoweekday(self):
-        "Return day of the week, where Monday == 1 ... Sunday == 7."
-        # 1-Jan-0001 is a Monday
-        return self.toordinal() % 7 or 7
+        """
+        Return day of the week, where Jalál (Saturday) == 1 ...
+        Istiqlāl (Friday) == 7.
+        """
+        date = self.__short_from_long_form()
+        return _day_of_week(self, *date) + 1
 
     def isocalendar(self):
         """
         Return a named tuple containing ISO year, week number, and weekday.
 
-        The first ISO week of the year is the (Mon-Sun) week
-        containing the year's first Thursday; everything else derives
+        The first ISO week of the year is the (Jalál-Istiqlāl) week
+        containing the year's first Fiḍāl; everything else derives
         from that.
 
-        The first week is 1; Monday is 1 ... Sunday is 7.
+        The first week is 1; Jalál is 1 ... Istiqlāl is 7.
 
         ISO calendar algorithm taken from
         http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
-        (used with permission)
+        modified for the Badi Calendar.
         """
-        year = self._year
-        week1monday = _isoweek1monday(year)
-        today = _ymd2ord(self._year, self._month, self._day)
+        year, month, day = self.__short_from_long_form()
+        week1jalal = _isoweek1jalal(self, year)
+        today = _ymd2ord(self, year, month, day)
         # Internally, week and day have origin 0
-        week, day = divmod(today - week1monday, 7)
+        week, day = divmod(today - week1jalal, 7)
 
         if week < 0:
             year -= 1
-            week1monday = _isoweek1monday(year)
-            week, day = divmod(today - week1monday, 7)
-        elif week >= 52:
-            if today >= _isoweek1monday(year+1):
-                year += 1
-                week = 0
+            week1monday = _isoweek1jalal(self, year)
+            week, day = divmod(today - week1jalal, 7)
+        elif week >= 52 and today >= _isoweek1jalal(self, year+1):
+            year += 1
+            week = 0
 
         return _IsoCalendarDate(year, week+1, day+1)
 
-##     # Pickle support.
+    # Pickle support.
 
     def _getstate(self):
-        yhi, ylo = divmod(self._year, 256)
-        return bytes([yhi, ylo, self._month, self._day]),
+        yhi, ylo = divmod(self._year - MINYEAR, 256)
+        return bytes((yhi, ylo, self._month, self._day)),
 
-    def __setstate(self, string):
-        yhi, ylo, self._month, self._day = string
-        self._year = yhi * 256 + ylo
+    def __setstate(self, bytes_str):
+        yhi, ylo, self._month, self._day = bytes_str
+        self._year = yhi * 256 + MINYEAR + ylo
 
-##     def __reduce__(self):
-##         return (self.__class__, self._getstate())
+    def __reduce__(self):
+        return (self.__class__, self._getstate())
 
-## _date_class = date  # so functions w/ args named "date" can get at the class
-
-## date.min = date(1, 1, 1)
-## date.max = date(9999, 12, 31)
+_date_class = date  # so functions w/ args named "date" can get at the class
+date.min = date(MINYEAR, 1, 1)
+date.max = date(MAXYEAR, 19, 19)
 ## date.resolution = timedelta(days=1)
 
 
@@ -1057,9 +1059,31 @@ class tzinfo:
         return (self.__class__, args, self.__getstate__())
 
 
-class IsoCalendarDate:
-    pass
+class _IsoCalendarDate(tuple):
 
+    def __new__(cls, year, week, weekday, /):
+        return super().__new__(cls, (year, week, weekday))
+
+    @property
+    def year(self):
+        return self[0]
+
+    @property
+    def week(self):
+        return self[1]
+
+    @property
+    def weekday(self):
+        return self[2]
+
+    def __reduce__(self):
+        # This code is intended to pickle the object without making the
+        # class public. See https://bugs.python.org/msg352381
+        return (tuple, (tuple(self),))
+
+    def __repr__(self):
+        return (f'{self.__class__.__name__}'
+                f'(year={self[0]}, week={self[1]}, weekday={self[2]})')
 
 class time:
     pass
