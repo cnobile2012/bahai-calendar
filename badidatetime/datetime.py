@@ -13,6 +13,7 @@ from .structures import struct_time
 
 MINYEAR = -1842
 MAXYEAR = 1161
+_MAXORDINAL = 1097267 # date.max.toordinal()
 # This keeps the Badi day count in par with the Gregorian day count.
 DAYS_BEFORE_1ST_YEAR = 78
 DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl',
@@ -515,8 +516,8 @@ class date(BahaiCalendar):
         :return: The instantiated class.
         :rtype: date
         """
-        date = tuple([x for x in (a, b, c, d, e) if x is not None])
-        date_len = len(date)
+        b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
+        date_len = len(b_date)
         assert date_len in (3, 5), (
             "A full short or long form Badi date must be used, found "
             f"{date_len} fields.")
@@ -531,13 +532,13 @@ class date(BahaiCalendar):
             self._year = c
             self._month = d
             self._day = e
-            self.__date = date
+            self.__date = b_date
             self.__short = False
         else:
             self._year = a
             self._month = b
             self._day = c
-            self.__date = date
+            self.__date = b_date
             self.__short = True
 
         self._hashcode = -1
@@ -885,9 +886,10 @@ class date(BahaiCalendar):
         return _cmp(d0, d1)
 
     def __hash__(self):
-        "Hash."
+        "Hash"
         if self._hashcode == -1:
             self._hashcode = hash(self._getstate())
+
         return self._hashcode
 
     # Computations
@@ -900,7 +902,7 @@ class date(BahaiCalendar):
             if 0 < od <= _MAXORDINAL:
                 return type(self).fromordinal(o)
 
-            raise OverflowError("result out of range")
+            raise OverflowError("Result out of range.")
 
         return NotImplemented
 
@@ -969,19 +971,43 @@ class date(BahaiCalendar):
     # Pickle support.
 
     def _getstate(self):
-        yhi, ylo = divmod(self._year - MINYEAR, 256)
-        return bytes((yhi, ylo, self._month, self._day)),
+        if self.__short: # Check if this works in Pickle *** TODO ***
+            yhi, ylo = divmod(self._year - MINYEAR, 256)
+            state = (yhi, ylo, self._month, self._day)
+        else:
+            # We need to add an arbitrarily number (19) larger that any
+            # Kull-i-Shay that I support so we don't get a negative number
+            # making bytes puke.
+            kull_i_shay = self._kull_i_shay + 19
+            vahid = self._vahid
+            year = self._year
+            month = self._month
+            day = self._day
+            state = (kull_i_shay, vahid, year, month, day)
+
+        return bytes(state),
 
     def __setstate(self, bytes_str):
-        yhi, ylo, self._month, self._day = bytes_str
-        self._year = yhi * 256 + MINYEAR + ylo
+        if self.__short: # Check if this works in Pickle *** TODO ***
+            yhi, ylo, self._month, self._day = bytes_str
+            self._year = yhi * 256 + MINYEAR + ylo
+        else:
+            k, v, y, m, d = bytes_str
+            self._kull_i_shay = k - 19
+            self._vahid = v
+            self._year = y
+            self._month = m
+            self._day = d
 
     def __reduce__(self):
         return (self.__class__, self._getstate())
 
 _date_class = date  # so functions w/ args named "date" can get at the class
+
+# This also needs to be done for long form date. *** TODO ***
 date.min = date(MINYEAR, 1, 1)
 date.max = date(MAXYEAR, 19, 19)
+
 ## date.resolution = timedelta(days=1)
 
 

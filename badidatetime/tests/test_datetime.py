@@ -1128,11 +1128,24 @@ class TestBadiDatetime_date(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date0, date1, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___hash__(self):
         """
+        Test that the __hash__ method returns a valid hash for both short
+        and long form dates.
         """
-        pass
+        data = (
+            (datetime.MINYEAR, 1, 1),
+            (-5, 18, 1, 1, 1),
+            (1, 1, 1),
+            (1, 1, 1, 1, 1),
+            )
+        msg = "date {}, found {}."
+
+        for date in data:
+            d = datetime.date(*date)
+            result = hash(d)
+            self.assertTrue(len(str(result)) > 15, msg.format(date, result))
 
     @unittest.skip("Temporarily skipped")
     def test___add__(self):
@@ -1144,7 +1157,7 @@ class TestBadiDatetime_date(unittest.TestCase):
     def test___radd__(self):
         """
         """
-        pass
+        test___add__()
 
     @unittest.skip("Temporarily skipped")
     def test___sub__(self):
@@ -1214,7 +1227,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         data = (
             ((datetime.MINYEAR, 1, 1), (b'\x00\x00\x01\x01',)),
+            ((-5, 18, 1, 1, 1), (b'\x0e\x12\x01\x01\x01',)),
             ((1, 1, 1), (b'\x073\x01\x01',)),
+            ((1, 1, 1, 1, 1), (b'\x14\x01\x01\x01\x01',)),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -1230,17 +1245,23 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the __setstate method sets the year properly.
         """
         data = (
-            ((datetime.MINYEAR, 1, 1), b'\x00\x00\x01\x01', datetime.MINYEAR),
-            ((1, 1, 1), b'\x073\x01\x01', 1),
+            ((datetime.MINYEAR, 1, 1), b'\x00\x00\x01\x01'),
+            ((-5, 18, 1, 1, 1), b'\x0e\x12\x01\x01\x01'),
+            ((1, 1, 1), b'\x073\x01\x01'),
+            ((1, 1, 1, 1, 1), b'\x14\x01\x01\x01\x01'),
             )
-        msg = "Expected {} with date {} and bytes_str {}, found {}."
+        msg = "Expected {} with bytes_str {}, found {}."
 
-        for date, bytes_str, expected_result in data:
+        for date, bytes_str in data:
             d = datetime.date(*date)
             d._date__setstate(bytes_str)
-            result = d._year
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, bytes_str, result))
+
+            if len(date) == 3:
+                result = (d._year, d._month, d._day)
+            else:
+                result = (d._kull_i_shay, d._vahid, d._year, d._month, d._day)
+
+            self.assertEqual(date, result, msg.format(date, bytes_str, result))
 
 
 
