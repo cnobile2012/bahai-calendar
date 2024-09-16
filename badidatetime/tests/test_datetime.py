@@ -8,6 +8,7 @@ import re
 import os
 import sys
 import time
+import pickle
 import unittest
 
 PWD = os.path.dirname(os.path.abspath(__file__))
@@ -1263,10 +1264,34 @@ class TestBadiDatetime_date(unittest.TestCase):
 
             self.assertEqual(date, result, msg.format(date, bytes_str, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test___reduce__(self):
+        """
+        Test that the __reduce__ method works for both short and long
+        form Badi dates.
+        """
+        data = (
+            (1, 1, 1),
+            (1, 1, 1, 1, 1),
+            )
+        msg = "Expected {}, with date {}, found {}"
 
+        for date in data:
+            date0 = datetime.date(*date)
+            obj = pickle.dumps(date0)
+            print(obj)
+            date1 = pickle.loads(obj)
 
+            if len(date) == 3:
+                b_date1 = (date0._year, date0._month, date0._day)
+                b_date2 = (date1._year, date1._month, date1._day)
+            else:
+                b_date1 = (date0._kull_i_shay, date0._vahid,
+                           date0._year, date0._month, date0._day)
+                b_date2 = (date1._kull_i_shay, date1._vahid,
+                           date1._year, date1._month, date1._day)
 
-
+            self.assertEqual(b_date1, b_date2, msg.format(obj1, date, obj2))
 
 
 class TestBadiDatetime_tzinfo(unittest.TestCase):
