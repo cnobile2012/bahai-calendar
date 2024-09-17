@@ -522,11 +522,11 @@ class date(BahaiCalendar):
         if b is None and isinstance(a, (bytes, str)):
             a_len = len(a)
             assert a_len in (4, 5), (
-                f"Invalid bytes str {a} had length of {a_len} for pickle.")
+                f"Invalid string {a} had length of {a_len} for pickle.")
             short = True if a_len == 4 else False
 
             if ((short and 1 <= ord(a[2:3]) <= 19)
-                or not short and a <= a[3:4] <= 19):
+                or not short and 1 <= ord(a[3:4]) <= 19):
                 if isinstance(a, str):
                     try:
                         a = a.encode('latin1')
@@ -546,10 +546,6 @@ class date(BahaiCalendar):
                 "A full short or long form Badi date must be used, found "
                 f"{date_len} fields.")
             self = object.__new__(cls)
-            super().__init__(self)
-            self._MONTHNAMES = {num: name
-                                for num, name in self.BADI_MONTH_NAMES}
-            _check_date_fields(self, a, b, c, d, e)
 
             if date_len == 5:
                 self._kull_i_shay = a
@@ -566,6 +562,9 @@ class date(BahaiCalendar):
                 self.__date = b_date
                 self.__short = True
 
+        _check_date_fields(self, *self.__date)
+        self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
+        super().__init__(self)
         self._hashcode = -1
         return self
 
@@ -996,7 +995,7 @@ class date(BahaiCalendar):
     # Pickle support.
 
     def _getstate(self):
-        if self.__short: # Check if this works in Pickle *** TODO ***
+        if self.__short:
             yhi, ylo = divmod(self._year - MINYEAR, 256)
             state = (yhi, ylo, self._month, self._day)
         else:
@@ -1013,9 +1012,10 @@ class date(BahaiCalendar):
         return bytes(state),
 
     def __setstate(self, bytes_str):
-        if self.__short: # Check if this works in Pickle *** TODO ***
+        if self.__short:
             yhi, ylo, self._month, self._day = bytes_str
             self._year = yhi * 256 + MINYEAR + ylo
+            self.__date = (self._year, self._month, self._day)
         else:
             k, v, y, m, d = bytes_str
             self._kull_i_shay = k - 19
@@ -1023,6 +1023,7 @@ class date(BahaiCalendar):
             self._year = y
             self._month = m
             self._day = d
+            self.__date = (self._kull_i_shay, v, y, m, d)
 
     def __reduce__(self):
         return (self.__class__, self._getstate())

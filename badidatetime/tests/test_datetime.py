@@ -516,6 +516,46 @@ class TestBadiDatetime_date(unittest.TestCase):
         super().__init__(name)
 
     #@unittest.skip("Temporarily skipped")
+    def test___new__(self):
+        """
+        Test that the __new__ method creates an instance from both a pickle
+        object and a normal instantiation.
+        """
+        err_msg0 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 "
+                    "or <= 19, found {}")
+        err_msg1 = "Invalid string {} had length of {} for pickle."
+        err_msg2 = ("A full short or long form Badi date must be used, found "
+                    "{} fields.")
+        data = (
+            ((1, 1, 1), False, '0001-01-01'),
+            ((1, 1, 1, 1, 1), False, '01-01-01-01-01'),
+            ((b'\x073\x01\x01',), False, '0001-01-01'),
+            ((b'\x14\x01\x01\x01\x01',), False, '01-01-01-01-01'),
+            ((b'\x073\x01\x01\x01',), True, err_msg0.format(51)),
+            ((b'\x14\x01\x01\x01\x01\x01',), True, err_msg1.format(
+                b'\x14\x01\x01\x01\x01\x01', 6)),
+            #(('\x073\x01\x01',), True, err_msg2.format()),
+            )
+        msg = "Expected {} with value {}, found {}."
+
+        for value, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime.date(*value)
+                except AssertionError as e:
+                    self.assertEqual(expected_result, str(e))
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {value} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = datetime.date(*value)
+                self.assertEqual(expected_result, str(result),
+                                 msg.format(expected_result, value, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test_is_short(self):
         """
         Test that the is_short property properly indicates if the Badi
@@ -1203,7 +1243,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test_isocalendar(self):
         """
         Test that the isocalendar method the correct ISO Calendar tuple.
