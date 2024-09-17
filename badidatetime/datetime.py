@@ -490,8 +490,9 @@ class timedalta:
 
 class date(BahaiCalendar):
     """
-    Implements the date object for the Badi datetime.
+    Implements the date object for the Badi datetime package.
     """
+    #__slots__ = '_kull_i_shay, _vahid, _year', '_month', '_day', '_hashcode'
 
     def __new__(cls, a:int, b:int=None, c:int=None, d:int=None,
                 e:int=None) -> object:
@@ -519,23 +520,7 @@ class date(BahaiCalendar):
         :rtype: date
         """
         # Pickle support
-        if b is None and isinstance(a, (bytes, str)):
-            a_len = len(a)
-            assert a_len in (4, 5), (
-                f"Invalid string {a} had length of {a_len} for pickle.")
-            short = True if a_len == 4 else False
-
-            if ((short and 1 <= ord(a[2:3]) <= 19)
-                or not short and 1 <= ord(a[3:4]) <= 19):
-                if isinstance(a, str):
-                    try:
-                        a = a.encode('latin1')
-                    except UnicodeEncodeError:
-                        raise ValueError(
-                            "Failed to encode latin1 string when unpickling "
-                            "a date object. "
-                            "pickle.load(data, encoding='latin1') is assumed.")
-
+        if (short := date.is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
             self.__short = short
             self.__setstate(a)
@@ -562,9 +547,9 @@ class date(BahaiCalendar):
                 self.__date = b_date
                 self.__short = True
 
-        _check_date_fields(self, *self.__date)
         self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
         super().__init__(self)
+        _check_date_fields(self, *self.__date)
         self._hashcode = -1
         return self
 
@@ -820,7 +805,7 @@ class date(BahaiCalendar):
         if self.__short and (kull_i_shay or vahid):
             msg = "Cannot convert from a short to a long form date."
             raise ValueError(msg)
-        elif not self.__short and (year < 1 or year > 19):
+        elif not self.__short and year is not None and (year < 1 or year > 19):
             msg = ("Cannot convert from a long to a short form date. The "
                    f"value {year} is not valid for long form dates.")
             raise ValueError(msg)
@@ -835,6 +820,7 @@ class date(BahaiCalendar):
     def _replace_short(self, *, year:int=None, month:int=None,
                        day:int=None) -> object:
         """
+        Replace any of the year, month, or day.
         """
         if year is None:
             year = self._year
@@ -850,6 +836,7 @@ class date(BahaiCalendar):
     def _replace_long(self, *, kull_i_shay:int=None, vahid:int=None,
                       year:int=None, month:int=None, day:int=None) -> object:
         """
+        Replace any of the kull_i_shay, vahid, year, month, or day.
         """
         if kull_i_shay is None:
             kull_i_shay = self._kull_i_shay
@@ -993,6 +980,31 @@ class date(BahaiCalendar):
         return _IsoCalendarDate(year, week+1, day+1)
 
     # Pickle support.
+
+    @classmethod
+    def is_pickle_data(cls, a, b):
+        if b is None and isinstance(a, (bytes, str)):
+            a_len = len(a)
+            assert a_len in (4, 5), (
+                f"Invalid string {a} had length of {a_len} for pickle.")
+            short = True if a_len == 4 else False
+
+            if ((short and 1 <= ord(a[2:3]) <= 19)
+                or not short and 1 <= ord(a[3:4]) <= 19):
+                if isinstance(a, str):
+                    try:
+                        a = a.encode('latin1')
+                    except UnicodeEncodeError:
+                        raise ValueError(
+                            "Failed to encode latin1 string when unpickling "
+                            "a date object. "
+                            "pickle.load(data, encoding='latin1') is assumed.")
+            else:
+                short = None
+        else:
+            short = None
+
+        return short
 
     def _getstate(self):
         if self.__short:

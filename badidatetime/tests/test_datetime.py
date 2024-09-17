@@ -526,6 +526,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg1 = "Invalid string {} had length of {} for pickle."
         err_msg2 = ("A full short or long form Badi date must be used, found "
                     "{} fields.")
+        err_msg3 = ("Failed to encode latin1 string when unpickling a date "
+                    "object. pickle.load(data, encoding='latin1') is assumed.")
         data = (
             ((1, 1, 1), False, '0001-01-01'),
             ((1, 1, 1, 1, 1), False, '01-01-01-01-01'),
@@ -534,7 +536,8 @@ class TestBadiDatetime_date(unittest.TestCase):
             ((b'\x073\x01\x01\x01',), True, err_msg0.format(51)),
             ((b'\x14\x01\x01\x01\x01\x01',), True, err_msg1.format(
                 b'\x14\x01\x01\x01\x01\x01', 6)),
-            #(('\x073\x01\x01',), True, err_msg2.format()),
+            ((100,), True, err_msg2.format(1)),
+            (('\u2190\x01\x01\x01',), True, err_msg3),
             )
         msg = "Expected {} with value {}, found {}."
 
@@ -1004,6 +1007,8 @@ class TestBadiDatetime_date(unittest.TestCase):
             # Normal replace for a long date
             ((1, 10, 10, 1, 1), (None, None, 11, None, None), False, False,
              '01-10-11-01-01'),
+            ((1, 10, 10, 1, 1), (None, 9, None, None, None), False, False,
+             '01-09-10-01-01'),
             ((1, 10, 10, 1, 1), (None, 9, 10, None, None), False, False,
              '01-09-10-01-01'),
             # Error conditions.
@@ -1243,7 +1248,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_isocalendar(self):
         """
         Test that the isocalendar method the correct ISO Calendar tuple.
