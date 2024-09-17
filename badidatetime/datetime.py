@@ -493,14 +493,16 @@ class date(BahaiCalendar):
     Implements the date object for the Badi datetime.
     """
 
-    def __new__(cls, a:int, b:int, c:int, d:int=None, e:int=None) -> object:
+    def __new__(cls, a:int, b:int=None, c:int=None, d:int=None,
+                e:int=None) -> object:
         """
         Instantiate the class.
 
         :param cls: The class object.
         :type cls: date class
         :param a: Long form this value is the Kill-i-Shay and short form
-                  it's the year.
+                  it's the year. If b and c are None then a becomes the
+                  pickle value that is parsed to the remaining values below.
         :type a: int
         :param b: Long form this value is the Váḥid and short form it's
                   the month.
@@ -516,30 +518,53 @@ class date(BahaiCalendar):
         :return: The instantiated class.
         :rtype: date
         """
-        b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
-        date_len = len(b_date)
-        assert date_len in (3, 5), (
-            "A full short or long form Badi date must be used, found "
-            f"{date_len} fields.")
-        self = object.__new__(cls)
-        super().__init__(self)
-        self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
-        _check_date_fields(self, a, b, c, d, e)
+        # Pickle support
+        if b is None and isinstance(a, (bytes, str)):
+            a_len = len(a)
+            assert a_len in (4, 5), (
+                f"Invalid bytes str {a} had length of {a_len} for pickle.")
+            short = True if a_len == 4 else False
 
-        if date_len == 5:
-            self._kull_i_shay = a
-            self._vahid = b
-            self._year = c
-            self._month = d
-            self._day = e
-            self.__date = b_date
-            self.__short = False
+            if ((short and 1 <= ord(a[2:3]) <= 19)
+                or not short and a <= a[3:4] <= 19):
+                if isinstance(a, str):
+                    try:
+                        a = a.encode('latin1')
+                    except UnicodeEncodeError:
+                        raise ValueError(
+                            "Failed to encode latin1 string when unpickling "
+                            "a date object. "
+                            "pickle.load(data, encoding='latin1') is assumed.")
+
+            self = object.__new__(cls)
+            self.__short = short
+            self.__setstate(a)
         else:
-            self._year = a
-            self._month = b
-            self._day = c
-            self.__date = b_date
-            self.__short = True
+            b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
+            date_len = len(b_date)
+            assert date_len in (3, 5), (
+                "A full short or long form Badi date must be used, found "
+                f"{date_len} fields.")
+            self = object.__new__(cls)
+            super().__init__(self)
+            self._MONTHNAMES = {num: name
+                                for num, name in self.BADI_MONTH_NAMES}
+            _check_date_fields(self, a, b, c, d, e)
+
+            if date_len == 5:
+                self._kull_i_shay = a
+                self._vahid = b
+                self._year = c
+                self._month = d
+                self._day = e
+                self.__date = b_date
+                self.__short = False
+            else:
+                self._year = a
+                self._month = b
+                self._day = c
+                self.__date = b_date
+                self.__short = True
 
         self._hashcode = -1
         return self

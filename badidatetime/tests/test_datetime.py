@@ -1151,18 +1151,21 @@ class TestBadiDatetime_date(unittest.TestCase):
     @unittest.skip("Temporarily skipped")
     def test___add__(self):
         """
+        Test that the __add__ method
         """
         pass
 
     @unittest.skip("Temporarily skipped")
     def test___radd__(self):
         """
+        Test that the __radd__ method
         """
         test___add__()
 
     @unittest.skip("Temporarily skipped")
     def test___sub__(self):
         """
+        Test that the __sub__ method
         """
         pass
 
@@ -1271,27 +1274,29 @@ class TestBadiDatetime_date(unittest.TestCase):
         form Badi dates.
         """
         data = (
+            (datetime.MINYEAR, 1, 1),
             (1, 1, 1),
             (1, 1, 1, 1, 1),
+            (datetime.MAXYEAR, 1, 1),
             )
         msg = "Expected {}, with date {}, found {}"
 
         for date in data:
             date0 = datetime.date(*date)
             obj = pickle.dumps(date0)
-            print(obj)
             date1 = pickle.loads(obj)
 
             if len(date) == 3:
-                b_date1 = (date0._year, date0._month, date0._day)
-                b_date2 = (date1._year, date1._month, date1._day)
+                b_date0 = (date0._year, date0._month, date0._day)
+                b_date1 = (date1._year, date1._month, date1._day)
             else:
-                b_date1 = (date0._kull_i_shay, date0._vahid,
+                b_date0 = (date0._kull_i_shay, date0._vahid,
                            date0._year, date0._month, date0._day)
-                b_date2 = (date1._kull_i_shay, date1._vahid,
+                b_date1 = (date1._kull_i_shay, date1._vahid,
                            date1._year, date1._month, date1._day)
 
-            self.assertEqual(b_date1, b_date2, msg.format(obj1, date, obj2))
+            self.assertEqual(b_date0, b_date1, msg.format(
+                b_date0, date, b_date1))
 
 
 class TestBadiDatetime_tzinfo(unittest.TestCase):
