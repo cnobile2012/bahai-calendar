@@ -688,12 +688,8 @@ class date(BahaiCalendar):
         """
         Convert the long form Badi date to a short form Badi date.
         """
-        if self.__short:
-            date = self.__date
-        else:
-            date = self.short_date_from_long_date(self.__date)
-
-        return date
+        return (self.__date if self.__short else
+                self.short_date_from_long_date(self.__date))
 
     def ctime(self):
         """

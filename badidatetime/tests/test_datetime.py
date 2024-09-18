@@ -730,13 +730,23 @@ class TestBadiDatetime_date(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___short_from_long_form(self):
         """
         Test that the __short_from_long_form method returns the short form
         Badi date.
         """
-        pass
+        data = (
+            ((1, 1, 1, 1, 1), (1, 1, 1)),
+            ((1, 10, 10, 10, 12), (181, 10, 12)),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.date(*date)
+            result = d._date__short_from_long_form()
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_ctime(self):
