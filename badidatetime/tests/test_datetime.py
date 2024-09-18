@@ -502,10 +502,181 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                                  msg.format(expected_result, time, result))
 
 
-class TestBadiDatetime_timedalta(unittest.TestCase):
+class TestBadiDatetime_timedelta(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)
+
+    @unittest.skip("Temporarily skipped")
+    def test___new__(self):
+        """
+        """
+        pass
+
+    #@unittest.skip("Temporarily skipped")
+    def test___repr__(self):
+        """
+        Test that the __repr__ method returns the correctly formatted string.
+        """
+        data = (
+            ((1, 1, 1), 'badidatetime.datetime.timedelta('
+             'days=1, seconds=1, microseconds=1)'),
+            ((0, 0, 0), 'badidatetime.datetime.timedelta(0)'),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.timedelta(*date)
+            result = repr(d)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___str__(self):
+        """
+        Test that the __str__ method returns the correctly formatted string.
+        """
+        data = (
+            ((1, 1, 1), '1 day, 0:00:01.000001'),
+            ((0, 0, 0), '0:00:00'),
+            ((2, 10, 15, 20, 5, 1), '2 days, 1:05:10.020015'),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            result = datetime.timedelta(*date)
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, date, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_total_seconds(self):
+        """
+        Test that the total_seconds functions returns the provided date
+        data in total seconds.
+        """
+        data = (
+            ((1, 1, 1), 86401.000001),
+            ((0, 0, 0), 0),
+            ((10, 10, 10), 864010.00001),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            td = datetime.timedelta(*date)
+            result = td.total_seconds()
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_days(self):
+        """
+        Test that the days property returns the correct number of days.
+        """
+        data = (
+            ((1, 1, 1), 1),
+            ((0, 0, 0), 0),
+            ((10, 9, 8), 10),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            td = datetime.timedelta(*date)
+            result = td.days
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_seconds(self):
+        """
+        Test that the seconds property returns the correct number of seconds.
+        """
+        data = (
+            ((1, 1, 1), 1),
+            ((0, 0, 0), 0),
+            ((10, 9, 8), 9),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            td = datetime.timedelta(*date)
+            result = td.seconds
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_microseconds(self):
+        """
+        Test that the microseconds property returns the correct number of
+        microseconds.
+        """
+        data = (
+            ((1, 1, 1), 1),
+            ((0, 0, 0), 0),
+            ((10, 9, 8), 8),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            td = datetime.timedelta(*date)
+            result = td.microseconds
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___add__(self):
+        """
+        Test that the __add__ method returns a timedelta object with the
+        days, seconds, and microseconds added.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), (2, 2, 2)),
+            ((0, 0, 0), (1, 1, 1), (1, 1, 1)),
+            ((10, 9, 8), (11, 1, 1), (21, 10, 9)),
+            )
+        msg = "Expected {} with date0 {}, and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            td0 = datetime.timedelta(*date0)
+            td1 = datetime.timedelta(*date1)
+            td = td0 + td1
+            result = (td.days, td.seconds, td.microseconds)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date0, date1, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___radd__(self):
+        """
+        Test that the __radd__ methoda timedelta object with the
+        days, seconds, and microseconds subtracted.
+        """
+        self.test___add__()
+
+    #@unittest.skip("Temporarily skipped")
+    def test___sub__(self):
+        """
+        Test that the __sub__ method 
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), (0, 0, 0)),
+            ((0, 0, 0), (1, 1, 1), (-2, 86398, 999999)),
+            ((10, 9, 8), (11, 1, 1), (-1, 8, 7)),
+            )
+        msg = "Expected {} with date0 {}, and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            td0 = datetime.timedelta(*date0)
+            td1 = datetime.timedelta(*date1)
+            td = td0 - td1
+            result = (td.days, td.seconds, td.microseconds)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date0, date1, str(result)))
+
+    @unittest.skip("Temporarily skipped")
+    def test___rsub__(self):
+        """
+        Test that the __rsub__ method
+        """
+        pass
 
 
 
@@ -1215,7 +1386,7 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         Test that the __radd__ method
         """
-        test___add__()
+        self.test___add__()
 
     @unittest.skip("Temporarily skipped")
     def test___sub__(self):
@@ -1367,7 +1538,95 @@ class TestBadiDatetime__IsoCalendarDate(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
+    #@unittest.skip("Temporarily skipped")
+    def test_year(self):
+        """
+        Test that the year property returns the year.
+        """
+        data = (
+            # year, week, weekday
+            ((1,    1,    1), 1),
+            )
+        msg = "Expected {}, with date {}, found {}"
 
+        for date, expected_result in data:
+            d = datetime._IsoCalendarDate(*date)
+            result = d.year
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_week(self):
+        """
+        Test that the week property returns the week.
+        """
+        data = (
+            # year, week, weekday
+            ((1,    1,    1), 1),
+            )
+        msg = "Expected {}, with date {}, found {}"
+
+        for date, expected_result in data:
+            d = datetime._IsoCalendarDate(*date)
+            result = d.week
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_weekday(self):
+        """
+        Test that the weekday property returns the weekday.
+        """
+        data = (
+            # year, week, weekday
+            ((1,    1,    1), 1),
+            )
+        msg = "Expected {}, with date {}, found {}"
+
+        for date, expected_result in data:
+            d = datetime._IsoCalendarDate(*date)
+            result = d.weekday
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___reduce__(self):
+        """
+        Test that the __reduce__ method works for both short and long
+        form Badi dates.
+        """
+        data = (
+            (datetime.MINYEAR, 1, 1),
+            (1, 1, 1),
+            (datetime.MAXYEAR, 1, 1),
+            )
+        msg = "Expected {}, with date {}, found {}"
+
+        for date in data:
+            date0 = datetime._IsoCalendarDate(*date)
+            obj = pickle.dumps(date0)
+            date1 = pickle.loads(obj)
+            b_date0 = (date0.year, date0.week, date0.weekday)
+            b_date1 = (date1[0], date1[1], date1[2])
+            self.assertEqual(b_date0, b_date1, msg.format(
+                b_date0, date, b_date1))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___repr__(self):
+        """
+        Test that the __repr__ returns the expected formatted text.
+        """
+        data = (
+            ((181, 9, 16), '_IsoCalendarDate(year=181, week=9, weekday=16)'),
+            ((1, 1, 1), '_IsoCalendarDate(year=1, week=1, weekday=1)'),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime._IsoCalendarDate(*date)
+            result = repr(d)
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, date, result))
 
 
 class TestBadiDatetime_time(unittest.TestCase):
