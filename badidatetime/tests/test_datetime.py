@@ -501,6 +501,23 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 self.assertEqual(expected_result, result,
                                  msg.format(expected_result, time, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test__divide_and_round(self):
+        """
+        Test that the _divide_and_round function returns the correct result.
+        """
+        data = (
+            ((7, 3), 2),
+            ((99, 4), 25),
+            ((99, 3), 33),
+            )
+        msg = "Expected {} with values {}, found {}."
+
+        for values, expected_result in data:
+            result = datetime._divide_and_round(*values)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, values, result))
+
 
 class TestBadiDatetime_timedelta(unittest.TestCase):
 
@@ -625,8 +642,8 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test___add__(self):
         """
-        Test that the __add__ method returns a timedelta object with the
-        days, seconds, and microseconds added.
+        Test that the __add__ method returns an added timedelta object
+        with the days, seconds, and microseconds.
         """
         data = (
             ((1, 1, 1), (1, 1, 1), (2, 2, 2)),
@@ -646,15 +663,16 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test___radd__(self):
         """
-        Test that the __radd__ methoda timedelta object with the
-        days, seconds, and microseconds subtracted.
+        Test that the __radd__ method returns an added timedelta object
+        with the days, seconds, and microseconds.
         """
         self.test___add__()
 
     #@unittest.skip("Temporarily skipped")
     def test___sub__(self):
         """
-        Test that the __sub__ method 
+        Test that the __sub__ method returns a subtracted timedelta object
+        with the days, seconds, and microseconds.
         """
         data = (
             ((1, 1, 1), (1, 1, 1), (0, 0, 0)),
@@ -674,10 +692,398 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
     @unittest.skip("Temporarily skipped")
     def test___rsub__(self):
         """
-        Test that the __rsub__ method
+        Test that the __rsub__ method returns the inverse subtracted
+        timedelta object with the days, seconds, and microseconds.
         """
-        pass
+        data = (
+            ((1, 1, 1), (1, 1, 1), (0, 0, 0)),
+            ((0, 0, 0), (0, 0, 0), (-2, 86398, 999999)),
+            ((10, 9, 8), (1, 1, 1), (-1, 8, 7)),
+            )
+        msg = "Expected {} with date {}, and dividend {}, found {}."
 
+        for date, dividend, expected_result in data:
+            td0 = datetime.timedelta(*date)
+            td1 = td0 - dividend
+            result = (td1.days, td1.seconds, td1.microseconds)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, dividend, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___neg__(self):
+        """
+        Test that the __neg__ returns a negative version of the
+        tiemdelta object.
+        """
+        data = (
+            ((1, 1, 1), (-2, 86398, 999999)),
+            ((0, 0, 0), (0, 0, 0)),
+            ((10, 9, 8), (-11, 86390, 999992)),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            td0 = datetime.timedelta(*date)
+            td1 = -td0
+            result = (td1.days, td1.seconds, td1.microseconds)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___pos__(self):
+        """
+        Test that the __pos__ returns a positive version of the
+        tiemdelta object.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1)),
+            ((0, 0, 0), (0, 0, 0)),
+            ((10, 9, 8), (10, 9, 8)),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            td0 = datetime.timedelta(*date)
+            td1 = +td0
+            result = (td1.days, td1.seconds, td1.microseconds)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___abs__(self):
+        """
+        Test that the __abs__ returns the absolute value version of the
+        tiemdelta object.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1)),
+            ((0, 0, 0), (0, 0, 0)),
+            ((-1 , -1, -1), (1, 1, 1)),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            td0 = datetime.timedelta(*date)
+            td1 = abs(td0)
+            result = (td1.days, td1.seconds, td1.microseconds)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___mul__(self):
+        """
+        Test that the __mul__ method returns the product of the
+        datetime.timedelta object and an interger or float.
+        """
+        data = (
+            ((10, 50, 5000), 2, (20, 100, 10000)),
+            ((10, 50, 5000), 2.5, (25, 125, 12500)),
+            )
+        msg = "Expected {} with date {} and multiplyer {}, found {}."
+
+        for date, multiplyer, expected_result in data:
+            td0 = datetime.timedelta(*date)
+            td1 = td0 * multiplyer
+            result = (td1.days, td1.seconds, td1.microseconds)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, multiplyer, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___rmul__(self):
+        """
+        Test that the __rmul__ method returns the product of the
+        datetime.timedelta object and an interger or float.
+        """
+        self.test___mul__()
+
+    #@unittest.skip("Temporarily skipped")
+    def test__to_microseconds(self):
+        """
+        Test that the _to_microseconds method returns the total
+        microseconds of the datetime.timedelta object.
+        """
+        data = (
+            ((1, 1, 1), 86401000001),
+            ((0, 0, 0), 0),
+            ((10, 9, 8), 864009000008),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            td = datetime.timedelta(*date)
+            result = td._to_microseconds()
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___floordiv__(self):
+        """
+        Test that the __floordiv__ returns the floor after divided using
+        the // operator.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), 1),
+            ((10, 9, 8), (5, 4, 4), 2),
+            ((1, 1, 1), 2, (0, 43200, 500000)),
+            ((2, 2, 2), 5, (0, 34560, 400000)),
+            )
+        msg = "Expected {} with date {} and value {}, found {}."
+
+        for date, value, expected_result in data:
+            td0 = datetime.timedelta(*date)
+
+            if isinstance(value, tuple):
+                diviser = datetime.timedelta(*value)
+            else:
+                diviser = value
+
+            result = td0 // diviser
+
+            if isinstance(result, datetime.timedelta):
+                result = (result.days, result.seconds, result.microseconds)
+
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, value, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___truediv__(self):
+        """
+        Test that the __truediv__ method returns the result of an
+        datetime.timedelta divided by a datetime.timedelta, interger,
+        or float.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), 1),
+            ((10, 9, 8), (5, 4, 4), 2.0000023147933814),
+            ((1, 1, 1), 2, (0, 43200, 500000)),
+            ((2, 2, 2), 5, (0, 34560, 400000)),
+            ((1, 1, 1), 2.5, (0, 34560, 400000)),
+            ((10, 10, 10), 4.5, (2, 19202, 222224)),
+            )
+        msg = "Expected {} with date {} and value {}, found {}."
+
+        for date, value, expected_result in data:
+            td0 = datetime.timedelta(*date)
+
+            if isinstance(value, tuple):
+                diviser = datetime.timedelta(*value)
+            else:
+                diviser = value
+
+            result = td0 / diviser
+
+            if isinstance(result, datetime.timedelta):
+                result = (result.days, result.seconds, result.microseconds)
+
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, value, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___mod__(self):
+        """
+        Test that the __mod__ method returns the results of the mod (%)
+        operator.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), (0, 0, 0)),
+            ((10, 9, 8), (2, 4, 4), (1, 86392, 999992)),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            td0 = datetime.timedelta(*date0)
+            td1 = datetime.timedelta(*date1)
+            td = td0 % td1
+            result = (td.days, td.seconds, td.microseconds)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___divmod__(self):
+        """
+        Test that the __divmod__ method returns the results of the divmod
+        buildin function.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), (1, (0, 0, 0))),
+            ((10, 9, 8), (2, 4, 4), (4, (1, 86392, 999992))),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            td0 = datetime.timedelta(*date0)
+            td1 = datetime.timedelta(*date1)
+            q, r = divmod(td0, td1)
+            result = (q, (r.days, r.seconds, r.microseconds))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___eq__(self):
+        """
+        Test that the __eq__ method returns  True if equal and False if
+        not equal.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), True),
+            ((1, 1, 1), (1, 1, 0), False),
+            ((1, 1, 1), (1, 1, 2), False),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.timedelta(*date0)
+            d1 = datetime.timedelta(*date1)
+            result = d0 == d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___le__(self):
+        """
+        Test that the __le__ method returns  True if less than or equal and
+        False if not less than or equal.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), True),
+            ((1, 1, 1), (1, 1, 0), False),
+            ((1, 1, 1), (1, 1, 2), True),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.timedelta(*date0)
+            d1 = datetime.timedelta(*date1)
+            result = d0 <= d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___lt__(self):
+        """
+        Test that the __lt__ method returns True if less than and False
+        if not less than.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), False),
+            ((1, 1, 1), (1, 1, 0), False),
+            ((1, 1, 1), (1, 1, 2), True),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.timedelta(*date0)
+            d1 = datetime.timedelta(*date1)
+            result = d0 < d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___ge__(self):
+        """
+        Test that the __ge__ method returns True if greater than or equal
+        and False if not greater than or equal.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), True),
+            ((1, 1, 1), (1, 1, 0), True),
+            ((1, 1, 1), (1, 1, 2), False),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.timedelta(*date0)
+            d1 = datetime.timedelta(*date1)
+            result = d0 >= d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___gt__(self):
+        """
+        Test that the __gt__ method returns True if greater than and False
+        if not greater than.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), False),
+            ((1, 1, 1), (1, 1, 0), True),
+            ((1, 1, 1), (1, 1, 2), False),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            d0 = datetime.timedelta(*date0)
+            d1 = datetime.timedelta(*date1)
+            result = d0 > d1
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__cmp(self):
+        """
+        Test that the _cmp method returns 1 if the two dates are equal, +1
+        if the current date is greater than the test date, and -1 if the
+        inverse.
+        """
+        data = (
+            ((1, 1, 1), (1, 1, 1), 0),
+            ((1, 2, 1), (1, 1, 1), 1),
+            ((1, 1, 1), (1, 2, 1), -1),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, date1, expected_result in data:
+            td0 = datetime.timedelta(*date0)
+            td1 = datetime.timedelta(*date1)
+            result = td0._cmp(td1)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___hash__(self):
+        """
+        Test that the __hash__ method returns a valid hash.
+        """
+        data = (
+            (1, 1, 1),
+            (10, 10, 10),
+            )
+        msg = "date {}, found {}."
+
+        for date in data:
+            d = datetime.timedelta(*date)
+            result = hash(d)
+            self.assertTrue(len(str(result)) > 15, msg.format(date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___bool__(self):
+        """
+        Test that the __bool__ method returns the correct boolean for the
+        given datetime.timedelta object.
+        """
+        data = (
+            ((0, 0, 0), False),
+            ((1, 1, 1), True),
+            )
+        msg = "date {}, found {}."
+
+        for date, expected_result in data:
+            d = datetime.timedelta(*date)
+            result = bool(d)
+            self.assertEqual(expected_result, result, msg.format(date, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test__getstate(self):
+        """
+        Test that the _getstate method returns the state of the class.
+        """
+
+
+    @unittest.skip("Temporarily skipped")
+    def test___reduce__(self):
+        """
+        Test that the __reduce__ method sets the year properly.
+        """
 
 
 

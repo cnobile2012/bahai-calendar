@@ -481,6 +481,23 @@ def _wrap_strftime(object, format, timetuple):
     newformat = "".join(newformat)
     return _time.strftime(newformat, timetuple)
 
+def _divide_and_round(a, b):
+    """
+    Divide a by b and round result to the nearest integer.
+
+    When the ratio is exactly half-way between two integers,
+    the even integer is returned.
+    """
+    # Based on the reference implementation for divmod_near
+    # in Objects/longobject.c.
+    q, r = divmod(a, b)
+    # round up if either r / b > 0.5, or r / b == 0.5 and q is odd.
+    # The expression r / b > 0.5 is equivalent to 2 * r > b if b is
+    # positive, 2 * r < b if b negative.
+    r *= 2
+    greater_than_half = r > b if b > 0 else r < b
+    return q + (1 if greater_than_half or r == b and q % 2 == 1 else 0)
+
 
 class timedelta:
     """
@@ -669,6 +686,7 @@ class timedelta:
             return timedelta(self._days + other._days,
                              self._seconds + other._seconds,
                              self._microseconds + other._microseconds)
+
         return NotImplemented
 
     __radd__ = __add__
@@ -695,10 +713,7 @@ class timedelta:
         return self
 
     def __abs__(self):
-        if self._days < 0:
-            return -self
-        else:
-            return self
+        return -self if self._days < 0 else self
 
     def __mul__(self, other):
         if isinstance(other, int):
@@ -724,9 +739,12 @@ class timedelta:
     def __floordiv__(self, other):
         if not isinstance(other, (int, timedelta)):
             return NotImplemented
+
         usec = self._to_microseconds()
+
         if isinstance(other, timedelta):
             return usec // other._to_microseconds()
+
         if isinstance(other, int):
             return timedelta(0, 0, usec // other)
 
@@ -738,8 +756,10 @@ class timedelta:
 
         if isinstance(other, timedelta):
             return usec / other._to_microseconds()
+
         if isinstance(other, int):
             return timedelta(0, 0, _divide_and_round(usec, other))
+
         if isinstance(other, float):
             a, b = other.as_integer_ratio()
             return timedelta(0, 0, _divide_and_round(b * usec, a))
@@ -804,10 +824,10 @@ class timedelta:
     def __reduce__(self):
         return (self.__class__, self._getstate())
 
-#timedelta.min = timedelta(-999999999)
-#timedelta.max = timedelta(days=999999999, hours=23, minutes=59, seconds=59,
-#                          microseconds=999999)
-#timedelta.resolution = timedelta(microseconds=1)
+timedelta.min = timedelta(-999999999)
+timedelta.max = timedelta(days=999999999, hours=23, minutes=59, seconds=59,
+                          microseconds=999999)
+timedelta.resolution = timedelta(microseconds=1)
 
 
 class date(BahaiCalendar):
