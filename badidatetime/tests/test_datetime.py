@@ -529,11 +529,7 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         """
         Test that the __new__ method 
         """
-        err_msg0 = ""
-
         err_msg99 = "timedelta # of days is too large: {}"
-
-
         data = (
             ((1,), False, '1 day, 0:00:00'),
             ((1, 2), False, '1 day, 0:00:02'),
@@ -545,9 +541,7 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
             ((1.5,), False, '1 day, 12:00:00'),
             ((1.5, 2.5), False, '1 day, 12:00:02.500000'),
             ((1.5, 2.5, 3.5), False, '1 day, 12:00:02.500004'),
-            #((1.5**100,), True, err_msg0),
-
-            ((1.5**100,), True, err_msg99.format(406561177535215232)),
+            ((1000000000,), True, err_msg99.format(1000000000)),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -1841,12 +1835,37 @@ class TestBadiDatetime_date(unittest.TestCase):
             result = hash(d)
             self.assertTrue(len(str(result)) > 15, msg.format(date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___add__(self):
         """
-        Test that the __add__ method
+        Test that the __add__ method can correctly add a date to a timedelta.
         """
-        pass
+        err_msg0 = "Result out of range."
+        data = (
+            ((1, 1, 1), (1,), False, (1, 1, 2)),
+            ((181, 1, 1), (366,), False, (182, 1, 1)),
+            ((10000, 1, 1), (365,), True, err_msg0),
+            )
+        msg = "Expected {} with date {} and timedelta {}, found {}"
+
+        for date, td, validity, expected_result in data:
+            d0 = datetime.date(*date)
+            td0 = datetime.timedelta(*td)
+
+            if validity:
+                try:
+                    d1 = d0 + td0
+                except OverflowError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date1}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                d1 = d0 + td0
+                result = (d1._year, d1._month, d1._day)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, td, result))
 
     @unittest.skip("Temporarily skipped")
     def test___radd__(self):

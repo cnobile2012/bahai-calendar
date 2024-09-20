@@ -394,9 +394,28 @@ class BahaiCalendar(BaseCalendar):
 
     def badi_date_from_jd(self, jd:float, lat:float=None, lon:float=None,
                           zone:float=None, *, short:bool=False,
-                          fraction:bool=False, rtd=False) -> tuple:
+                          fraction:bool=False, rtd:bool=False) -> tuple:
         """
-        Convert a Julian period day to a Badi date.
+        Convert a Julian Period day to a Badi date.
+
+        :param jd: Julian Period day.
+        :type jd: float
+        :param lat: The latitude.
+        :type lat: float
+        :param lon: The longitude.
+        :type lon: float
+        :param zone: The standard time zone.
+        :type zone: float
+        :param short: If True then parse for a short date else if False
+                      parse for a long date.
+        :type short: bool
+        :param fraction: This will return a short date with a possible
+                         fraction on the day.
+        :type fraction: bool
+        :param rtd: Round to day.
+        :type rtd: bool
+        :return: The Badi date from a Julian Period day.
+        :rtype: tuple
         """
         def get_leap_year_info(y):
             leap = self._is_leap_year(year)
@@ -549,7 +568,8 @@ class BahaiCalendar(BaseCalendar):
         return self.short_date_from_long_date(date) if short else date
 
     def badi_date_from_gregorian_date(self, g_date:tuple, *, short:bool=False,
-                                      _exact=True) -> tuple:
+                                      _exact:bool=True,
+                                      rtd:bool=False) -> tuple:
         """
         Get the Badi date from the Gregorian date.
 
@@ -563,11 +583,13 @@ class BahaiCalendar(BaseCalendar):
                        False value will give inaccurate results and is used
                        for testing only.
         :type _exact: bool
+        :param rtd: Round to day.
+        :type rtd: bool
         :return: A Badi date long or short form.
         :rtype: tuple
         """
         jd = self._gc.jd_from_gregorian_date(g_date, exact=_exact)
-        return self.badi_date_from_jd(jd, short=short)
+        return self.badi_date_from_jd(jd, short=short, rtd=rtd)
 
     def gregorian_date_from_badi_date(self, b_date:tuple, lat:float=None,
                                       lon:float=None, zone:float=None, *,

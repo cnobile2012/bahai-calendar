@@ -1244,7 +1244,7 @@ class date(BahaiCalendar):
             od = self.toordinal() + other.days
 
             if 0 < od <= _MAXORDINAL:
-                return type(self).fromordinal(o)
+                return type(self).fromordinal(od, short=self.__short)
 
             raise OverflowError("Result out of range.")
 
