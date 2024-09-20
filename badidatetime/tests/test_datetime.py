@@ -524,11 +524,49 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___new__(self):
         """
+        Test that the __new__ method 
         """
-        pass
+        err_msg0 = ""
+
+        err_msg99 = "timedelta # of days is too large: {}"
+
+
+        data = (
+            ((1,), False, '1 day, 0:00:00'),
+            ((1, 2), False, '1 day, 0:00:02'),
+            ((1, 2, 3), False, '1 day, 0:00:02.000003'),
+            ((1, 2, 3, 4), False, '1 day, 0:00:02.004003'),
+            ((1, 2, 3, 4, 5), False, '1 day, 0:05:02.004003'),
+            ((1, 2, 3, 4, 5, 6), False, '1 day, 6:05:02.004003'),
+            ((1, 2, 3, 4, 5, 6, 7), False, '50 days, 6:05:02.004003'),
+            ((1.5,), False, '1 day, 12:00:00'),
+            ((1.5, 2.5), False, '1 day, 12:00:02.500000'),
+            ((1.5, 2.5, 3.5), False, '1 day, 12:00:02.500004'),
+            #((1.5**100,), True, err_msg0),
+
+            ((1.5**100,), True, err_msg99.format(406561177535215232)),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime.timedelta(*date)
+                except AssertionError as e:
+                    self.assertEqual(expected_result, str(e))
+                except OverflowError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {date} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = datetime.timedelta(*date)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___repr__(self):
@@ -1072,19 +1110,42 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
             result = bool(d)
             self.assertEqual(expected_result, result, msg.format(date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__getstate(self):
         """
         Test that the _getstate method returns the state of the class.
         """
+        data = (
+            ((1, 1, 1), (1, 1, 1)),
+            ((-1, 1, 1), (-1, 1, 1)),
+            )
+        msg = "Expected {} with date {}, found {}."
 
+        for date, expected_result in data:
+            d = datetime.timedelta(*date)
+            result = d._getstate()
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___reduce__(self):
         """
         Test that the __reduce__ method sets the year properly.
         """
+        data = (
+            (1, 1, 1),
+            (-1, 1, 1),
+            )
+        msg = "Expected {}, with date {}, found {}"
 
+        for date in data:
+            td0 = datetime.timedelta(*date)
+            obj = pickle.dumps(td0)
+            td1 = pickle.loads(obj)
+            td0_result = (td0._days, td0._seconds, td0._microseconds)
+            td1_result = (td1._days, td1._seconds, td1._microseconds)
+            self.assertEqual(td0_result, td1_result, msg.format(
+                td0_result, date, td1_result))
 
 
 class TestBadiDatetime_date(unittest.TestCase):

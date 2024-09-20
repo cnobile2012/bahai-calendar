@@ -614,7 +614,7 @@ class timedelta:
         assert isinstance(us, int) and 0 <= us < 1000000
 
         if abs(d) > 999999999:
-            raise OverflowError("timedelta # of days is too large: %d" % d)
+            raise OverflowError(f"timedelta # of days is too large: {d}")
 
         self = object.__new__(cls)
         self._days = d
