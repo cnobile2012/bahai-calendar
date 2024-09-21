@@ -1244,25 +1244,28 @@ class date(BahaiCalendar):
             od = self.toordinal() + other.days
 
             if 0 < od <= _MAXORDINAL:
-                return type(self).fromordinal(od, short=self.__short)
+                ret = type(self).fromordinal(od, short=self.__short)
+            else:
+                raise OverflowError("Result out of range.")
+        else:
+            ret = NotImplemented
 
-            raise OverflowError("Result out of range.")
-
-        return NotImplemented
+        return ret
 
     __radd__ = __add__
 
     def __sub__(self, other):
         """Subtract two dates, or a date and a timedelta."""
         if isinstance(other, timedelta):
-            return self + timedelta(-other.days)
-
-        if isinstance(other, date):
+            ret = self + timedelta(-other.days)
+        elif isinstance(other, date):
             days1 = self.toordinal()
             days2 = other.toordinal()
-            return timedelta(days1 - days2)
+            ret = timedelta(days1 - days2)
+        else:
+            ret = NotImplemented
 
-        return NotImplemented
+        return ret
 
     def weekday(self):
         """

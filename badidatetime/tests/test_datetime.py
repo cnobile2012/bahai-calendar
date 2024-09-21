@@ -678,27 +678,27 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         with the days, seconds, and microseconds.
         """
         data = (
-            ((1, 1, 1), (1, 1, 1), (2, 2, 2)),
-            ((0, 0, 0), (1, 1, 1), (1, 1, 1)),
-            ((10, 9, 8), (11, 1, 1), (21, 10, 9)),
+            ((1, 1, 1), (1, 1, 1), False, (2, 2, 2)),
+            ((0, 0, 0), (1, 1, 1), False, (1, 1, 1)),
+            ((10, 9, 8), (11, 1, 1), False, (21, 10, 9)),
+            ((1, 1, 1), (1, 1, 1), True, (1, 1, 2)), # NotImplemented
             )
         msg = "Expected {} with date0 {}, and date1 {}, found {}."
 
-        for date0, date1, expected_result in data:
+        for date0, date1, validity, expected_result in data:
             td0 = datetime.timedelta(*date0)
-            td1 = datetime.timedelta(*date1)
-            td = td0 + td1
-            result = (td.days, td.seconds, td.microseconds)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date0, date1, str(result)))
 
-    #@unittest.skip("Temporarily skipped")
-    def test___radd__(self):
-        """
-        Test that the __radd__ method returns an added timedelta object
-        with the days, seconds, and microseconds.
-        """
-        self.test___add__()
+            if validity:
+                d0 = datetime.date(*date1)
+                d1 = td0 + d0
+                result = (d1._year, d1._month, d1._day)
+            else:
+                td1 = datetime.timedelta(*date1)
+                td = td0 + td1
+                result = (td.days, td.seconds, td.microseconds)
+
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date0, date1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___sub__(self):
@@ -707,19 +707,27 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         with the days, seconds, and microseconds.
         """
         data = (
-            ((1, 1, 1), (1, 1, 1), (0, 0, 0)),
-            ((0, 0, 0), (1, 1, 1), (-2, 86398, 999999)),
-            ((10, 9, 8), (11, 1, 1), (-1, 8, 7)),
+            ((1, 1, 1), (1, 1, 1), False, (0, 0, 0)),
+            ((0, 0, 0), (1, 1, 1), False, (-2, 86398, 999999)),
+            ((10, 9, 8), (11, 1, 1), False, (-1, 8, 7)),
+            #((1, 1, 1), (1, 1, 1), True, (0, 19, 19)), # NotImplemented
             )
         msg = "Expected {} with date0 {}, and date1 {}, found {}."
 
-        for date0, date1, expected_result in data:
+        for date0, date1, validity, expected_result in data:
             td0 = datetime.timedelta(*date0)
-            td1 = datetime.timedelta(*date1)
-            td = td0 - td1
-            result = (td.days, td.seconds, td.microseconds)
+
+            if validity:
+                d0 = datetime.date(*date1)
+                d1 = td0 - d0
+                result = (d1._year, d1._month, d1._day)
+            else:
+                td1 = datetime.timedelta(*date1)
+                td = td0 - td1
+                result = (td.days, td.seconds, td.microseconds)
+
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date0, date1, str(result)))
+                expected_result, date0, date1, result))
 
     @unittest.skip("Temporarily skipped")
     def test___rsub__(self):
@@ -739,7 +747,7 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
             td1 = td0 - dividend
             result = (td1.days, td1.seconds, td1.microseconds)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, dividend, str(result)))
+                expected_result, date, dividend, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___neg__(self):
@@ -1458,6 +1466,7 @@ class TestBadiDatetime_date(unittest.TestCase):
     @unittest.skip("Temporarily skipped")
     def test___format__(self):
         """
+        Test that the __format__ method 
         """
         pass
 
@@ -1843,7 +1852,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg0 = "Result out of range."
         data = (
             ((1, 1, 1), (1,), False, (1, 1, 2)),
-            ((181, 1, 1), (366,), False, (182, 1, 1)),
+            ((1, 1, 1), (366,), False, (2, 1, 1)),     # Leap year
+            ((181, 1, 1), (365,), False, (182, 1, 1)), # Non leap year
             ((10000, 1, 1), (365,), True, err_msg0),
             )
         msg = "Expected {} with date {} and timedelta {}, found {}"
@@ -1867,19 +1877,25 @@ class TestBadiDatetime_date(unittest.TestCase):
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, td, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test___radd__(self):
-        """
-        Test that the __radd__ method
-        """
-        self.test___add__()
-
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___sub__(self):
         """
         Test that the __sub__ method
         """
-        pass
+        data = (
+            ((1, 1, 1), (1,), (0, 19, 19)),
+            ((2, 1, 1), (366,), (1, 1, 1)),     # Leap year
+            ((181, 1, 1), (365,), (180, 1, 1)), # Non Leap year
+            )
+        msg = "Expected {} with date {} and timedelta {}, found {}"
+
+        for date, td, expected_result in data:
+            d0 = datetime.date(*date)
+            td0 = datetime.timedelta(*td)
+            d1 = d0 - td0
+            result = (d1._year, d1._month, d1._day)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, td, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_weekday(self):
