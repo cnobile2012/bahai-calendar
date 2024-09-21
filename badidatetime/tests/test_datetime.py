@@ -346,11 +346,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             if validity:
                 try:
                     result = datetime._parse_isoformat_date(self._bc, date)
-                except AssertionError as e:
-                    self.assertEqual(expected_result, str(e))
-                except ValueError as e:
-                    self.assertEqual(expected_result, str(e))
-                except IndexError as e:
+                except (AssertionError, ValueError, IndexError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
@@ -398,9 +394,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             if validity:
                 try:
                     result = datetime._parse_isoformat_time(self._bc, time)
-                except AssertionError as e:
-                    self.assertEqual(expected_result, str(e))
-                except ValueError as e:
+                except (AssertionError, ValueError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
@@ -549,9 +543,7 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
             if validity:
                 try:
                     result = datetime.timedelta(*date)
-                except AssertionError as e:
-                    self.assertEqual(expected_result, str(e))
-                except OverflowError as e:
+                except (AssertionError, OverflowError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
@@ -706,11 +698,13 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         Test that the __sub__ method returns a subtracted timedelta object
         with the days, seconds, and microseconds.
         """
+        err_msg0 = "unsupported operand type(s) for -: 'timedelta' and '{}'"
         data = (
             ((1, 1, 1), (1, 1, 1), False, (0, 0, 0)),
             ((0, 0, 0), (1, 1, 1), False, (-2, 86398, 999999)),
             ((10, 9, 8), (11, 1, 1), False, (-1, 8, 7)),
-            #((1, 1, 1), (1, 1, 1), True, (0, 19, 19)), # NotImplemented
+            # NotImplemented
+            ((1, 1, 1), None, True, err_msg0.format('NoneType')),
             )
         msg = "Expected {} with date0 {}, and date1 {}, found {}."
 
@@ -718,16 +712,20 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
             td0 = datetime.timedelta(*date0)
 
             if validity:
-                d0 = datetime.date(*date1)
-                d1 = td0 - d0
-                result = (d1._year, d1._month, d1._day)
+                try:
+                    result = td0 - date1
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date0}' an error is not "
+                                         f"raised, with result {result}.")
             else:
                 td1 = datetime.timedelta(*date1)
                 td = td0 - td1
                 result = (td.days, td.seconds, td.microseconds)
-
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date0, date1, result))
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date0, date1, result))
 
     @unittest.skip("Temporarily skipped")
     def test___rsub__(self):
@@ -815,26 +813,32 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         Test that the __mul__ method returns the product of the
         datetime.timedelta object and an interger or float.
         """
+        err_msg0 = ("unsupported operand type(s) for *: 'timedelta' "
+                    "and '{}'")
         data = (
-            ((10, 50, 5000), 2, (20, 100, 10000)),
-            ((10, 50, 5000), 2.5, (25, 125, 12500)),
+            ((10, 50, 5000), 2, False, (20, 100, 10000)),
+            ((10, 50, 5000), 2.5, False, (25, 125, 12500)),
+            ((10, 50, 5000), None, True, err_msg0.format('NoneType')),
             )
         msg = "Expected {} with date {} and multiplyer {}, found {}."
 
-        for date, multiplyer, expected_result in data:
+        for date, multiplyer, validity, expected_result in data:
             td0 = datetime.timedelta(*date)
-            td1 = td0 * multiplyer
-            result = (td1.days, td1.seconds, td1.microseconds)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, multiplyer, result))
 
-    #@unittest.skip("Temporarily skipped")
-    def test___rmul__(self):
-        """
-        Test that the __rmul__ method returns the product of the
-        datetime.timedelta object and an interger or float.
-        """
-        self.test___mul__()
+            if validity:
+                try:
+                    result = td0 * multiplyer
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                td1 = td0 * multiplyer
+                result = (td1.days, td1.seconds, td1.microseconds)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, multiplyer, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__to_microseconds(self):
@@ -861,29 +865,41 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         Test that the __floordiv__ returns the floor after divided using
         the // operator.
         """
+        err_msg0 = "unsupported operand type(s) for //: 'timedelta' and '{}'"
         data = (
-            ((1, 1, 1), (1, 1, 1), 1),
-            ((10, 9, 8), (5, 4, 4), 2),
-            ((1, 1, 1), 2, (0, 43200, 500000)),
-            ((2, 2, 2), 5, (0, 34560, 400000)),
+            ((1, 1, 1), (1, 1, 1), False, 1),
+            ((10, 9, 8), (5, 4, 4), False, 2),
+            ((1, 1, 1), 2, False, (0, 43200, 500000)),
+            ((2, 2, 2), 5, False, (0, 34560, 400000)),
+            ((1, 1, 1), None, True, err_msg0.format('NoneType')),
             )
         msg = "Expected {} with date {} and value {}, found {}."
 
-        for date, value, expected_result in data:
+        for date, value, validity, expected_result in data:
             td0 = datetime.timedelta(*date)
 
-            if isinstance(value, tuple):
-                diviser = datetime.timedelta(*value)
+            if validity:
+                try:
+                    result = td0 // value
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date}' an error is not "
+                                         f"raised, with result {result}.")
             else:
-                diviser = value
+                if isinstance(value, tuple):
+                    diviser = datetime.timedelta(*value)
+                else:
+                    diviser = value
 
-            result = td0 // diviser
+                result = td0 // diviser
 
-            if isinstance(result, datetime.timedelta):
-                result = (result.days, result.seconds, result.microseconds)
+                if isinstance(result, datetime.timedelta):
+                    result = (result.days, result.seconds, result.microseconds)
 
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, value, result))
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, value, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___truediv__(self):
@@ -892,31 +908,43 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         datetime.timedelta divided by a datetime.timedelta, interger,
         or float.
         """
+        err_msg0 = "unsupported operand type(s) for /: 'timedelta' and '{}'"
         data = (
-            ((1, 1, 1), (1, 1, 1), 1),
-            ((10, 9, 8), (5, 4, 4), 2.0000023147933814),
-            ((1, 1, 1), 2, (0, 43200, 500000)),
-            ((2, 2, 2), 5, (0, 34560, 400000)),
-            ((1, 1, 1), 2.5, (0, 34560, 400000)),
-            ((10, 10, 10), 4.5, (2, 19202, 222224)),
+            ((1, 1, 1), (1, 1, 1), False, 1),
+            ((10, 9, 8), (5, 4, 4), False, 2.0000023147933814),
+            ((1, 1, 1), 2, False, (0, 43200, 500000)),
+            ((2, 2, 2), 5, False, (0, 34560, 400000)),
+            ((1, 1, 1), 2.5, False, (0, 34560, 400000)),
+            ((10, 10, 10), 4.5, False, (2, 19202, 222224)),
+            ((1, 1, 1), None, True, err_msg0.format('NoneType'))
             )
         msg = "Expected {} with date {} and value {}, found {}."
 
-        for date, value, expected_result in data:
+        for date, value, validity, expected_result in data:
             td0 = datetime.timedelta(*date)
 
-            if isinstance(value, tuple):
-                diviser = datetime.timedelta(*value)
+            if validity:
+                try:
+                    result = td0 / value
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date}' an error is not "
+                                         f"raised, with result {result}.")
             else:
-                diviser = value
+                if isinstance(value, tuple):
+                    diviser = datetime.timedelta(*value)
+                else:
+                    diviser = value
 
-            result = td0 / diviser
+                result = td0 / diviser
 
-            if isinstance(result, datetime.timedelta):
-                result = (result.days, result.seconds, result.microseconds)
+                if isinstance(result, datetime.timedelta):
+                    result = (result.days, result.seconds, result.microseconds)
 
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, value, result))
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, value, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___mod__(self):
@@ -924,19 +952,32 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         Test that the __mod__ method returns the results of the mod (%)
         operator.
         """
+        err_msg0 = "unsupported operand type(s) for %: 'timedelta' and '{}'"
         data = (
-            ((1, 1, 1), (1, 1, 1), (0, 0, 0)),
-            ((10, 9, 8), (2, 4, 4), (1, 86392, 999992)),
+            ((1, 1, 1), (1, 1, 1), False, (0, 0, 0)),
+            ((10, 9, 8), (2, 4, 4), False, (1, 86392, 999992)),
+            ((1, 1, 1), None, True, err_msg0.format('NoneType')),
             )
         msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-        for date0, date1, expected_result in data:
+        for date0, date1, validity, expected_result in data:
             td0 = datetime.timedelta(*date0)
-            td1 = datetime.timedelta(*date1)
-            td = td0 % td1
-            result = (td.days, td.seconds, td.microseconds)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date0, date1, result))
+
+            if validity:
+                try:
+                    result = td0 % date1
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date0}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                td1 = datetime.timedelta(*date1)
+                td = td0 % td1
+                result = (td.days, td.seconds, td.microseconds)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date0, date1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___divmod__(self):
@@ -944,19 +985,33 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         Test that the __divmod__ method returns the results of the divmod
         buildin function.
         """
+        err_msg0 = ("unsupported operand type(s) for divmod(): 'timedelta' "
+                    "and '{}'")
         data = (
-            ((1, 1, 1), (1, 1, 1), (1, (0, 0, 0))),
-            ((10, 9, 8), (2, 4, 4), (4, (1, 86392, 999992))),
+            ((1, 1, 1), (1, 1, 1), False, (1, (0, 0, 0))),
+            ((10, 9, 8), (2, 4, 4), False, (4, (1, 86392, 999992))),
+            ((1, 1, 1), None, True, err_msg0.format('NoneType')),
             )
         msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-        for date0, date1, expected_result in data:
+        for date0, date1, validity, expected_result in data:
             td0 = datetime.timedelta(*date0)
-            td1 = datetime.timedelta(*date1)
-            q, r = divmod(td0, td1)
-            result = (q, (r.days, r.seconds, r.microseconds))
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date0, date1, result))
+
+            if validity:
+                try:
+                    result = divmod(td0, date1)
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                td1 = datetime.timedelta(*date1)
+                q, r = divmod(td0, td1)
+                result = (q, (r.days, r.seconds, r.microseconds))
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date0, date1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___eq__(self):
@@ -1185,9 +1240,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             if validity:
                 try:
                     result = datetime.date(*value)
-                except AssertionError as e:
-                    self.assertEqual(expected_result, str(e))
-                except ValueError as e:
+                except (AssertionError, ValueError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
@@ -1311,9 +1364,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             if validity:
                 try:
                     result = datetime.date.fromisoformat(iso, short=short)
-                except TypeError as e:
-                    self.assertEqual(expected_result, str(e))
-                except ValueError as e:
+                except (TypeError, ValueError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
@@ -1850,28 +1901,35 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the __add__ method can correctly add a date to a timedelta.
         """
         err_msg0 = "Result out of range."
+        err_msg1 = "unsupported operand type(s) for +: 'date' and '{}'"
         data = (
             ((1, 1, 1), (1,), False, (1, 1, 2)),
             ((1, 1, 1), (366,), False, (2, 1, 1)),     # Leap year
             ((181, 1, 1), (365,), False, (182, 1, 1)), # Non leap year
             ((10000, 1, 1), (365,), True, err_msg0),
+            ((1, 1, 1), None, True, err_msg1.format('NoneType')),
             )
         msg = "Expected {} with date {} and timedelta {}, found {}"
 
         for date, td, validity, expected_result in data:
             d0 = datetime.date(*date)
-            td0 = datetime.timedelta(*td)
 
             if validity:
+                if isinstance(td, tuple):
+                    td0 = datetime.timedelta(*td)
+                else:
+                    td0 = td
+
                 try:
-                    d1 = d0 + td0
-                except OverflowError as e:
+                    result = d0 + td0
+                except (OverflowError, TypeError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
                     raise AssertionError(f"With '{date1}' an error is not "
                                          f"raised, with result {result}.")
             else:
+                td0 = datetime.timedelta(*td)
                 d1 = d0 + td0
                 result = (d1._year, d1._month, d1._day)
                 self.assertEqual(expected_result, result, msg.format(
@@ -1880,22 +1938,43 @@ class TestBadiDatetime_date(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test___sub__(self):
         """
-        Test that the __sub__ method
+        Test that the __sub__ method returns the correct results of a
+        timedelta object subtracted from a date object.
         """
+        err_msg0 = "unsupported operand type(s) for -: 'date' and '{}'"
         data = (
-            ((1, 1, 1), (1,), (0, 19, 19)),
-            ((2, 1, 1), (366,), (1, 1, 1)),     # Leap year
-            ((181, 1, 1), (365,), (180, 1, 1)), # Non Leap year
+            ((1, 1, 1), 1, False, (0, 19, 19)),
+            ((2, 1, 1), 366, False, (1, 1, 1)),     # Leap year
+            ((181, 1, 1), 365, False, (180, 1, 1)), # Non Leap year
+            ((182, 1, 1), (181, 1, 1), False, (365, 0, 0)),
+            ((1, 1, 1), None, True, err_msg0.format('NoneType')),
             )
-        msg = "Expected {} with date {} and timedelta {}, found {}"
+        msg = "Expected {} with date {} and value {}, found {}"
 
-        for date, td, expected_result in data:
+        for date, value, validity, expected_result in data:
             d0 = datetime.date(*date)
-            td0 = datetime.timedelta(*td)
-            d1 = d0 - td0
-            result = (d1._year, d1._month, d1._day)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, td, result))
+
+            if validity:
+                try:
+                    result = d0 - value
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                if isinstance(value, int):
+                    dt = datetime.timedelta(value)
+                    d1 = d0 - dt
+                    result = (d1._year, d1._month, d1._day)
+                else:
+                    d1 = datetime.date(*value)
+                    dt = d0 - d1
+                    result = (dt._days, dt._seconds, dt._microseconds)
+
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, value, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_weekday(self):

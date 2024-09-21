@@ -83,5 +83,5 @@ clean	:
 
 clobber	: clean
 	@rm -rf build dist
-#	@(cd $(DOCS_DIR); make clobber)
-#	@rm -rf $(LOGS_DIR)
+	@rm -rf $(DOCS_DIR)/htmlcov
+	@rm -rf $(DOCS_DIR)/build

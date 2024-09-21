@@ -683,11 +683,13 @@ class timedelta:
         if isinstance(other, timedelta):
             # for CPython compatibility, we cannot use
             # our __class__ here, but need a real timedelta
-            return timedelta(self._days + other._days,
-                             self._seconds + other._seconds,
-                             self._microseconds + other._microseconds)
+            ret = timedelta(self._days + other._days,
+                            self._seconds + other._seconds,
+                            self._microseconds + other._microseconds)
+        else:
+            ret = NotImplemented
 
-        return NotImplemented
+        return ret
 
     __radd__ = __add__
 
@@ -695,11 +697,13 @@ class timedelta:
         if isinstance(other, timedelta):
             # for CPython compatibility, we cannot use
             # our __class__ here, but need a real timedelta
-            return timedelta(self._days - other._days,
-                             self._seconds - other._seconds,
-                             self._microseconds - other._microseconds)
+            ret = timedelta(self._days - other._days,
+                            self._seconds - other._seconds,
+                            self._microseconds - other._microseconds)
+        else:
+            ret = NotImplemented
 
-        return NotImplemented
+        return ret
 
     def __rsub__(self, other):
         return -self+other if isinstance(other, timedelta) else NotImplemented
@@ -719,16 +723,17 @@ class timedelta:
         if isinstance(other, int):
             # for CPython compatibility, we cannot use
             # our __class__ here, but need a real timedelta
-            return timedelta(self._days * other,
+            ret = timedelta(self._days * other,
                              self._seconds * other,
                              self._microseconds * other)
-
-        if isinstance(other, float):
+        elif isinstance(other, float):
             usec = self._to_microseconds()
             a, b = other.as_integer_ratio()
-            return timedelta(0, 0, _divide_and_round(usec * a, b))
+            ret = timedelta(0, 0, _divide_and_round(usec * a, b))
+        else:
+            ret = NotImplemented
 
-        return NotImplemented
+        return ret
 
     __rmul__ = __mul__
 
@@ -737,47 +742,51 @@ class timedelta:
                 self._microseconds)
 
     def __floordiv__(self, other):
-        if not isinstance(other, (int, timedelta)):
-            return NotImplemented
+        if isinstance(other, (int, timedelta)):
+            usec = self._to_microseconds()
 
-        usec = self._to_microseconds()
+            if isinstance(other, timedelta):
+                ret = usec // other._to_microseconds()
+            else: # isinstance(other, int):
+                ret = timedelta(0, 0, usec // other)
+        else:
+            ret = NotImplemented
 
-        if isinstance(other, timedelta):
-            return usec // other._to_microseconds()
-
-        if isinstance(other, int):
-            return timedelta(0, 0, usec // other)
+        return ret
 
     def __truediv__(self, other):
-        if not isinstance(other, (int, float, timedelta)):
-            return NotImplemented
+        if isinstance(other, (int, float, timedelta)):
+            usec = self._to_microseconds()
 
-        usec = self._to_microseconds()
+            if isinstance(other, timedelta):
+                ret = usec / other._to_microseconds()
+            elif isinstance(other, int):
+                ret = timedelta(0, 0, _divide_and_round(usec, other))
+            else: # isinstance(other, float):
+                a, b = other.as_integer_ratio()
+                ret = timedelta(0, 0, _divide_and_round(b * usec, a))
+        else:
+            ret = NotImplemented
 
-        if isinstance(other, timedelta):
-            return usec / other._to_microseconds()
-
-        if isinstance(other, int):
-            return timedelta(0, 0, _divide_and_round(usec, other))
-
-        if isinstance(other, float):
-            a, b = other.as_integer_ratio()
-            return timedelta(0, 0, _divide_and_round(b * usec, a))
+        return ret
 
     def __mod__(self, other):
         if isinstance(other, timedelta):
             r = self._to_microseconds() % other._to_microseconds()
-            return timedelta(0, 0, r)
+            ret = timedelta(0, 0, r)
+        else:
+            ret = NotImplemented
 
-        return NotImplemented
+        return ret
 
     def __divmod__(self, other):
         if isinstance(other, timedelta):
-            q, r = divmod(self._to_microseconds(),
-                          other._to_microseconds())
-            return q, timedelta(0, 0, r)
+            q, r = divmod(self._to_microseconds(), other._to_microseconds())
+            ret = q, timedelta(0, 0, r)
+        else:
+            ret = NotImplemented
 
-        return NotImplemented
+        return ret
 
     # Comparisons of timedelta objects with other.
 
@@ -1054,13 +1063,15 @@ class date(BahaiCalendar):
         return _wrap_strftime(self, fmt, self.timetuple())
 
     def __format__(self, fmt):
-        if not isinstance(fmt, str):
-            raise TypeError("must be str, not %s" % type(fmt).__name__)
+        if isinstance(fmt, str):
+            if len(fmt) != 0:
+                ret = self.strftime(fmt)
+            else:
+                ret = str(self)
 
-        if len(fmt) != 0:
-            return self.strftime(fmt)
+            return ret
 
-        return str(self)
+        raise TypeError(f"must be str, not {type(fmt).__name__}")
 
     def isoformat(self):
         """
@@ -1417,7 +1428,6 @@ class tzinfo:
         """
         datetime in UTC -> datetime in local time.
         """
-
         if not isinstance(dt, datetime):
             raise TypeError("fromutc() requires a datetime argument")
 
