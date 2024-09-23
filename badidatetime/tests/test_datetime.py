@@ -2033,6 +2033,42 @@ class TestBadiDatetime_date(unittest.TestCase):
                              msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_is_pickle_data(self):
+        """
+        Test that the is_pickle_data classmethod returns the correct results
+        depending on the incoming data.
+        """
+        err_msg0 = "Invalid string {} had length of {} for pickle."
+        err_msg1 = ("Failed to encode latin1 string when unpickling a date "
+                    "object. pickle.load(data, encoding='latin1') is assumed.")
+        data = (
+            ((b'\x073\x01\x01', None), False, True),
+            ((b'\x14\x01\x01\x01\x01', None), False, False),
+            ((181, 10), False, None),
+            ((b'\x073\x20\x01', None), False, None),
+            ((b'\x14\x01\x01\x14\x01', None), False, None),
+            ((b'\x14\x01\x01\x01\x01\x01', None), True, err_msg0.format(
+                b'\x14\x01\x01\x01\x01\x01', 6)),
+            (('\u2190\x01\x01\x01', None), True, err_msg1),
+            )
+        msg = "Expected {} with value {}, found {}."
+
+        for value, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime.date.is_pickle_data(*value)
+                except (AssertionError, ValueError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {value} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = datetime.date.is_pickle_data(*value)
+                self.assertEqual(expected_result, result,
+                                 msg.format(expected_result, value, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__getstate(self):
         """
         Test that the _getstate method returns the state of the class.
@@ -2112,7 +2148,91 @@ class TestBadiDatetime_tzinfo(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
+    #@unittest.skip("Temporarily skipped")
+    def test_tzname(self):
+        """
+        Test that the tzname method raises an exception is not overridden.
+        """
+        err_msg0 = "tzinfo subclass must override tzname()"
+        data = (
+            ((181, 1, 1), err_msg0),
+            )
+        msg = "Expected {}, with date {}, found {}"
 
+        for date, expected_result in data:
+            dt = datetime.date(*date)
+            tz = datetime.tzinfo()
+
+            try:
+                result = tz.tzname(dt)
+            except NotImplementedError as e:
+                self.assertEqual(expected_result, str(e))
+            else:
+                result = result if result else None
+                raise AssertionError(f"With {value} an error is not "
+                                     f"raised, with result {result}.")
+
+    #@unittest.skip("Temporarily skipped")
+    def test_utcoffset(self):
+        """
+        Test that the utcoffset method raises an exception is not overridden.
+        """
+        err_msg0 = "tzinfo subclass must override utcoffset()"
+        data = (
+            ((181, 1, 1), err_msg0),
+            )
+        msg = "Expected {}, with date {}, found {}"
+
+        for date, expected_result in data:
+            dt = datetime.date(*date) # *** TODO *** Use datetime() later on.
+            tz = datetime.tzinfo()
+
+            try:
+                result = tz.utcoffset(dt)
+            except NotImplementedError as e:
+                self.assertEqual(expected_result, str(e))
+            else:
+                result = result if result else None
+                raise AssertionError(f"With {value} an error is not "
+                                     f"raised, with result {result}.")
+
+    #@unittest.skip("Temporarily skipped")
+    def test_dst(self):
+        """
+        Test that the dst method raises an exception is not overridden.
+        """
+        err_msg0 = "tzinfo subclass must override dst()"
+        data = (
+            ((181, 1, 1), err_msg0),
+            )
+        msg = "Expected {}, with date {}, found {}"
+
+        for date, expected_result in data:
+            dt = datetime.date(*date) # *** TODO *** Use datetime() later on.
+            tz = datetime.tzinfo()
+
+            try:
+                result = tz.dst(dt)
+            except NotImplementedError as e:
+                self.assertEqual(expected_result, str(e))
+            else:
+                result = result if result else None
+                raise AssertionError(f"With {value} an error is not "
+                                     f"raised, with result {result}.")
+
+    @unittest.skip("Temporarily skipped")
+    def test_fromutc(self):
+        """
+        Test that the fromutc method 
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test___reduce__(self):
+        """
+        Test that the __reduce__ method 
+        """
+        pass
 
 
 class TestBadiDatetime__IsoCalendarDate(unittest.TestCase):
