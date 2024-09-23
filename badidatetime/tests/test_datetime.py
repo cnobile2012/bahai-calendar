@@ -473,11 +473,12 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         string.
         """
         data = (
-            (datetime.date(181, 1, 1), '%d/%m/%Y, %H:%M:%S', False, ''),
+            ((181, 1, 1), '%d/%m/%Y, %H:%M:%S', False, ''),
             )
 
         for date, fmt, validity, err_msg in data:
-            tt = date.timetuple()
+            d = datetime.date(*date)
+            tt = d.timetuple()
 
             if validity:
                 try:

@@ -15,7 +15,7 @@ import badidatetime.datetime as dtime
 
 
 class ShortFormStruct(NamedTuple):
-    tm_year: int       # range[1, 19]
+    tm_year: int       # range[-1842, 1161]
     tm_mon: int        # range[0, 19]
     tm_mday: int       # range[1, 19]
     tm_hour: int       # range[0, 23]
@@ -144,10 +144,12 @@ class struct_time(BahaiCalendar):
         g_date = gc.ymdhms_from_date(bc.gregorian_date_from_badi_date(
             b_date), ms=True)
         g_dt = datetime(*g_date, tzinfo=tzlocal.get_localzone())
-        date[-3] = dtime._day_of_week(bc, *b_date[:3]) #tm_wday
-        #tm_yday
+        # tm_wday
+        date[-3] = dtime._day_of_week(bc, *b_date[:3])
+        # tm_yday
         date[-2] = dtime._days_before_month(bc, *b_date[:2]) + b_date[2]
-        date[-1] = 1 if g_dt.dst().total_seconds() > 0 else 0 # tm_isdst
+        # tm_isdst
+        date[-1] = 1 if g_dt.dst().total_seconds() > 0 else 0
         # tm_zone and tm_gmtoff
         date += [g_dt.tzname(), g_dt.utcoffset().total_seconds()]
         return tuple(date)
