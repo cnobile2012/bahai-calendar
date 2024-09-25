@@ -1243,7 +1243,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type s: float
         :return: A decimal value representing the day with a partial that
                  indicates the hours, minutes, and seconds.
-        :rtype: float
+        :rtype: float or tuple
         """
         return (h * 60 * 60 + m * 60 + s) / 86400
 

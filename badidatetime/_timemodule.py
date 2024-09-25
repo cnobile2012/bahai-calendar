@@ -7,9 +7,10 @@ __docformat__ = "restructuredtext en"
 import locale
 
 from .structures import struct_time, ShortFormStruct, LongFormStruct
+from .badi_calendar import BahaiCalendar
 
 
-class TimeModule:
+class TimeModule(BahaiCalendar):
     # Badi additions are %:K for Kull-i-Shay and %:V for Váḥid
     VALID_FORMAT_CHRS = 'aAbBcCdDefGhHIjkKlmMnprSTuUvVwWxXyYzZ%'
     DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl', '`Idāl',
@@ -27,9 +28,16 @@ class TimeModule:
 
     def __init__(self):
         """
+        We need to set the locale. However if an unsupported locale is
+        required it may nee to be installed. This is the Linux method.
+
+        1. Find the supported locales:
+           $ locale -a
+        2. Set a new locale:
+           $ sudo locale-gen fr_FR.UTF-8 # Use the the locale you need.
+           $ sudo update-locale
         """
-        self._ticks_per_second_initialized = False
-        self._ticks_per_second = -1
+        locale.setlocale(locale.LC_TIME, '')
 
     def strftime(self, format, timetuple):
         """
@@ -169,18 +177,120 @@ class TimeModule:
         return st
 
     def H(self, ttup, mod):
-        return f"{ttup.tm_hour:02}"
+        if  mod == '-':
+            st = f"{ttup.tm_hour}"
+        else:
+            st = f"{ttup.tm_hour:02}"
+
+        return st
 
     def I(self, ttup, mod):
         """
-        *** TODO *** Does a 12-hour clock this make sense in a Badi time.
+        If we assume that sunset was at 1800 hrs UTC then noon would be about
+        0600 hrs UTC the next morning. This changes on a daily bases because
+        sunset changes and there is seldon 24 hours between two sunsets.
+
+        *** TODO *** Does a 12-hour clock make sense in a Badi time?
+
+        1st we need to find sunset for the provided date and the day after.
+        Subreact these two times and divide the results by 2 to determine
+        noon. Then determine which side of noon the current Badi time is on.
         """
+        midday_frac = self._find_midday(ttup)
+        time_frac = self.decimal_day_from_hms(ttup.hour, ttup.min, ttup.sec)
+
+        if midday_frac <= time_frac:
+            hour = ttup.hour - midday_frac
+        else:
+            hour = ttup.hour
+
+        if  mod == '-':
+            st = f"{hour}"
+        else:
+            st = f"{hour:02}"
+
+        return st
+
+    def j(self, ttup, mod):
+        """
+        """
+        return f"{ttup.tm_yday:03}"
+
+    def K(self, ttup, mod):
+        """
+        """
+        st = ""
+
+        if not ttup.short and mod == ':':
+            n = '-' if ttup.tm_kull_i_shay < 0 else ''
+            st += f"{n}{ttup.tm_kull_i_shay}"
+
+        return st
+
+    def m(self, ttup, mod):
+        """
+        """
+        return f"{ttup.tm_mon}" if mod == '-' else f"{ttup.tm_mon:02}"
+
+    def M(self, ttup, mod):
+        """
+        """
+        return f"{ttup.tm_min:02}"
+
+    def m(self, ttup, mod):
+        """
+        """
+        if  mod == '-':
+            st = f"{ttup.tm_mon}"
+        else:
+            st = f"{ttup.tm_mon:02}"
+
+        return st
+
+    def M(self, ttup, mod):
+        """
+        """
+        if  mod == '-':
+            st = f"{ttup.tm_min}"
+        else:
+            st = f"{ttup.tm_min:02}"
+
+        return st
+
+    def n(self, ttup, mod):
+        """
+        """
+        return "\n"
+
+    def p(self, ttup, mod):
+        """
+        """
+        midday_frac = self._find_midday(ttup)
+        time_frac = self.decimal_day_from_hms(ttup.hour, ttup.min, ttup.sec)
+
+        if midday_frac <= time_frac:
+            st = locale.nl_langinfo(locale.PM_STR)
+        else:
+            st = locale.nl_langinfo(locale.AM_STR)
+
+        return st
+
+    def r(self, ttup, mod):
+        """
+        """
+        midday_frac = self._find_midday(ttup)
+
+
         return
 
 
+
+
+
     __METHOD_LOOKUP = {'a': a, 'A': A, 'b': b, 'B': B, 'c': c, 'C': C, 'd': d,
-                       'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H', H, 'I': I,
-                       
+                       'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
+                       'j': j, 'k': H, 'l': I, 'm': m, 'M': M, 'm': m, 'M': M,
+                       'n': n, 'p': p, 'r': r, 
                        }
 
     def _parse_format(self, ttup:struct_time, format:str) -> str:
@@ -201,4 +311,11 @@ class TimeModule:
 
         return strf
 
+    def _find_midday(self, ttup):
+        if ttup.short:
+            date = (ttup.tm_year, ttup.tm_mon, ttup.tm_mday)
+        else:
+            date = (ttup.tm_kull_i_shay, ttup.tm_vahid, ttup.tm_year,
+                    ttup.tm_mon, ttup.tm_mday)
 
+        return self.midday(date)

@@ -24,6 +24,7 @@ class BahaiCalendar(BaseCalendar):
     # Nur Mazandaran Province, Iran (City Center)
     #BAHAI_LOCATION = (36.569336, 52.0050234, 3.5, 0)
     BAHAI_LOCATION = (35.681117, 51.4016521, 3.5, 0) # Moniriyeh Square Tehran
+    GMT_LOCATION = (51.477928, -0.001545, 0, 0)
     BADI_EPOCH = 2394644.261791 # 2394646.261791 using Meeus' algorithm
     BADI_MONTH_NAMES = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -642,6 +643,31 @@ class BahaiCalendar(BaseCalendar):
         jd = days + self.POSIX_EPOCH
         jd += t % 86400 / 86400
         return self.badi_date_from_jd(jd, lat, lon, zone, short=short)
+
+    def midday(self, date:tuple, *, hms=False) -> tuple:
+        """
+        Find the midday time in hours with fraction.
+
+        :param date: Badi date short or long.
+        :type date: tuple
+        :param hms: If True return the hours, minutes, and seconds else
+                    if False return the decimal value.
+        :type hms: bool
+        :return: Midday in hours, minutes, and seconds.
+        :rtype: tuple
+        """
+        if len(date) == 5:
+            b_date = self.short_date_from_long_date(date)
+        else:
+            b_date = date
+
+        jd = self.jd_from_badi_date(b_date)
+        diff0 = self._meeus_algorithm_jd_compensation(jd)
+        ss0 = self._sun_setting(jd + diff0, *self.GMT_LOCATION[:3])
+        diff1 = self._meeus_algorithm_jd_compensation(jd + 1)
+        ss1 = self._sun_setting(jd + 1 + diff1, *self.GMT_LOCATION[:3])
+        mid = (ss1 - ss0) / 2
+        return self.hms_from_decimal_day(mid) if hms else mid
 
     def _trim_hms(self, hms:tuple) -> tuple:
         """
