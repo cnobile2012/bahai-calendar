@@ -1058,7 +1058,7 @@ class date(BahaiCalendar):
         """
         Format using strftime().
 
-        Example: '%d/%m/%Y, %H:%M:%S'
+        Example: '%d/%m/%Y, %H:%M:%S.%f'
         """
         return _wrap_strftime(self, fmt, self.timetuple())
 
@@ -1533,9 +1533,11 @@ class time:
     Properties (readonly):
     hour, minute, second, microsecond, tzinfo, fold
     """
-    __slots__ = '_hour', '_minute', '_second', '_microsecond', '_tzinfo', '_hashcode', '_fold'
+    __slots__ = ('_hour', '_minute', '_second', '_microsecond', '_tzinfo',
+                 '_hashcode', '_fold')
 
-    def __new__(cls, hour=0, minute=0, second=0, microsecond=0, tzinfo=None, *, fold=0):
+    def __new__(cls, hour=0, minute=0, second=0, microsecond=0, tzinfo=None,
+                *, fold=0):
         """Constructor.
 
         Arguments:

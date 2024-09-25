@@ -30,6 +30,10 @@ class ShortFormStruct(NamedTuple):
     tm_zone: str = ''  # abbreviation of timezone name
     tm_gmtoff: int = 0 # offset east of UTC in seconds
 
+    @property
+    def short(self):
+        return True
+
     def __repr__(self) -> str:
         return (f"structures.ShortFormStruct(tm_year={self.tm_year}, "
                 f"tm_mon={self.tm_mon}, tm_mday={self.tm_mday}, "
@@ -56,6 +60,10 @@ class LongFormStruct(NamedTuple):
     tm_zone: str = ''    # abbreviation of timezone name
     tm_gmtoff: int = 0   # offset east of UTC in seconds
 
+    @property
+    def short(self):
+        return False
+
     def __repr__(self) -> str:
         return (f"structures.LongFormStruct("
                 f"tm_kull_i_shay={self.tm_kull_i_shay}, "
@@ -74,7 +82,7 @@ class struct_time(BahaiCalendar):
         self = object.__new__(cls)
         super().__init__(self)
 
-        if cls.__is_short_form_type(date):
+        if cls.__is_short_form(date):
             inst = ShortFormStruct(*cls.__fill_in_missing(date, True))
         else:
             inst = LongFormStruct(*cls.__fill_in_missing(date, False))
@@ -82,7 +90,7 @@ class struct_time(BahaiCalendar):
         return inst
 
     @classmethod
-    def __is_short_form_type(cls, date):
+    def __is_short_form(cls, date):
         d_size = len(date)
 
         if d_size == 9:

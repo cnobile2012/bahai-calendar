@@ -72,4 +72,18 @@ class TestStructures(unittest.TestCase):
                                  msg1.format(expected_result[2],
                                              result.tm_gmtoff))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_short(self):
+        """
+        Test that the short property returns the correct boolean.
+        """
+        data = (
+            ((181, 9, 6, 8, 45, 1, 0, 0, -1), True),
+            ((1, 10, 10, 9, 6, 8, 45, 1, 1, 0, -1), False),
+            )
+        msg = "Expected {}, with date {}, found {}."
 
+        for date, expected_result in data:
+            result = struct_time(date).short
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
