@@ -106,9 +106,13 @@ class TimeModule(BahaiCalendar):
     # %:[KVz]
 
     def a(self, ttup, org, mod):
+        """
+        """
         return self.DAYNAME_ABV[ttup.tm_wday]
 
     def A(self, ttup, org, mod):
+        """
+        """
         return self.DATNAME[ttup.tm_wday]
 
     def b(self, ttup, org, mod):
@@ -118,9 +122,13 @@ class TimeModule(BahaiCalendar):
         return self.MONTHNAMES_ABV[ttup.tm_mon]
 
     def B(self, ttup, org, mod):
+        """
+        """
         return self.MONTHNAMES[ttup.tm_mon]
 
     def c(self, ttup, mod):
+        """
+        """
         st = f"{self.DAYNAME_ABV[ttup.tm_wday]} "
         st += f"{self.MONTHNAMES_ABV[ttup.tm_mon]} "
         st += f"{ttup.tm_mday:02} "
@@ -136,7 +144,16 @@ class TimeModule(BahaiCalendar):
         return st
 
     def C(self, ttup, org, mod):
-        return math.floor(ttup.year / 100) if ttup.short else ""
+        """
+        """
+        if ttup.short:
+            year = ttup.year
+        else:
+            year = ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1) *
+                    19 + ttup.tm_year)
+
+        n = '-' if year < 0 else ''
+        return f"{n}{abs(math.floor(year / 100)):02}"
 
     def d(self, ttup, org, mod):
         """
@@ -171,6 +188,8 @@ class TimeModule(BahaiCalendar):
         return st.strip()
 
     def f(self, ttup, org, mod):
+        """
+        """
         s = math.floor(ttup.tm_sec)
         m = math.floor(ttup.tm_sec % 1 * 1000000)
         return f"{round(m, 6):06}"
@@ -192,6 +211,8 @@ class TimeModule(BahaiCalendar):
         return st
 
     def H(self, ttup, org, mod):
+        """
+        """
         if org == 'k' and mod == '-':
             st = f"{ttup.tm_hour: 2}"
         elif mod == '-': # %-H
@@ -301,7 +322,34 @@ class TimeModule(BahaiCalendar):
     def U(self, ttup, org, mod):
         """
         """
-        return "{ttup.}"
+        return "{ttup}"
+
+    def V(self, ttup, org, mod):
+        """
+        """
+        if mod == ':':
+            st = f"{ttup.tm_vahid:02}"
+        else:
+            pass
+
+        return st
+
+    def x(self, ttup, org, mod):
+        """
+        """
+        return 
+
+    def X(self, ttup, org, mod):
+        """
+        """
+        return 
+
+    def y(self, ttup, org, mod):
+        """
+        """
+        
+
+        return f"{ttup.}"
 
 
 
@@ -309,7 +357,7 @@ class TimeModule(BahaiCalendar):
                        'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
                        'j': j, 'k': H, 'l': I, 'm': m, 'M': M, 'm': m, 'M': M,
                        'n': n, 'p': p, 'r': r, 'S': S, 'T': r, 'u': u, 'U': U,
-                       
+                       'W': U, 'x': x, 'X': X, 'y': y, 
                        }
 
     def _parse_format(self, ttup:struct_time, format:str) -> str:
