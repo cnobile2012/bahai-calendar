@@ -4,6 +4,7 @@
 #
 __docformat__ = "restructuredtext en"
 
+import time
 import locale
 
 from ._structures import struct_time, ShortFormStruct, LongFormStruct
@@ -37,11 +38,45 @@ class TimeModule(BahaiCalendar):
            $ sudo locale-gen fr_FR.UTF-8 # Use the the locale you need.
            $ sudo update-locale
         """
-        self._local = locale.setlocale(locale.LC_TIME, '')
+        self._locale_data = {}
+        self._date_and_time_locale()
+
+    def _date_and_time_locale(self):
+        self._locale_data['locale'] = locale.setlocale(locale.LC_TIME, '')
+        self._locale_data['am'] = locale.nl_langinfo(locale.AM_STR)
+        self._locale_data['pm'] = locale.nl_langinfo(locale.PM_STR)
+
+        try:
+            # Get the date format for the current locale
+            date_format = locale.nl_langinfo(locale.D_FMT)
+        except AttributeError:
+            date_format = '%m/%d/%Y'
+
+        d_fmt_len = len(date_format)
+        self._locale_data['d_del'] = date_format[2] if d_fmt_len > 2 else '/'
+        t_fmt = time.strftime('%X')
+        t_fmt_len = len(t_fmt)
+        self._locale_data['t_del'] = date_format[2] if t_fmt_len > 2 else ':'
 
     @property
-    def local(self):
-        return self._local
+    def locale(self):
+        return self._locale_data['locale']
+
+    @property
+    def am(self):
+        return self._locale_data['am']
+
+    @property
+    def pm(self):
+        return self._locale_data['pm']
+
+    @property
+    def date_delimiter(self):
+        return self._locale_data['d_del']
+
+    @property
+    def time_delimiter(self):
+        return self._locale_data['t_del']
 
     def strftime(self, format, timetuple):
         """
@@ -146,12 +181,7 @@ class TimeModule(BahaiCalendar):
     def C(self, ttup, org, mod):
         """
         """
-        if ttup.short:
-            year = ttup.year
-        else:
-            year = ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1) *
-                    19 + ttup.tm_year)
-
+        year = self._get_year(ttup)
         n = '-' if year < 0 else ''
         return f"{n}{abs(math.floor(year / 100)):02}"
 
@@ -170,20 +200,19 @@ class TimeModule(BahaiCalendar):
 
     def D(self, ttup, org, mod):
         """
-        Return a locale dependent Badi short date. Not valid for Badi
-        long dates.
+        Return a locale dependent Badi short date. Badi long dates are
+        converted to short dates first.
         """
         st = ""
+        year = self._get_year(ttup)
+        n = '-' if ttup.tm_year < 0 else ''
+        st_d = {'y': f"{n}{abs(year):04}",
+                'm': f"{ttup.tm_mon:02}",
+                'd': f"{ttup.tm_mday:02}"}
 
-        if ttup.short:
-            n = '-' if ttup.tm_year < 0 else ''
-            st_d = {'y': f"{n}{abs(ttup.tm_year):04}",
-                    'm': f"{ttup.tm_mon:02}",
-                    'd': f"{ttup.tm_mday:02}"}
-
-            for ch in locale.nl_langinfo(locale.D_FMT):
-                if ch == '%': continue
-                st += st_d[ch] + ' '
+        for ch in locale.nl_langinfo(locale.D_FMT):
+            if ch == '%': continue
+            st += st_d[ch] + ' '
 
         return st.strip()
 
@@ -199,13 +228,7 @@ class TimeModule(BahaiCalendar):
         Return an ISO 8601 year with century as a zero-padded decimal number.
         """
         st = ""
-
-        if not ttup.short:
-            year = ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1) *
-                    19 + ttup.tm_year)
-        else:
-            year = ttup.tm_year
-
+        year = self._get_year(ttup)
         n = '-' if year < 0 else ''
         st += f"{n}{year:04}"
         return st
@@ -289,9 +312,9 @@ class TimeModule(BahaiCalendar):
         time_frac = self.decimal_day_from_hms(ttup.hour, ttup.min, ttup.sec)
 
         if midday_frac <= time_frac:
-            st = locale.nl_langinfo(locale.PM_STR)
+            st = self.pm
         else:
-            st = locale.nl_langinfo(locale.AM_STR)
+            st = self.am
 
         return st
 
@@ -347,9 +370,16 @@ class TimeModule(BahaiCalendar):
     def y(self, ttup, org, mod):
         """
         """
-        
+        year = self._get_year(ttup)
+        century = int(year / 100) * 100
+        year = year - century
+        return f"{year}" if mod == '-' else f"{year:02}"
 
-        return f"{ttup.}"
+    def Y(self, ttup, org, mod):
+        """
+        """
+        return f"{self._get_year(ttup)}"
+
 
 
 
@@ -357,7 +387,7 @@ class TimeModule(BahaiCalendar):
                        'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
                        'j': j, 'k': H, 'l': I, 'm': m, 'M': M, 'm': m, 'M': M,
                        'n': n, 'p': p, 'r': r, 'S': S, 'T': r, 'u': u, 'U': U,
-                       'W': U, 'x': x, 'X': X, 'y': y, 
+                       'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y, 
                        }
 
     def _parse_format(self, ttup:struct_time, format:str) -> str:
@@ -386,5 +416,14 @@ class TimeModule(BahaiCalendar):
                     ttup.tm_mon, ttup.tm_mday)
 
         return self.midday(date)
+
+    def _get_year(self, ttup):
+        if ttup.short:
+            year = ttup.tm_year
+        else:
+            year = ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1) *
+                    19 + ttup.tm_year)
+
+        return year
 
 _time_module = TimeModule()
