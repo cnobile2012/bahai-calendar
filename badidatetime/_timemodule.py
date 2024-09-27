@@ -6,13 +6,13 @@ __docformat__ = "restructuredtext en"
 
 import locale
 
-from .structures import struct_time, ShortFormStruct, LongFormStruct
+from ._structures import struct_time, ShortFormStruct, LongFormStruct
 from .badi_calendar import BahaiCalendar
 
 
 class TimeModule(BahaiCalendar):
     # Badi additions are %:K for Kull-i-Shay and %:V for Váḥid
-    VALID_FORMAT_CHRS = 'aAbBcCdDefGhHIjkKlmMnprSTuUvVwWxXyYzZ%'
+    VALID_FORMAT_CHRS = 'aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%'
     DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl', '`Idāl',
                 'Istijlāl', 'Istiqlāl')
     DAYNAMES_ABV = ('Jal', 'Jam', 'Kam', 'Fiḍ', 'Idā', 'Isj', 'Isq')
@@ -37,7 +37,11 @@ class TimeModule(BahaiCalendar):
            $ sudo locale-gen fr_FR.UTF-8 # Use the the locale you need.
            $ sudo update-locale
         """
-        locale.setlocale(locale.LC_TIME, '')
+        self._local = locale.setlocale(locale.LC_TIME, '')
+
+    @property
+    def local(self):
+        return self._local
 
     def strftime(self, format, timetuple):
         """
@@ -97,23 +101,23 @@ class TimeModule(BahaiCalendar):
 
         # *** TODO *** Update later when formatting is better understood.
 
-    # %[aAbBcCdDefGhHIjkKlmMnprSTuUvVwWxXyYzZ%]
+    # %[aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%]
     # %-[dHjlmMSy]
     # %:[KVz]
 
-    def a(self, ttup, mod):
+    def a(self, ttup, org, mod):
         return self.DAYNAME_ABV[ttup.tm_wday]
 
-    def A(self, ttup, mod):
+    def A(self, ttup, org, mod):
         return self.DATNAME[ttup.tm_wday]
 
-    def b(self, ttup, mod):
+    def b(self, ttup, org, mod):
         """
         Return the abbreviated month name if %b or %h.
         """
         return self.MONTHNAMES_ABV[ttup.tm_mon]
 
-    def B(self, ttup, mod):
+    def B(self, ttup, org, mod):
         return self.MONTHNAMES[ttup.tm_mon]
 
     def c(self, ttup, mod):
@@ -131,10 +135,10 @@ class TimeModule(BahaiCalendar):
         st += f"{ttup.tm_year}"
         return st
 
-    def C(self, ttup, mod):
+    def C(self, ttup, org, mod):
         return math.floor(ttup.year / 100) if ttup.short else ""
 
-    def d(self, ttup, mod):
+    def d(self, ttup, org, mod):
         """
         Return a zero padded month. If the format was %-d or %e then
         return an un-padded decimal number.
@@ -142,11 +146,12 @@ class TimeModule(BahaiCalendar):
         if mod == '-':
             st = f"{ttup.tm_mday}"
         else:
-            st = f"{ttup.tm_mday:02}"
+            pad = ' ' if org == 'e' else 0
+            st = f"{ttup.tm_mday:{pad}2}"
 
         return st
 
-    def D(self, ttup, mod):
+    def D(self, ttup, org, mod):
         """
         Return a locale dependent Badi short date. Not valid for Badi
         long dates.
@@ -155,7 +160,8 @@ class TimeModule(BahaiCalendar):
 
         if ttup.short:
             n = '-' if ttup.tm_year < 0 else ''
-            st_d = {'y': f"{n}{abs(ttup.tm_year):04}", 'm': f"{ttup.tm_mon:02}",
+            st_d = {'y': f"{n}{abs(ttup.tm_year):04}",
+                    'm': f"{ttup.tm_mon:02}",
                     'd': f"{ttup.tm_mday:02}"}
 
             for ch in locale.nl_langinfo(locale.D_FMT):
@@ -164,27 +170,38 @@ class TimeModule(BahaiCalendar):
 
         return st.strip()
 
-    def f(self, ttup, mod):
-        return f"{round(ttup.tm_sec % 1, 6)}"
+    def f(self, ttup, org, mod):
+        s = math.floor(ttup.tm_sec)
+        m = math.floor(ttup.tm_sec % 1 * 1000000)
+        return f"{round(m, 6):06}"
 
-    def G(self, ttup, mod):
+    def G(self, ttup, org, mod):
+        """
+        Return an ISO 8601 year with century as a zero-padded decimal number.
+        """
         st = ""
 
-        if ttup.short:
-            n = '-' if ttup.tm_year < 0 else ''
-            st += f"{n}{ttup.tm_year:04}"
+        if not ttup.short:
+            year = ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1) *
+                    19 + ttup.tm_year)
+        else:
+            year = ttup.tm_year
 
+        n = '-' if year < 0 else ''
+        st += f"{n}{year:04}"
         return st
 
-    def H(self, ttup, mod):
-        if  mod == '-':
+    def H(self, ttup, org, mod):
+        if org == 'k' and mod == '-':
+            st = f"{ttup.tm_hour: 2}"
+        elif mod == '-': # %-H
             st = f"{ttup.tm_hour}"
-        else:
+        else: # %H
             st = f"{ttup.tm_hour:02}"
 
         return st
 
-    def I(self, ttup, mod):
+    def I(self, ttup, org, mod):
         """
         If we assume that sunset was at 1800 hrs UTC then noon would be about
         0600 hrs UTC the next morning. This changes on a daily bases because
@@ -204,19 +221,21 @@ class TimeModule(BahaiCalendar):
         else:
             hour = ttup.hour
 
-        if  mod == '-':
+        if org == 'l' and mod == '-':
             st = f"{hour}"
-        else:
+        elif org == 'l':
+            st = f"{hour: 2}"
+        else: # %I
             st = f"{hour:02}"
 
         return st
 
-    def j(self, ttup, mod):
+    def j(self, ttup, org, mod):
         """
         """
-        return f"{ttup.tm_yday:03}"
+        return f"{ttup.tm_yday}" if mod == '-' else f"{ttup.tm_yday:03}"
 
-    def K(self, ttup, mod):
+    def K(self, ttup, org, mod):
         """
         """
         st = ""
@@ -227,42 +246,22 @@ class TimeModule(BahaiCalendar):
 
         return st
 
-    def m(self, ttup, mod):
+    def m(self, ttup, org, mod):
         """
         """
         return f"{ttup.tm_mon}" if mod == '-' else f"{ttup.tm_mon:02}"
 
-    def M(self, ttup, mod):
+    def M(self, ttup, org, mod):
         """
         """
-        return f"{ttup.tm_min:02}"
+        return f"{ttup.tm_min}" if mod == '-' else f"{ttup.tm_min:02}"
 
-    def m(self, ttup, mod):
-        """
-        """
-        if  mod == '-':
-            st = f"{ttup.tm_mon}"
-        else:
-            st = f"{ttup.tm_mon:02}"
-
-        return st
-
-    def M(self, ttup, mod):
-        """
-        """
-        if  mod == '-':
-            st = f"{ttup.tm_min}"
-        else:
-            st = f"{ttup.tm_min:02}"
-
-        return st
-
-    def n(self, ttup, mod):
+    def n(self, ttup, org, mod):
         """
         """
         return "\n"
 
-    def p(self, ttup, mod):
+    def p(self, ttup, org, mod):
         """
         """
         midday_frac = self._find_midday(ttup)
@@ -275,13 +274,19 @@ class TimeModule(BahaiCalendar):
 
         return st
 
-    def r(self, ttup, mod):
+    def r(self, ttup, org, mod):
         """
         """
-        midday_frac = self._find_midday(ttup)
+        sec = math.floor(ttup.tm_sec)
 
+        if org == 'T':
+            st = f"{ttup.tm_hour:02}:{ttup.tm_min:02}:{sec:02}"
+        else:
+            hour = self.I(ttup, '', '')
+            p = self.p(ttup, '', '')
+            st = hour + f":{ttup.tm_min:02}:{sec:02} " + p
 
-        return
+        return st
 
 
 
@@ -290,7 +295,7 @@ class TimeModule(BahaiCalendar):
     __METHOD_LOOKUP = {'a': a, 'A': A, 'b': b, 'B': B, 'c': c, 'C': C, 'd': d,
                        'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
                        'j': j, 'k': H, 'l': I, 'm': m, 'M': M, 'm': m, 'M': M,
-                       'n': n, 'p': p, 'r': r, 
+                       'n': n, 'p': p, 'r': r,      'T': T, 
                        }
 
     def _parse_format(self, ttup:struct_time, format:str) -> str:
@@ -307,7 +312,7 @@ class TimeModule(BahaiCalendar):
                 ch0 = fmt[idx+1]
                 i = 2 if ch0 in '-:' else 1
                 ch1 = fmt[idx+i]
-                strf += __METHOD_LOOKUP[ch1](ttup, ch0 if i == 2 else '')
+                strf += __METHOD_LOOKUP[ch1](ttup, ch1, ch0 if i == 2 else '')
 
         return strf
 

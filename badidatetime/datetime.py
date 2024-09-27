@@ -8,7 +8,7 @@ import time as _time
 import math as _math
 
 from .badi_calendar import BahaiCalendar
-from .structures import struct_time
+from ._structures import struct_time
 
 
 MINYEAR = -1842
