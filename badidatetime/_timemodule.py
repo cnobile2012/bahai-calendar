@@ -288,14 +288,28 @@ class TimeModule(BahaiCalendar):
 
         return st
 
+    def S(self, ttup, org, mod):
+        """
+        """
+        return f"{ttup.tm_sec}" if mod == '-' else f"{ttup.tm_sec:02}"
 
+    def u(self, ttup, org, mod):
+        """
+        """
+        return f"{ttup.tm_wday + 1}"
+
+    def U(self, ttup, org, mod):
+        """
+        """
+        return "{ttup.}"
 
 
 
     __METHOD_LOOKUP = {'a': a, 'A': A, 'b': b, 'B': B, 'c': c, 'C': C, 'd': d,
                        'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
                        'j': j, 'k': H, 'l': I, 'm': m, 'M': M, 'm': m, 'M': M,
-                       'n': n, 'p': p, 'r': r,      'T': T, 
+                       'n': n, 'p': p, 'r': r, 'S': S, 'T': r, 'u': u, 'U': U,
+                       
                        }
 
     def _parse_format(self, ttup:struct_time, format:str) -> str:
@@ -324,3 +338,5 @@ class TimeModule(BahaiCalendar):
                     ttup.tm_mon, ttup.tm_mday)
 
         return self.midday(date)
+
+_time_module = TimeModule()
