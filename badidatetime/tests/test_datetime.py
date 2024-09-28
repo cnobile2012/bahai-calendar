@@ -2019,8 +2019,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         data = (
             ((181, 1, 1), (180, 0, 5)),       # Short form
             ((1, 10, 10, 1, 1), (180, 0, 5)), # Long form
-            ((181, 0, 1), (181, 49, 4)),   # 0 < week < 52
-            ((181, 19, 19), (181, 52, 5)), # 0 < week < 52
+            ((181, 0, 1), (181, 49, 4)),   # 0 < week < 53
+            ((181, 19, 19), (181, 52, 5)), # 0 < week < 53
             ((182, 1, 1), (181, 0, 6)),    # Week < 0 starts in previous year
             ((183, 19, 19), (184, 1, 1)),  # Week >= 52 starts in previous year
             )

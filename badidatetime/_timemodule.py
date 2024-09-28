@@ -6,6 +6,7 @@ __docformat__ = "restructuredtext en"
 
 import time
 import locale
+import math
 
 from ._structures import struct_time, ShortFormStruct, LongFormStruct
 from .badi_calendar import BahaiCalendar
@@ -24,6 +25,9 @@ class TimeModule(BahaiCalendar):
     MONTHNAMES_ABV = ('Bah', 'Jal', 'Jam', 'Aẓa', 'Núr', 'Raḥ', 'Kal', 'Kam',
                       'Asm', 'Izz', 'Mas', 'Ilm', 'Qud', 'Qaw', 'Mas', 'Sha',
                       'Sul', 'Mul', 'Ayy', 'Alá')
+    MINYEAR = -1842
+    MAXYEAR = 1161
+    DAYS_BEFORE_1ST_YEAR = 78
     ERR_MSG0 = "Illegal format character '{}'"
     ERR_MSG2 = "strftime(): Illegal time tuple argument"
 
@@ -38,6 +42,7 @@ class TimeModule(BahaiCalendar):
            $ sudo locale-gen fr_FR.UTF-8 # Use the the locale you need.
            $ sudo update-locale
         """
+        super().__init__(self)
         self._locale_data = {}
         self._date_and_time_locale()
 
@@ -227,11 +232,9 @@ class TimeModule(BahaiCalendar):
         """
         Return an ISO 8601 year with century as a zero-padded decimal number.
         """
-        st = ""
         year = self._get_year(ttup)
         n = '-' if year < 0 else ''
-        st += f"{n}{year:04}"
-        return st
+        return f"{n}{year:04}"
 
     def H(self, ttup, org, mod):
         """
@@ -345,7 +348,9 @@ class TimeModule(BahaiCalendar):
     def U(self, ttup, org, mod):
         """
         """
-        return "{ttup}"
+        year = self._get_year(ttup)
+        year, week, day = self._year_week_day(year, ttup.tm_mon, ttup.tm_mday)
+        return f"{week:02}"
 
     def V(self, ttup, org, mod):
         """
@@ -425,5 +430,124 @@ class TimeModule(BahaiCalendar):
                     19 + ttup.tm_year)
 
         return year
+
+    def _year_week_day(self, year, month, day):
+        week1jalal = self._isoweek1jalal(year)
+        today = self._ymd2ord(year, month, day)
+        # Internally, week and day have origin 0
+        week, day = divmod(today - week1jalal, 7)
+
+        if week < 0:
+            year -= 1
+            week1jalal = self._isoweek1jalal(year)
+            week, day = divmod(today - week1jalal, 7)
+        elif week >= 52 and today >= self._isoweek1jalal(year+1):
+            year += 1
+            week = 0
+
+        return year, week+1, day+1
+
+    def _days_before_year(self, year:int) -> float:
+        """
+        Get the number of days before the 1st of Baha of the year.
+
+        :param bc: BahaiCalendar instance.
+        :type bc: object
+        :param year: Badi year
+        :type year: int
+        :return: The number of days since (-1841, 19, 19) of the Badi calendar.
+        :rtype: int
+        """
+        jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19))
+        jd1 = self.jd_from_badi_date((year, 1, 1))
+        return math.floor(jd1 - jd0) - 1
+
+    def _days_in_month(self, year:int, month:int) -> int:
+        """
+        The number of days in that month in that year.
+
+        :param bc: BahaiCalendar instance.
+        :type bc: BahaiCalendar
+        :param year: Badi year
+        :type year: int
+        :param month: Badi month (0..19)
+        :type month: int
+        :return: The number of in the current month.
+        :rtype: int
+        """
+        return 4 + self._is_leap_year(year) if month == 0 else 19
+
+    def _days_before_month(self, year:int, month:int) -> int:
+        """
+        The number of days in the year preceding the first day of month.
+
+        :param bc: BahaiCalendar instance.
+        :type bc: BahaiCalendar
+        :param year: Badi year
+        :type year: int
+        :param month: Badi month (0..19)
+        :type month: int
+        :return: The number in the year preceding the first day of month.
+        :rtype: int
+        """
+        assert 0 <= month <= 19, "Month must be in range of 0..19"
+        month -= -18 if month < 2 else 1 if 1 < month < 19 else 19
+        dbm = 0
+
+        if 0 < month < 19:
+            dbm += month * 19
+        elif month == 0:
+            dbm += 18 * 19 + 4 + self._is_leap_year(year)
+
+        return dbm
+
+    def _ymd2ord(self, year:int, month:int, day:int) -> int:
+        """
+        Get the number of days since Badi year -1842 (Gregorian 0001-03-20)
+        including the current day.
+
+        year, month, day -> ordinal, considering -1842-01-01 as day 1.
+
+        :param bc: BahaiCalendar instance.
+        :type bc: BahaiCalendar
+        :param year: Badi year
+        :type year: int
+        :param month: Badi month (0..19)
+        :type month: int
+        :param day: Badi day
+        :type day: int
+        :return: The number of days since Badi year -1842 including the
+                 current day.
+        :rtype: int
+        """
+        assert 0 <= month <= 19, "Month must be in range of 0..19"
+        dim = self._days_in_month(year, month)
+        assert 1 <= day <= dim, (
+            f"Day for month {month} must be in range of 1..{dim}")
+        # We add 78 days to the total so that the ordinal number can be
+        # compared to the ordinals in the standard datetime package.
+        return (self.DAYS_BEFORE_1ST_YEAR + self._days_before_year(year) +
+                self._days_before_month(year, month) + day)
+
+    def _isoweek1jalal(self, year:int) -> int:
+        """
+        Calculate the day number of Jalal (Saturday) starting week 1. It
+        would be the first week with 4 or more days in the year in question.
+
+        :param bc: BahaiCalendar instance.
+        :type bc: BahaiCalendar
+        :param year: Badi year
+        :type year: int
+        :return: The number of the first Jalal in the Badi year.
+        :rtype: int
+        """
+        firstday = self._ymd2ord(year, 1, 1)
+        firstweekday = (firstday - 6) % 7
+        week1jalal = firstday - firstweekday
+
+        if firstweekday > 3: # First week day >= Fidal
+            week1jalal += 7
+
+        return week1jalal
 
 _time_module = TimeModule()

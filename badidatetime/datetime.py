@@ -1319,7 +1319,7 @@ class date(BahaiCalendar):
 
         if week < 0:
             year -= 1
-            week1monday = _isoweek1jalal(self, year)
+            week1jalel = _isoweek1jalal(self, year)
             week, day = divmod(today - week1jalal, 7)
         elif week >= 52 and today >= _isoweek1jalal(self, year+1):
             year += 1
