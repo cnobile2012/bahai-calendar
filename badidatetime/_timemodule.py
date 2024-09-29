@@ -47,6 +47,18 @@ class TimeModule(BahaiCalendar):
         self._date_and_time_locale()
 
     def _date_and_time_locale(self):
+        def order_format(fmt):
+            if len(fmt) == 8:
+                data = [fmt[2]]
+
+                for idx, char enumerate(fmt):
+                    if idx in (1, 4, 7):
+                        data.append((char))
+            else:
+                ret = ((0, '/'), (1, 'm'), (2, 'd'), (3, 'y'))
+
+            return ret
+
         self._locale_data['locale'] = locale.setlocale(locale.LC_TIME, '')
         self._locale_data['am'] = locale.nl_langinfo(locale.AM_STR)
         self._locale_data['pm'] = locale.nl_langinfo(locale.PM_STR)
@@ -55,13 +67,11 @@ class TimeModule(BahaiCalendar):
             # Get the date format for the current locale
             date_format = locale.nl_langinfo(locale.D_FMT)
         except AttributeError:
-            date_format = '%m/%d/%Y'
+            date_format = '%m/%d/%y'
 
-        d_fmt_len = len(date_format)
-        self._locale_data['d_del'] = date_format[2] if d_fmt_len > 2 else '/'
-        t_fmt = time.strftime('%X')
-        t_fmt_len = len(t_fmt)
-        self._locale_data['t_del'] = date_format[2] if t_fmt_len > 2 else ':'
+        self._locale_data['d_format'] = order_format(date_format)
+        time_format = time.strftime('%X')
+        self._locale_data['t_format'] = order_format(time_format)
 
     @property
     def locale(self):
@@ -76,12 +86,16 @@ class TimeModule(BahaiCalendar):
         return self._locale_data['pm']
 
     @property
-    def date_delimiter(self):
-        return self._locale_data['d_del']
+    def date_format(self):
+        return self._locale_data['d_format']
 
     @property
-    def time_delimiter(self):
-        return self._locale_data['t_del']
+    def time_format(self):
+        return self._locale_data['t_format']
+
+    @property
+    def is_date_defined(self):
+        return self._locale_data['d_defined']
 
     def strftime(self, format, timetuple):
         """
@@ -349,7 +363,8 @@ class TimeModule(BahaiCalendar):
         """
         """
         year = self._get_year(ttup)
-        year, week, day = self._year_week_day(year, ttup.tm_mon, ttup.tm_mday)
+        year, week, day = self._year_week_day(year, ttup.tm_mon,
+                                              ttup.tm_mday, week0=True)
         return f"{week:02}"
 
     def V(self, ttup, org, mod):
@@ -358,19 +373,50 @@ class TimeModule(BahaiCalendar):
         if mod == ':':
             st = f"{ttup.tm_vahid:02}"
         else:
-            pass
+            year = self._get_year(ttup)
+            year, week, day = self._year_week_day(year, ttup.tm_mon,
+                                                  ttup.tm_mday)
+            st = f"{week:02}"
 
         return st
 
     def x(self, ttup, org, mod):
         """
         """
-        return 
+        year = self._get_year(ttup)
+        delim = self.date_format[0]
+        data = []
+
+        for value in self.date_format[1:]:
+            if value == 'y':
+                data.append(f"{year}")
+            elif value == 'Y':
+                century = int(year / 100) * 100
+                data.append(f"{year - century}")
+            elif value == 'm':
+                data.append(f"{ttup.tm_mon:02}")
+            else: # %d
+                data.append(f"ttup.tm_mday:02")
+
+        return "".join([v + f"{delim}" if i < (len(data) - 1)
+                        for i, v in enumerate(data)])
 
     def X(self, ttup, org, mod):
         """
         """
-        return 
+        delim = self.time_format[0]
+        data = []
+
+        for value in self.time_format[1:]:
+            if value == 's':
+                data.append(f"{ttup.tm_sec:02}")
+            elif value == 'm':
+                data.append(f"{ttup.tm_min:02}")
+            else: # %h
+                data.append(f"{ttup.tm_hour:02}")
+
+        return "".join([v + f"{delim}" if i < (len(data) - 1)
+                        for i, v in enumerate(data)])
 
     def y(self, ttup, org, mod):
         """
@@ -383,7 +429,9 @@ class TimeModule(BahaiCalendar):
     def Y(self, ttup, org, mod):
         """
         """
-        return f"{self._get_year(ttup)}"
+        year = self._get_year(ttup)
+        n = '-' if year < 0 else ''
+        return f"{n}{abs(year):04}"
 
 
 
@@ -423,27 +471,25 @@ class TimeModule(BahaiCalendar):
         return self.midday(date)
 
     def _get_year(self, ttup):
-        if ttup.short:
-            year = ttup.tm_year
-        else:
-            year = ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1) *
-                    19 + ttup.tm_year)
+        return (ttup.tm_year if ttup.short else
+                ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1) * 19 +
+                 ttup.tm_year))
 
-        return year
-
-    def _year_week_day(self, year, month, day):
+    def _year_week_day(self, year:int, month:int, day:int,
+                       week0:bool=False) -> tuple:
         week1jalal = self._isoweek1jalal(year)
         today = self._ymd2ord(year, month, day)
         # Internally, week and day have origin 0
         week, day = divmod(today - week1jalal, 7)
 
-        if week < 0:
-            year -= 1
-            week1jalal = self._isoweek1jalal(year)
-            week, day = divmod(today - week1jalal, 7)
-        elif week >= 52 and today >= self._isoweek1jalal(year+1):
-            year += 1
-            week = 0
+        if not week0:
+            if week < 0:
+                year -= 1
+                week1jalal = self._isoweek1jalal(year)
+                week, day = divmod(today - week1jalal, 7)
+            elif week >= 52 and today >= self._isoweek1jalal(year+1):
+                year += 1
+                week = 0
 
         return year, week+1, day+1
 
