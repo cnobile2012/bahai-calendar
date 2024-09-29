@@ -9,7 +9,8 @@ import math as _math
 
 from .badi_calendar import BahaiCalendar
 from ._structures import struct_time
-from ._timemodule import _time_module
+from ._timedateutils import _td_utils
+from typing import NamedTuple
 
 
 MINYEAR = -1842
@@ -150,6 +151,17 @@ def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     # be the same as the date value passed into _ymd2ord.
     jd = bc.jd_from_badi_date((MINYEAR-1, 19, 19)) - DAYS_BEFORE_1ST_YEAR + n
     return bc.badi_date_from_jd(jd, short=short, rtd=True)
+
+def _build_struct_time(bc:BahaiCalendar, date:tuple, dstflag:int, *,
+                       short=False) -> NamedTuple:
+    if short:
+        y, m, d, hh, mm, ss = date
+    else:
+        y, m, d = bc.short_date_from_long_date(date, trim=True)
+
+    wday = _day_of_week(bc, y, m, d)
+    dnum = _days_before_month(bc, y, m) + d
+    return struct_time(date + (wday, dnum, dstflag))
 
 def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
                      short:bool=False) -> tuple:
@@ -395,7 +407,7 @@ def _check_date_fields(bc:BahaiCalendar, a:int, b:int, c:int, d:int=None,
     :raises AssertionError: If any of the year values are out of range.
     """
     if d == None or e == None:
-        b_date = bc.long_date_from_short_date((a, b, c))
+        b_date = bc.long_date_from_short_date((a, b, c), trim=True)
     else:
         b_date = (a, b, c, d, e)
 
@@ -996,7 +1008,7 @@ class date(BahaiCalendar):
             if short:
                 b_date = date
             else:
-                b_date = bc.long_date_from_short_date(date)
+                b_date = bc.long_date_from_short_date(date, trim=True)
                 del bc
 
             return cls(*b_date)
@@ -1041,7 +1053,7 @@ class date(BahaiCalendar):
         Convert the long form Badi date to a short form Badi date.
         """
         return (self.__date if self.__short else
-                self.short_date_from_long_date(self.__date))
+                self.short_date_from_long_date(self.__date, trim=True))
 
     def ctime(self):
         """
@@ -1135,7 +1147,8 @@ class date(BahaiCalendar):
         """
         Return local time tuple compatible with time.localtime().
         """
-        return struct_time(self.__date + (0, 0, 0, 0, 0, -1))
+        return _build_struct_time(self, self.__date + (0, 0, 0), -1,
+                                  short=self.__short)
 
     def toordinal(self):
         """

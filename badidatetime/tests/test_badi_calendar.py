@@ -380,63 +380,73 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # 1844-03-20T00:00:00
-            ((1, 1, 1, 1, 1), (1, 1, 1)),
+            ((1, 1, 1, 1, 1), False, (1, 1, 1, 0, 0, 0, 0)),
+            ((1, 1, 1, 1, 1), True, (1, 1, 1)),
             # 2024-04-20T20:17:45
-            ((1, 10, 10, 2, 14, 20, 17, 45), (181, 2, 14, 20, 17, 45)),
+            ((1, 10, 10, 2, 14, 20, 17, 45), False,
+             (181, 2, 14, 20, 17, 45, 0)),
             # 1844-03-19T00:00:00 Before the Badi epoch
-            ((0, 19, 19, 19, 19), (0, 19, 19)),
+            ((0, 19, 19, 19, 19), False, (0, 19, 19, 0, 0, 0, 0)),
             # 1484-03-11T00:00:00 Before the Badi epoch
-            ((0, 1, 1, 1 ,1), (-360, 1, 1)),
+            ((0, 1, 1, 1 ,1), False, (-360, 1, 1, 0, 0, 0, 0)),
             # 1843-03-21T00:00:00
-            ((0, 19, 18, 1, 1), (-1, 1, 1)),
+            ((0, 19, 18, 1, 1), False, (-1, 1, 1, 0, 0, 0, 0)),
             # 1444-05-17T00:00:00
-            ((-1, 17, 18, 4, 3), (-400, 4, 3)),
+            ((-1, 17, 18, 4, 3), False, (-400, 4, 3, 0, 0, 0, 0)),
             # 1483-03-12T00:00:00
-            ((-1, 19, 19, 1, 1), (-361, 1, 1)),
-            ((-2, 19, 19, 1, 1), (-722, 1, 1)),
+            ((-1, 19, 19, 1, 1), False, (-361, 1, 1, 0, 0, 0, 0)),
+            ((-2, 19, 19, 1, 1), False, (-722, 1, 1, 0, 0, 0, 0)),
             # 2024-08-27T13:37:58.651870-4:00
-            ((1, 10, 10, 9, 8, 19, 1, 3, 532799),
+            ((1, 10, 10, 9, 8, 19, 1, 3, 532799), False,
+             (181, 9, 8, 19, 1, 3, 532799)),
+            ((1, 10, 10, 9, 8, 19, 1, 3, 532799), True,
              (181, 9, 8, 19, 1, 3, 532799)),
             )
-        msg = "Expected {} for date {}, found {}"
+        msg = "Expected {} for date {} and trim {}, found {}"
 
-        for date, expected_result in data:
-            result = self._bc.short_date_from_long_date(date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, result))
+        for date, trim, expected_result in data:
+            result = self._bc.short_date_from_long_date(date, trim=trim)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, trim, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_long_date_from_short_date(self):
         """
+        Test that the long_date_from_short_date method returns the correct
+        long form Badi date.
         """
         data = (
             # 1844-03-20T00:00:00
-            ((1, 1, 1), (1, 1, 1, 1, 1)),
+            ((1, 1, 1), False, (1, 1, 1, 1, 1, 0, 0, 0, 0)),
+            ((1, 1, 1), True, (1, 1, 1, 1, 1)),
             # 2024-04-20T20:17:45
-            ((181, 2, 14, 20, 17, 45), (1, 10, 10, 2, 14, 20, 17, 45)),
+            ((181, 2, 14, 20, 17, 45), False,
+             (1, 10, 10, 2, 14, 20, 17, 45, 0)),
+            ((181, 2, 14, 20, 17, 45), True, (1, 10, 10, 2, 14, 20, 17, 45)),
             # 1844-03-19T00:00:00 Day before the Badi epoch
-            ((0, 19, 19), (0, 19, 19, 19, 19)),
+            ((0, 19, 19), False, (0, 19, 19, 19, 19, 0, 0, 0, 0)),
             # 1843-09-17T18:08:24.8352
-            ((0, 10, 10), (0, 19, 19, 10, 10)),
+            ((0, 10, 10), False, (0, 19, 19, 10, 10, 0, 0, 0, 0)),
             # 1843-03-21T21:18:14
-            ((0, 1, 1), (0, 19, 19, 1, 1)),
+            ((0, 1, 1), False, (0, 19, 19, 1, 1, 0, 0, 0, 0)),
             # 1842-03-21T00:00:00
-            ((-1, 1, 1), (0, 19, 18, 1, 1)),
+            ((-1, 1, 1), False, (0, 19, 18, 1, 1, 0, 0, 0, 0)),
             # 1444-05-17T00:00:00
-            ((-400, 4, 3), (-1, 17, 18, 4, 3)),
+            ((-400, 4, 3), False, (-1, 17, 18, 4, 3, 0, 0, 0, 0)),
             # 1483-03-12T00:00:00
-            ((-361, 1, 1), (-1, 19, 19, 1, 1)),
+            ((-361, 1, 1), False, (-1, 19, 19, 1, 1, 0, 0, 0, 0)),
             # 1121-03-21T18:23:39.8112
-            ((-722, 1, 1), (-2, 19, 19, 1, 1)),
+            ((-722, 1, 1), False, (-2, 19, 19, 1, 1, 0, 0, 0, 0)),
             # (2024, 5, 14, 20)
-            ((181, 3, 19), (1, 10, 10, 3, 19)),
+            ((181, 3, 19), False, (1, 10, 10, 3, 19, 0, 0, 0, 0)),
+            ((181, 3, 19), True, (1, 10, 10, 3, 19)),
             )
         msg = "Expected {} for date {}, found {}"
 
-        for date, expected_result in data:
-            result = self._bc.long_date_from_short_date(date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, result))
+        for date, trim, expected_result in data:
+            result = self._bc.long_date_from_short_date(date, trim=trim)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, trim, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_date_from_kvymdhms(self):
@@ -465,21 +475,28 @@ class TestBadiCalendar(unittest.TestCase):
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second).
         """
         data = (
-            ((1, 1, 1, 1, 1.761111), False, False,
+            ((1, 1, 1, 1, 1.761111), False, False, False,
              (1, 1, 1, 1, 1, 18, 15, 59.9904)),
-            ((1, 1, 1, 1, 1.761111), False, True, (1, 1, 1, 18, 15, 59.9904)),
-            ((0, 6, 6, 1, 1, 1), False, True, (-260, 1, 1, 1)),
-            ((1, 10, 10, 9, 8, 19, 1, 3.5328), True, False,
+            ((1, 1, 1, 1, 1.761111), False, False, True,
+             (1, 1, 1, 1, 1, 18, 15, 59.9904)),
+            ((1, 1, 1, 1, 1.761111), False, True, False,
+             (1, 1, 1, 18, 15, 59.9904, 0)),
+            ((1, 1, 1, 1, 1.761111), False, True, True,
+             (1, 1, 1, 18, 15, 59.9904)),
+            ((0, 6, 6, 1, 1, 1), False, True, False, (-260, 1, 1, 1, 0, 0, 0)),
+            ((1, 10, 10, 9, 8, 19, 1, 3.5328), True, False, False,
              (1, 10, 10, 9, 8, 19, 1, 3, 532799)),
-            ((1, 10, 10, 9, 8, 19, 1, 3.5328), True, True,
+            ((1, 10, 10, 9, 8, 19, 1, 3.5328, 0), True, True, False,
              (181, 9, 8, 19, 1, 3, 532799)),
             )
-        msg = "Expected {} for date {} with ms {} and short {}, found {}"
+        msg = ("Expected {} for date {} with ms {}, short {}, and "
+               "trim {}, found {}")
 
-        for date, ms, short, expected_result in data:
-            result = self._bc.kvymdhms_from_b_date(date, ms=ms, short=short)
+        for date, ms, short, trim, expected_result in data:
+            result = self._bc.kvymdhms_from_b_date(
+                date, ms=ms, short=short, trim=trim)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, ms, short, result))
+                expected_result, date, ms, short, trim, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_badi_date_from_gregorian_date(self):
@@ -575,6 +592,46 @@ class TestBadiCalendar(unittest.TestCase):
             result = self._bc.posix_timestamp(t, lat, lon, zone, short=short)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, t, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_midday(self):
+        """
+        Test that the midday method returns the middle of the Badi day in
+        hours, minutes, and seconds or as a decimal value.
+        """
+        data = (
+            ((1, 1, 1), False, 0.5005830000154674),
+            ((1, 1, 1), True, (12, 0, 50.3712)),
+            ((181, 11, 4), False, 0.4992109998129308),
+            ((181, 11, 4), True, (11, 58, 51.8304)),
+            ((1, 1, 1, 1, 1), False, 0.5005830000154674),
+            ((1, 1, 1, 1, 1), True, (12, 0, 50.3712)),
+            )
+        msg = "Expected {} for date {} and hms {}, found {}"
+
+        for date, hms, expected_result in data:
+            result = self._bc.midday(date, hms=hms)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, hms, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__trim_hms(self):
+        """
+        Test that the _trim_hms method correctly trims the secons and
+        minutes if zero values.
+        """
+        data = (
+            ((12, 30, 15), (12, 30, 15)),
+            ((12, 30, 0), (12, 30)),
+            ((12, 0, 0), (12,)),
+            ((12, 0, 15), (12, 0, 15)),
+            )
+        msg = "Expected {} for date {}, found {}"
+
+        for date, expected_result in data:
+            result = self._bc._trim_hms(date)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__check_valid_badi_date(self):

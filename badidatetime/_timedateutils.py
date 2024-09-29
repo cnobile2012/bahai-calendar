@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# badidatetime/_timemodule.py
+# badidatetime/_timedateutils.py
 #
 __docformat__ = "restructuredtext en"
 
@@ -12,7 +12,7 @@ from ._structures import struct_time, ShortFormStruct, LongFormStruct
 from .badi_calendar import BahaiCalendar
 
 
-class TimeModule(BahaiCalendar):
+class TimeDateUtils(BahaiCalendar):
     # Badi additions are %:K for Kull-i-Shay and %:V for Váḥid
     VALID_FORMAT_CHRS = 'aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%'
     DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl', '`Idāl',
@@ -51,13 +51,13 @@ class TimeModule(BahaiCalendar):
             if len(fmt) == 8:
                 data = [fmt[2]]
 
-                for idx, char enumerate(fmt):
+                for idx, char in enumerate(fmt):
                     if idx in (1, 4, 7):
                         data.append((char))
             else:
-                ret = ((0, '/'), (1, 'm'), (2, 'd'), (3, 'y'))
+                data = ((0, '/'), (1, 'm'), (2, 'd'), (3, 'y'))
 
-            return ret
+            return data
 
         self._locale_data['locale'] = locale.setlocale(locale.LC_TIME, '')
         self._locale_data['am'] = locale.nl_langinfo(locale.AM_STR)
@@ -224,8 +224,9 @@ class TimeModule(BahaiCalendar):
         """
         st = ""
         year = self._get_year(ttup)
-        n = '-' if ttup.tm_year < 0 else ''
-        st_d = {'y': f"{n}{abs(year):04}",
+        century = int(year / 100) * 100
+        n = '-' if year < 0 else ''
+        st_d = {'y': f"{n}{abs(year - century):02}",
                 'm': f"{ttup.tm_mon:02}",
                 'd': f"{ttup.tm_mday:02}"}
 
@@ -384,22 +385,23 @@ class TimeModule(BahaiCalendar):
         """
         """
         year = self._get_year(ttup)
+        n = '-' if year < 0 else ''
         delim = self.date_format[0]
         data = []
 
         for value in self.date_format[1:]:
             if value == 'y':
-                data.append(f"{year}")
+                data.append(f"{n}{abs(year - century):02}")
             elif value == 'Y':
                 century = int(year / 100) * 100
-                data.append(f"{year - century}")
+                data.append(f"{n}{abs(year):04}")
             elif value == 'm':
                 data.append(f"{ttup.tm_mon:02}")
             else: # %d
                 data.append(f"ttup.tm_mday:02")
 
-        return "".join([v + f"{delim}" if i < (len(data) - 1)
-                        for i, v in enumerate(data)])
+        return "".join([v + f"{delim}" if idx < (len(data) - 1) else ''
+                        for idx, v in enumerate(data)])
 
     def X(self, ttup, org, mod):
         """
@@ -415,8 +417,8 @@ class TimeModule(BahaiCalendar):
             else: # %h
                 data.append(f"{ttup.tm_hour:02}")
 
-        return "".join([v + f"{delim}" if i < (len(data) - 1)
-                        for i, v in enumerate(data)])
+        return "".join([v + f"{delim}" if idx < (len(data) - 1) else ''
+                        for idx, v in enumerate(data)])
 
     def y(self, ttup, org, mod):
         """
@@ -433,14 +435,18 @@ class TimeModule(BahaiCalendar):
         n = '-' if year < 0 else ''
         return f"{n}{abs(year):04}"
 
-
+    def z(self, ttup, org, mod):
+        """
+        -14400.0
+        """
+        return 
 
 
     __METHOD_LOOKUP = {'a': a, 'A': A, 'b': b, 'B': B, 'c': c, 'C': C, 'd': d,
                        'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
                        'j': j, 'k': H, 'l': I, 'm': m, 'M': M, 'm': m, 'M': M,
                        'n': n, 'p': p, 'r': r, 'S': S, 'T': r, 'u': u, 'U': U,
-                       'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y, 
+                       'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y, 'z': z, 
                        }
 
     def _parse_format(self, ttup:struct_time, format:str) -> str:
@@ -596,4 +602,4 @@ class TimeModule(BahaiCalendar):
 
         return week1jalal
 
-_time_module = TimeModule()
+_td_utils = TimeDateUtils()

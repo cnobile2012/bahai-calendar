@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from typing import NamedTuple
 
-from .badi_calendar import BahaiCalendar, GregorianCalendar
-import badidatetime.datetime as dtime
+from .badi_calendar import BahaiCalendar
+from .gregorian_calendar import GregorianCalendar
 
 
 class ShortFormStruct(NamedTuple):
@@ -130,9 +130,8 @@ class struct_time(BahaiCalendar):
         """
         Fill in missing data.
 
-        *** TODO ***
-        We need to convert everything to a Gregorian datetime object until
-        the badidatetime objects are completed.
+        *** TODO *** We need to convert the Gregorian datetime objects to
+        Badi datetime objects when they are completed.
         """
         bc = BahaiCalendar()
         gc = GregorianCalendar()
@@ -147,15 +146,11 @@ class struct_time(BahaiCalendar):
         if short:
             b_date = date[:6]
         else:
-            b_date = bc.short_date_from_long_date(date[:8])
+            b_date = bc.short_date_from_long_date(date[:8], trim=True)
 
         g_date = gc.ymdhms_from_date(bc.gregorian_date_from_badi_date(
             b_date), ms=True)
         g_dt = datetime(*g_date, tzinfo=tzlocal.get_localzone())
-        # tm_wday
-        date[-3] = dtime._day_of_week(bc, *b_date[:3])
-        # tm_yday
-        date[-2] = dtime._days_before_month(bc, *b_date[:2]) + b_date[2]
         # tm_isdst
         date[-1] = 1 if g_dt.dst().total_seconds() > 0 else 0
         # tm_zone and tm_gmtoff

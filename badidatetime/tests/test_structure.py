@@ -7,15 +7,13 @@ __docformat__ = "restructuredtext en"
 import unittest
 
 from .._structures import struct_time
+from ..datetime import _build_struct_time
 
 
 class TestStructures(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)
-
-    def setUp(self):
-        pass
 
     #@unittest.skip("Temporarily skipped")
     def test_struct_time_short(self):
@@ -31,23 +29,23 @@ class TestStructures(unittest.TestCase):
         data = (
             ((181, 9, 6, 8, 45, 1, 0, 0, -1), False,
              ("structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
-              "tm_hour=8, tm_min=45, tm_sec=1, tm_wday=0, tm_yday=158, "
-              "tm_isdst=1)",
-              'EDT', -14400)),
-            ((1, 10, 10, 9, 6, 8, 45, 1, 1, 158, -1), False,
+              "tm_hour=8, tm_min=45, tm_sec=1, tm_wday=0, tm_yday=0, "
+              "tm_isdst=1)", 'EDT', -14400)),
+            ((1, 10, 10, 9, 6, 8, 45, 1, 0, 0, -1), False,
              ("structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
               "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=8, tm_min=45, "
-              "tm_sec=1, tm_wday=0, tm_yday=158, tm_isdst=1)",
-              'EDT', -14400)),
+              "tm_sec=1, tm_wday=0, tm_yday=0, tm_isdst=1)", 'EDT', -14400)),
             ((181, 9, 6, 8, 45, 1, 0, 0, -1, 999), True, err_msg0.format(10)),
-            ((1, 0, 10, 9, 6, 8, 45, 1, 1, 158, -1), True, err_msg1.format(0)),
-            ((1, 10, 0, 9, 6, 8, 45, 1, 1, 158, -1), True, err_msg2.format(0)),
+            ((1, 0, 10, 9, 6, 8, 45, 1, 0, 0, -1), True, err_msg1.format(0)),
+            ((1, 10, 0, 9, 6, 8, 45, 1, 0, 0, -1), True, err_msg2.format(0)),
             ((181, 9, 6, 8, 45, 1, 0, 0, 10), True, err_msg3.format(10)),
             )
         msg0 = "Expected {}, with dt {}, found {}."
         msg1 = "Expected {}, fount {}."
 
         for dt, validity, expected_result in data:
+            short = True if len(dt) == 7 else False
+
             if validity:
                 try:
                     result = struct_time(dt)(dt)
