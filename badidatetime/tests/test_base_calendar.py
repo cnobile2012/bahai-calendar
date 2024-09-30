@@ -293,7 +293,6 @@ class TestBaseCalendar(unittest.TestCase):
             # Find the local hour angle
             #srt = ast + 360.98564736629 *
             h = self.bc._local_hour_angle(ast, lon, alpha)
-            print(alpha, delta, ast, h)
             result = self.bc._altitude(delta, lat, h)
             self.assertEqual(
                 expected_result, result,

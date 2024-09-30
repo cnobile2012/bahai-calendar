@@ -14,7 +14,6 @@ import unittest
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
-print(BASE_DIR)
 
 from badidatetime import datetime
 from ..badi_calendar import BahaiCalendar
@@ -1649,11 +1648,11 @@ class TestBadiDatetime_date(unittest.TestCase):
             ((181, 9, 6),
              "structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
              "tm_hour=0, tm_min=0, tm_sec=0, tm_wday=0, tm_yday=158, "
-             "tm_isdst=1)"),
+             "tm_isdst=-1)"),
             ((1, 10, 10, 9, 6),
              "structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
              "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=0, tm_min=0, tm_sec=0, "
-             "tm_wday=0, tm_yday=158, tm_isdst=1)")
+             "tm_wday=0, tm_yday=158, tm_isdst=-1)")
             )
         msg = "Expected {} with date {}, found {}."
 

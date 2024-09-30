@@ -5,13 +5,12 @@
 __docformat__ = "restructuredtext en"
 
 import time
-import tzlocal
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+#import tzlocal
+#from datetime import datetime, timezone
 from typing import NamedTuple
 
-from .badi_calendar import BahaiCalendar
-from .gregorian_calendar import GregorianCalendar
+#from .badi_calendar import BahaiCalendar
+#from .gregorian_calendar import GregorianCalendar
 
 
 class ShortFormStruct(NamedTuple):
@@ -26,9 +25,11 @@ class ShortFormStruct(NamedTuple):
     # tm_isdst, may be set to 1 when daylight savings time is in effect,
     # and 0 when it is not. A value of -1 indicates that this is not known,
     # and will usually result in the correct state being filled in.
-    tm_isdst: int      # 0, 1 or -1
-    tm_zone: str = ''  # abbreviation of timezone name
-    tm_gmtoff: int = 0 # offset east of UTC in seconds
+    tm_isdst: int      # 0, 1 or -1 (set only with localtime)
+    # abbreviation of timezone name (set only with localtime)
+    tm_zone: str = None
+    # offset east of UTC in seconds (set only with localtime)
+    tm_gmtoff: int = None
 
     @property
     def short(self):
@@ -56,9 +57,11 @@ class LongFormStruct(NamedTuple):
     # tm_isdst, may be set to 1 when daylight savings time is in effect,
     # and 0 when it is not. A value of -1 indicates that this is not known,
     # and will usually result in the correct state being filled in.
-    tm_isdst: int        # 0, 1 or -1
-    tm_zone: str = ''    # abbreviation of timezone name
-    tm_gmtoff: int = 0   # offset east of UTC in seconds
+    tm_isdst: int        # 0, 1 or -1 (set only with localtime)
+    # abbreviation of timezone name (set only with localtime)
+    tm_zone: str = None
+    # offset east of UTC in seconds (set only with localtime)
+    tm_gmtoff: int = None
 
     @property
     def short(self):
@@ -74,18 +77,24 @@ class LongFormStruct(NamedTuple):
                 f"tm_yday={self.tm_yday}, tm_isdst={self.tm_isdst})")
 
 
-class struct_time(BahaiCalendar):
+class struct_time: #(BahaiCalendar):
     """
     Create a structure representing a Badi date and time.
     """
     def __new__(cls, date:tuple):
         self = object.__new__(cls)
         super().__init__(self)
+        short = cls.__is_short_form(date)
 
-        if cls.__is_short_form(date):
-            inst = ShortFormStruct(*cls.__fill_in_missing(date, True))
+        if date[-1] not in (-1, 0, 1):
+            msg = (f"Invalid value for tm_isdst, found {date[-1]}, "
+                   "should be one of (-1, 0, 1).")
+            raise ValueError(msg)
+
+        if short:
+            inst = ShortFormStruct(*date) #cls.__fill_in_missing(date, True))
         else:
-            inst = LongFormStruct(*cls.__fill_in_missing(date, False))
+            inst = LongFormStruct(*date) #cls.__fill_in_missing(date, False))
 
         return inst
 
@@ -125,34 +134,34 @@ class struct_time(BahaiCalendar):
         assert 0 <= m < cycle, f"Invalid month must be 0 to 19, found {m}"
         if m == 0: cycle = + 5 + self._is_leap_year(b_date)
 
-    @classmethod
-    def __fill_in_missing(cls, date, short):
-        """
-        Fill in missing data.
+    ## @classmethod
+    ## def __fill_in_missing(cls, date, short):
+    ##     """
+    ##     Fill in missing data.
 
-        *** TODO *** We need to convert the Gregorian datetime objects to
-        Badi datetime objects when they are completed.
-        """
-        bc = BahaiCalendar()
-        gc = GregorianCalendar()
-        date = list(date)
-        org_tm_isdst = date[-1]
+    ##     *** TODO *** We need to convert the Gregorian datetime objects to
+    ##     Badi datetime objects when they are completed.
+    ##     """
+    ##     bc = BahaiCalendar()
+    ##     gc = GregorianCalendar()
+    ##     date = list(date)
+    ##     org_tm_isdst = date[-1]
 
-        if org_tm_isdst not in (-1, 0, 1):
-            msg = (f"Invalid value for tm_isdst, found {org_tm_isdst}, "
-                   "should be one of (-1, 0, 1).")
-            raise ValueError(msg)
+    ##     if org_tm_isdst not in (-1, 0, 1):
+    ##         msg = (f"Invalid value for tm_isdst, found {org_tm_isdst}, "
+    ##                "should be one of (-1, 0, 1).")
+    ##         raise ValueError(msg)
 
-        if short:
-            b_date = date[:6]
-        else:
-            b_date = bc.short_date_from_long_date(date[:8], trim=True)
+    ##     if short:
+    ##         b_date = date[:6]
+    ##     else:
+    ##         b_date = bc.short_date_from_long_date(date[:8], trim=True)
 
-        g_date = gc.ymdhms_from_date(bc.gregorian_date_from_badi_date(
-            b_date), ms=True)
-        g_dt = datetime(*g_date, tzinfo=tzlocal.get_localzone())
-        # tm_isdst
-        date[-1] = 1 if g_dt.dst().total_seconds() > 0 else 0
-        # tm_zone and tm_gmtoff
-        date += [g_dt.tzname(), g_dt.utcoffset().total_seconds()]
-        return tuple(date)
+    ##     g_date = gc.ymdhms_from_date(bc.gregorian_date_from_badi_date(
+    ##         b_date), ms=True)
+    ##     g_dt = datetime(*g_date, tzinfo=tzlocal.get_localzone())
+    ##     # tm_isdst
+    ##     date[-1] = 1 if g_dt.dst().total_seconds() > 0 else 0
+    ##     # tm_zone and tm_gmtoff
+    ##     date += [g_dt.tzname(), g_dt.utcoffset().total_seconds()]
+    ##     return tuple(date)

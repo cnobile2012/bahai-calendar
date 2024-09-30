@@ -21,24 +21,27 @@ class TestStructures(unittest.TestCase):
         Test that the struct_time class can properly store short form
         Badi dates and times.
         """
-        err_msg0 = "struct_time() takes a 9 or 11-sequence ({}-sequence given)"
-        err_msg1 = "Invalid Váḥid must be 1 to 19, found {}."
-        err_msg2 = "Invalid year must be 1 to 19, found {}."
-        err_msg3 = ("Invalid value for tm_isdst, found {}, should be "
+        err_msg0 = ("Invalid value for tm_isdst, found {}, should be "
                     "one of (-1, 0, 1).")
+        err_msg1 = "struct_time() takes a 9 or 11-sequence ({}-sequence given)"
+        err_msg2 = "Invalid Váḥid must be 1 to 19, found {}."
+        err_msg3 = "Invalid year must be 1 to 19, found {}."
+        err_msg4 = "Invalid month must be 0 to 19, found {}"
         data = (
             ((181, 9, 6, 8, 45, 1, 0, 0, -1), False,
              ("structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
               "tm_hour=8, tm_min=45, tm_sec=1, tm_wday=0, tm_yday=0, "
-              "tm_isdst=1)", 'EDT', -14400)),
+              "tm_isdst=-1)", None, None)),
             ((1, 10, 10, 9, 6, 8, 45, 1, 0, 0, -1), False,
              ("structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
               "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=8, tm_min=45, "
-              "tm_sec=1, tm_wday=0, tm_yday=0, tm_isdst=1)", 'EDT', -14400)),
-            ((181, 9, 6, 8, 45, 1, 0, 0, -1, 999), True, err_msg0.format(10)),
-            ((1, 0, 10, 9, 6, 8, 45, 1, 0, 0, -1), True, err_msg1.format(0)),
-            ((1, 10, 0, 9, 6, 8, 45, 1, 0, 0, -1), True, err_msg2.format(0)),
-            ((181, 9, 6, 8, 45, 1, 0, 0, 10), True, err_msg3.format(10)),
+              "tm_sec=1, tm_wday=0, tm_yday=0, tm_isdst=-1)", None, None)),
+            ((181, 9, 6, 8, 45, 1, 0, 0, 10), True, err_msg0.format(10)),
+            ((181, 9, 6, 8, 45, 1, 0, 0, -1, 999), True, err_msg1.format(10)),
+            ((1, 0, 10, 9, 6, 8, 45, 1, 0, 0, -1), True, err_msg2.format(0)),
+            ((1, 10, 0, 9, 6, 8, 45, 1, 0, 0, -1), True, err_msg3.format(0)),
+            ((181, 20, 6, 8, 45, 1, 0, 0, -1), True, err_msg4.format(20)),
+            ((1, 10, 10, 20, 6, 8, 45, 1, 0, 0, -1), True, err_msg4.format(20)),
             )
         msg0 = "Expected {}, with dt {}, found {}."
         msg1 = "Expected {}, fount {}."
@@ -61,8 +64,8 @@ class TestStructures(unittest.TestCase):
                                          f"raised, with result {result}.")
             else:
                 result = struct_time(dt)
-                self.assertEqual(expected_result[0], str(result),
-                                 msg0.format(expected_result[0], dt, result))
+                self.assertEqual(expected_result[0], str(result), msg0.format(
+                    expected_result[0], dt, result))
                 self.assertEqual(expected_result[1], result.tm_zone,
                                  msg1.format(expected_result[1],
                                              result.tm_zone))

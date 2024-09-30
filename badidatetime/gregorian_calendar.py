@@ -164,8 +164,6 @@ class GregorianCalendar(BaseCalendar):
                 year -= 1 if month == 12 else 0
 
             date = (year, month, round(day, self.ROUNDING_PLACES))
-            #print('jd', jd, 'md', md, 'td', td, 'days', days, 'd', d,
-            #      'f', f, 'months', month_days, 'date', date)
         else:
             j_day = jd + 0.5
             z = math.floor(j_day)

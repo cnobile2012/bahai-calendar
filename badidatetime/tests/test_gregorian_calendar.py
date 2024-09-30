@@ -328,7 +328,6 @@ class TestGregorianCalendar(unittest.TestCase):
             year = g_date[0]
             month = g_date[1]
             day = g_date[2]
-            #print(g_date)
 
             if validity:
                 # Test correct dates
