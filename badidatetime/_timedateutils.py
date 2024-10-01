@@ -47,18 +47,6 @@ class TimeDateUtils(BahaiCalendar):
         self._date_and_time_locale()
 
     def _date_and_time_locale(self):
-        def order_format(fmt):
-            if len(fmt) == 8:
-                data = [fmt[2]]
-
-                for idx, char in enumerate(fmt):
-                    if idx in (1, 4, 7):
-                        data.append((char))
-            else:
-                data = ((0, '/'), (1, 'm'), (2, 'd'), (3, 'y'))
-
-            return data
-
         self._locale_data['locale'] = locale.setlocale(locale.LC_TIME, '')
         self._locale_data['am'] = locale.nl_langinfo(locale.AM_STR)
         self._locale_data['pm'] = locale.nl_langinfo(locale.PM_STR)
@@ -69,9 +57,28 @@ class TimeDateUtils(BahaiCalendar):
         except AttributeError:
             date_format = '%m/%d/%y'
 
-        self._locale_data['d_format'] = order_format(date_format)
-        time_format = time.strftime('%X')
-        self._locale_data['t_format'] = order_format(time_format)
+        self._locale_data['d_format'] = self._order_format(
+            date_format, '%m/%d/%y')
+        self._locale_data['t_format'] = self._order_format(
+            self._find_time_order(), '%H:%M:%S')
+
+    def _order_format(self, fmt, default):
+        if len(fmt) != 8:
+            fmt = default
+
+        data = [fmt[2]]
+
+        for idx, char in enumerate(fmt):
+            if idx in (1, 4, 7):
+                data.append((char))
+
+        return data
+
+    def _find_time_order(self):
+        t_str = time.strftime('%X')
+        delim = t_str[2]
+        h = 'I' if time.strftime('%p') != "" else 'H'
+        return f"%{h}{delim}%M{delim}%S"
 
     @property
     def locale(self):
@@ -92,10 +99,6 @@ class TimeDateUtils(BahaiCalendar):
     @property
     def time_format(self):
         return self._locale_data['t_format']
-
-    @property
-    def is_date_defined(self):
-        return self._locale_data['d_defined']
 
     def strftime(self, format, timetuple):
         """
@@ -437,16 +440,46 @@ class TimeDateUtils(BahaiCalendar):
 
     def z(self, ttup, org, mod):
         """
-        -14400.0
+        -14400.0       == -0400
+        37080          == +1030
+        22829.4        == +063415
+        11056.44427776 == +030712.
         """
-        return 
+        st = ""
 
+        if ttup.tm_gmtoff:
+            n = '-' if ttup.tm_gmtoff < 0 else '+'
+            h = abs(ttup.tm_gmtoff / 3600)
+            hh = int(h)
+            m = h - hh
+            m0 = m * 100
+            mm = math.floor(m0)
+            s = m0 - mm
+            ss = int(s * 100)
+            ms = int((s * 100 - ss) * 1000000)
+            delim = ':' if mod == ':' else ""
+            st += f"{n}{hh:02}{delim}{mm:02}"
+            st += f"{delim}{ss:02}" if ss > 0 else ""
+            st += f".{ms:06}" if ms > 0 else ""
+
+        return st
+
+    def Z(self, ttup, org, mod):
+        """
+        """
+        return f"{ttup.tm_zone}" if ttup.tm_zone else ""
+
+    def percent(self, ttup, org, mod):
+        """
+        """
+        return "%"
 
     __METHOD_LOOKUP = {'a': a, 'A': A, 'b': b, 'B': B, 'c': c, 'C': C, 'd': d,
                        'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
                        'j': j, 'k': H, 'l': I, 'm': m, 'M': M, 'm': m, 'M': M,
                        'n': n, 'p': p, 'r': r, 'S': S, 'T': r, 'u': u, 'U': U,
-                       'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y, 'z': z, 
+                       'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y, 'z': z, 'Z': Z,
+                       '%': percent
                        }
 
     def _parse_format(self, ttup:struct_time, format:str) -> str:
