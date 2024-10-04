@@ -422,7 +422,7 @@ class BahaiCalendar(BaseCalendar):
         :return: The Badi date from a Julian Period day.
         :rtype: tuple
         """
-        def get_leap_year_info(y):
+        def get_leap_year_info(year):
             leap = self._is_leap_year(year)
             yds = 366 if leap else 365
             ld = 4 + leap
@@ -737,19 +737,19 @@ class BahaiCalendar(BaseCalendar):
             assert 1 <= year < cycle, (
                 f"The number of years in a Váḥid should be >= 1 or <= 19, "
                 f"found {year}")
-            leap_arg = b_date
+            ly = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
         else: # Short Badi date
             year, month, day = b_date[:3]
             hour, minute, second, ms = self._get_hms(b_date, short_in=True)
             assert self.MINYEAR <= year <= self.MAXYEAR, (
                 f"The number of years should be {self.MINYEAR} <= "
                 f"{year} <= {self.MAXYEAR}.")
-            leap_arg = year
+            ly = year
 
         assert 0 <= month < cycle, (
             f"Invalid month '{month}', should be 0 - 19.")
         # This is Ayyām-i-Hā and could be 4 or 5 days depending on leap year.
-        cycle = (5 + self._is_leap_year(leap_arg)) if month == 0 else cycle
+        cycle = (5 + self._is_leap_year(ly)) if month == 0 else cycle
         assert 1 <= day < (cycle), (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "
             f"should be from 1 to <= {cycle-1}.")
@@ -775,24 +775,15 @@ class BahaiCalendar(BaseCalendar):
             assert not minute % 1, (
                 "If there is a part minute then there can be no seconds.")
 
-    def _is_leap_year(self, date:tuple) -> bool:
+    def _is_leap_year(self, year:tuple) -> bool:
         """
         Return a Boolean True if a Badi leap year, False if not.
 
-        :param date: This value can be either the Badi year or a long form
-                     date.
-        :type date: int or tuple
+        :param date: This value must be a Badi short form year.
+        :type year: int
         :return: A Boolean indicating if a leap year or not.
         :rtype: bool
         """
-        if isinstance(date, tuple):
-            assert len(date) >= 3, (
-                "If a tuple it must be at least the Kull-i-Shay', Váḥid, "
-                f"and year, found {date}")
-            year = (date[0] - 1) * 361 + (date[1] - 1) * 19 + date[2]
-        else:
-            year = date
-
         return self._days_in_year(year) == 366
 
     def _days_in_year(self, year:int) -> int:

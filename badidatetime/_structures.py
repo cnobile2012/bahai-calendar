@@ -124,15 +124,15 @@ class struct_time: #(BahaiCalendar):
 
         if short:
             y, m, d, hh, mm, ss, wday, yday, isdst = date
-            b_date = date[:5]
+            year = y
         else:
             k, v, y, m, d, hh, mm, ss, wday, yday, isdst = date
-            b_date = date[:7]
+            year = ((k - 1) * 361 + (v - 1) * 19 + y)
             assert 1 <= v < cycle, f"Invalid Váḥid must be 1 to 19, found {v}."
             assert 1 <= y < cycle, f"Invalid year must be 1 to 19, found {y}."
 
         assert 0 <= m < cycle, f"Invalid month must be 0 to 19, found {m}"
-        if m == 0: cycle = + 5 + self._is_leap_year(b_date)
+        if m == 0: cycle = + 5 + self._is_leap_year(year)
 
     ## @classmethod
     ## def __fill_in_missing(cls, date, short):

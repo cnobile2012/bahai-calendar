@@ -743,8 +743,7 @@ class TestBadiCalendar(unittest.TestCase):
                 year, month, day = b_date[:3]
                 hour, minute, second, ms = self._bc._get_hms(
                     b_date, short_in=short_in)
-                cycle = (4 + self._bc._is_leap_year(year)
-                         if month == 0 else 19)
+                cycle = 4 + self._bc._is_leap_year(year) if month == 0 else 19
 
                 for d in range(1, cycle + 1):
                     date = (year, month, d)
@@ -752,8 +751,8 @@ class TestBadiCalendar(unittest.TestCase):
             else: # Test for valid long dates
                 kull_i_shay, vahid, year, month, day = b_date[:5]
                 hour, minute, second, ms = self._bc._get_hms(b_date)
-                cycle = (4 + self._bc._is_leap_year(b_date)
-                         if month == 0 else 19)
+                ly = ((kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year)
+                cycle = 4 + self._bc._is_leap_year(ly) if month == 0 else 19
 
                 for d in range(1, cycle + 1):
                     date = (kull_i_shay, vahid, year, month, d)
@@ -779,18 +778,22 @@ class TestBadiCalendar(unittest.TestCase):
             ((1, 10, 2, 19, 19), True, False), # (2017, 3, 19)
             ((1, 10, 3, 19, 19), True, True),  # (2017, 3, 19)
             ((1, 10, 4, 19, 19), True, False), # (2018, 3, 20)
-            ((181, 1), False, err_msg),        # Test assert error.
             )
         msg = "Expected {} for day {}, found {}"
 
         for date, validity, expected_result in data:
+            if isinstance(date, int):
+                year = date
+            else:
+                year = ((date[0] - 1) * 361 + (date[1] - 1) * 19 + date[2])
+
             if validity:
-                result = self._bc._is_leap_year(date)
+                result = self._bc._is_leap_year(year)
                 self.assertEqual(expected_result, result,
                                  msg.format(expected_result, date, result))
             else:
                 with self.assertRaises(AssertionError) as cm:
-                    self._bc._is_leap_year(date)
+                    self._bc._is_leap_year(year)
 
                 message = str(cm.exception)
                 self.assertEqual(expected_result.format(date), message)
