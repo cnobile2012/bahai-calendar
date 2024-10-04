@@ -33,6 +33,10 @@ class BahaiCalendar(BaseCalendar):
         (14, 'Qawl'), (15, 'Masá’il'), (16, 'Sharaf'), (17, 'Sulṭán'),
         (18, 'Mulk'), (0, 'Ayyám-i-Há'), (19, "'Alá'")
         )
+    KULL_I_SHAY_MAX = 4
+    KULL_I_SHAY_MIM = -6
+    MINYEAR = -1842
+    MAXYEAR = 1161
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -494,24 +498,23 @@ class BahaiCalendar(BaseCalendar):
         """
         Convert a date to a short date (ymdhms) to a long date (kvymdhms).
         """
-        year, month, day = date[:3]
-        hh, mm, ss, ms = self._get_hms(date, short=True)
-        k = year / 361
+        y, month, day = date[:3]
+        hh, mm, ss, ms = self._get_hms(date, short_in=True)
+        k = y / 361
+        kull_i_shay = 0 if y == 0 else math.ceil(k)
         k0 = self._truncate_decimal(k % 1, self.ROUNDING_PLACES)
+        #k0 = round(k % 1, self.ROUNDING_PLACES)
         v = k0 / 19 * 361
-        kull_i_shay = math.floor(k)
 
         if v == 0: # If there is no fraction in v
             vahid = 19
-            y = 19
+            year = 19
         else:
-            kull_i_shay += 1
             vahid = math.ceil(v)
-            y = math.ceil(self._truncate_decimal(
-                v % 1, self.ROUNDING_PLACES) * 19)
+            year = math.ceil(v % 1 * 19)
 
         hmsms = self._trim_hms((hh, mm, ss, ms)) if trim else (hh, mm, ss, ms)
-        b_date = (kull_i_shay, vahid, y, month, day) + hmsms
+        b_date = (kull_i_shay, vahid, year, month, day) + hmsms
         self._check_valid_badi_date(b_date)
         return b_date
 
@@ -702,58 +705,75 @@ class BahaiCalendar(BaseCalendar):
 
         return tuple(reversed(items))
 
-    def _check_valid_badi_date(self, b_date:tuple) -> None:
+    def _check_valid_badi_date(self, b_date:tuple, short_in=False) -> None:
         """
         Check that the Kull-i-Shay, Váḥids, year, month, day, hour, minute,
         and second values are valid.
 
         :param b_date: A long form Badi date.
         :type b_date: tuple
+        :param short_in: If True then parse for a short date else if False
+                         parse for a long date. This is for incoming dates
+                         not outgoing dates as in most other uses of 'short'.
+        :type short_in: bool
         :return: Nothing
         :rtype: None
         :raises AssertionError: When a date Váḥid, year, month, day, hour,
                                 minute, or second are out of range.
         """
         cycle = 20
-        kull_i_shay, vahid, year, month, day = b_date[:5]
-        hour, minute, second, ms = self._get_hms(b_date)
-        assert 1 <= vahid < cycle, (
-            f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or <= 19, "
-            f"found {vahid}")
-        assert 1 <= year < cycle, (
-            f"The number of years in a Váḥid should be >= 1 or <= 19, "
-            f"found {year}")
+
+        if not short_in: # Long Badi date
+            kull_i_shay, vahid, year, month, day = b_date[:5]
+            hour, minute, second, ms = self._get_hms(b_date)
+            assert (self.KULL_I_SHAY_MIM <= kull_i_shay
+                    <= self.KULL_I_SHAY_MAX), (
+                "The kull-i-shay must be equal to or between "
+                f"{self.KULL_I_SHAY_MIM} and {self.KULL_I_SHAY_MAX}, "
+                f"found {kull_i_shay}")
+            assert 1 <= vahid < cycle, (
+                f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
+                f"<= 19, found {vahid}")
+            assert 1 <= year < cycle, (
+                f"The number of years in a Váḥid should be >= 1 or <= 19, "
+                f"found {year}")
+            leap_arg = b_date
+        else: # Short Badi date
+            year, month, day = b_date[:3]
+            hour, minute, second, ms = self._get_hms(b_date, short_in=True)
+            assert self.MINYEAR <= year <= self.MAXYEAR, (
+                f"The number of years should be {self.MINYEAR} <= "
+                f"{year} <= {self.MAXYEAR}.")
+            leap_arg = year
+
         assert 0 <= month < cycle, (
             f"Invalid month '{month}', should be 0 - 19.")
-
         # This is Ayyām-i-Hā and could be 4 or 5 days depending on leap year.
-        if month == 0:
-            cycle = + 5 + self._is_leap_year(b_date)
-
+        cycle = (5 + self._is_leap_year(leap_arg)) if month == 0 else cycle
         assert 1 <= day < (cycle), (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "
             f"should be from 1 to <= {cycle-1}.")
-        assert 0 <= hour < 24, (f"Invalid hour '{hour}' it must be "
-                                f"0 <= {hour} < 24")
+        assert 0 <= hour < 25, (f"Invalid hour '{hour}' it must be "
+                                f"0 <= {hour} < 25")
         assert 0 <= minute < 60, (f"Invalid minute '{minute}' should be "
                                   f"0 <= {minute} < 60.")
+        assert 0 <= second < 60, (f"Invalid second '{second}' should be "
+                                  f"0 <= {second} < 60.")
+        assert ms < 1000000, f"Microsecond value {ms} > 1000000."
 
+        # Check if there are any fractionals that invalidate other values.
         if any((hour, minute, second)):
-            assert not day % 1, ("If there is a part day then there can be no "
-                                 "hours, minutes, or seconds.")
+            assert not day % 1, (
+                "If there is a part day then there can be no hours, minutes, "
+                "or seconds.")
 
         if any((minute, second)):
-            assert not hour % 1, (
-                "If there is a part hour then there can be no minutes or "
-                "seconds.")
+            assert not hour % 1, ("If there is a part hour then there can "
+                                  "be no minutes or seconds.")
 
         if second:
             assert not minute % 1, (
                 "If there is a part minute then there can be no seconds.")
-
-        if ms:
-            assert ms < 1000000, (
-                f"Microsecond value {ms} > 1000000.")
 
     def _is_leap_year(self, date:tuple) -> bool:
         """
@@ -773,7 +793,7 @@ class BahaiCalendar(BaseCalendar):
         else:
             year = date
 
-        return True if self._days_in_year(year) == 366 else False
+        return self._days_in_year(year) == 366
 
     def _days_in_year(self, year:int) -> int:
         """
@@ -788,21 +808,22 @@ class BahaiCalendar(BaseCalendar):
         jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
         return int(math.floor(jd_n1) - math.floor(jd_n0))
 
-    def _get_hms(self, date:tuple, *, short:bool=False) -> tuple:
+    def _get_hms(self, date:tuple, *, short_in:bool=False) -> tuple:
         """
-        Parse the hours, minutes, seconds, and microseconds, if they exist,
-        correctly for either the short or long form Badi date.
+        Parse the hours, minutes, seconds, and microseconds, if they exist
+        for either the short or long form Badi date.
 
         :param date: A long or short form Badi date.
         :type date: tuple
-        :param short: If True then parse for a short date else if False
-                      parse for a long date.
-        :type short: bool
+        :param short_in: If True then parse for a short date else if False
+                         parse for a long date. This is for incoming dates
+                         not outgoing dates as in most other uses of 'short'.
+        :type short_in: bool
         :return: The relevant hours, minutes, and seconds.
         :rtype: tuple
         """
         t_len = len(date)
-        s = 3 if short else 5
+        s = 3 if short_in else 5
         hour = date[s] if t_len > s and date[s] is not None else 0
         minute = date[s+1] if t_len > s+1 and date[s+1] is not None else 0
         second = date[s+2] if t_len > s+2 and date[s+2] is not None else 0

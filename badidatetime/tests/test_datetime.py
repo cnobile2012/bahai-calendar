@@ -418,7 +418,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 "found {}")
         msg2 = "Invalid month '{}', should be 0 - 19."
         msg3 = ("Invalid day '{}' for month '{}' and year '{}' "
-                "should be from 1 to <= {{}}.")
+                "should be from 1 to <= {}.")
         msg4 = "Invalid hour '{}' it must be 0 <= {} < 24"
         msg5 = "Invalid minute '{}' should be 0 <= {} < 60."
         ## msg6 = ("If there is a part day then there can be no hours, "
@@ -427,43 +427,40 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         ##         "seconds.")
         ## msg8 = "If there is a part minute then there can be no seconds."
         data = (
+            ((datetime.MINYEAR, 1, 1), False, ''),
+            ((datetime.MAXYEAR, 1, 1), False, ''),
             # Invalid Váḥid
-            ((1, 0, 1, 1, 1), msg0.format(0)),
-            ((1, 20, 1, 1, 1), msg0.format(20)),
+            ((1, 0, 1, 1, 1), True, msg0.format(0)),
+            ((1, 20, 1, 1, 1), True, msg0.format(20)),
             # Invalid year
-            ((1, 10, 0, 1, 1), msg1.format(0)),
-            ((1, 10, 20, 1, 1), msg1.format(20)),
+            ((1, 10, 0, 1, 1), True, msg1.format(0)),
+            ((1, 10, 20, 1, 1), True, msg1.format(20)),
             # Invalid month
-            ((1, 10, 10, -1, 1), msg2.format(-1)),
-            ((1, 10, 10, 20, 1), msg2.format(20)),
+            ((1, 10, 10, -1, 1), True, msg2.format(-1)),
+            ((1, 10, 10, 20, 1), True, msg2.format(20)),
             # Invalid Ayyám-i-Há day
-            ((1, 10, 3, 0, 0), msg3.format(0, 0, 3)),
-            ((1, 10, 3, 0, 6), msg3.format(6, 0, 3)),
+            ((1, 10, 3, 0, 0), True, msg3.format(0, 0, 3, 5)),
+            ((1, 10, 3, 0, 6), True, msg3.format(6, 0, 3, 5)),
             # Invalid normal day
-            ((1, 10, 3, 2, 0), msg3.format(0, 2, 3)),
-            ((1, 10, 3, 2, 20), msg3.format(20, 2, 3)),
+            ((1, 10, 3, 2, 0), True, msg3.format(0, 2, 3, 19)),
+            ((1, 10, 3, 2, 20), True, msg3.format(20, 2, 3, 19)),
             # Test short form date.
-            ((181, 20, 1), msg2.format(20)),
+            ((181, 20, 1), True, msg2.format(20)),
             )
 
-        for date, err_msg in data:
-            if len(date) == 5:
-                kull_i_shay, vahid, year, month, day = date[:5]
-            else:
-                year, month, day = date[:3]
+        for date, validity, err_msg in data:
+            short_in = False if len(date) == 5 else True
 
-            try:
-                with self.assertRaises(AssertionError) as cm:
-                    datetime._check_date_fields(self._bc, *date)
-            except AssertionError as e:
-                # Raise an error when an AssertionError is not raised.
-                raise AssertionError(f"Váḥid {vahid}, year {year}, "
-                                     f"month {month}, day {day}, {e}")
+            if validity:
+                try:
+                    datetime._check_date_fields(self._bc, *date,
+                                                short_in=short_in)
+                except AssertionError as e:
+                    self.assertEqual(err_msg, str(e))
+                else:
+                    raise AssertionError(f"date {date}, {e}")
             else:
-                cycle = 4 + self._bc._is_leap_year(date)
-                num_days = cycle if month == 0 else 19
-                message = str(cm.exception)
-                self.assertEqual(err_msg.format(num_days), message)
+                datetime._check_date_fields(self._bc, *date, short_in=short_in)
 
     @unittest.skip("Temporarily skipped")
     def test__wrap_strftime(self):
@@ -1216,8 +1213,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the __new__ method creates an instance from both a pickle
         object and a normal instantiation.
         """
-        err_msg0 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 "
-                    "or <= 19, found {}")
+        err_msg0 = ("The kull-i-shay must be equal to or between -6 and "
+                    "4, found {}")
         err_msg1 = "Invalid string {} had length of {} for pickle."
         err_msg2 = ("A full short or long form Badi date must be used, found "
                     "{} fields.")
@@ -1228,7 +1225,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             ((1, 1, 1, 1, 1), False, '01-01-01-01-01'),
             ((b'\x073\x01\x01',), False, '0001-01-01'),
             ((b'\x14\x01\x01\x01\x01',), False, '01-01-01-01-01'),
-            ((b'\x073\x01\x01\x01',), True, err_msg0.format(51)),
+            ((b'\x073\x01\x01\x01',), True, err_msg0.format(-12)),
             ((b'\x14\x01\x01\x01\x01\x01',), True, err_msg1.format(
                 b'\x14\x01\x01\x01\x01\x01', 6)),
             ((100,), True, err_msg2.format(1)),
@@ -1900,14 +1897,12 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         Test that the __add__ method can correctly add a date to a timedelta.
         """
-        err_msg0 = "Result out of range."
-        err_msg1 = "unsupported operand type(s) for +: 'date' and '{}'"
+        err_msg0 = "unsupported operand type(s) for +: 'date' and '{}'"
         data = (
             ((1, 1, 1), (1,), False, (1, 1, 2)),
             ((1, 1, 1), (366,), False, (2, 1, 1)),     # Leap year
             ((181, 1, 1), (365,), False, (182, 1, 1)), # Non leap year
-            ((10000, 1, 1), (365,), True, err_msg0),
-            ((1, 1, 1), None, True, err_msg1.format('NoneType')),
+            ((1, 1, 1), None, True, err_msg0.format('NoneType')),
             )
         msg = "Expected {} with date {} and timedelta {}, found {}"
 
@@ -2018,8 +2013,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         data = (
             ((181, 1, 1), (180, 0, 5)),       # Short form
             ((1, 10, 10, 1, 1), (180, 0, 5)), # Long form
-            ((181, 0, 1), (181, 49, 4)),   # 0 < week < 53
-            ((181, 19, 19), (181, 52, 5)), # 0 < week < 53
+            ((181, 0, 1), (181, 49, 4)),      # 0 < week < 53
+            ((181, 19, 19), (181, 52, 5)),    # 0 < week < 53
             ((182, 1, 1), (181, 0, 6)),    # Week < 0 starts in previous year
             ((183, 19, 19), (184, 1, 1)),  # Week >= 52 starts in previous year
             )

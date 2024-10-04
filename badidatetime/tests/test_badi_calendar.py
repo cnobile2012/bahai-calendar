@@ -23,6 +23,8 @@ class TestBadiCalendar(unittest.TestCase):
     Alternative latitude and longitude coordinates can be found at:
     https://latitude.to/map/us/united-states/cities/fuquay-varina
     """
+    #MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+    #          12, 13, 14, 15, 16, 17, 18, 0, 19)
 
     def __init__(self, name):
         super().__init__(name)
@@ -416,30 +418,40 @@ class TestBadiCalendar(unittest.TestCase):
         long form Badi date.
         """
         data = (
-            # 1844-03-20T00:00:00
-            ((1, 1, 1), False, (1, 1, 1, 1, 1, 0, 0, 0, 0)),
-            ((1, 1, 1), True, (1, 1, 1, 1, 1)),
-            # 2024-04-20T20:17:45
-            ((181, 2, 14, 20, 17, 45), False,
-             (1, 10, 10, 2, 14, 20, 17, 45, 0)),
-            ((181, 2, 14, 20, 17, 45), True, (1, 10, 10, 2, 14, 20, 17, 45)),
-            # 1844-03-19T00:00:00 Day before the Badi epoch
-            ((0, 19, 19), False, (0, 19, 19, 19, 19, 0, 0, 0, 0)),
+            # 1121-03-21T18:23:39.8112
+            ((-722, 1, 1), False, (-2, 19, 19, 1, 1, 0, 0, 0, 0)),
+            # 1444-05-17T00:00:00
+            ((-400, 4, 3), False, (-1, 17, 18, 4, 3, 0, 0, 0, 0)),
+            # 1481-03-20T18:25:09.2352
+            ((-362, 1, 1), False, (-1, 19, 18, 1, 1, 0, 0, 0, 0)),
+            # 1482-03-21T18:24:57.6576
+            ((-361, 1, 1), False, (-1, 19, 19, 1, 1, 0, 0, 0, 0)),
+            # 1483-09-08T18:08:00.2112
+            ((-360, 10, 1), False, (0, 1, 1, 10, 1, 0, 0, 0, 0)),
             # 1843-09-17T18:08:24.8352
             ((0, 10, 10), False, (0, 19, 19, 10, 10, 0, 0, 0, 0)),
             # 1843-03-21T21:18:14
             ((0, 1, 1), False, (0, 19, 19, 1, 1, 0, 0, 0, 0)),
+            # 1844-03-19T00:00:00 Day before the Badi epoch
+            ((0, 19, 19), False, (0, 19, 19, 19, 19, 0, 0, 0, 0)),
+            # 1844-03-20T00:00:00
+            ((1, 1, 1), False, (1, 1, 1, 1, 1, 0, 0, 0, 0)),
+            ((1, 1, 1), True, (1, 1, 1, 1, 1)),
             # 1842-03-21T00:00:00
             ((-1, 1, 1), False, (0, 19, 18, 1, 1, 0, 0, 0, 0)),
-            # 1444-05-17T00:00:00
-            ((-400, 4, 3), False, (-1, 17, 18, 4, 3, 0, 0, 0, 0)),
-            # 1483-03-12T00:00:00
-            ((-361, 1, 1), False, (-1, 19, 19, 1, 1, 0, 0, 0, 0)),
-            # 1121-03-21T18:23:39.8112
-            ((-722, 1, 1), False, (-2, 19, 19, 1, 1, 0, 0, 0, 0)),
+            # 2024-04-20T20:17:45
+            ((181, 2, 14, 20, 17, 45), False,
+             (1, 10, 10, 2, 14, 20, 17, 45, 0)),
+            ((181, 2, 14, 20, 17, 45), True, (1, 10, 10, 2, 14, 20, 17, 45)),
             # (2024, 5, 14, 20)
             ((181, 3, 19), False, (1, 10, 10, 3, 19, 0, 0, 0, 0)),
             ((181, 3, 19), True, (1, 10, 10, 3, 19)),
+            # During Ayyám-i-Há leap year
+            ((174, 0, 1), True, (1, 10, 3, 0, 1)),
+            # 2204-09-08T18:20:56.3424
+            ((361, 10, 1), False, (1, 19, 19, 10, 1, 0, 0, 0, 0)),
+            # 2205-09-08T18:21:17.5104
+            ((362, 10, 1), False, (2, 1, 1, 10, 1, 0, 0, 0, 0)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -642,93 +654,110 @@ class TestBadiCalendar(unittest.TestCase):
         Note: The Boolean below in the data statements determines whether
               or not the data is valid or invalid.
         """
-        msg0 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
-                "<= 19, found {}")
-        msg1 = ("The number of years in a Váḥid should be >= 1 or <= 19, "
-                "found {}")
-        msg2 = "Invalid month '{}', should be 0 - 19."
-        msg3 = ("Invalid day '{}' for month '{}' and year '{}' "
-                "should be from 1 to <= {{}}.")
-        msg4 = "Invalid hour '{}' it must be 0 <= {} < 24"
-        msg5 = "Invalid minute '{}' should be 0 <= {} < 60."
-        msg6 = ("If there is a part day then there can be no hours, "
-                "minutes, or seconds.")
-        msg7 = ("If there is a part hour then there can be no minutes or "
-                "seconds.")
-        msg8 = "If there is a part minute then there can be no seconds."
-        msg9 = "Microsecond value {} > 1000000."
+        err_msg0 = ("The kull-i-shay must be equal to or between "
+                    f"{self._bc.KULL_I_SHAY_MIM} and "
+                    f"{self._bc.KULL_I_SHAY_MAX}, found {{}}")
+        err_msg1 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
+                    "<= 19, found {}")
+        err_msg2 = ("The number of years in a Váḥid should be >= 1 or <= 19, "
+                    "found {}")
+        err_msg3 = "Invalid month '{}', should be 0 - 19."
+        err_msg4 = ("Invalid day '{}' for month '{}' and year '{}' "
+                    "should be from 1 to <= {}.")
+        err_msg5 = "Invalid hour '{}' it must be 0 <= {} < 25"
+        err_msg6 = "Invalid minute '{}' should be 0 <= {} < 60."
+        err_msg7 = ("If there is a part day then there can be no hours, "
+                    "minutes, or seconds.")
+        err_msg8 = ("If there is a part hour then there can be no minutes or "
+                    "seconds.")
+        err_msg9 = "If there is a part minute then there can be no seconds."
+        err_msg10 = "Microsecond value {} > 1000000."
         data = (
-            ((1, 1, 1, 1, 1), True, ''),  # Non leap year
-            ((1, 10, 3, 1, 1), True, ''), # Known leap year
-            ((0, 1, 1, 1, 1), True, ''),  # Before Badi epoch
-            ((-1, 1, 1, 1, 1), True, ''), # Before Badi epoch
-            ((1, 10, 2, 0, 1), True, ''), # During Ayyám-i-Há non leap year
-            ((1, 10, 3, 0, 1), True, ''), # During Ayyám-i-Há leap year
-            ((1, 10, 10, 9, 8, 19, 1, 3, 532799), True, ''),
+            ((1, 1, 1, 1, 1), False, False, ''),  # Non leap year
+            ((1, 1, 1), True, False, ''),
+            ((1, 10, 3, 1, 1), False, False, ''), # Known leap year
+            ((174, 1, 1), True, False, ''),
+            ((0, 1, 1, 1, 1), False, False, ''),  # Before Badi epoch
+            ((-1, 1, 1, 1, 1), False, False, ''), # Before Badi epoch
+            # During Ayyám-i-Há non leap year
+            ((1, 10, 2, 0, 1), False, False, ''),
+            ((1, 10, 3, 0, 1), False, False, ''), # During Ayyám-i-Há leap year
+            #((174, 0, 1), True, False, ''), # During Ayyám-i-Há leap year
+            ((1, 10, 10, 9, 8, 19, 1, 3, 532799), False, False, ''),
+            # Invalid kull-i-shay
+            ((-7, 1, 1, 1, 1), False, True, err_msg0.format(-7)),
+            ((5, 1, 1, 1, 1), False, True, err_msg0.format(5)),
             # Invalid Váḥid
-            ((1, 0, 1, 1, 1, 1, 1, 1), False, msg0.format(0)),
-            ((1, 20, 1, 1, 1, 1, 1, 1), False, msg0.format(20)),
+            ((1, 0, 1, 1, 1, 1, 1, 1), False, True, err_msg1.format(0)),
+            ((1, 20, 1, 1, 1, 1, 1, 1), False, True, err_msg1.format(20)),
             # Invalid year
-            ((1, 10, 0, 1, 1, 1, 0, 0), False, msg1.format(0)),
-            ((1, 10, 20, 1, 1, 1, 0, 0), False, msg1.format(20)),
+            ((1, 10, 0, 1, 1, 1, 0, 0), False, True, err_msg2.format(0)),
+            ((1, 10, 20, 1, 1, 1, 0, 0), False, True, err_msg2.format(20)),
             # Invalid month
-            ((1, 10, 10, -1, 1, 1, 0, 0), False, msg2.format(-1)),
-            ((1, 10, 10, 20, 1, 1, 0, 0), False, msg2.format(20)),
+            ((1, 10, 10, -1, 1, 1, 0, 0), False, True, err_msg3.format(-1)),
+            ((1, 10, 10, 20, 1, 1, 0, 0), False, True, err_msg3.format(20)),
             # Invalid Ayyám-i-Há day
-            ((1, 10, 3, 0, 0, 1, 1, 1), False, msg3.format(0, 0, 3)),
-            ((1, 10, 3, 0, 6, 1, 1, 1), False, msg3.format(6, 0, 3)),
+            ((1, 10, 3, 0, 0, 1, 1, 1), False, True,
+             err_msg4.format(0, 0, 3, 5)),
+            ((1, 10, 3, 0, 6, 1, 1, 1), False, True,
+             err_msg4.format(6, 0, 3, 5)),
             # Invalid normal day
-            ((1, 10, 3, 2, 0, 1, 1, 1), False, msg3.format(0, 2, 3)),
-            ((1, 10, 3, 2, 20, 1, 1, 1), False, msg3.format(20, 2, 3)),
+            ((1, 10, 3, 2, 0, 1, 1, 1), False, True,
+             err_msg4.format(0, 2, 3, 19)),
+            ((1, 10, 3, 2, 20, 1, 1, 1), False, True,
+             err_msg4.format(20, 2, 3, 19)),
             # Invalid hour
-            ((1, 10, 3, 2, 1, -1, 1, 1), False, msg4.format(-1, -1)),
-            ((1, 10, 3, 2, 1, 24, 1, 1), False, msg4.format(24, 24)),
+            ((1, 10, 3, 2, 1, -1, 1, 1), False, True, err_msg5.format(-1, -1)),
+            ((1, 10, 3, 2, 1, 25, 1, 1), False, True, err_msg5.format(25, 25)),
             # Invalid minute
-            ((1, 10, 3, 2, 1, 1, -1, 1), False, msg5.format(-1, -1)),
-            ((1, 10, 3, 2, 1, 1, 60, 1), False, msg5.format(60, 60)),
+            ((1, 10, 3, 2, 1, 1, -1, 1), False, True, err_msg6.format(-1, -1)),
+            ((1, 10, 3, 2, 1, 1, 60, 1), False, True, err_msg6.format(60, 60)),
             # Invalid partial day
-            ((1, 10, 3, 2, 1.5, 1, 0, 0), False, msg6),
-            ((1, 10, 3, 2, 1.5, 0, 1, 0), False, msg6),
-            ((1, 10, 3, 2, 1.5, 0, 0, 1), False, msg6),
+            ((1, 10, 3, 2, 1.5, 1, 0, 0), False, True, err_msg7),
+            ((1, 10, 3, 2, 1.5, 0, 1, 0), False, True, err_msg7),
+            ((1, 10, 3, 2, 1.5, 0, 0, 1), False, True, err_msg7),
             # Invalid partial hour
-            ((1, 10, 3, 2, 1, 1.5, 1, 0), False, msg7),
-            ((1, 10, 3, 2, 1, 1.5, 0, 1), False, msg7),
+            ((1, 10, 3, 2, 1, 1.5, 1, 0), False, True, err_msg8),
+            ((1, 10, 3, 2, 1, 1.5, 0, 1), False, True, err_msg8),
             # Invalid partial minute
-            ((1, 10, 3, 2, 1, 1, 1.5, 1), False, msg8),
+            ((1, 10, 3, 2, 1, 1, 1.5, 1), False, True, err_msg9),
             # Invalid microsecond
-            ((1, 10, 10, 9, 8, 19, 1, 3, 1532799), False, msg9.format(1532799)),
+            ((1, 10, 10, 9, 8, 19, 1, 3, 1532799), False, True,
+             err_msg10.format(1532799)),
             )
 
-        for b_date, validity, err_msg in data:
-            kull_i_shay, vahid, year, month, day = b_date[:5]
-            hour, minute, second, ms = self._bc._get_hms(b_date)
-            cycle = 4 + self._bc._is_leap_year(b_date)
-
-            if validity: # Test for correct dates
-                if month == 0: # Ayyám-i-Há
-
-                    for d in range(1, cycle+1):
-                        date = (kull_i_shay, vahid, year, month, d)
-                        self._bc._check_valid_badi_date(date)
-
-                for m in range(1, 20):
-                    for d in range(1, 20):
-                        date = (kull_i_shay, vahid, year, m, d)
-                        self._bc._check_valid_badi_date(date)
-            else: # Test for invalid dates
+        for b_date, short_in, validity, err_msg in data:
+            if validity: # Test for invalid dates
                 try:
                     with self.assertRaises(AssertionError) as cm:
-                        self._bc._check_valid_badi_date(b_date)
+                        self._bc._check_valid_badi_date(
+                            b_date, short_in=short_in)
                 except AssertionError as e:
                     # Raise an error when an AssertionError is not raised.
                     raise AssertionError(
-                        f"Váḥid {vahid}, year {year}, month {month}, "
-                        f"day {day}, hour {hour}, minute {minute}, "
-                        f"second {second}, {e}")
+                        f"With date {b_date} and error was not raised, {e}")
                 else:
-                    num_days = cycle if month == 0 else 19
                     message = str(cm.exception)
-                    self.assertEqual(err_msg.format(num_days), message)
+                    self.assertEqual(err_msg, message)
+            elif short_in: # Test for valid short dates
+                year, month, day = b_date[:3]
+                hour, minute, second, ms = self._bc._get_hms(
+                    b_date, short_in=short_in)
+                cycle = (4 + self._bc._is_leap_year(year)
+                         if month == 0 else 19)
+
+                for d in range(1, cycle + 1):
+                    date = (year, month, d)
+                    self._bc._check_valid_badi_date(date, short_in=short_in)
+            else: # Test for valid long dates
+                kull_i_shay, vahid, year, month, day = b_date[:5]
+                hour, minute, second, ms = self._bc._get_hms(b_date)
+                cycle = (4 + self._bc._is_leap_year(b_date)
+                         if month == 0 else 19)
+
+                for d in range(1, cycle + 1):
+                    date = (kull_i_shay, vahid, year, month, d)
+                    self._bc._check_valid_badi_date(date, short_in=short_in)
 
     #@unittest.skip("Temporarily skipped")
     def test__is_leap_year(self):
@@ -794,12 +823,12 @@ class TestBadiCalendar(unittest.TestCase):
             ((1, 1, 1, 1, 1, 18, 16), False, (18, 16, 0, 0)),
             ((1, 1, 1, 18, 16), True, (18, 16, 0, 0)),
             )
-        msg = "Expected {} for date {} amd short {}, found {}"
+        msg = "Expected {} for date {} amd short_in {}, found {}"
 
-        for date, short, expected_result in data:
-            result = self._bc._get_hms(date, short=short)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, short, result))
+        for date, short_in, expected_result in data:
+            result = self._bc._get_hms(date, short_in=short_in)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, short_in, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__meeus_algorithm_jd_compensation(self):

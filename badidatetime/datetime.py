@@ -387,7 +387,7 @@ def _parse_isoformat_time(bc:BahaiCalendar, dtstr:str) -> tuple:
     return time
 
 def _check_date_fields(bc:BahaiCalendar, a:int, b:int, c:int, d:int=None,
-                       e:int=None) -> None:
+                       e:int=None, *, short_in:bool=False) -> None:
     """
     Check the validity of the date.
 
@@ -402,16 +402,18 @@ def _check_date_fields(bc:BahaiCalendar, a:int, b:int, c:int, d:int=None,
     :param d: The long form month.
     :type d: int
     :param e: The long form day.
+    :param trim: Trim the ms, ss, mm, and hh in that order.
+    :type trim: bool
     :return: Nothing
     :rtype: None
     :raises AssertionError: If any of the year values are out of range.
     """
-    if d == None or e == None:
-        b_date = bc.long_date_from_short_date((a, b, c), trim=True)
+    if short_in:
+        b_date = (a, b, c)
     else:
         b_date = (a, b, c, d, e)
 
-    bc._check_valid_badi_date(b_date)
+    bc._check_valid_badi_date(b_date, short_in=short_in)
 
 def _wrap_strftime(object, format, timetuple):
     """
@@ -913,10 +915,9 @@ class date(BahaiCalendar):
 
         self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
         super().__init__(self)
-        _check_date_fields(self, *self.__date)
+        _check_date_fields(self, *self.__date, short_in=self.__short)
         self._hashcode = -1
         return self
-
     @property
     def is_short(self):
         return self.__short
@@ -1420,7 +1421,7 @@ _date_class = date  # so functions w/ args named "date" can get at the class
 date.min = date(MINYEAR, 1, 1)
 date.max = date(MAXYEAR, 19, 19)
 
-## date.resolution = timedelta(days=1)
+date.resolution = timedelta(days=1)
 
 
 class tzinfo:

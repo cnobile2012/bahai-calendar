@@ -25,11 +25,7 @@ class TimeDateUtils(BahaiCalendar):
     MONTHNAMES_ABV = ('Bah', 'Jal', 'Jam', 'Aẓa', 'Núr', 'Raḥ', 'Kal', 'Kam',
                       'Asm', 'Izz', 'Mas', 'Ilm', 'Qud', 'Qaw', 'Mas', 'Sha',
                       'Sul', 'Mul', 'Ayy', 'Alá')
-    MINYEAR = -1842
-    MAXYEAR = 1161
     DAYS_BEFORE_1ST_YEAR = 78
-    ERR_MSG0 = "Illegal format character '{}'"
-    ERR_MSG2 = "strftime(): Illegal time tuple argument"
 
     def __init__(self):
         """
@@ -100,20 +96,24 @@ class TimeDateUtils(BahaiCalendar):
     def time_format(self):
         return self._locale_data['t_format']
 
-    def strftime(self, format, timetuple):
+    def strftime(self, format, ttup):
         """
         """
         self._check_format(format)
-        self._checkType(timetuple, self.ERR_MSG2)
-        self._checktm(timetuple, self.ERR_MSG2)
 
-        if not isinstance(timetuple, (ShortFormStruct, LongFormStruct)):
-            ttup = struct_time(timetuple)
+        if not isinstance(ttup, (tuple, ShortFormStruct, LongFormStruct)):
+            raise TypeError("strftime(): Illegal time tuple argument")
+
+        self._checktm(ttup)
+
+        if not isinstance(ttup, (ShortFormStruct, LongFormStruct)):
+            ttup = struct_time(ttup)
 
         return self._parse_format(ttup, format)
 
     def _check_format(self, fmt):
         """
+        Check that the correct format was provided.
         """
         idx = 0
         fmtlen = len(fmt)
@@ -129,34 +129,76 @@ class TimeDateUtils(BahaiCalendar):
                 if ((ch1 not in self.VALID_FORMAT_CHRS) or
                     (ch0 == '-' and ch1 not in 'dHjlmMSy') or
                     (ch0 == ':' and ch1 not in 'KVz')):
-                    raise ValueError(self.ERR_MSG0.format(fmt[idx:idx+i+1]))
+                    raise ValueError(
+                        f"Illegal format character '{fmt[idx:idx+i+1]}'")
 
             idx += 1
 
-    def _checkType(self, ttup, err_msg):
-        """
-        """
-        if not isinstance(ttup, (tuple, ShortFormStruct, LongFormStruct)):
-            raise TypeError(err_msg)
+        if fmtlen == 0:
+            raise ValueError("Found an empty format string.")
 
-    def _checktm(self, ttup:tuple, err_msg:str) -> None:
+    def _checktm(self, ttup:tuple) -> None:
         """
+        Check that the fields in the tuple are of the correct type.
         """
         if not issubclass(ttup.__class__, tuple):
-            raise TypeError(err_msg)
+            raise TypeError(
+                f"The ttup argument {ttup.__class__} is not a proper tuple.")
 
-        if len(ttup) == 13:   # LongFormStruct
-            pass
-        elif len(ttup) == 11: # ShortFormStruct
-            pass
-        elif len(ttup) == 6:  # Short tuple value
-            pass
-        elif len(ttup) == 8:  # Long tuple value
-            pass
+        t_len = len(ttup)
+
+        if t_len in (13, 11):
+            if t_len == 13:  # LongFormStruct
+                assert (self.KULL_I_SHAY_MIM <= ttup.tm_kull_i_shay <=
+                        self.KULL_I_SHAY_MAX), (
+                    f"The kull-i-shay must be between {self.KULL_I_SHAY_MIM} "
+                    f"and {self.KULL_I_SHAY_MAX}, found {ttup.tm_kull_i_shay}")
+                assert 1 <= ttup.tm_vahid < 20, (
+                    f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
+                    f"<= 19, found {ttup.tm_vahid}")
+                assert 1 <= ttup.tm_year < 20, (
+                    f"The number of years in a Váḥid should be >= 1 or <= 19, "
+                    f"found {ttup.tm_year}")
+                year = ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1)
+                        * 19 + ttup.tm_year)
+            else:           # ShortFormStruct
+                assert self.MINYEAR <= ttup.tm_year <= self.MAXYEAR, (
+                    f"The number of years should be {self.MINYEAR} <= "
+                    f"{ttup.tm_year} <= {self.MAXYEAR}.")
+                year = ttup.tm_year
+
+            assert 0 <= ttup.tm_mon < 20, (
+                f"Invalid month 0 <= {ttup.tm_mon} <= 19.")
+            cycle = (4 + self._is_leap_year(year)) if ttup.tm_mon == 0 else 19
+            assert 1 <= tm_wday < (cycle), (
+                f"Invalid day '{ttup.tm_wday}' for month '{ttup.tm_mon}' "
+                f"and year '{ttup.tm_year if t_len == 11 else year}' should "
+                f"be from 1 to <= {cycle-1}.")
+            assert 0 <= hour < 25, (f"Invalid hour '{ttup.tm_hour}' it must "
+                                    f"be 0 <= {ttup.tm_hour} < 25")
+            assert 0 <= minute < 60, (f"Invalid minute '{ttup.tm_min}' "
+                                      f"should be 0 <= {ttup.tm_min} < 60.")
+            assert any((ttup.tm_hour, ttup.tm_min, ttup.tm_sec)
+                       ) and not ttup.tm_wday % 1, (
+                "If there is a part day then there can be no hours, minutes, "
+                "or seconds.")
+            assert any((ttup.tm_min, ttup.tm_sec)) and not ttup.tm_hour % 1, (
+                "If there is a part hour then there can be no minutes or "
+                "seconds.")
+            assert ttup.tm_sec and not ttup.tm_min % 1, (
+                "If there is a part minute then there can be no seconds.")
+        elif t_len in (8, 6):
+            if t_len == 8:   # Long tuple value
+                pass
+            elif t_len == 6: # Short tuple value
+                pass
         else:
-            raise TypeError(err_msg)
+            raise TypeError(f"Illegal timetuple, found {dir(ttup)}.")
 
         # *** TODO *** Update later when formatting is better understood.
+
+
+
 
     # %[aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%]
     # %-[dHjlmMSy]

@@ -1093,12 +1093,12 @@ class DateTests(BahaiCalendar):
 
         for item in data:
             b_year, month, day = item[0][:3]
-            h, m, s = dt._get_hms(item[0], short=True)
+            h, m, s = dt._get_hms(item[0], short_in=True)
             bjd = item[1]
             msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
                    f"{s:<02} {bjd:<14} ")
             g_year, month, day = item[2][:3]
-            h, m, s = dt._get_hms(item[2], short=True)
+            h, m, s = dt._get_hms(item[2], short_in=True)
             gjd = item[3]
             msg += (f"{g_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
                     f"{s:<02} {gjd:<9} ")
@@ -1568,7 +1568,7 @@ class DateTests(BahaiCalendar):
 
         for g_date in self.TMP_ANS_DATES:
             b_date = (g_date[0] - self.TRAN_COFF, 1, 1)
-            #b_date += self._trim_hms(self._get_hms(g_date, True))
+            #b_date += self._trim_hms(self._get_hms(g_date, short_in=True))
 
             if options.start <= b_date[0]:
                 assert last_year == 0 or g_date[0] == (last_year + 1), (
@@ -1745,12 +1745,12 @@ if __name__ == "__main__":
 
             for item in data:
                 year, month, day = item[0][:3]
-                h, m, s = dt._get_hms(item[0], short=True)
+                h, m, s = dt._get_hms(item[0], short_in=True)
                 bjd = item[1]
                 msg = (f"{year}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
                        f"{s:>02} {bjd} ")
                 year, month, day = item[2][:3]
-                h, m, s = dt._get_hms(item[2], short=True)
+                h, m, s = dt._get_hms(item[2], short_in=True)
                 gjd = item[3]
                 msg += (f"{year}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
                         f"{s:>02} {gjd} ")

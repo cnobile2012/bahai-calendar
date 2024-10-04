@@ -136,10 +136,46 @@ class TestTimeDateUtils(unittest.TestCase):
         Test that the 
         """
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__check_format(self):
         """
-        Test that the _check_format returns the 
+        Test that the _check_format method does not raise an exception
+        with an invalid format.
         """
+        err_msg0 = "Illegal format character '{}'"
+        err_msg1 = "Found an empty format string."
+        data = (
+            ('%c', False, None),
+            ('%X', False, None),
+            ('%P', True, err_msg0.format('%P')),
+            ('%-P', True, err_msg0.format('%-P')),
+            ('%:P', True, err_msg0.format('%:P')),
+            ('', True, err_msg1),
+            )
+        msg = "Expected {}, with {}. found {}."
 
+        for fmt, validity, expected_result in data:
+            if validity:
+                try:
+                    result = _td_utils._check_format(fmt)
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{fmt}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = _td_utils._check_format(fmt)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, fmt, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test__checktm(self):
+        """
+        Test that the _checktm method does not raise an exception with
+        an invalid tupple type.
+        """
+        data = (
+            (),
+            )
+        
