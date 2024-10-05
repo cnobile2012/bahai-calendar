@@ -14,6 +14,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
 from .._timedateutils import _td_utils
+from ..datetime import _build_struct_time
+from ..badi_calendar import BahaiCalendar
 
 
 class TestTimeDateUtils(unittest.TestCase):
@@ -22,7 +24,7 @@ class TestTimeDateUtils(unittest.TestCase):
         super().__init__(name)
 
     def setUp(self):
-        pass
+        self._bc = BahaiCalendar()
 
     #@unittest.skip("Temporarily skipped")
     def test__order_format(self):
@@ -175,7 +177,33 @@ class TestTimeDateUtils(unittest.TestCase):
         Test that the _checktm method does not raise an exception with
         an invalid tupple type.
         """
+        ttup_l, ttup_s, ttup_tl, ttup_ts = 1, 2, 3, 4
         data = (
-            (),
+            # Valid tuples
+            ((1, 10, 10, 9, 6, 8, 45, 1), -1, ttup_l, False, ''),
+            ((181, 9, 6, 8, 45, 1), -1, ttup_s, False, ''),
             )
-        
+        msg = "Expected {}, with date {}. found {}."
+
+        for date, dstflag, t_type, validity, expected_result in data:
+            if t_type == ttup_l:
+                ttup = _build_struct_time(self._bc, date, dstflag)
+            elif t_type == ttup_s:
+                ttup = _build_struct_time(self._bc, date, dstflag,
+                                          short_in=True)
+            else: # ttup_tl and ttup_ts
+                ttup = date + (dstflag,)
+
+            if validity: # Invalid tests
+                try:
+                    with self.assertRaises(AssertionError) as cm:
+                        _td_utils._checktm(ttup)
+                except AssertionError as e:
+                    # Raise an error when an AssertionError is not raised.
+                    raise AssertionError(
+                        f"With date {date} and error was not raised, {e}")
+                else:
+                    message = str(cm.exception)
+                    self.assertEqual(err_msg, message)
+            else: # Valid tests
+                _td_utils._checktm(ttup)

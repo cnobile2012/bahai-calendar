@@ -139,7 +139,9 @@ class TimeDateUtils(BahaiCalendar):
 
     def _checktm(self, ttup:tuple) -> None:
         """
-        Check that the fields in the tuple are of the correct type.
+        Check that the fields in the tuple are of the correct type. This
+        check on date information is different than what is found inn the
+        badi_calendar.py module as it needs to conform with ISO standards.
         """
         if not issubclass(ttup.__class__, tuple):
             raise TypeError(
@@ -147,58 +149,56 @@ class TimeDateUtils(BahaiCalendar):
 
         t_len = len(ttup)
 
-        if t_len in (13, 11):
-            if t_len == 13:  # LongFormStruct
-                assert (self.KULL_I_SHAY_MIM <= ttup.tm_kull_i_shay <=
-                        self.KULL_I_SHAY_MAX), (
-                    f"The kull-i-shay must be between {self.KULL_I_SHAY_MIM} "
-                    f"and {self.KULL_I_SHAY_MAX}, found {ttup.tm_kull_i_shay}")
-                assert 1 <= ttup.tm_vahid < 20, (
-                    f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
-                    f"<= 19, found {ttup.tm_vahid}")
-                assert 1 <= ttup.tm_year < 20, (
-                    f"The number of years in a Váḥid should be >= 1 or <= 19, "
-                    f"found {ttup.tm_year}")
-                year = ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1)
-                        * 19 + ttup.tm_year)
-            else:           # ShortFormStruct
-                assert self.MINYEAR <= ttup.tm_year <= self.MAXYEAR, (
-                    f"The number of years should be {self.MINYEAR} <= "
-                    f"{ttup.tm_year} <= {self.MAXYEAR}.")
-                year = ttup.tm_year
-
-            assert 0 <= ttup.tm_mon < 20, (
-                f"Invalid month 0 <= {ttup.tm_mon} <= 19.")
-            cycle = (4 + self._is_leap_year(year)) if ttup.tm_mon == 0 else 19
-            assert 1 <= tm_wday < (cycle), (
-                f"Invalid day '{ttup.tm_wday}' for month '{ttup.tm_mon}' "
-                f"and year '{ttup.tm_year if t_len == 11 else year}' should "
-                f"be from 1 to <= {cycle-1}.")
-            assert 0 <= hour < 25, (f"Invalid hour '{ttup.tm_hour}' it must "
-                                    f"be 0 <= {ttup.tm_hour} < 25")
-            assert 0 <= minute < 60, (f"Invalid minute '{ttup.tm_min}' "
-                                      f"should be 0 <= {ttup.tm_min} < 60.")
-            assert any((ttup.tm_hour, ttup.tm_min, ttup.tm_sec)
-                       ) and not ttup.tm_wday % 1, (
-                "If there is a part day then there can be no hours, minutes, "
-                "or seconds.")
-            assert any((ttup.tm_min, ttup.tm_sec)) and not ttup.tm_hour % 1, (
-                "If there is a part hour then there can be no minutes or "
-                "seconds.")
-            assert ttup.tm_sec and not ttup.tm_min % 1, (
-                "If there is a part minute then there can be no seconds.")
-        elif t_len in (8, 6):
-            if t_len == 8:   # Long tuple value
-                pass
-            elif t_len == 6: # Short tuple value
-                pass
+        if t_len in (13, 8):
+            assert (self.KULL_I_SHAY_MIM <= ttup[0] <= self.KULL_I_SHAY_MAX), (
+                f"Invalid kull-i-shay {ttup[0]}, it must be "
+                f"{self.KULL_I_SHAY_MIM} <= {ttup[0]} <= "
+                f"{self.KULL_I_SHAY_MAX}.")
+            assert 1 <= ttup[1] < 20, (
+                f"Invalid Váḥids '{ttup[1]}' in a Kull-i-Shay’ it must be "
+                f">= 1 {ttup[1]} <= 19.")
+            assert 1 <= ttup[2] < 20, (
+                f"Invalid year '{ttup[2]}' in a Váḥid it must be 1 <= "
+                f"{ttup[2]} <= 19.")
+            year = (ttup[0] - 1) * 361 + (ttup[1] - 1) * 19 + ttup[2]
+            month = ttup[3]
+            day = ttup[4]
+            hour = ttup[5]
+            minute = ttup[6]
+            second = ttup[7]
+            wday = ttup[8]
+            yday = ttup[9]
+        elif t_len in (11, 6):           # ShortFormStruct
+            assert self.MINYEAR <= ttup[0] <= self.MAXYEAR, (
+                f"Invalid year '{ttup[0]}' it must be {self.MINYEAR} <= "
+                f"{ttup[0]} <= {self.MAXYEAR}.")
+            year = ttup[0]
+            month = ttup[1]
+            day = ttup[2]
+            hour = ttup[3]
+            minute = ttup[4]
+            second = ttup[5]
+            wday = ttup[6]
+            yday = ttup[7]
         else:
-            raise TypeError(f"Illegal timetuple, found {dir(ttup)}.")
+            raise TypeError(f"Ivalid timetuple, found {dir(ttup)}.")
 
-        # *** TODO *** Update later when formatting is better understood.
-
-
-
+        assert 0 <= month < 20, (
+            f"Invalid month 0 <= {month} <= 19.")
+        cycle = (4 + self._is_leap_year(year)) if ttup.tm_mon == 0 else 19
+        assert 1 <= day < (cycle), (
+            f"Invalid day '{day}' for month '{month}' it must be 1 <= {day} "
+            f"<= {cycle-1}.")
+        assert 0 <= hour <= 24, (
+            f"Invalid hour '{hour}', it must be 0 <= {hour} <= 24.")
+        assert 0 <= minute < 60, (
+            f"Invalid minute '{minute}', it must be 0 <= {minute} < 60.")
+        assert 0 <= second <= 61, (
+            "Invalid second '{second}', it must be 0 <= {second} <= 61.")
+        assert 0 <= wday <= 6, (
+            f"Invalid week day '{wday}' it must be 0 <= {wday} <= 6.")
+        assert 1 <= yday <= 366, (
+            "Invalid day in year '{yday}' it must be 1 <= {yday} <= 366.")
 
     # %[aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%]
     # %-[dHjlmMSy]
@@ -650,7 +650,7 @@ class TimeDateUtils(BahaiCalendar):
         assert 0 <= month <= 19, "Month must be in range of 0..19"
         dim = self._days_in_month(year, month)
         assert 1 <= day <= dim, (
-            f"Day for month {month} must be in range of 1..{dim}")
+            f"Day '{day}' for month {month} must be in range of 1..{dim}")
         # We add 78 days to the total so that the ordinal number can be
         # compared to the ordinals in the standard datetime package.
         return (self.DAYS_BEFORE_1ST_YEAR + self._days_before_year(year) +

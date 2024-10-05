@@ -16,7 +16,7 @@ class TestStructures(unittest.TestCase):
         super().__init__(name)
 
     #@unittest.skip("Temporarily skipped")
-    def test_struct_time_short(self):
+    def test_struct_time(self):
         """
         Test that the struct_time class can properly store short form
         Badi dates and times.

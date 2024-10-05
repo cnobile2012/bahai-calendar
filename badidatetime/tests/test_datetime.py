@@ -171,14 +171,14 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         Test that the _ymd2ord function returns the correct number of days
         since Badi year -1842 including the current day.
         """
-        err_msg_0 = "Month must be in range of 0..19"
-        err_msg_1 = "Day for month {} must be in range of 1..{}"
+        err_msg0 = "Month must be in range of 0..19"
+        err_msg1 = "Day '{}' for month {} must be in range of 1..{}"
         data = (
             ((-1842, 1, 1), False, 79),
             ((-1841, 1, 1), False, 445),
             ((181, 1, 1), False, 738965),
-            ((181, 20, 1), True, err_msg_0),
-            ((181, 19, 20), True, err_msg_1.format(19, 19)),
+            ((181, 20, 1), True, err_msg0),
+            ((181, 19, 20), True, err_msg1.format(20, 19, 19)),
             )
         msg = "Expected {} with date {}, found {}."
 

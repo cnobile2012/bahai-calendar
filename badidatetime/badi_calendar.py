@@ -486,12 +486,13 @@ class BahaiCalendar(BaseCalendar):
         :return: The short Badi date.
         :rtype: tuple
         """
-        self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hh, mm, ss, ms = self._get_hms(b_date)
         y = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
         hmsms = self._trim_hms((hh, mm, ss, ms)) if trim else (hh, mm, ss, ms)
-        return (y, month, day) + hmsms
+        date = (y, month, day) + hmsms
+        self._check_valid_badi_date(b_date, short_in=True)
+        return date
 
     def long_date_from_short_date(self, date:tuple, *,
                                   trim:bool=False) -> tuple:

@@ -121,7 +121,7 @@ def _ymd2ord(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
     assert 0 <= month <= 19, "Month must be in range of 0..19"
     dim = _days_in_month(bc, year, month)
     assert 1 <= day <= dim, (
-        f"Day for month {month} must be in range of 1..{dim}")
+        f"Day '{day}' for month {month} must be in range of 1..{dim}")
     # We add 78 days to the total so that the ordinal number can be
     # compared to the ordinals in the standard datetime package.
     return (DAYS_BEFORE_1ST_YEAR + _days_before_year(bc, year) +
@@ -153,11 +153,11 @@ def _ord2ymd(bc:BahaiCalendar, n:int, *, short:bool=False) -> tuple:
     return bc.badi_date_from_jd(jd, short=short, rtd=True)
 
 def _build_struct_time(bc:BahaiCalendar, date:tuple, dstflag:int, *,
-                       short=False) -> NamedTuple:
-    if short:
+                       short_in=False) -> NamedTuple:
+    if short_in:
         y, m, d, hh, mm, ss = date
     else:
-        y, m, d = bc.short_date_from_long_date(date, trim=True)
+        y, m, d, hh, mm, ss, ms = bc.short_date_from_long_date(date)
 
     wday = _day_of_week(bc, y, m, d)
     dnum = _days_before_month(bc, y, m) + d
@@ -1149,7 +1149,7 @@ class date(BahaiCalendar):
         Return local time tuple compatible with time.localtime().
         """
         return _build_struct_time(self, self.__date + (0, 0, 0), -1,
-                                  short=self.__short)
+                                  short_in=self.__short)
 
     def toordinal(self):
         """
