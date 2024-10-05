@@ -1213,8 +1213,10 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the __new__ method creates an instance from both a pickle
         object and a normal instantiation.
         """
-        err_msg0 = ("The kull-i-shay must be equal to or between -6 and "
-                    "4, found {}")
+        MIN = datetime.date.KULL_I_SHAY_MIN
+        MAX = datetime.date.KULL_I_SHAY_MAX
+        err_msg0 = (f"The kull-i-shay must be equal to or between {MIN} and "
+                    f"{MAX}, found {{}}")
         err_msg1 = "Invalid string {} had length of {} for pickle."
         err_msg2 = ("A full short or long form Badi date must be used, found "
                     "{} fields.")

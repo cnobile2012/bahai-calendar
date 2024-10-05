@@ -149,10 +149,10 @@ class TimeDateUtils(BahaiCalendar):
 
         t_len = len(ttup)
 
-        if t_len in (13, 8):
-            assert (self.KULL_I_SHAY_MIM <= ttup[0] <= self.KULL_I_SHAY_MAX), (
+        if t_len in (13, 10): # Long form
+            assert (self.KULL_I_SHAY_MIN <= ttup[0] <= self.KULL_I_SHAY_MAX), (
                 f"Invalid kull-i-shay {ttup[0]}, it must be "
-                f"{self.KULL_I_SHAY_MIM} <= {ttup[0]} <= "
+                f"{self.KULL_I_SHAY_MIN} <= {ttup[0]} <= "
                 f"{self.KULL_I_SHAY_MAX}.")
             assert 1 <= ttup[1] < 20, (
                 f"Invalid Váḥids '{ttup[1]}' in a Kull-i-Shay’ it must be "
@@ -168,7 +168,7 @@ class TimeDateUtils(BahaiCalendar):
             second = ttup[7]
             wday = ttup[8]
             yday = ttup[9]
-        elif t_len in (11, 6):           # ShortFormStruct
+        elif t_len in (11, 8): # Short form
             assert self.MINYEAR <= ttup[0] <= self.MAXYEAR, (
                 f"Invalid year '{ttup[0]}' it must be {self.MINYEAR} <= "
                 f"{ttup[0]} <= {self.MAXYEAR}.")
@@ -185,10 +185,10 @@ class TimeDateUtils(BahaiCalendar):
 
         assert 0 <= month < 20, (
             f"Invalid month 0 <= {month} <= 19.")
-        cycle = (4 + self._is_leap_year(year)) if ttup.tm_mon == 0 else 19
-        assert 1 <= day < (cycle), (
+        cycle = (4 + self._is_leap_year(year)) if month == 0 else 19
+        assert 1 <= day <= cycle, (
             f"Invalid day '{day}' for month '{month}' it must be 1 <= {day} "
-            f"<= {cycle-1}.")
+            f"<= {cycle}.")
         assert 0 <= hour <= 24, (
             f"Invalid hour '{hour}', it must be 0 <= {hour} <= 24.")
         assert 0 <= minute < 60, (
@@ -198,7 +198,7 @@ class TimeDateUtils(BahaiCalendar):
         assert 0 <= wday <= 6, (
             f"Invalid week day '{wday}' it must be 0 <= {wday} <= 6.")
         assert 1 <= yday <= 366, (
-            "Invalid day in year '{yday}' it must be 1 <= {yday} <= 366.")
+            f"Invalid day '{yday}' in year it must be 1 <= {yday} <= 366.")
 
     # %[aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%]
     # %-[dHjlmMSy]

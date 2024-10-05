@@ -33,8 +33,8 @@ class BahaiCalendar(BaseCalendar):
         (14, 'Qawl'), (15, 'Masá’il'), (16, 'Sharaf'), (17, 'Sulṭán'),
         (18, 'Mulk'), (0, 'Ayyám-i-Há'), (19, "'Alá'")
         )
+    KULL_I_SHAY_MIN = -5
     KULL_I_SHAY_MAX = 4
-    KULL_I_SHAY_MIM = -6
     MINYEAR = -1842
     MAXYEAR = 1161
 
@@ -727,10 +727,10 @@ class BahaiCalendar(BaseCalendar):
         if not short_in: # Long Badi date
             kull_i_shay, vahid, year, month, day = b_date[:5]
             hour, minute, second, ms = self._get_hms(b_date)
-            assert (self.KULL_I_SHAY_MIM <= kull_i_shay
+            assert (self.KULL_I_SHAY_MIN <= kull_i_shay
                     <= self.KULL_I_SHAY_MAX), (
                 "The kull-i-shay must be equal to or between "
-                f"{self.KULL_I_SHAY_MIM} and {self.KULL_I_SHAY_MAX}, "
+                f"{self.KULL_I_SHAY_MIN} and {self.KULL_I_SHAY_MAX}, "
                 f"found {kull_i_shay}")
             assert 1 <= vahid < cycle, (
                 f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "

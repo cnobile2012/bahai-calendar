@@ -23,9 +23,6 @@ class TestTimeDateUtils(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
-    def setUp(self):
-        self._bc = BahaiCalendar()
-
     #@unittest.skip("Temporarily skipped")
     def test__order_format(self):
         """
@@ -178,18 +175,28 @@ class TestTimeDateUtils(unittest.TestCase):
         an invalid tupple type.
         """
         ttup_l, ttup_s, ttup_tl, ttup_ts = 1, 2, 3, 4
+        MIN_K = _td_utils.KULL_I_SHAY_MIN
+        MAX_K = _td_utils.KULL_I_SHAY_MAX
+        MIN_Y = _td_utils.MINYEAR
+        MAX_Y = _td_utils.MAXYEAR
         data = (
             # Valid tuples
+            ((MIN_K, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, False, ''),
             ((1, 10, 10, 9, 6, 8, 45, 1), -1, ttup_l, False, ''),
+            ((MAX_K, 5, 2, 19, 19, 1, 1, 1), -1, ttup_l, False, ''),
+            ((MIN_Y, 1, 1, 0, 0, 0), -1, ttup_s, False, ''),
             ((181, 9, 6, 8, 45, 1), -1, ttup_s, False, ''),
+            ((MAX_Y, 19, 19, 0, 0, 0), -1, ttup_s, False, ''),
+            #((1, 10, 10, 1, 1, 0, 0, 0, 4, 1), -1, ttup_tl, False, ''),
+            #((181, 1, 1, 0, 0, 0, 4, 1), -1, ttup_ts, False, ''),
             )
         msg = "Expected {}, with date {}. found {}."
 
         for date, dstflag, t_type, validity, expected_result in data:
             if t_type == ttup_l:
-                ttup = _build_struct_time(self._bc, date, dstflag)
+                ttup = _build_struct_time(_td_utils, date, dstflag)
             elif t_type == ttup_s:
-                ttup = _build_struct_time(self._bc, date, dstflag,
+                ttup = _build_struct_time(_td_utils, date, dstflag,
                                           short_in=True)
             else: # ttup_tl and ttup_ts
                 ttup = date + (dstflag,)

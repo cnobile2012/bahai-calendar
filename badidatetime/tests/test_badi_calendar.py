@@ -655,7 +655,7 @@ class TestBadiCalendar(unittest.TestCase):
               or not the data is valid or invalid.
         """
         err_msg0 = ("The kull-i-shay must be equal to or between "
-                    f"{self._bc.KULL_I_SHAY_MIM} and "
+                    f"{self._bc.KULL_I_SHAY_MIN} and "
                     f"{self._bc.KULL_I_SHAY_MAX}, found {{}}")
         err_msg1 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
                     "<= 19, found {}")
