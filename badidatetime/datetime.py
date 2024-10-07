@@ -37,7 +37,7 @@ def _days_before_year(bc:BahaiCalendar, year:int) -> float:
     :rtype: int
     """
     jd0 = bc.jd_from_badi_date((MINYEAR-1, 19, 19))
-    jd1 = bc.jd_from_badi_date((year, 1, 1))
+    jd1 = bc.jd_from_badi_date((year, 1, 1), _chk_on=False)
     return _math.floor(jd1 - jd0) - 1
 
 def _days_in_month(bc:BahaiCalendar, year:int, month:int) -> int:
@@ -68,7 +68,6 @@ def _days_before_month(bc:BahaiCalendar, year:int, month:int) -> int:
     :return: The number in the year preceding the first day of month.
     :rtype: int
     """
-    assert 0 <= month <= 19, "Month must be in range of 0..19"
     month -= -18 if month < 2 else 1 if 1 < month < 19 else 19
     dbm = 0
 
@@ -118,10 +117,7 @@ def _ymd2ord(bc:BahaiCalendar, year:int, month:int, day:int) -> int:
              current day.
     :rtype: int
     """
-    assert 0 <= month <= 19, "Month must be in range of 0..19"
     dim = _days_in_month(bc, year, month)
-    assert 1 <= day <= dim, (
-        f"Day '{day}' for month {month} must be in range of 1..{dim}")
     # We add 78 days to the total so that the ordinal number can be
     # compared to the ordinals in the standard datetime package.
     return (DAYS_BEFORE_1ST_YEAR + _days_before_year(bc, year) +
@@ -157,7 +153,8 @@ def _build_struct_time(bc:BahaiCalendar, date:tuple, dstflag:int, *,
     if short_in:
         y, m, d, hh, mm, ss = date
     else:
-        y, m, d, hh, mm, ss, ms = bc.short_date_from_long_date(date)
+        y, m, d, hh, mm, ss, ms = bc.short_date_from_long_date(
+            date, _chk_on=False)
 
     wday = _day_of_week(bc, y, m, d)
     dnum = _days_before_month(bc, y, m) + d
@@ -172,11 +169,11 @@ def _isoweek_to_badi(bc:BahaiCalendar, year:int, week:int, day:int, *,
 
     :param bc: BahaiCalendar instance.
     :type bc: BahaiCalendar
-    :param year: Badi year
+    :param year: Badi year.
     :type year: int
     :param month: Badi month (0..19)
     :type month: int
-    :param day: Badi day
+    :param day: Badi day in week.
     :type day: int
     :param short: If True then parse for a short date else if False
                   parse for a long date.
@@ -402,11 +399,13 @@ def _check_date_fields(bc:BahaiCalendar, a:int, b:int, c:int, d:int=None,
     :param d: The long form month.
     :type d: int
     :param e: The long form day.
-    :param trim: Trim the ms, ss, mm, and hh in that order.
-    :type trim: bool
+    :param short_in: If True then parse for a short date else if False
+                     parse for a long date. This is for incoming dates
+                     not outgoing dates as in most other uses of 'short'.
+    :type short_in: bool
     :return: Nothing
     :rtype: None
-    :raises AssertionError: If any of the year values are out of range.
+    :raises AssertionError: If any of the date values are out of range.
     """
     if short_in:
         b_date = (a, b, c)
@@ -1021,6 +1020,15 @@ class date(BahaiCalendar):
         Construct a date from the ISO year, week number and weekday.
 
         This is the inverse of the date.isocalendar() function
+
+        :param year: The Badi year.
+        :type year: int
+        :param week: The number of the week in the year.
+        :type week: int
+        :param day: Badi day in week.
+        :type day: int
+        :return: Returns an instantiated date object.
+        :rtype: date
         """
         bc = BahaiCalendar()
         date = _isoweek_to_badi(bc, year, week, day, short=short)

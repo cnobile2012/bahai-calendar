@@ -5,12 +5,7 @@
 __docformat__ = "restructuredtext en"
 
 import time
-#import tzlocal
-#from datetime import datetime, timezone
 from typing import NamedTuple
-
-#from .badi_calendar import BahaiCalendar
-#from .gregorian_calendar import GregorianCalendar
 
 
 class ShortFormStruct(NamedTuple):
@@ -77,7 +72,7 @@ class LongFormStruct(NamedTuple):
                 f"tm_yday={self.tm_yday}, tm_isdst={self.tm_isdst})")
 
 
-class struct_time: #(BahaiCalendar):
+class struct_time:
     """
     Create a structure representing a Badi date and time.
     """
@@ -92,9 +87,9 @@ class struct_time: #(BahaiCalendar):
             raise ValueError(msg)
 
         if short:
-            inst = ShortFormStruct(*date) #cls.__fill_in_missing(date, True))
+            inst = ShortFormStruct(*date)
         else:
-            inst = LongFormStruct(*date) #cls.__fill_in_missing(date, False))
+            inst = LongFormStruct(*date)
 
         return inst
 
@@ -110,58 +105,4 @@ class struct_time: #(BahaiCalendar):
             raise TypeError("struct_time() takes a 9 or 11-sequence "
                             f"({d_size}-sequence given)")
 
-        # Check for a valid date format.
-        cls.__check_values(date, short)
         return short
-
-    @classmethod
-    def __check_values(cls, date, short):
-        """
-        Test the Váḥid, year, month, day, hour, minute, and second
-        values are valid.
-        """
-        cycle = 20
-
-        if short:
-            y, m, d, hh, mm, ss, wday, yday, isdst = date
-            year = y
-        else:
-            k, v, y, m, d, hh, mm, ss, wday, yday, isdst = date
-            year = ((k - 1) * 361 + (v - 1) * 19 + y)
-            assert 1 <= v < cycle, f"Invalid Váḥid must be 1 to 19, found {v}."
-            assert 1 <= y < cycle, f"Invalid year must be 1 to 19, found {y}."
-
-        assert 0 <= m < cycle, f"Invalid month must be 0 to 19, found {m}"
-        if m == 0: cycle = + 5 + self._is_leap_year(year)
-
-    ## @classmethod
-    ## def __fill_in_missing(cls, date, short):
-    ##     """
-    ##     Fill in missing data.
-
-    ##     *** TODO *** We need to convert the Gregorian datetime objects to
-    ##     Badi datetime objects when they are completed.
-    ##     """
-    ##     bc = BahaiCalendar()
-    ##     gc = GregorianCalendar()
-    ##     date = list(date)
-    ##     org_tm_isdst = date[-1]
-
-    ##     if org_tm_isdst not in (-1, 0, 1):
-    ##         msg = (f"Invalid value for tm_isdst, found {org_tm_isdst}, "
-    ##                "should be one of (-1, 0, 1).")
-    ##         raise ValueError(msg)
-
-    ##     if short:
-    ##         b_date = date[:6]
-    ##     else:
-    ##         b_date = bc.short_date_from_long_date(date[:8], trim=True)
-
-    ##     g_date = gc.ymdhms_from_date(bc.gregorian_date_from_badi_date(
-    ##         b_date), ms=True)
-    ##     g_dt = datetime(*g_date, tzinfo=tzlocal.get_localzone())
-    ##     # tm_isdst
-    ##     date[-1] = 1 if g_dt.dst().total_seconds() > 0 else 0
-    ##     # tm_zone and tm_gmtoff
-    ##     date += [g_dt.tzname(), g_dt.utcoffset().total_seconds()]
-    ##     return tuple(date)

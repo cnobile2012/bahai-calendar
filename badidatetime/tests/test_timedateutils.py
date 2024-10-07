@@ -179,16 +179,59 @@ class TestTimeDateUtils(unittest.TestCase):
         MAX_K = _td_utils.KULL_I_SHAY_MAX
         MIN_Y = _td_utils.MINYEAR
         MAX_Y = _td_utils.MAXYEAR
+        err_msg0 = ("Invalid kull-i-shay {}, it must be in the range "
+                    f"of [{MIN_K}, {MAX_K}].")
+        err_msg1 = ("Invalid Váḥids '{}' in a Kull-i-Shay’, it must be in "
+                    "the range of [1, 19].")
+        err_msg2 = ("Invalid year '{}' in a Váḥid, it must be in the "
+                    "range of [1, 19].")
+        err_msg3 = ("Invalid year '{}' it must be in the range of ["
+                    f"{MIN_Y}, {MAX_Y}].")
+        err_msg4 = "Invalid month '{}', it must be in the range of [0, 19]."
         data = (
-            # Valid tuples
+            ### Valid tuples
             ((MIN_K, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, False, ''),
             ((1, 10, 10, 9, 6, 8, 45, 1), -1, ttup_l, False, ''),
             ((MAX_K, 5, 2, 19, 19, 1, 1, 1), -1, ttup_l, False, ''),
             ((MIN_Y, 1, 1, 0, 0, 0), -1, ttup_s, False, ''),
             ((181, 9, 6, 8, 45, 1), -1, ttup_s, False, ''),
             ((MAX_Y, 19, 19, 0, 0, 0), -1, ttup_s, False, ''),
-            #((1, 10, 10, 1, 1, 0, 0, 0, 4, 1), -1, ttup_tl, False, ''),
-            #((181, 1, 1, 0, 0, 0, 4, 1), -1, ttup_ts, False, ''),
+            ((1, 10, 10, 1, 1, 0, 0, 0, 4, 1), -1, ttup_tl, False, ''),
+            ((181, 1, 1, 0, 0, 0, 4, 1), -1, ttup_ts, False, ''),
+            ### Invalid tuples
+            # Long form NamedTuple errors
+            ((-6, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg0.format(-6)),
+            ((5, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg0.format(5)),
+            ((1, 0, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg1.format(0)),
+            ((1, 20, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg1.format(20)),
+            ((1, 1, 0, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg2.format(0)),
+            ((1, 1, 20, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg2.format(20)),
+            # Long form standard tuple errors
+            ((-6, 1, 1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, True,
+             err_msg0.format(-6)),
+            ((5, 1, 1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, True,
+             err_msg0.format(5)),
+            ((1, 0, 1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, True,
+             err_msg1.format(0)),
+            ((1, 20, 1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, True,
+             err_msg1.format(20)),
+            ((1, 1, 0, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, True,
+             err_msg2.format(0)),
+            ((1, 1, 20, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, True,
+             err_msg2.format(20)),
+            # Short for NamedTuple errors
+            ((-1843, 1, 1, 0, 0, 0), -1, ttup_s, True, err_msg3.format(-1843)),
+            ((1162, 1, 1, 0, 0, 0), -1, ttup_s, True, err_msg3.format(1162)),
+            # Short for standard tuple errors
+            ((-1843, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, True,
+             err_msg3.format(-1843)),
+            ((1162, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, True,
+             err_msg3.format(1162)),
+            # All tuple types use the same code for the month, day, hour,
+            # minute, second, wday, yday, and isdst fields.
+            ((1, -1, 1, 0, 0, 0), -1, ttup_s, True, err_msg4.format(-1)),
+            ((1, 20, 1, 0, 0, 0), -1, ttup_s, True, err_msg4.format(20)),
+
             )
         msg = "Expected {}, with date {}. found {}."
 
@@ -211,6 +254,6 @@ class TestTimeDateUtils(unittest.TestCase):
                         f"With date {date} and error was not raised, {e}")
                 else:
                     message = str(cm.exception)
-                    self.assertEqual(err_msg, message)
+                    self.assertEqual(expected_result, message)
             else: # Valid tests
                 _td_utils._checktm(ttup)

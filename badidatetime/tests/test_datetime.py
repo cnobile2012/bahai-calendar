@@ -107,44 +107,35 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         number of days in the year proceedings the first day in the correct
         month.
         """
-        err_msg = "Month must be in range of 0..19"
         data = (
-            (181, 1, False, 0),
-            (181, 2, False, 19),
-            (181, 3, False, 38),
-            (181, 4, False, 57),
-            (181, 5, False, 76),
-            (181, 6, False, 95),
-            (181, 7, False, 114),
-            (181, 8, False, 133),
-            (181, 9, False, 152),
-            (181, 10, False, 171),
-            (181, 11, False, 190),
-            (181, 12, False, 209),
-            (181, 13, False, 228),
-            (181, 14, False, 247),
-            (181, 15, False, 266),
-            (181, 16, False, 285),
-            (181, 17, False, 304),
-            (181, 18, False, 323),
-            (181, 0, False, 342),
-            (181, 19, False, 346),
-            (183, 1, False, 0), # 182 is a leap year
-            (181, 20, True, err_msg),
+            (181, 1, 0),
+            (181, 2, 19),
+            (181, 3, 38),
+            (181, 4, 57),
+            (181, 5, 76),
+            (181, 6, 95),
+            (181, 7, 114),
+            (181, 8, 133),
+            (181, 9, 152),
+            (181, 10, 171),
+            (181, 11, 190),
+            (181, 12, 209),
+            (181, 13, 228),
+            (181, 14, 247),
+            (181, 15, 266),
+            (181, 16, 285),
+            (181, 17, 304),
+            (181, 18, 323),
+            (181, 0, 342),
+            (181, 19, 346),
+            (183, 1, 0), # 182 is a leap year
             )
         msg = "Expected {} with year {} and month {}, found {}."
 
-        for year, month, validity, expected_result in data:
-            if validity:
-                with self.assertRaises(AssertionError) as cm:
-                    datetime._days_before_month(self._bc, year, month)
-
-                message = str(cm.exception)
-                self.assertEqual(expected_result, message)
-            else:
-                result = datetime._days_before_month(self._bc, year, month)
-                self.assertEqual(expected_result, result, msg.format(
-                    expected_result, year, month, result))
+        for year, month, expected_result in data:
+            result = datetime._days_before_month(self._bc, year, month)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, year, month, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__day_of_week(self):
@@ -171,28 +162,17 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         Test that the _ymd2ord function returns the correct number of days
         since Badi year -1842 including the current day.
         """
-        err_msg0 = "Month must be in range of 0..19"
-        err_msg1 = "Day '{}' for month {} must be in range of 1..{}"
         data = (
-            ((-1842, 1, 1), False, 79),
-            ((-1841, 1, 1), False, 445),
-            ((181, 1, 1), False, 738965),
-            ((181, 20, 1), True, err_msg0),
-            ((181, 19, 20), True, err_msg1.format(20, 19, 19)),
+            ((-1842, 1, 1), 79),
+            ((-1841, 1, 1), 445),
+            ((181, 1, 1), 738965),
             )
         msg = "Expected {} with date {}, found {}."
 
-        for date, validity, expected_result in data:
-            if validity:
-                with self.assertRaises(AssertionError) as cm:
-                    datetime._ymd2ord(self._bc, *date)
-
-                message = str(cm.exception)
-                self.assertEqual(expected_result, message)
-            else:
-                result = datetime._ymd2ord(self._bc, *date)
-                self.assertEqual(expected_result, result,
-                                 msg.format(expected_result, date, result))
+        for date, expected_result in data:
+            result = datetime._ymd2ord(self._bc, *date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__ord2ymd(self):

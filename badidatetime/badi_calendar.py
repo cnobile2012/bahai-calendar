@@ -159,17 +159,29 @@ class BahaiCalendar(BaseCalendar):
         return self._gc.ymdhms_from_date(date) if hms else date
 
     def jd_from_badi_date(self, b_date:tuple, lat:float=None, lon:float=None,
-                          zone:float=None) -> float:
+                          zone:float=None, _chk_on=True) -> float:
         """
         Convert a Badi short form date to Julian period day.
 
         :param b_date: A short form Badi date.
         :type b_date: tuple
+        :param lat: The latitude.
+        :type lat: float
+        :param lon: The longitude.
+        :type lon: float
+        :param zone: The time zone.
+        :type zone: float
+        :param _chk_on: If True (default) all date check are enforced else
+                        if False they are turned off. This is only used
+                        internally. Don't use unless you know what you are
+                        doing.
+        :type _chk_on: bool
         :return: The Julian Period day.
         :rtype: float
         """
         year, month, day = self.date_from_kvymdhms(
-            self.long_date_from_short_date(b_date, trim=True), short=True)
+            self.long_date_from_short_date(b_date, trim=True, _chk_on=_chk_on),
+            short=True, _chk_on=_chk_on)
 
         if month == 0: # Ayyam-i-Ha
             m = 18 * 19
@@ -473,8 +485,8 @@ class BahaiCalendar(BaseCalendar):
 
         return b_date
 
-    def short_date_from_long_date(self, b_date:tuple, *,
-                                  trim:bool=False) -> tuple:
+    def short_date_from_long_date(self, b_date:tuple, *, trim:bool=False,
+                                  _chk_on:bool=True) -> tuple:
         """
         Convert a long date (kvymdhms) to a short date (ymdhms). In either
         case microseconds could also be provided.
@@ -483,7 +495,12 @@ class BahaiCalendar(BaseCalendar):
         :type b_date: tuple
         :param trim: Trim the ms, ss, mm, and hh in that order.
         :type trim: bool
-        :return: The short Badi date.
+        :param _chk_on: If True (default) all date check are enforced else
+                        if False they are turned off. This is only used
+                        internally. Don't use unless you know what you are
+                        doing.
+        :type _chk_on: bool
+        :return: The short form Badi date.
         :rtype: tuple
         """
         kull_i_shay, vahid, year, month, day = b_date[:5]
@@ -491,13 +508,25 @@ class BahaiCalendar(BaseCalendar):
         y = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
         hmsms = self._trim_hms((hh, mm, ss, ms)) if trim else (hh, mm, ss, ms)
         date = (y, month, day) + hmsms
-        self._check_valid_badi_date(b_date, short_in=True)
+        _chk_on and self._check_valid_badi_date(b_date, short_in=True)
         return date
 
-    def long_date_from_short_date(self, date:tuple, *,
-                                  trim:bool=False) -> tuple:
+    def long_date_from_short_date(self, date:tuple, *, trim:bool=False,
+                                  _chk_on:bool=True) -> tuple:
         """
         Convert a date to a short date (ymdhms) to a long date (kvymdhms).
+
+        :param b_date: A short form date with or without microseconds.
+        :type b_date: tuple
+        :param trim: Trim the ms, ss, mm, and hh in that order.
+        :type trim: bool
+        :param _chk_on: If True (default) all date check are enforced else
+                        if False they are turned off. This is only used
+                        internally. Don't use unless you know what you are
+                        doing.
+        :type _chk_on: bool
+        :return: The long form Badi date.
+        :rtype: tuple
         """
         y, month, day = date[:3]
         hh, mm, ss, ms = self._get_hms(date, short_in=True)
@@ -516,15 +545,30 @@ class BahaiCalendar(BaseCalendar):
 
         hmsms = self._trim_hms((hh, mm, ss, ms)) if trim else (hh, mm, ss, ms)
         b_date = (kull_i_shay, vahid, year, month, day) + hmsms
-        self._check_valid_badi_date(b_date)
+        _chk_on and self._check_valid_badi_date(b_date)
         return b_date
 
-    def date_from_kvymdhms(self, b_date:tuple, *, short:bool=False) -> tuple:
+    def date_from_kvymdhms(self, b_date:tuple, *, short:bool=False,
+                           _chk_on:bool=True) -> tuple:
         """
         Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second, ms)
         into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
+
+        :param b_date: The Badi date in long form.
+        :type b_date: tuple
+        :param short: If True the short form Badi date is returned else the
+                      long form is returned.
+        :type short: bool
+        :param _chk_on: If True (default) all date check are enforced else
+                        if False they are turned off. This is only used
+                        internally. Don't use unless you know what you are
+                        doing.
+        :type _chk_on: bool
+        :return: The long or short form Badi date with hours, minutes,
+                 seconds, and microseconds if set.
+        :rtype: tuple
         """
-        self._check_valid_badi_date(b_date)
+        _chk_on and self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hour, minute, second, ms = self._get_hms(b_date)
         day += round(self.HR(hour) + self.MN(minute) + self.SEC(second) +
@@ -534,7 +578,8 @@ class BahaiCalendar(BaseCalendar):
                 if short else date)
 
     def kvymdhms_from_b_date(self, b_date:tuple, *, ms:bool=False,
-                             short:bool=False, trim:bool=False) -> tuple:
+                             short:bool=False, trim:bool=False,
+                             _chk_on:bool=True) -> tuple:
         """
         Convert (Kull-i-Shay, Váḥid, year, month, day.partial) into
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second) or if
@@ -551,11 +596,16 @@ class BahaiCalendar(BaseCalendar):
         :type short: bool
         :param trim: Trim the ms, ss, mm, and hh in that order.
         :type trim: bool
+        :param _chk_on: If True (default) all date check are enforced else
+                        if False they are turned off. This is only used
+                        internally. Don't use unless you know what you are
+                        doing.
+        :type _chk_on: bool
         :return: The long or short form Badi date with hours, minutes,
                  seconds, and microseconds if set.
         :rtype: tuple
         """
-        self._check_valid_badi_date(b_date)
+        _chk_on and self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         dlen = len(b_date)
 

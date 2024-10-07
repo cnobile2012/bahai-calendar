@@ -147,58 +147,75 @@ class TimeDateUtils(BahaiCalendar):
             raise TypeError(
                 f"The ttup argument {ttup.__class__} is not a proper tuple.")
 
-        t_len = len(ttup)
-
-        if t_len in (13, 10): # Long form
+        def process_long_form(ttup):
             assert (self.KULL_I_SHAY_MIN <= ttup[0] <= self.KULL_I_SHAY_MAX), (
-                f"Invalid kull-i-shay {ttup[0]}, it must be "
-                f"{self.KULL_I_SHAY_MIN} <= {ttup[0]} <= "
-                f"{self.KULL_I_SHAY_MAX}.")
+                f"Invalid kull-i-shay {ttup[0]}, it must be in the range of "
+                f"[{self.KULL_I_SHAY_MIN}, {self.KULL_I_SHAY_MAX}].")
             assert 1 <= ttup[1] < 20, (
-                f"Invalid Váḥids '{ttup[1]}' in a Kull-i-Shay’ it must be "
-                f">= 1 {ttup[1]} <= 19.")
+                f"Invalid Váḥids '{ttup[1]}' in a Kull-i-Shay’, it must be in "
+                f"the range of [1, 19].")
             assert 1 <= ttup[2] < 20, (
-                f"Invalid year '{ttup[2]}' in a Váḥid it must be 1 <= "
-                f"{ttup[2]} <= 19.")
-            year = (ttup[0] - 1) * 361 + (ttup[1] - 1) * 19 + ttup[2]
-            month = ttup[3]
-            day = ttup[4]
-            hour = ttup[5]
-            minute = ttup[6]
-            second = ttup[7]
-            wday = ttup[8]
-            yday = ttup[9]
-        elif t_len in (11, 8): # Short form
-            assert self.MINYEAR <= ttup[0] <= self.MAXYEAR, (
-                f"Invalid year '{ttup[0]}' it must be {self.MINYEAR} <= "
-                f"{ttup[0]} <= {self.MAXYEAR}.")
-            year = ttup[0]
-            month = ttup[1]
-            day = ttup[2]
-            hour = ttup[3]
-            minute = ttup[4]
-            second = ttup[5]
-            wday = ttup[6]
-            yday = ttup[7]
-        else:
-            raise TypeError(f"Ivalid timetuple, found {dir(ttup)}.")
+                f"Invalid year '{ttup[2]}' in a Váḥid, it must be in the "
+                "range of [1, 19].")
+            return (ttup[0] - 1) * 361 + (ttup[1] - 1) * 19 + ttup[2]
 
+        def process_short_form(ttup):
+            assert self.MINYEAR <= ttup[0] <= self.MAXYEAR, (
+                f"Invalid year '{ttup[0]}' it must be in the range of ["
+                f"{self.MINYEAR}, {self.MAXYEAR}].")
+            return ttup[0]
+
+        t_len = len(ttup)
+        named_tuple = hasattr(ttup, '_asdict') # _make also can work
+
+        if named_tuple: # Both long and short NamedTuple
+            if t_len == 13: # Long form
+                year = process_long_form(ttup)
+                idx = 3
+            elif t_len == 11: # Short form
+                year = process_short_form(ttup)
+                idx = 1
+            else:
+                raise TypeError(f"Ivalid timetuple, found length {t_len}, "
+                                f"{dir(ttup)}.")
+        else: # A Tuple or class derived from a standard tuple
+            if t_len == 11: # Long form
+                year = process_long_form(ttup)
+                idx = 3
+            elif t_len == 9: # Short form
+                year = process_short_form(ttup)
+                idx = 1
+            else:
+                raise TypeError(f"Ivalid timetuple, found length {t_len}, "
+                                f"{dir(ttup)}.")
+
+        month = ttup[idx]
+        day = ttup[idx+1]
+        hour = ttup[idx+2]
+        minute = ttup[idx+3]
+        second = ttup[idx+4]
+        wday = ttup[idx+5]
+        yday = ttup[idx+6]
+        isdst = ttup[idx+7]
         assert 0 <= month < 20, (
-            f"Invalid month 0 <= {month} <= 19.")
+            f"Invalid month '{month}', it must be in the range of [0, 19].")
         cycle = (4 + self._is_leap_year(year)) if month == 0 else 19
         assert 1 <= day <= cycle, (
-            f"Invalid day '{day}' for month '{month}' it must be 1 <= {day} "
-            f"<= {cycle}.")
+            f"Invalid day '{day}' for month '{month}', it must be in the "
+            f"range of [1, {cycle}].")
         assert 0 <= hour <= 24, (
-            f"Invalid hour '{hour}', it must be 0 <= {hour} <= 24.")
+            f"Invalid hour '{hour}', it must be in the range of [0, 24].")
         assert 0 <= minute < 60, (
-            f"Invalid minute '{minute}', it must be 0 <= {minute} < 60.")
+            f"Invalid minute '{minute}', it must be in the range of [0, 60].")
         assert 0 <= second <= 61, (
-            "Invalid second '{second}', it must be 0 <= {second} <= 61.")
+            "Invalid second '{second}', it must be in the range of [0, 61].")
         assert 0 <= wday <= 6, (
-            f"Invalid week day '{wday}' it must be 0 <= {wday} <= 6.")
+            f"Invalid week day '{wday}', it must be inthe range of [0, 6].")
         assert 1 <= yday <= 366, (
-            f"Invalid day '{yday}' in year it must be 1 <= {yday} <= 366.")
+            f"Invalid day '{yday}' in year, it must be in the range of "
+            "[1, 366].")
+        assert -1 <= isdst <= 1, (
+            f"Invalid isdst '{isdst}', it must be in the range of [-1, 1]")
 
     # %[aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%]
     # %-[dHjlmMSy]
