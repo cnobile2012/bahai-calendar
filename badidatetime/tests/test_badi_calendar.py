@@ -654,24 +654,31 @@ class TestBadiCalendar(unittest.TestCase):
         Note: The Boolean below in the data statements determines whether
               or not the data is valid or invalid.
         """
-        err_msg0 = ("The kull-i-shay must be equal to or between "
-                    f"{self._bc.KULL_I_SHAY_MIN} and "
-                    f"{self._bc.KULL_I_SHAY_MAX}, found {{}}")
-        err_msg1 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
-                    "<= 19, found {}")
-        err_msg2 = ("The number of years in a Váḥid should be >= 1 or <= 19, "
-                    "found {}")
-        err_msg3 = "Invalid month '{}', should be 0 - 19."
-        err_msg4 = ("Invalid day '{}' for month '{}' and year '{}' "
-                    "should be from 1 to <= {}.")
-        err_msg5 = "Invalid hour '{}' it must be 0 <= {} < 25"
-        err_msg6 = "Invalid minute '{}' should be 0 <= {} < 60."
-        err_msg7 = ("If there is a part day then there can be no hours, "
+        MIN_K = self._bc.KULL_I_SHAY_MIN
+        MAX_K = self._bc.KULL_I_SHAY_MAX
+        MIN_Y = self._bc.MINYEAR
+        MAX_Y = self._bc.MAXYEAR
+        err_msg0 = ("Invalid kull-i-shay {}, it must be in the range "
+                    f"of [{MIN_K}, {MAX_K}].")
+        err_msg1 = ("Invalid Váḥids '{}' in a Kull-i-Shay’, it must be in "
+                    "the range of [1, 19].")
+        err_msg2 = ("Invalid year '{}' in a Váḥid, it must be in the "
+                    "range of [1, 19].")
+        err_msg3 = ("Invalid year '{}' it must be in the range of ["
+                    f"{MIN_Y}, {MAX_Y}].")
+        err_msg4 = "Invalid month '{}', it must be in the range of [0, 19]."
+        err_msg5 = ("Invalid day '{}' for month '{}', it must be in the "
+                    "range of [1, {}].")
+        err_msg6 = "Invalid hour '{}', it must be in the range of [0, 24]."
+        err_msg7 = "Invalid minute '{}', it must be in the range of [0, 59]."
+        err_msg8 = "Invalid second '{}', it must be in the range of [0, 59]."
+        err_msg9 = ("Invalid microseconds '{}', it must be in the range of "
+                    "[0, 999999].")
+        err_msg10 = ("If there is a part day then there can be no hours, "
                     "minutes, or seconds.")
-        err_msg8 = ("If there is a part hour then there can be no minutes or "
+        err_msg11 = ("If there is a part hour then there can be no minutes or "
                     "seconds.")
-        err_msg9 = "If there is a part minute then there can be no seconds."
-        err_msg10 = "Microsecond value {} > 1000000."
+        err_msg12 = "If there is a part minute then there can be no seconds."
         data = (
             ((1, 1, 1, 1, 1), False, False, ''),  # Non leap year
             ((1, 1, 1), True, False, ''),
@@ -690,40 +697,45 @@ class TestBadiCalendar(unittest.TestCase):
             # Invalid Váḥid
             ((1, 0, 1, 1, 1, 1, 1, 1), False, True, err_msg1.format(0)),
             ((1, 20, 1, 1, 1, 1, 1, 1), False, True, err_msg1.format(20)),
-            # Invalid year
+            # Invalid year in Váḥid
             ((1, 10, 0, 1, 1, 1, 0, 0), False, True, err_msg2.format(0)),
             ((1, 10, 20, 1, 1, 1, 0, 0), False, True, err_msg2.format(20)),
+            # Invalid short year
+            ((MIN_Y-1, 1, 1), True, True, err_msg3.format(MIN_Y-1)),
+            ((MAX_Y+1, 1, 1), True, True, err_msg3.format(MAX_Y+1)),
             # Invalid month
-            ((1, 10, 10, -1, 1, 1, 0, 0), False, True, err_msg3.format(-1)),
-            ((1, 10, 10, 20, 1, 1, 0, 0), False, True, err_msg3.format(20)),
+            ((1, 10, 10, -1, 1, 1, 0, 0), False, True, err_msg4.format(-1)),
+            ((1, 10, 10, 20, 1, 1, 0, 0), False, True, err_msg4.format(20)),
             # Invalid Ayyám-i-Há day
-            ((1, 10, 3, 0, 0, 1, 1, 1), False, True,
-             err_msg4.format(0, 0, 3, 5)),
-            ((1, 10, 3, 0, 6, 1, 1, 1), False, True,
-             err_msg4.format(6, 0, 3, 5)),
+            ((1, 10, 3, 0, 0, 1, 1, 1), False, True, err_msg5.format(0, 0, 5)),
+            ((1, 10, 3, 0, 6, 1, 1, 1), False, True, err_msg5.format(6, 0, 5)),
             # Invalid normal day
             ((1, 10, 3, 2, 0, 1, 1, 1), False, True,
-             err_msg4.format(0, 2, 3, 19)),
+             err_msg5.format(0, 2, 19)),
             ((1, 10, 3, 2, 20, 1, 1, 1), False, True,
-             err_msg4.format(20, 2, 3, 19)),
+             err_msg5.format(20, 2, 19)),
             # Invalid hour
-            ((1, 10, 3, 2, 1, -1, 1, 1), False, True, err_msg5.format(-1, -1)),
-            ((1, 10, 3, 2, 1, 25, 1, 1), False, True, err_msg5.format(25, 25)),
+            ((1, 10, 3, 2, 1, -1, 1, 1), False, True, err_msg6.format(-1)),
+            ((1, 10, 3, 2, 1, 25, 1, 1), False, True, err_msg6.format(25)),
             # Invalid minute
-            ((1, 10, 3, 2, 1, 1, -1, 1), False, True, err_msg6.format(-1, -1)),
-            ((1, 10, 3, 2, 1, 1, 60, 1), False, True, err_msg6.format(60, 60)),
-            # Invalid partial day
-            ((1, 10, 3, 2, 1.5, 1, 0, 0), False, True, err_msg7),
-            ((1, 10, 3, 2, 1.5, 0, 1, 0), False, True, err_msg7),
-            ((1, 10, 3, 2, 1.5, 0, 0, 1), False, True, err_msg7),
-            # Invalid partial hour
-            ((1, 10, 3, 2, 1, 1.5, 1, 0), False, True, err_msg8),
-            ((1, 10, 3, 2, 1, 1.5, 0, 1), False, True, err_msg8),
-            # Invalid partial minute
-            ((1, 10, 3, 2, 1, 1, 1.5, 1), False, True, err_msg9),
+            ((1, 10, 3, 2, 1, 1, -1, 1), False, True, err_msg7.format(-1)),
+            ((1, 10, 3, 2, 1, 1, 60, 1), False, True, err_msg7.format(60)),
+            # Invalid second
+            ((1, 1, 1, 1, 1, -1), True, True, err_msg8.format(-1)),
+            ((1, 1, 1, 1, 1, 60), True, True, err_msg8.format(60)),
             # Invalid microsecond
+            ((1, 1, 1, 0, 0, 0, -1), True, True, err_msg9.format(-1)),
             ((1, 10, 10, 9, 8, 19, 1, 3, 1532799), False, True,
-             err_msg10.format(1532799)),
+             err_msg9.format(1532799)),
+            # Invalid partial day
+            ((1, 10, 3, 2, 1.5, 1, 0, 0), False, True, err_msg10),
+            ((1, 10, 3, 2, 1.5, 0, 1, 0), False, True, err_msg10),
+            ((1, 10, 3, 2, 1.5, 0, 0, 1), False, True, err_msg10),
+            # Invalid partial hour
+            ((1, 10, 3, 2, 1, 1.5, 1, 0), False, True, err_msg11),
+            ((1, 10, 3, 2, 1, 1.5, 0, 1), False, True, err_msg11),
+            # Invalid partial minute
+            ((1, 10, 3, 2, 1, 1, 1.5, 1), False, True, err_msg12),
             )
 
         for b_date, short_in, validity, err_msg in data:

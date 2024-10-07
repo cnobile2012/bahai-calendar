@@ -153,7 +153,7 @@ class TimeDateUtils(BahaiCalendar):
                 f"[{self.KULL_I_SHAY_MIN}, {self.KULL_I_SHAY_MAX}].")
             assert 1 <= ttup[1] < 20, (
                 f"Invalid Váḥids '{ttup[1]}' in a Kull-i-Shay’, it must be in "
-                f"the range of [1, 19].")
+                "the range of [1, 19].")
             assert 1 <= ttup[2] < 20, (
                 f"Invalid year '{ttup[2]}' in a Váḥid, it must be in the "
                 "range of [1, 19].")
@@ -208,7 +208,7 @@ class TimeDateUtils(BahaiCalendar):
         assert 0 <= minute < 60, (
             f"Invalid minute '{minute}', it must be in the range of [0, 60].")
         assert 0 <= second <= 61, (
-            "Invalid second '{second}', it must be in the range of [0, 61].")
+            f"Invalid second '{second}', it must be in the range of [0, 61].")
         assert 0 <= wday <= 6, (
             f"Invalid week day '{wday}', it must be inthe range of [0, 6].")
         assert 1 <= yday <= 366, (

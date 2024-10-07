@@ -392,40 +392,36 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
 
         A more complete test is in badidatetime/tests/test_badi_calendar.py.
         """
-        msg0 = ("The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
-                "<= 19, found {}")
-        msg1 = ("The number of years in a Váḥid should be >= 1 or <= 19, "
-                "found {}")
-        msg2 = "Invalid month '{}', should be 0 - 19."
-        msg3 = ("Invalid day '{}' for month '{}' and year '{}' "
-                "should be from 1 to <= {}.")
-        msg4 = "Invalid hour '{}' it must be 0 <= {} < 24"
-        msg5 = "Invalid minute '{}' should be 0 <= {} < 60."
-        ## msg6 = ("If there is a part day then there can be no hours, "
-        ##         "minutes, or seconds.")
-        ## msg7 = ("If there is a part hour then there can be no minutes or "
-        ##         "seconds.")
-        ## msg8 = "If there is a part minute then there can be no seconds."
+        err_msg0 = ("Invalid Váḥids '{}' in a Kull-i-Shay’, it must be in "
+                    "the range of [1, 19].")
+        err_msg1 = ("Invalid year '{}' in a Váḥid, it must be in the range "
+                    "of [1, 19].")
+        err_msg2 = "Invalid month '{}', it must be in the range of [0, 19]."
+        err_msg3 = ("Invalid day '{}' for month '{}', it must be in the "
+                    "range of [1, {}].")
+        err_msg4 = "Invalid hour '{}' it must be 0 <= {} < 24"
+        err_msg5 = "Invalid minute '{}' should be 0 <= {} < 60."
         data = (
+            # Valid short form Badi dates
             ((datetime.MINYEAR, 1, 1), False, ''),
             ((datetime.MAXYEAR, 1, 1), False, ''),
             # Invalid Váḥid
-            ((1, 0, 1, 1, 1), True, msg0.format(0)),
-            ((1, 20, 1, 1, 1), True, msg0.format(20)),
+            ((1, 0, 1, 1, 1), True, err_msg0.format(0)),
+            ((1, 20, 1, 1, 1), True, err_msg0.format(20)),
             # Invalid year
-            ((1, 10, 0, 1, 1), True, msg1.format(0)),
-            ((1, 10, 20, 1, 1), True, msg1.format(20)),
+            ((1, 10, 0, 1, 1), True, err_msg1.format(0)),
+            ((1, 10, 20, 1, 1), True, err_msg1.format(20)),
             # Invalid month
-            ((1, 10, 10, -1, 1), True, msg2.format(-1)),
-            ((1, 10, 10, 20, 1), True, msg2.format(20)),
+            ((1, 10, 10, -1, 1), True, err_msg2.format(-1)),
+            ((1, 10, 10, 20, 1), True, err_msg2.format(20)),
             # Invalid Ayyám-i-Há day
-            ((1, 10, 3, 0, 0), True, msg3.format(0, 0, 3, 5)),
-            ((1, 10, 3, 0, 6), True, msg3.format(6, 0, 3, 5)),
+            ((1, 10, 3, 0, 0), True, err_msg3.format(0, 0, 5)),
+            ((1, 10, 3, 0, 6), True, err_msg3.format(6, 0, 5)),
             # Invalid normal day
-            ((1, 10, 3, 2, 0), True, msg3.format(0, 2, 3, 19)),
-            ((1, 10, 3, 2, 20), True, msg3.format(20, 2, 3, 19)),
+            ((1, 10, 3, 2, 0), True, err_msg3.format(0, 2, 19)),
+            ((1, 10, 3, 2, 20), True, err_msg3.format(20, 2, 19)),
             # Test short form date.
-            ((181, 20, 1), True, msg2.format(20)),
+            ((181, 20, 1), True, err_msg2.format(20)),
             )
 
         for date, validity, err_msg in data:
@@ -1195,8 +1191,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         MIN = datetime.date.KULL_I_SHAY_MIN
         MAX = datetime.date.KULL_I_SHAY_MAX
-        err_msg0 = (f"The kull-i-shay must be equal to or between {MIN} and "
-                    f"{MAX}, found {{}}")
+        err_msg0 = ("Invalid kull-i-shay {}, it must be in the range "
+                    "of [-5, 4].")
         err_msg1 = "Invalid string {} had length of {} for pickle."
         err_msg2 = ("A full short or long form Badi date must be used, found "
                     "{} fields.")

@@ -779,38 +779,39 @@ class BahaiCalendar(BaseCalendar):
             hour, minute, second, ms = self._get_hms(b_date)
             assert (self.KULL_I_SHAY_MIN <= kull_i_shay
                     <= self.KULL_I_SHAY_MAX), (
-                "The kull-i-shay must be equal to or between "
-                f"{self.KULL_I_SHAY_MIN} and {self.KULL_I_SHAY_MAX}, "
-                f"found {kull_i_shay}")
+                f"Invalid kull-i-shay {kull_i_shay}, it must be in the range "
+                f"of [{self.KULL_I_SHAY_MIN}, {self.KULL_I_SHAY_MAX}].")
             assert 1 <= vahid < cycle, (
-                f"The number of Váḥids in a Kull-i-Shay’ should be >= 1 or "
-                f"<= 19, found {vahid}")
+                f"Invalid Váḥids '{vahid}' in a Kull-i-Shay’, it must be in "
+                "the range of [1, 19].")
             assert 1 <= year < cycle, (
-                f"The number of years in a Váḥid should be >= 1 or <= 19, "
-                f"found {year}")
+                f"Invalid year '{year}' in a Váḥid, it must be in the "
+                "range of [1, 19].")
             ly = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
         else: # Short Badi date
             year, month, day = b_date[:3]
             hour, minute, second, ms = self._get_hms(b_date, short_in=True)
             assert self.MINYEAR <= year <= self.MAXYEAR, (
-                f"The number of years should be {self.MINYEAR} <= "
-                f"{year} <= {self.MAXYEAR}.")
+                f"Invalid year '{year}' it must be in the range of ["
+                f"{self.MINYEAR}, {self.MAXYEAR}].")
             ly = year
 
         assert 0 <= month < cycle, (
-            f"Invalid month '{month}', should be 0 - 19.")
+            f"Invalid month '{month}', it must be in the range of [0, 19].")
         # This is Ayyām-i-Hā and could be 4 or 5 days depending on leap year.
         cycle = (5 + self._is_leap_year(ly)) if month == 0 else cycle
         assert 1 <= day < (cycle), (
-            f"Invalid day '{day}' for month '{month}' and year '{year}' "
-            f"should be from 1 to <= {cycle-1}.")
-        assert 0 <= hour < 25, (f"Invalid hour '{hour}' it must be "
-                                f"0 <= {hour} < 25")
-        assert 0 <= minute < 60, (f"Invalid minute '{minute}' should be "
-                                  f"0 <= {minute} < 60.")
-        assert 0 <= second < 60, (f"Invalid second '{second}' should be "
-                                  f"0 <= {second} < 60.")
-        assert ms < 1000000, f"Microsecond value {ms} > 1000000."
+            f"Invalid day '{day}' for month '{month}', it must be in the "
+            f"range of [1, {cycle-1}].")
+        assert 0 <= hour < 25, (
+            f"Invalid hour '{hour}', it must be in the range of [0, 24].")
+        assert 0 <= minute < 60, (
+            f"Invalid minute '{minute}', it must be in the range of [0, 59].")
+        assert 0 <= second < 60, (
+            f"Invalid second '{second}', it must be in the range of [0, 59].")
+        assert 0 <= ms < 1000000, (
+            f"Invalid microseconds '{ms}', it must be in the range of "
+            "[0, 999999].")
 
         # Check if there are any fractionals that invalidate other values.
         if any((hour, minute, second)):
