@@ -244,22 +244,19 @@ class TimeDateUtils(BahaiCalendar):
         st = ""
         year = self._get_year(ttup)
         century = int(year / 100) * 100
-        n = '-' if year < 0 else ''
-        st_d = {'y': f"{n}{abs(year - century):02}",
-                'm': f"{ttup.tm_mon:02}",
-                'd': f"{ttup.tm_mday:02}"}
 
-        for ch in locale.nl_langinfo(locale.D_FMT):
-            if ch == '%': continue
-            st += st_d[ch] + ' '
+        for idx, ch in enumerate(self.date_format):
+            if idx == 0:
+                sep = ch
+            else:
+                st += getattr(self, ch)(ttup, org, mod) + sep
 
-        return st.strip()
+        return st.strip('/')
 
     def f(self, ttup, org, mod):
         """
         """
-        s = math.floor(ttup.tm_sec)
-        m = math.floor(ttup.tm_sec % 1 * 1000000)
+        s, m = self._sec_microsec_from_seconds(ttup.tm_sec)
         return f"{round(m, 6):06}"
 
     def G(self, ttup, org, mod):
@@ -268,7 +265,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         year = self._get_year(ttup)
         n = '-' if year < 0 else ''
-        return f"{n}{year:04}"
+        return f"{n}{abs(year):04}"
 
     def H(self, ttup, org, mod):
         """
@@ -284,9 +281,10 @@ class TimeDateUtils(BahaiCalendar):
 
     def I(self, ttup, org, mod):
         """
-        If we assume that sunset was at 1800 hrs UTC then noon would be about
-        0600 hrs UTC the next morning. This changes on a daily bases because
-        sunset changes and there is seldon 24 hours between two sunsets.
+        If we assume that sunset was at 1800 hrs UTC then the Badi noon
+        would be about 0600 hrs UTC the next morning. This changes on a
+        daily bases because sunset changes and there is seldon exactly 24
+        hours between two sunsets.
 
         *** TODO *** Does a 12-hour clock make sense in a Badi time?
 
@@ -295,12 +293,16 @@ class TimeDateUtils(BahaiCalendar):
         noon. Then determine which side of noon the current Badi time is on.
         """
         midday_frac = self._find_midday(ttup)
-        time_frac = self.decimal_day_from_hms(ttup.hour, ttup.min, ttup.sec)
+        time_frac = self.decimal_day_from_hms(ttup.tm_hour, ttup.tm_min,
+                                              ttup.tm_sec)
 
         if midday_frac <= time_frac:
-            hour = ttup.hour - midday_frac
+            hour = round(ttup.tm_hour - midday_frac)
         else:
-            hour = ttup.hour
+            hour = round(ttup.tm_hour)
+
+        if hour > 12:
+            hour -= 12
 
         if org == 'l' and mod == '-':
             st = f"{hour}"
@@ -308,6 +310,8 @@ class TimeDateUtils(BahaiCalendar):
             st = f"{hour: 2}"
         else: # %I
             st = f"{hour:02}"
+
+            print('POOP', st)
 
         return st
 
@@ -318,12 +322,20 @@ class TimeDateUtils(BahaiCalendar):
 
     def K(self, ttup, org, mod):
         """
+        Return the Kull-i-Shay. If the mod is not a : them return an empty
+        string.
         """
         st = ""
 
-        if not ttup.short and mod == ':':
-            n = '-' if ttup.tm_kull_i_shay < 0 else ''
-            st += f"{n}{ttup.tm_kull_i_shay}"
+        if mod == ':':
+            if ttup.short:
+                k = ttup.tm_year / 361
+                kull_i_shay = 0 if ttup.tm_year == 0 else math.ceil(k)
+            else:
+                kull_i_shay = ttup.tm_kull_i_shay
+
+            n = '-' if kull_i_shay < 0 else ''
+            st += f"{n}{kull_i_shay}"
 
         return st
 
@@ -492,10 +504,10 @@ class TimeDateUtils(BahaiCalendar):
 
     __METHOD_LOOKUP = {'a': a, 'A': A, 'b': b, 'B': B, 'c': c, 'C': C, 'd': d,
                        'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
-                       'j': j, 'k': H, 'l': I, 'm': m, 'M': M, 'm': m, 'M': M,
-                       'n': n, 'p': p, 'r': r, 'S': S, 'T': r, 'u': u, 'U': U,
-                       'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y, 'z': z, 'Z': Z,
-                       '%': percent
+                       'j': j, 'k': H, 'K': K, 'l': I, 'm': m, 'M': M, 'm': m,
+                       'M': M, 'n': n, 'p': p, 'r': r, 'S': S, 'T': r, 'u': u,
+                       'U': U, 'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y, 'z': z,
+                       'Z': Z, '%': percent
                        }
 
     def strftime(self, format:str, ttup:tuple) -> str:

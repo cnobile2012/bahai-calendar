@@ -271,42 +271,6 @@ class TestTimeDateUtils(unittest.TestCase):
                 _td_utils._checktm(ttup)
 
     #@unittest.skip("Temporarily skipped")
-    def test_strftime(self):
-        """
-        Test that the strftime method returns the correct string.
-        """
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-        ttup_l, ttup_s, ttup_tl, ttup_ts = 1, 2, 3, 4
-        data = (
-            ('%a', (1, 1, 1, 1, 1, 0, 0, 0), -1, ttup_l, 'Idā'),
-            ('%A', (1, 1, 1, 0, 0, 0), -1, ttup_s, '`Idāl'),
-            ('%b', (1, 1, 1, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, 'Bah'),
-            ('%B', (1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_ts, 'Bahá'),
-            ('%c', (1, 1, 1, 1, 1, 3, 1, 1), -1, ttup_l,
-             'Idā Bah  1 03:01:01 1 01 01'),
-            ('%c', (1, 1, 1, 3, 1, 1), -1, ttup_s, 'Idā Bah  1 03:01:01 0001'),
-            ('%C', (1, 10, 10, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '01'),
-            ('%C', (181, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '01'),
-            ('%d', (1, 1, 1, 1, 8, 0, 0, 0), -1, ttup_l, '08'),
-            ('%-d', (1, 1, 8, 0, 0, 0), -1, ttup_s, '8'),
-
-            )
-        msg = "Expected {}, with format {} and date {}. found {}."
-
-        for fmt, date, dstflag, t_type, expected_result in data:
-            if t_type == ttup_l:
-                ttup = _build_struct_time(_td_utils, date, dstflag)
-            elif t_type == ttup_s:
-                ttup = _build_struct_time(_td_utils, date, dstflag,
-                                          short_in=True)
-            else: # ttup_tl and ttup_ts
-                ttup = date + (dstflag,)
-
-            result = _td_utils.strftime(fmt, ttup)
-            self.assertEqual(expected_result, result, msg.format(
-                    expected_result, fmt, date, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test__check_format(self):
         """
         Test that the _check_format method does not raise an exception
@@ -338,3 +302,60 @@ class TestTimeDateUtils(unittest.TestCase):
                 result = _td_utils._check_format(fmt)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, fmt, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_strftime(self):
+        """
+        Test that the strftime method returns the correct string.
+        """
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        ttup_l, ttup_s, ttup_tl, ttup_ts = 1, 2, 3, 4
+        data = (
+            ('%a', (1, 1, 1, 1, 1, 0, 0, 0), -1, ttup_l, 'Idā'),
+            ('%A', (1, 1, 1, 0, 0, 0), -1, ttup_s, '`Idāl'),
+            ('%b', (1, 1, 1, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, 'Bah'),
+            ('%B', (1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_ts, 'Bahá'),
+            ('%c', (1, 1, 1, 1, 1, 3, 1, 1), -1, ttup_l,
+             'Idā Bah  1 03:01:01 1 01 01'),
+            ('%c', (1, 1, 1, 3, 1, 1), -1, ttup_s, 'Idā Bah  1 03:01:01 0001'),
+            ('%C', (1, 10, 10, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '01'),
+            ('%C', (181, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '01'),
+            ('%d', (1, 1, 1, 1, 8, 0, 0, 0), -1, ttup_l, '08'),
+            ('%-d', (1, 1, 8, 0, 0, 0), -1, ttup_s, '8'),
+            ('%D', (1, 10, 10, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '01/01/0181'),
+            ('%e', (181, 1, 9, 0, 0, 0, 1, 1), -1, ttup_ts, ' 9'),
+            ('%f', (1, 10, 10, 1, 1, 0, 0, 60.025), -1, ttup_l, '024999'),
+            ('%G', (181, 1, 1, 0, 0, 0), -1, ttup_s, '0181'),
+            ('%G', (_td_utils.MINYEAR, 1, 1, 0, 0, 0), -1, ttup_s, '-1842'),
+            ('%h', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, 'Jal'),
+            ('%H', (181, 1, 1, 3, 0, 0, 1, 1), -1, ttup_ts, '03'),
+            ('%-H', (1, 10, 10, 1, 1, 3, 0, 0), -1, ttup_l, '3'),
+            ('%I', (181, 1, 1, 13, 0, 0), -1, ttup_s, '01'),
+            ('%j', (1, 10, 10, 2, 1, 0, 0, 0), -1, ttup_l, '020'),
+            ('%-j', (1, 10, 10, 2, 1, 0, 0, 0), -1, ttup_l, '20'),
+            ('%k', (181, 1, 1, 3, 0, 0, 1, 1), -1, ttup_ts, '03'),
+            ('%:K', (1, 10, 10, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '1'),
+            ('%:K', (181, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '1'),
+            ('%l', (1, 10, 10, 1, 1, 13, 0, 0), -1, ttup_l, ' 1'),
+            ('%-l', (181, 1, 1, 13, 0, 0), -1, ttup_s, '1'),
+            ('%m', (1, 1, 1, 9, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '09'),
+            ('%-m', (1, 9, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '9'),
+            ('%M', (1, 10, 10, 1, 1, 0, 9, 0), -1, ttup_l, '09'),
+            ('%-M', (181, 1, 1, 0, 9, 0), -1, ttup_s, '9'),
+            ('%n', (1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, '\n'),
+
+            )
+        msg = "Expected {}, with format {} and date {}. found {}."
+
+        for fmt, date, dstflag, t_type, expected_result in data:
+            if t_type == ttup_l:
+                ttup = _build_struct_time(_td_utils, date, dstflag)
+            elif t_type == ttup_s:
+                ttup = _build_struct_time(_td_utils, date, dstflag,
+                                          short_in=True)
+            else: # ttup_tl and ttup_ts
+                ttup = date + (dstflag,)
+
+            result = _td_utils.strftime(fmt, ttup)
+            self.assertEqual(expected_result, result, msg.format(
+                    expected_result, fmt, date, result))

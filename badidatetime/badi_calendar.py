@@ -551,8 +551,8 @@ class BahaiCalendar(BaseCalendar):
     def date_from_kvymdhms(self, b_date:tuple, *, short:bool=False,
                            _chk_on:bool=True) -> tuple:
         """
-        Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second, ms)
-        into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
+        Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second,
+        ms) into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
 
         :param b_date: The Badi date in long form.
         :type b_date: tuple
