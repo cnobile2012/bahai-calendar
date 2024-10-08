@@ -22,6 +22,7 @@ class TestStructures(unittest.TestCase):
         Badi dates and times.
         """
         err_msg0 = "struct_time() takes a 9 or 11-sequence ({}-sequence given)"
+        err_msg1 = "Invalid isdst '{}', it must be in the range of [-1, 1]."
         data = (
             ((181, 9, 6, 8, 45, 1, 0, 0, -1), False,
              ("structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
@@ -32,6 +33,8 @@ class TestStructures(unittest.TestCase):
               "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=8, tm_min=45, "
               "tm_sec=1, tm_wday=0, tm_yday=0, tm_isdst=-1)", None, None)),
             ((181, 9, 6, 8, 45, 1, 0, 0, -1, 999), True, err_msg0.format(10)),
+            ((1, 1, 1, 1, 1, 1, 1, 1, -2), True, err_msg1.format(-2)),
+            ((1, 1, 1, 1, 1, 1, 1, 1, 2), True, err_msg1.format(2)),
             )
         msg0 = "Expected {}, with dt {}, found {}."
         msg1 = "Expected {}, fount {}."

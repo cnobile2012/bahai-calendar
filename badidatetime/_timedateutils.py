@@ -18,13 +18,13 @@ class TimeDateUtils(BahaiCalendar):
     DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl', '`Idāl',
                 'Istijlāl', 'Istiqlāl')
     DAYNAMES_ABV = ('Jal', 'Jam', 'Kam', 'Fiḍ', 'Idā', 'Isj', 'Isq')
-    MONTHNAMES = ('Bahá', 'Jalál', 'Jamál', "'Aẓamat", 'Núr', 'Raḥmat',
-                  'Kalimát', 'Kamál', "Asmá'", "'Izzat", 'Mashíyyat',
+    MONTHNAMES = ('Ayyám-i-Há', 'Bahá', 'Jalál', 'Jamál', "'Aẓamat", 'Núr',
+                  'Raḥmat', 'Kalimát', 'Kamál', "Asmá'", "'Izzat", 'Mashíyyat',
                   "'Ilm", 'Qudrat', 'Qawl', 'Masá’il', 'Sharaf', 'Sulṭán',
                   'Mulk', 'Ayyám-i-Há', "'Alá'")
-    MONTHNAMES_ABV = ('Bah', 'Jal', 'Jam', 'Aẓa', 'Núr', 'Raḥ', 'Kal', 'Kam',
-                      'Asm', 'Izz', 'Mas', 'Ilm', 'Qud', 'Qaw', 'Mas', 'Sha',
-                      'Sul', 'Mul', 'Ayy', 'Alá')
+    MONTHNAMES_ABV = ('Ayy', 'Bah', 'Jal', 'Jam', 'Aẓa', 'Núr', 'Raḥ', 'Kal',
+                      'Kam', 'Asm', 'Izz', 'Mas', 'Ilm', 'Qud', 'Qaw', 'Mas',
+                      'Sha', 'Sul', 'Mul', 'Ayy', 'Alá')
     DAYS_BEFORE_1ST_YEAR = 78
 
     def __init__(self):
@@ -95,47 +95,6 @@ class TimeDateUtils(BahaiCalendar):
     @property
     def time_format(self):
         return self._locale_data['t_format']
-
-    def strftime(self, format, ttup):
-        """
-        """
-        self._check_format(format)
-
-        if not isinstance(ttup, (tuple, ShortFormStruct, LongFormStruct)):
-            raise TypeError("strftime(): Illegal time tuple argument")
-
-        self._checktm(ttup)
-
-        if not isinstance(ttup, (ShortFormStruct, LongFormStruct)):
-            ttup = struct_time(ttup)
-
-        return self._parse_format(ttup, format)
-
-    def _check_format(self, fmt):
-        """
-        Check that the correct format was provided.
-        """
-        idx = 0
-        fmtlen = len(fmt)
-
-        while idx < fmtlen:
-            ch = fmt[idx]
-
-            if ch == '%':
-                ch0 = fmt[idx+1]
-                i = 2 if ch0 in '-:' else 1
-                ch1 = fmt[idx+i]
-
-                if ((ch1 not in self.VALID_FORMAT_CHRS) or
-                    (ch0 == '-' and ch1 not in 'dHjlmMSy') or
-                    (ch0 == ':' and ch1 not in 'KVz')):
-                    raise ValueError(
-                        f"Illegal format character '{fmt[idx:idx+i+1]}'")
-
-            idx += 1
-
-        if fmtlen == 0:
-            raise ValueError("Found an empty format string.")
 
     def _checktm(self, ttup:tuple) -> None:
         """
@@ -215,21 +174,17 @@ class TimeDateUtils(BahaiCalendar):
             f"Invalid day '{yday}' in year, it must be in the range of "
             "[1, 366].")
         assert -1 <= isdst <= 1, (
-            f"Invalid isdst '{isdst}', it must be in the range of [-1, 1]")
-
-    # %[aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%]
-    # %-[dHjlmMSy]
-    # %:[KVz]
+            f"Invalid isdst '{isdst}', it must be in the range of [-1, 1].")
 
     def a(self, ttup, org, mod):
         """
         """
-        return self.DAYNAME_ABV[ttup.tm_wday]
+        return self.DAYNAMES_ABV[ttup.tm_wday]
 
     def A(self, ttup, org, mod):
         """
         """
-        return self.DATNAME[ttup.tm_wday]
+        return self.DAYNAMES[ttup.tm_wday]
 
     def b(self, ttup, org, mod):
         """
@@ -242,21 +197,23 @@ class TimeDateUtils(BahaiCalendar):
         """
         return self.MONTHNAMES[ttup.tm_mon]
 
-    def c(self, ttup, mod):
+    def c(self, ttup, org, mod):
         """
         """
-        st = f"{self.DAYNAME_ABV[ttup.tm_wday]} "
+        st = f"{self.DAYNAMES_ABV[ttup.tm_wday]} "
         st += f"{self.MONTHNAMES_ABV[ttup.tm_mon]} "
-        st += f"{ttup.tm_mday:02} "
+        st += f"{ttup.tm_mday: 2} "
         st += f"{ttup.tm_hour:02}:"
-        st += f"{ttup.min:02}:"
-        st += f"{ttup.sec:02} "
+        st += f"{ttup.tm_min:02}:"
+        st += f"{ttup.tm_sec:02} "
 
         if not ttup.short:
             st += f"{ttup.tm_kull_i_shay} "
             st += f"{ttup.tm_vahid:02} "
+            st += f"{ttup.tm_year:02}"
+        else:
+            st += f"{ttup.tm_year:04}"
 
-        st += f"{ttup.tm_year}"
         return st
 
     def C(self, ttup, org, mod):
@@ -541,12 +498,39 @@ class TimeDateUtils(BahaiCalendar):
                        '%': percent
                        }
 
-    def _parse_format(self, ttup:struct_time, format:str) -> str:
+    def strftime(self, format:str, ttup:tuple) -> str:
         """
+        """
+        self._check_format(format)
+        self._checktm(ttup)
+
+        if not isinstance(ttup, (ShortFormStruct, LongFormStruct)):
+            ttup = struct_time(ttup)
+
+        idx = 0
+        fmtlen = len(format)
+        strf = ""
+
+        while idx < fmtlen:
+            ch = format[idx]
+
+            if ch == '%':
+                ch0 = format[idx+1]
+                i = 2 if ch0 in '-:' else 1
+                ch1 = format[idx+i]
+                strf += self.__METHOD_LOOKUP[ch1](
+                    self, ttup, ch1, ch0 if i == 2 else '')
+
+            idx += 1
+
+        return strf
+
+    def _check_format(self, fmt):
+        """
+        Check that the correct format was provided.
         """
         idx = 0
         fmtlen = len(fmt)
-        strf = ""
 
         while idx < fmtlen:
             ch = fmt[idx]
@@ -555,9 +539,17 @@ class TimeDateUtils(BahaiCalendar):
                 ch0 = fmt[idx+1]
                 i = 2 if ch0 in '-:' else 1
                 ch1 = fmt[idx+i]
-                strf += __METHOD_LOOKUP[ch1](ttup, ch1, ch0 if i == 2 else '')
 
-        return strf
+                if ((ch1 not in self.VALID_FORMAT_CHRS) or
+                    (ch0 == '-' and ch1 not in 'dHjlmMSy') or
+                    (ch0 == ':' and ch1 not in 'KVz')):
+                    raise ValueError(
+                        f"Invalid format character '{fmt[idx:idx+i+1]}'")
+
+            idx += 1
+
+        if fmtlen == 0:
+            raise ValueError("Found an empty format string.")
 
     def _find_midday(self, ttup):
         if ttup.short:

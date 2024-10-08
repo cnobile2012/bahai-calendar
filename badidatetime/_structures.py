@@ -82,8 +82,8 @@ class struct_time:
         short = cls.__is_short_form(date)
 
         if date[-1] not in (-1, 0, 1):
-            msg = (f"Invalid value for tm_isdst, found {date[-1]}, "
-                   "should be one of (-1, 0, 1).")
+            msg = (f"Invalid isdst '{date[-1]}', it must be in the range "
+                   "of [-1, 1].")
             raise ValueError(msg)
 
         if short:
