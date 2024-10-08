@@ -285,8 +285,10 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%c', (1, 1, 1, 1, 1, 3, 1, 1), -1, ttup_l,
              'Idā Bah  1 03:01:01 1 01 01'),
             ('%c', (1, 1, 1, 3, 1, 1), -1, ttup_s, 'Idā Bah  1 03:01:01 0001'),
-            
-
+            ('%C', (1, 10, 10, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '01'),
+            ('%C', (181, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '01'),
+            ('%d', (1, 1, 1, 1, 8, 0, 0, 0), -1, ttup_l, '08'),
+            ('%-d', (1, 1, 8, 0, 0, 0), -1, ttup_s, '8'),
 
             )
         msg = "Expected {}, with format {} and date {}. found {}."
