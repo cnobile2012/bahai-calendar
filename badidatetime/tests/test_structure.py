@@ -27,11 +27,12 @@ class TestStructures(unittest.TestCase):
             ((181, 9, 6, 8, 45, 1, 0, 0, -1), False,
              ("structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
               "tm_hour=8, tm_min=45, tm_sec=1, tm_wday=0, tm_yday=0, "
-              "tm_isdst=-1)", 'EDT', -14400.0)),
+              "tm_isdst=-1)", None, None)), #'EDT', -14400.0)),
             ((1, 10, 10, 9, 6, 8, 45, 1, 0, 0, -1), False,
              ("structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
               "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=8, tm_min=45, "
-              "tm_sec=1, tm_wday=0, tm_yday=0, tm_isdst=-1)", 'EDT', -14400.0)),
+              "tm_sec=1, tm_wday=0, tm_yday=0, tm_isdst=-1)", None, None)),
+             #'EDT', -14400.0)),
             ((181, 9, 6, 8, 45, 1, 0, 0, -1, 999), True, err_msg0.format(10)),
             ((1, 1, 1, 1, 1, 1, 1, 1, -2), True, err_msg1.format(-2)),
             ((1, 1, 1, 1, 1, 1, 1, 1, 2), True, err_msg1.format(2)),

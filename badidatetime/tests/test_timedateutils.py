@@ -29,6 +29,10 @@ class TestTimeDateUtils(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
+    @classmethod
+    def setUpClass(cls):
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+
     #@unittest.skip("Temporarily skipped")
     def test__order_format(self):
         """
@@ -167,7 +171,7 @@ class TestTimeDateUtils(unittest.TestCase):
         err_msg12 = "The ttup argument {} is not a proper tuple."
         data = (
             ### Valid tuples
-            ((MIN_K, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, False, ''),
+            ((MIN_K, 18, 1, 1, 1, 1, 1, 1), -1, ttup_l, False, ''),
             ((1, 10, 10, 9, 6, 8, 45, 1), -1, ttup_l, False, ''),
             ((MAX_K, 5, 2, 19, 19, 1, 1, 1), -1, ttup_l, False, ''),
             ((MIN_Y, 1, 1, 0, 0, 0), -1, ttup_s, False, ''),
@@ -308,7 +312,6 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         Test that the strftime method returns the correct string.
         """
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
         ttup_l, ttup_s, ttup_tl, ttup_ts = 1, 2, 3, 4
         data = (
             ('%a', (1, 1, 1, 1, 1, 0, 0, 0), -1, ttup_l, 'Idā'),

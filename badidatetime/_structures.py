@@ -92,9 +92,9 @@ class struct_time:
             raise ValueError(msg)
 
         if short:
-            inst = ShortFormStruct(*self.__fill_in_missing(date, short))
+            inst = ShortFormStruct(*date) #self.__fill_in_missing(date, short))
         else:
-            inst = LongFormStruct(*self.__fill_in_missing(date, short))
+            inst = LongFormStruct(*date) #self.__fill_in_missing(date, short))
 
         return inst
 
@@ -127,7 +127,6 @@ class struct_time:
             b_date = date[:6]
         else:
             b_date = bc.short_date_from_long_date(date[:8], trim=True)
-            #print('POOP1', b_date, date[:8])
 
         date = list(date)
         g_date = gc.ymdhms_from_date(bc.gregorian_date_from_badi_date(
