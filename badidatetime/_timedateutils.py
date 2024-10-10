@@ -50,7 +50,7 @@ class TimeDateUtils(BahaiCalendar):
         try:
             # Get the date format for the current locale
             date_format = locale.nl_langinfo(locale.D_FMT)
-        except AttributeError:
+        except AttributeError: # pragma: no cover
             date_format = '%m/%d/%y'
 
         self._locale_data['d_format'] = self._order_format(
@@ -134,8 +134,8 @@ class TimeDateUtils(BahaiCalendar):
             elif t_len == 11: # Short form
                 year = process_short_form(ttup)
                 idx = 1
-            else:
-                raise TypeError(f"Ivalid timetuple, found length {t_len}, "
+            else: # pragma: no cover
+                raise TypeError(f"Invalid timetuple, found length {t_len}, "
                                 f"{dir(ttup)}.")
         else: # A Tuple or class derived from a standard tuple
             if t_len == 11: # Long form
@@ -145,7 +145,7 @@ class TimeDateUtils(BahaiCalendar):
                 year = process_short_form(ttup)
                 idx = 1
             else:
-                raise TypeError(f"Ivalid timetuple, found length {t_len}, "
+                raise TypeError(f"Invalid timetuple, found length {t_len}, "
                                 f"{dir(ttup)}.")
 
         month = ttup[idx]
@@ -270,9 +270,7 @@ class TimeDateUtils(BahaiCalendar):
     def H(self, ttup, org, mod):
         """
         """
-        if org == 'k' and mod == '-':
-            st = f"{ttup.tm_hour: 2}"
-        elif mod == '-': # %-H
+        if mod == '-': # %-H
             st = f"{ttup.tm_hour}"
         else: # %H
             st = f"{ttup.tm_hour:02}"
@@ -513,7 +511,7 @@ class TimeDateUtils(BahaiCalendar):
         while idx < fmtlen:
             ch = format[idx]
 
-            if ch == '%':
+            if ch == '%' and idx+1 < fmtlen:
                 ch0 = format[idx+1]
                 i = 2 if ch0 in '-:' else 1
                 ch1 = format[idx+i]
@@ -524,26 +522,26 @@ class TimeDateUtils(BahaiCalendar):
 
         return strf
 
-    def _check_format(self, fmt):
+    def _check_format(self, format):
         """
         Check that the correct format was provided.
         """
         idx = 0
-        fmtlen = len(fmt)
+        fmtlen = len(format)
 
         while idx < fmtlen:
-            ch = fmt[idx]
+            ch = format[idx]
 
-            if ch == '%':
-                ch0 = fmt[idx+1]
+            if ch == '%' and format[idx-1] != '%':
+                ch0 = format[idx+1]
                 i = 2 if ch0 in '-:' else 1
-                ch1 = fmt[idx+i]
+                ch1 = format[idx+i]
 
                 if ((ch1 not in self.VALID_FORMAT_CHRS) or
                     (ch0 == '-' and ch1 not in 'dHjlmMSy') or
                     (ch0 == ':' and ch1 not in 'KVz')):
                     raise ValueError(
-                        f"Invalid format character '{fmt[idx:idx+i+1]}'")
+                        f"Invalid format character '{format[idx:idx+i+1]}'")
 
             idx += 1
 
