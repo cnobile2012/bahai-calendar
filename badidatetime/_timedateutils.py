@@ -297,12 +297,9 @@ class TimeDateUtils(BahaiCalendar):
                                               ttup.tm_sec)
 
         if midday_frac <= time_frac:
-            hour = round(ttup.tm_hour - midday_frac)
+            hour = ttup.tm_hour - 12
         else:
-            hour = round(ttup.tm_hour)
-
-        if hour > 12:
-            hour -= 12
+            hour = ttup.tm_hour
 
         if org == 'l' and mod == '-':
             st = f"{hour}"
@@ -310,8 +307,6 @@ class TimeDateUtils(BahaiCalendar):
             st = f"{hour: 2}"
         else: # %I
             st = f"{hour:02}"
-
-            print('POOP', st)
 
         return st
 
@@ -358,7 +353,8 @@ class TimeDateUtils(BahaiCalendar):
         """
         """
         midday_frac = self._find_midday(ttup)
-        time_frac = self.decimal_day_from_hms(ttup.hour, ttup.min, ttup.sec)
+        time_frac = self.decimal_day_from_hms(ttup.tm_hour, ttup.tm_min,
+                                              ttup.tm_sec)
 
         if midday_frac <= time_frac:
             st = self.pm
@@ -403,7 +399,12 @@ class TimeDateUtils(BahaiCalendar):
         """
         """
         if mod == ':':
-            st = f"{ttup.tm_vahid:02}"
+            if ttup.short:
+                date = self.long_date_from_short_date(
+                    (ttup.tm_year, ttup.tm_mon, ttup.tm_mday))
+                st = f"{date[1]:02}"
+            else:
+                st = f"{ttup.tm_vahid:02}"
         else:
             year = self._get_year(ttup)
             year, week, day = self._year_week_day(year, ttup.tm_mon,
@@ -418,21 +419,13 @@ class TimeDateUtils(BahaiCalendar):
         year = self._get_year(ttup)
         n = '-' if year < 0 else ''
         delim = self.date_format[0]
+        century = int(year / 100) * 100
         data = []
 
-        for value in self.date_format[1:]:
-            if value == 'y':
-                data.append(f"{n}{abs(year - century):02}")
-            elif value == 'Y':
-                century = int(year / 100) * 100
-                data.append(f"{n}{abs(year):04}")
-            elif value == 'm':
-                data.append(f"{ttup.tm_mon:02}")
-            else: # %d
-                data.append(f"ttup.tm_mday:02")
+        for fmt in self.date_format[1:]:
+            data.append(getattr(self, fmt)(ttup, '', ''))
 
-        return "".join([v + f"{delim}" if idx < (len(data) - 1) else ''
-                        for idx, v in enumerate(data)])
+        return f"{delim}".join(data)
 
     def X(self, ttup, org, mod):
         """
@@ -440,16 +433,10 @@ class TimeDateUtils(BahaiCalendar):
         delim = self.time_format[0]
         data = []
 
-        for value in self.time_format[1:]:
-            if value == 's':
-                data.append(f"{ttup.tm_sec:02}")
-            elif value == 'm':
-                data.append(f"{ttup.tm_min:02}")
-            else: # %h
-                data.append(f"{ttup.tm_hour:02}")
+        for fmt in self.time_format[1:]:
+            data.append(getattr(self, fmt)(ttup, '', ''))
 
-        return "".join([v + f"{delim}" if idx < (len(data) - 1) else ''
-                        for idx, v in enumerate(data)])
+        return f"{delim}".join(data)
 
     def y(self, ttup, org, mod):
         """
@@ -506,8 +493,8 @@ class TimeDateUtils(BahaiCalendar):
                        'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
                        'j': j, 'k': H, 'K': K, 'l': I, 'm': m, 'M': M, 'm': m,
                        'M': M, 'n': n, 'p': p, 'r': r, 'S': S, 'T': r, 'u': u,
-                       'U': U, 'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y, 'z': z,
-                       'Z': Z, '%': percent
+                       'U': U, 'V': V, 'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y,
+                       'z': z, 'Z': Z, '%': percent
                        }
 
     def strftime(self, format:str, ttup:tuple) -> str:
@@ -565,10 +552,12 @@ class TimeDateUtils(BahaiCalendar):
 
     def _find_midday(self, ttup):
         if ttup.short:
-            date = (ttup.tm_year, ttup.tm_mon, ttup.tm_mday)
+            date = (ttup.tm_year, ttup.tm_mon, ttup.tm_mday, ttup.tm_hour,
+                    ttup.tm_min, ttup.tm_sec)
         else:
             date = (ttup.tm_kull_i_shay, ttup.tm_vahid, ttup.tm_year,
-                    ttup.tm_mon, ttup.tm_mday)
+                    ttup.tm_mon, ttup.tm_mday, ttup.tm_hour, ttup.tm_min,
+                    ttup.tm_sec)
 
         return self.midday(date)
 

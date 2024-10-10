@@ -658,7 +658,7 @@ class BahaiCalendar(BaseCalendar):
 
     def gregorian_date_from_badi_date(self, b_date:tuple, lat:float=None,
                                       lon:float=None, zone:float=None, *,
-                                      _exact=True) -> tuple:
+                                      _exact=True, _chk_on=True) -> tuple:
         """
         Get the Gregorian date from the Badi date.
 
@@ -675,10 +675,15 @@ class BahaiCalendar(BaseCalendar):
                        False value, in this method will give inaccurate
                        results and is used for testing only.
         :type _exact: bool
+        :param _chk_on: If True (default) all date check are enforced else
+                        if False they are turned off. This is only used
+                        internally. Don't use unless you know what you are
+                        doing.
+        :type _chk_on: bool
         :return: The Gregorian date.
         :rtype: tuple
         """
-        jd = self.jd_from_badi_date(b_date, lat, lon, zone)
+        jd = self.jd_from_badi_date(b_date, lat, lon, zone, _chk_on=_chk_on)
         return self._gc.gregorian_date_from_jd(jd, exact=_exact)
 
     def posix_timestamp(self, t:float, lat=None, lon=None, zone=None, *,

@@ -5,7 +5,12 @@
 __docformat__ = "restructuredtext en"
 
 import time
+import tzlocal
 from typing import NamedTuple
+from datetime import datetime
+
+from .badi_calendar import BahaiCalendar
+from .gregorian_calendar import GregorianCalendar
 
 
 class ShortFormStruct(NamedTuple):
@@ -87,9 +92,9 @@ class struct_time:
             raise ValueError(msg)
 
         if short:
-            inst = ShortFormStruct(*date)
+            inst = ShortFormStruct(*self.__fill_in_missing(date, short))
         else:
-            inst = LongFormStruct(*date)
+            inst = LongFormStruct(*self.__fill_in_missing(date, short))
 
         return inst
 
@@ -106,3 +111,28 @@ class struct_time:
                             f"({d_size}-sequence given)")
 
         return short
+
+    @classmethod
+    def __fill_in_missing(cls, date, short):
+        """
+        Fill in missing data.
+
+        *** TODO *** We need to convert the Gregorian datetime objects to
+        Badi datetime objects when they are completed.
+        """
+        bc = BahaiCalendar()
+        gc = GregorianCalendar()
+
+        if short:
+            b_date = date[:6]
+        else:
+            b_date = bc.short_date_from_long_date(date[:8], trim=True)
+            #print('POOP1', b_date, date[:8])
+
+        date = list(date)
+        g_date = gc.ymdhms_from_date(bc.gregorian_date_from_badi_date(
+            b_date, _chk_on=False), ms=True)
+        g_dt = datetime(*g_date, tzinfo=tzlocal.get_localzone())
+        # tm_zone and tm_gmtoff
+        date += [g_dt.tzname(), g_dt.utcoffset().total_seconds()]
+        return tuple(date)
