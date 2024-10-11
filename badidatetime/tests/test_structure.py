@@ -7,7 +7,6 @@ __docformat__ = "restructuredtext en"
 import unittest
 
 from .._structures import struct_time
-from ..datetime import _build_struct_time
 
 
 class TestStructures(unittest.TestCase):

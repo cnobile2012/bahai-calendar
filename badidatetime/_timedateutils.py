@@ -7,6 +7,7 @@ __docformat__ = "restructuredtext en"
 import time
 import locale
 import math
+from typing import NamedTuple
 
 from ._structures import struct_time, ShortFormStruct, LongFormStruct
 from .badi_calendar import BahaiCalendar
@@ -25,7 +26,10 @@ class TimeDateUtils(BahaiCalendar):
     MONTHNAMES_ABV = ('Ayy', 'Bah', 'Jal', 'Jam', 'Aẓa', 'Núr', 'Raḥ', 'Kal',
                       'Kam', 'Asm', 'Izz', 'Mas', 'Ilm', 'Qud', 'Qaw', 'Mas',
                       'Sha', 'Sul', 'Mul', 'Ayy', 'Alá')
+    # This keeps the Badi day count in par with the Gregorian day count.
     DAYS_BEFORE_1ST_YEAR = 78
+    MINYEAR = -1842
+    MAXYEAR = 1161
 
     def __init__(self):
         """
@@ -582,27 +586,25 @@ class TimeDateUtils(BahaiCalendar):
 
         return year, week+1, day+1
 
+    # Methods from the datetime package.
+
     def _days_before_year(self, year:int) -> float:
         """
         Get the number of days before the 1st of Baha of the year.
 
-        :param bc: BahaiCalendar instance.
-        :type bc: object
         :param year: Badi year
         :type year: int
         :return: The number of days since (-1841, 19, 19) of the Badi calendar.
         :rtype: int
         """
         jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19))
-        jd1 = self.jd_from_badi_date((year, 1, 1))
+        jd1 = self.jd_from_badi_date((year, 1, 1), _chk_on=False)
         return math.floor(jd1 - jd0) - 1
 
     def _days_in_month(self, year:int, month:int) -> int:
         """
         The number of days in that month in that year.
 
-        :param bc: BahaiCalendar instance.
-        :type bc: BahaiCalendar
         :param year: Badi year
         :type year: int
         :param month: Badi month (0..19)
@@ -616,8 +618,6 @@ class TimeDateUtils(BahaiCalendar):
         """
         The number of days in the year preceding the first day of month.
 
-        :param bc: BahaiCalendar instance.
-        :type bc: BahaiCalendar
         :param year: Badi year
         :type year: int
         :param month: Badi month (0..19)
@@ -625,7 +625,8 @@ class TimeDateUtils(BahaiCalendar):
         :return: The number in the year preceding the first day of month.
         :rtype: int
         """
-        assert 0 <= month <= 19, "Month must be in range of 0..19"
+        #assert 0 <= month <= 19, (f"Invalid month '{month}', it must be "
+        #                          "in the range of [0, 19].")
         month -= -18 if month < 2 else 1 if 1 < month < 19 else 19
         dbm = 0
 
@@ -636,6 +637,24 @@ class TimeDateUtils(BahaiCalendar):
 
         return dbm
 
+    def _day_of_week(self, year:int, month:int, day:int) -> int:
+        """
+        Find the day of the week where 0 == Jalál (Saturday) and
+        6 == Istiqlāl (Friday). For ISO compatability add 1 to the result.
+
+        :param year: Badi year
+        :type year: int
+        :param month: Badi month (0..19)
+        :type month: int
+        :param day: Badi day
+        :type day: int
+        :return: The numerical day of the week.
+        :rtype: int
+        """
+        # Since the usual start day is Monday (Kamál) a properly aligned
+        # day number to the day name we need to add 1 to the ordinal.
+        return ((self._ymd2ord(year, month, day) + 1) % 7 + 7) % 7
+
     def _ymd2ord(self, year:int, month:int, day:int) -> int:
         """
         Get the number of days since Badi year -1842 (Gregorian 0001-03-20)
@@ -643,8 +662,6 @@ class TimeDateUtils(BahaiCalendar):
 
         year, month, day -> ordinal, considering -1842-01-01 as day 1.
 
-        :param bc: BahaiCalendar instance.
-        :type bc: BahaiCalendar
         :param year: Badi year
         :type year: int
         :param month: Badi month (0..19)
@@ -655,7 +672,8 @@ class TimeDateUtils(BahaiCalendar):
                  current day.
         :rtype: int
         """
-        assert 0 <= month <= 19, "Month must be in range of 0..19"
+        #assert 0 <= month <= 19, (f"Invalid month '{month}', it must be "
+        #                          "in the range of [0, 19].")
         dim = self._days_in_month(year, month)
         assert 1 <= day <= dim, (
             f"Day '{day}' for month {month} must be in range of 1..{dim}")
@@ -664,13 +682,90 @@ class TimeDateUtils(BahaiCalendar):
         return (self.DAYS_BEFORE_1ST_YEAR + self._days_before_year(year) +
                 self._days_before_month(year, month) + day)
 
+    def _ord2ymd(self, n:int, *, short:bool=False) -> tuple:
+        """
+        It is more difficult to do this in the Badi Calendar because a Badi
+        day can be more or less than 24 hours depending on when sunset is
+        and the time of the year. From the summer Solstice to the winter
+        Solstice the days get shorter. The day slowly comes down to 24 hours
+        around the Fall Equinox and then below 24 hours. The inverse happens
+        between the Winter Solstice and the Summer Solstice. We just use the
+        BadiCalendar API.
+
+        :param n: The ordinal number of days from the MINYEAR.
+        :type n: int
+        :param short: If True then parse for a short date else if False
+                      parse for a long date.
+        :type short: bool
+        :return: The Badi date.
+        :rtype: tuple
+        """
+        # We subtract 78 days from the total so that the Badi date will
+        # be the same as the date value passed into _ymd2ord.
+        jd = (self.jd_from_badi_date((self.MINYEAR-1, 19, 19)) -
+              self.DAYS_BEFORE_1ST_YEAR + n)
+        return self.badi_date_from_jd(jd, short=short, rtd=True)
+
+    def _build_struct_time(self, date:tuple, dstflag:int, *,
+                           short_in=False) -> NamedTuple:
+        if short_in:
+            y, m, d, hh, mm, ss = date
+        else:
+            y, m, d, hh, mm, ss, ms = self.short_date_from_long_date(
+                date, _chk_on=False)
+
+        wday = self._day_of_week(y, m, d)
+        dnum = self._days_before_month(y, m) + d
+        return struct_time(date + (wday, dnum, dstflag))
+
+    def _isoweek_to_badi(self, year:int, week:int, day:int, *,
+                         short:bool=False) -> tuple:
+        """
+        The week counts from Jalal (Saturday) as the first day and Istiqlal
+        (Friday) the last day of the week. This is different from the usual
+        way ISO weeks are counted which is Monday to Sunday.
+
+        :param year: Badi year.
+        :type year: int
+        :param month: Badi month (0..19)
+        :type month: int
+        :param day: Badi day in week.
+        :type day: int
+        :param short: If True then parse for a short date else if False
+                      parse for a long date.
+        :type short: bool
+        :return: A Badi date.
+        :rtype: tuple
+        :raises AssertionError: If the week or weekday is out of range.
+        """
+        if not 0 < week < 53:
+            out_of_range = True
+
+            if week == 53:
+                # ISO years have 53 weeks in them on years starting with a
+                # Fidal (Tuesday) and leap years starting on a Kamal
+                # (Monday). Badi weeks start on Jalal (Saturday).
+                first_weekday = self._ymd2ord(year, 1, 1) % 7
+
+                if (first_weekday == 4 or (first_weekday == 3 and
+                                           self._is_leap_year(year))):
+                    out_of_range = False
+
+            assert not out_of_range, f"Invalid week: {week}"
+
+        assert 0 < day < 8, f"Invalid weekday: {day} (range is 1..7)"
+        # Now compute the offset from (Y, 1, 1) in days:
+        day_offset = (week - 1) * 7 + (day - 1)
+        # Calculate the ordinal day for Jalal, week 1
+        day_1 = self._isoweek1jalal(year)
+        ord_day = day_1 + day_offset
+        return self._ord2ymd(ord_day, short=short)
+
     def _isoweek1jalal(self, year:int) -> int:
         """
         Calculate the day number of Jalal (Saturday) starting week 1. It
         would be the first week with 4 or more days in the year in question.
 
-        :param bc: BahaiCalendar instance.
-        :type bc: BahaiCalendar
         :param year: Badi year
         :type year: int
         :return: The number of the first Jalal in the Badi year.
@@ -684,5 +779,267 @@ class TimeDateUtils(BahaiCalendar):
             week1jalal += 7
 
         return week1jalal
+
+    def _parse_isoformat_date_time(self, dtstr:str) -> tuple:
+        """
+        Parse both the date and time represented in an ISO string into a
+        date and time tuple.
+
+        :param dtstr: A ISO compliant time string.
+        :type dtstr: str
+        :return: The year, month, and day parsed from a ISO string.
+        :rtype: tuple
+        :return: The date and time.
+        :rtype: tuple
+        """
+        tc = dtstr.count('T')
+        sc = dtstr.count(' ')
+        idx = dtstr.index('T') if tc else dtstr.index(' ') if sc else len(dtstr)
+        str_date = dtstr[:idx].strip('T ')
+        str_time = dtstr[idx:]
+        date = self._parse_isoformat_date(str_date) if str_date else ()
+        time = self._parse_isoformat_time(str_time) if str_time else ()
+        return date + time
+
+    def _parse_isoformat_date(self, dtstr:str) -> tuple:
+        """
+        Parse a date ISO formatted string.
+
+        :param dtstr: A ISO compliant time string.
+        :type dtstr: str
+        :return: The year, month, and day parsed from a ISO string.
+        :rtype: tuple
+        :raises AssertionError: Raised when the year is out of range or when too
+                                many hyphens are used.
+        :raises IndexError: When a string index is out of range.
+        :raises ValueError: Raised when an invalid string is being parsed to
+                            an integer or when an invalid ISO string is being
+                            parsed.
+        """
+        if dtstr != '':
+            neg = dtstr[0] == '-'
+            year = int(dtstr[:4 + neg])
+            assert _td_utils.MINYEAR <= year <= _td_utils.MAXYEAR, (
+                f"Year is out of range: {year}, min {_td_utils.MINYEAR}, "
+                f"max {_td_utils.MAXYEAR}.")
+            dtstr = dtstr[1:] if neg else dtstr
+
+        dc = dtstr.count('-')
+        wc = dtstr.count('W')
+        assert (wc == 0 and dc in (0, 1, 2)) or (wc == 1 and dc in (0, 1, 2)), (
+            "Invalid format, there must be between 0 to 2 hyphens (-) in the "
+            "date format or there can be one uppercase (W) week identifier and "
+            "between 0 and 2 hyphens (-) used.")
+        d_len = len(dtstr)
+
+        if dc == 1 and d_len == 7 and not wc:   # YYYY-MM
+            date = (year, int(dtstr[5:7]), 1)
+        elif dc == 0 and d_len == 8 and not wc: # YYYYMMDD
+            date = (year, int(dtstr[4:6]), int(dtstr[7:9]))
+        elif dc == 2 and not wc:                # YYYY-MM-DD
+            date = (year, int(dtstr[5:7]), int(dtstr[8:10]))
+        elif wc and 7 <= d_len <=10: # YYYYWww, YYYY-Www, YYYYWwwD, YYYY-Www-D
+            pos = 5 if dc == 0 else 6
+            wday = int(dtstr[pos:pos+2])
+            pos += 2 if dc == 0 else 3
+            d = dtstr[pos:]
+            assert (dc == 1 and d_len == 8) or dc in (0, 2), (
+                f"Invalid ISO string {dtstr}.")
+            day = int(d) if d.isdigit() else 1
+            date = self._isoweek_to_badi(year, wday, day, short=True)[:3]
+        elif d_len in (7, 8):                   # YYYYDDD or YYYY-DDD
+            month_days = [(n, 19) for n, v in self.BADI_MONTH_NAMES]
+            month_days[18] = (0, 4 + self._is_leap_year(year))
+            days = int(dtstr[4:7] if dc == 0 else dtstr[5:8])
+
+            for month, ds in month_days:
+                if days <= ds: break
+                days -= ds
+
+            date = (year, month, days)
+        else:
+            date = ()
+
+        return date
+
+    def _parse_isoformat_time(self, dtstr:str) -> tuple:
+        """
+        Parse a time ISO formatted string.
+
+        :param dtstr: A ISO compliant time string.
+        :type dtstr: str
+        :return: The hour, minute, and second parsed from an ISO string.
+        :rtype: tuple
+        :raises AssertionError: Raised when there are invalid time designators,
+                                when to many colons used, or when too many dots
+                                are used.
+        :raises ValueError: Raised when an invalid string is being parsed to
+                            an integer or when an invalid ISO string is being
+                            parsed.
+        """
+        tc = dtstr.count('T')
+        sc = dtstr.count(' ')
+        assert ((tc == 0 and sc == 0) or
+                (tc == 1 or sc == 1) and (tc or sc) and not (tc and sc)), (
+            "Cannot have both a 'T' and a space or more than one of either to "
+            "indicate time.")
+
+        if sc:
+            dtstr = "T" + dtstr[1:]
+            del sc
+            tc = 1
+
+        cc = dtstr.count(':')
+        assert cc < 3, f"Invalid number of colons (:), can be 0 - 2, found {cc}"
+        pc = dtstr.count('.')
+        assert pc <= 1, f"Invalid number of dots (.), can be 0 - 1, found {pc}"
+        t_len = len(dtstr)
+
+        if t_len > 2:
+            hour = int(dtstr[1:3])
+            pos0 = 1 if cc else 0
+            pos1 = 2 if cc == 2 else 0
+
+            if t_len > 3:
+                if dtstr[3] == '.': # Thh.hhh
+                    ph = float(dtstr[3:]) * 60
+                    minute = math.floor(ph)
+                    second = (ph % 1) * 60
+                    time = (hour, minute, second)
+                elif dtstr[5+pos0:6+pos0] == '.': # Thhmm.mmm or Thh:mm.mmm
+                    minute = int(dtstr[3+pos0:5+pos0])
+                    pm = float(dtstr[5+pos0:])
+                    second = pm * 60
+                    time = (hour, minute, second)
+                elif dtstr[7+pos0:8+pos0] == '.': # Thhmmss.sss or Thh:mm:ss.sss
+                    minute = int(dtstr[3+pos0:5+pos0])
+                    second = float(dtstr[5+pos0:])
+                    time = (hour, minute, second)
+                elif t_len == 5+pos0: # Thhmm or Thh:mm
+                    minute = int(dtstr[3+pos0:5+pos0])
+                    time = (hour, minute, 0)
+                elif t_len >= 7+pos1: # Thhmmss.sss or Thh:mm:ss.sss
+                    minute = int(dtstr[3+pos0:5+pos0])
+                    second = float(dtstr[5+pos1:])
+                    time = (hour, minute, second)
+                else:
+                    raise ValueError(f"Invalid time string, found {dtstr}")
+            else: # Thh
+                time = (hour, 0, 0)
+        else:
+            time = ()
+
+        return time
+
+    def _check_date_fields(self, a:int, b:int, c:int, d:int=None,
+                           e:int=None, *, short_in:bool=False) -> None:
+        """
+        Check the validity of the date.
+
+        :param a: The long form Kull-i-Shay or short form year.
+        :type a: int
+        :param b: The long form Váḥid or short form month.
+        :type b: int
+        :param c: The long form year or short form day.
+        :type c: int
+        :param d: The long form month.
+        :type d: int
+        :param e: The long form day.
+        :param short_in: If True then parse for a short date else if False
+                         parse for a long date. This is for incoming dates
+                         not outgoing dates as in most other uses of 'short'.
+        :type short_in: bool
+        :return: Nothing
+        :rtype: None
+        :raises AssertionError: If any of the date values are out of range.
+        """
+        if short_in:
+            b_date = (a, b, c)
+        else:
+            b_date = (a, b, c, d, e)
+
+        self._check_valid_badi_date(b_date, short_in=short_in)
+
+    def _wrap_strftime(object, format, timetuple):
+        """
+        Correctly substitute for %z and %Z escapes in strftime formats.
+        """
+        # Don't call utcoffset() or tzname() unless actually needed.
+        freplace = None  # the string to use for %f
+        zreplace = None  # the string to use for %z
+        Zreplace = None  # the string to use for %Z
+
+        # Scan format for %z and %Z escapes, replacing as needed.
+        newformat = []
+        push = newformat.append
+        i, n = 0, len(format)
+
+        while i < n:
+            ch = format[i]
+            i += 1
+
+            if ch == '%':
+                if i < n:
+                    ch = format[i]
+                    i += 1
+
+                    if ch == 'f':
+                        if freplace is None:
+                            freplace = '%06d' % getattr(
+                                object, 'microsecond', 0)
+
+                        newformat.append(freplace)
+                    elif ch == 'z':
+                        if zreplace is None:
+                            zreplace = ""
+
+                            if hasattr(object, "utcoffset"):
+                                offset = object.utcoffset()
+
+                                if offset is not None:
+                                    sign = '+'
+
+                                    if offset.days < 0:
+                                        offset = -offset
+                                        sign = '-'
+
+                                    h, rest = divmod(offset, timedelta(hours=1))
+                                    m, rest = divmod(rest, timedelta(minutes=1))
+                                    s = rest.seconds
+                                    u = offset.microseconds
+
+                                    if u:
+                                        zreplace = '%c%02d%02d%02d.%06d' % (
+                                            sign, h, m, s, u)
+                                    elif s:
+                                        zreplace = '%c%02d%02d%02d' % (
+                                            sign, h, m, s)
+                                    else:
+                                        zreplace = '%c%02d%02d' % (sign, h, m)
+
+                        assert '%' not in zreplace
+                        newformat.append(zreplace)
+                    elif ch == 'Z':
+                        if Zreplace is None:
+                            Zreplace = ""
+
+                            if hasattr(object, "tzname"):
+                                s = object.tzname()
+
+                                # strftime is going to have at this: escape %
+                                if s is not None:
+                                    Zreplace = s.replace('%', '%%')
+
+                        newformat.append(Zreplace)
+                    else:
+                        push('%')
+                        push(ch)
+                else:
+                    push('%')
+            else:
+                push(ch)
+
+        newformat = "".join(newformat)
+        return self.strftime(newformat, timetuple)
 
 _td_utils = TimeDateUtils()
