@@ -508,8 +508,7 @@ class TimeDateUtils(BahaiCalendar):
         if not isinstance(ttup, (ShortFormStruct, LongFormStruct)):
             ttup = struct_time(ttup)
 
-        idx = 0
-        fmtlen = len(format)
+        idx, fmtlen = 0, len(format)
         strf = ""
 
         while idx < fmtlen:
@@ -521,6 +520,8 @@ class TimeDateUtils(BahaiCalendar):
                 ch1 = format[idx+i]
                 strf += self.__METHOD_LOOKUP[ch1](
                     self, ttup, ch1, ch0 if i == 2 else '')
+            elif format[idx-1] not in '%-:':
+                strf += ch
 
             idx += 1
 
@@ -585,8 +586,6 @@ class TimeDateUtils(BahaiCalendar):
                 week = 0
 
         return year, week+1, day+1
-
-    # Methods from the datetime package.
 
     def _days_before_year(self, year:int) -> float:
         """
@@ -960,7 +959,7 @@ class TimeDateUtils(BahaiCalendar):
 
         self._check_valid_badi_date(b_date, short_in=short_in)
 
-    def _wrap_strftime(object, format, timetuple):
+    def _wrap_strftime(self, object, format, timetuple):
         """
         Correctly substitute for %z and %Z escapes in strftime formats.
         """

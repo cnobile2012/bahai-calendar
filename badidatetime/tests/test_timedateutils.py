@@ -13,8 +13,8 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
+from ..datetime import date as ddate
 from .._timedateutils import _td_utils
-#from ..datetime import _build_struct_time
 from ..badi_calendar import BahaiCalendar
 
 
@@ -288,39 +288,6 @@ class TestTimeDateUtils(unittest.TestCase):
                 _td_utils._checktm(ttup)
 
     #@unittest.skip("Temporarily skipped")
-    def test__check_format(self):
-        """
-        Test that the _check_format method does not raise an exception
-        with an invalid format.
-        """
-        err_msg0 = "Invalid format character '{}'"
-        err_msg1 = "Found an empty format string."
-        data = (
-            ('%c', False, None),
-            ('%X', False, None),
-            ('%P', True, err_msg0.format('%P')),
-            ('%-P', True, err_msg0.format('%-P')),
-            ('%:P', True, err_msg0.format('%:P')),
-            ('', True, err_msg1),
-            )
-        msg = "Expected {}, with {}. found {}."
-
-        for fmt, validity, expected_result in data:
-            if validity:
-                try:
-                    result = _td_utils._check_format(fmt)
-                except ValueError as e:
-                    self.assertEqual(expected_result, str(e))
-                else:
-                    result = result if result else None
-                    raise AssertionError(f"With '{fmt}' an error is not "
-                                         f"raised, with result {result}.")
-            else:
-                result = _td_utils._check_format(fmt)
-                self.assertEqual(expected_result, result, msg.format(
-                    expected_result, fmt, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test_strftime(self):
         """
         Test that the strftime method returns the correct string.
@@ -378,10 +345,16 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%y', (181, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '81'),
             ('%-y', (1, 1, 1, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '1'),
             ('%-y', (1, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '1'),
-            #('%z', (1, 1, 1, 1, 1, 13, 5, 2), -1, ttup_l, '-049338.888888'),
+            ('%z', (1, 1, 1, 1, 1, 13, 5, 2, 1, 1), -1, ttup_tl, ''),
             #('%:z', (181, 1, 1, 13, 5, 2), -1, ttup_s, ''),
-            #('%Z', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, ''),
+            ('%Z', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, ''),
+            #('%Z', (1, 10, 10, 2, 1, 0, 0, 0), -1, ttup_l, ''),
             ('%%', (181, 1, 1, 13, 5, 2, 1, 1), -1, ttup_ts, '%'),
+            # Some composit formats
+            ('%d/%m/%Y, %H:%M:%S', (1, 10, 10, 1, 1, 12, 30, 30), -1, ttup_l,
+             '01/01/0181, 12:30:30'),
+            ('%B %A %r', (181, 11, 16, 18, 40, 59), -1, ttup_s,
+             'Mashíyyat Istiqlāl 06:40:59 PM'),
             )
         msg = "Expected {}, with format {} and date {}. found {}."
 
@@ -398,9 +371,104 @@ class TestTimeDateUtils(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, fmt, date, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test__check_format(self):
+        """
+        Test that the _check_format method does not raise an exception
+        with an invalid format.
+        """
+        err_msg0 = "Invalid format character '{}'"
+        err_msg1 = "Found an empty format string."
+        data = (
+            ('%c', False, None),
+            ('%X', False, None),
+            ('%P', True, err_msg0.format('%P')),
+            ('%-P', True, err_msg0.format('%-P')),
+            ('%:P', True, err_msg0.format('%:P')),
+            ('', True, err_msg1),
+            )
+        msg = "Expected {}, with {}. found {}."
 
+        for fmt, validity, expected_result in data:
+            if validity:
+                try:
+                    result = _td_utils._check_format(fmt)
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{fmt}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = _td_utils._check_format(fmt)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, fmt, result))
 
-        # Tests from test_datetime.py
+    #@unittest.skip("Temporarily skipped")
+    def test__find_midday(self):
+        """
+        Test that the _find_midday method returns the correct midday fraction
+        of the day with either long or short form dates.
+        """
+        ttup_l, ttup_s = 1, 2
+        data = (
+            ((1, 10, 10, 11, 17, 9, 30, 30), -1, ttup_l, 0.4991995000746101),
+            ((182, 1, 1, 18, 30, 30), -1, ttup_s, 0.500585500150919),
+            )
+        msg = "Expected {}, with {}. found {}."
+
+        for date, dstflag, t_type, expected_result in data:
+            if t_type == ttup_l:
+                ttup = _td_utils._build_struct_time(date, dstflag)
+            else: # t_type == ttup_s
+                ttup = _td_utils._build_struct_time(date, dstflag,
+                                                    short_in=True)
+
+            result = _td_utils._find_midday(ttup)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__get_year(self):
+        """
+        Test that the _get_year returns the year converted from a long
+        form date or the year from a short date.
+        """
+        ttup_l, ttup_s = 1, 2
+        data = (
+            ((1, 10, 10, 11, 17, 9, 30, 30), -1, ttup_l, 181),
+            ((182, 1, 1, 18, 30, 30), -1, ttup_s, 182),
+            )
+        msg = "Expected {}, with {}. found {}."
+
+        for date, dstflag, t_type, expected_result in data:
+            if t_type == ttup_l:
+                ttup = _td_utils._build_struct_time(date, dstflag)
+            else: # t_type == ttup_s
+                ttup = _td_utils._build_struct_time(date, dstflag,
+                                                    short_in=True)
+
+            result = _td_utils._get_year(ttup)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__year_week_day(self):
+        """
+        Test that the _year_week_day
+        """
+        data = (
+            # year, mon, day -> year, week, day of week
+            ((181, 11, 17),    (181, 30, 1)),
+            ((182, 1, 1),      (181, 52, 6)),
+            ((183, 19, 19),    (184, 1, 1)),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            result = _td_utils._year_week_day(*date)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, data, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__days_before_year(self):
@@ -800,25 +868,26 @@ class TestTimeDateUtils(unittest.TestCase):
         string.
         """
         data = (
-            ((181, 1, 1), '%d/%m/%Y, %H:%M:%S', False, ''),
+            ((181, 1, 1), '%d/%m/%Y, %H:%M:%S', False, '01/01/0181, 00:00:00'),
             )
+        msg = "Expected {} with date {} and format {}, found {}."
 
-        for date, fmt, validity, err_msg in data:
-            d = datetime.date(*date)
+        for date, fmt, validity, expected_result in data:
+            d = ddate(*date)
             tt = d.timetuple()
 
             if validity:
                 try:
                     with self.assertRaises(AssertionError) as cm:
-                        datetime._wrap_strftime(date, fmt, tt)
+                        _td_utils._wrap_strftime(date, fmt, tt)
                 except AssertionError as e:
                     # Raise an error when an AssertionError is not raised.
                     raise AssertionError(f"Date {date}, format {fmt}, "
                                              f"timetuple {tt}, {e}")
                 else:
                     message = str(cm.exception)
-                    self.assertEqual(err_msg.format(num_days), message)
+                    self.assertEqual(expected_result, message)
             else:
-                result = datetime._wrap_strftime(date, fmt, tt)
-                self.assertEqual(expected_result, result,
-                                 msg.format(expected_result, time, result))
+                result = _td_utils._wrap_strftime(date, fmt, tt)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, format, result))
