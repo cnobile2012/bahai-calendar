@@ -305,7 +305,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%C', (181, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '01'),
             ('%d', (1, 1, 1, 1, 8, 0, 0, 0), -1, ttup_l, '08'),
             ('%-d', (1, 1, 8, 0, 0, 0), -1, ttup_s, '8'),
-            ('%D', (1, 10, 10, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '01/01/0181'),
+            ('%D', (1, 10, 10, 19, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '19/01/81'),
             ('%e', (181, 1, 9, 0, 0, 0, 1, 1), -1, ttup_ts, ' 9'),
             ('%f', (1, 10, 10, 1, 1, 0, 0, 60.025), -1, ttup_l, '024999'),
             ('%G', (181, 1, 1, 0, 0, 0), -1, ttup_s, '0181'),
@@ -345,7 +345,9 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%y', (181, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '81'),
             ('%-y', (1, 1, 1, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '1'),
             ('%-y', (1, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '1'),
+            ('%Y', (181, 11, 17, 0, 0, 0), -1, ttup_s, '0181'),
             ('%z', (1, 1, 1, 1, 1, 13, 5, 2, 1, 1), -1, ttup_tl, ''),
+            #('%z', (1, 1, 1, 1, 1, 13, 5, 2, 1, 1), -1, ttup_l, ''),
             #('%:z', (181, 1, 1, 13, 5, 2), -1, ttup_s, ''),
             ('%Z', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, ''),
             #('%Z', (1, 10, 10, 2, 1, 0, 0, 0), -1, ttup_l, ''),
@@ -861,33 +863,27 @@ class TestTimeDateUtils(unittest.TestCase):
             else:
                 _td_utils._check_date_fields(*date, short_in=short_in)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__wrap_strftime(self):
         """
         Test that the _wrap_strftime function returns a formatted time
         string.
         """
+        d_t, dt_t = 1, 2
         data = (
-            ((181, 1, 1), '%d/%m/%Y, %H:%M:%S', False, '01/01/0181, 00:00:00'),
+            ((181, 1, 1), '%d/%m/%Y, %H:%M:%S', d_t, '01/01/0181, 00:00:00'),
+            ((1, 1, 8), '%-d', d_t, '8'),
+            #((181, 1, 1, 0, 9, 0), dt_t, '%-M', ''),
             )
         msg = "Expected {} with date {} and format {}, found {}."
 
-        for date, fmt, validity, expected_result in data:
-            d = ddate(*date)
-            tt = d.timetuple()
-
-            if validity:
-                try:
-                    with self.assertRaises(AssertionError) as cm:
-                        _td_utils._wrap_strftime(date, fmt, tt)
-                except AssertionError as e:
-                    # Raise an error when an AssertionError is not raised.
-                    raise AssertionError(f"Date {date}, format {fmt}, "
-                                             f"timetuple {tt}, {e}")
-                else:
-                    message = str(cm.exception)
-                    self.assertEqual(expected_result, message)
+        for date, fmt, obj_t, expected_result in data:
+            if obj_t == d_t:
+                d = ddate(*date)
             else:
-                result = _td_utils._wrap_strftime(date, fmt, tt)
-                self.assertEqual(expected_result, result, msg.format(
-                    expected_result, date, format, result))
+                d = datetime(*date)
+
+            tt = d.timetuple()
+            result = _td_utils._wrap_strftime(date, fmt, tt)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, format, result))

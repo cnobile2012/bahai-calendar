@@ -244,18 +244,26 @@ class TimeDateUtils(BahaiCalendar):
         """
         Return a locale dependent Badi short date. Badi long dates are
         converted to short dates first.
+        This method does not tak into account format extenders, in other
+        words the - or : after the %. They should never show up in the locale.
         """
-        st = ""
         year = self._get_year(ttup)
         century = int(year / 100) * 100
+        year -= 0 if year < century else century
+        sep = self.date_format[0]
+        data = []
 
-        for idx, ch in enumerate(self.date_format):
-            if idx == 0:
-                sep = ch
+        for p in range(1, 4):
+            fmt = self.date_format[p]
+
+            if fmt[-1] in 'yY':
+                data.append(f"{year:02}")
             else:
-                st += getattr(self, ch)(ttup, org, mod) + sep
+                org = fmt[0]
+                mod = ''
+                data.append(f"{getattr(self, org)(ttup, org, mod):02}")
 
-        return st.strip('/')
+        return sep.join(data)
 
     def f(self, ttup, org, mod):
         """
@@ -984,10 +992,9 @@ class TimeDateUtils(BahaiCalendar):
 
                     if ch == 'f':
                         if freplace is None:
-                            freplace = '%06d' % getattr(
-                                object, 'microsecond', 0)
+                            freplace = f'{getattr(object, "microsecond", 0):06}'
 
-                        newformat.append(freplace)
+                        push(freplace)
                     elif ch == 'z':
                         if zreplace is None:
                             zreplace = ""
@@ -1006,18 +1013,14 @@ class TimeDateUtils(BahaiCalendar):
                                     m, rest = divmod(rest, timedelta(minutes=1))
                                     s = rest.seconds
                                     u = offset.microseconds
+                                    zreplace = f'{sign}{h:02}{m:02}'
 
                                     if u:
-                                        zreplace = '%c%02d%02d%02d.%06d' % (
-                                            sign, h, m, s, u)
+                                        zreplace += f'{s:02}.{u:06}'
                                     elif s:
-                                        zreplace = '%c%02d%02d%02d' % (
-                                            sign, h, m, s)
-                                    else:
-                                        zreplace = '%c%02d%02d' % (sign, h, m)
+                                        zreplace += f'{s02}'
 
-                        assert '%' not in zreplace
-                        newformat.append(zreplace)
+                        push(zreplace)
                     elif ch == 'Z':
                         if Zreplace is None:
                             Zreplace = ""
@@ -1029,7 +1032,7 @@ class TimeDateUtils(BahaiCalendar):
                                 if s is not None:
                                     Zreplace = s.replace('%', '%%')
 
-                        newformat.append(Zreplace)
+                        push(Zreplace)
                     else:
                         push('%')
                         push(ch)

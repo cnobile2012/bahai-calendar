@@ -605,7 +605,7 @@ class date(BahaiCalendar):
 
         Example: '%d/%m/%Y, %H:%M:%S.%f'
         """
-        return _wrap_strftime(self, fmt, self.timetuple())
+        return _td_utils._wrap_strftime(self, fmt, self.timetuple())
 
     def __format__(self, fmt):
         if isinstance(fmt, str):
@@ -616,7 +616,7 @@ class date(BahaiCalendar):
 
             return ret
 
-        raise TypeError(f"must be str, not {type(fmt).__name__}")
+        raise TypeError(f"Must be a str, not a {type(fmt).__name__}") # pragma: no cover
 
     def isoformat(self):
         """
@@ -800,7 +800,7 @@ class date(BahaiCalendar):
         if isinstance(other, timedelta):
             od = self.toordinal() + other.days
 
-            if 0 < od <= _MAXORDINAL:
+            if _td_utils.DAYS_BEFORE_1ST_YEAR < od <= _MAXORDINAL:
                 ret = type(self).fromordinal(od, short=self.__short)
             else:
                 raise OverflowError("Result out of range.")

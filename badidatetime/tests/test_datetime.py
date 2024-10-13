@@ -1050,13 +1050,16 @@ class TestBadiDatetime_date(unittest.TestCase):
             self.assertEqual(expected_result, str(result),
                              msg.format(expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_strftime(self):
         """
         Test that the strftime method returns a formatted date time string.
         """
         data = (
-            ((181, 1, 1), '', ''),
+            ((181, 19, 1), '%D', '19/01/81'),
+            ((1, 10, 10, 19, 1), '%D', '19/01/81'),
+            ((1, 1, 1), '%x', '01/01/0001'),
+            ((181, 11, 17), '%c', 'Jal Mas  17 00:00:00 0181'),
             )
         msg = "Expected {} with date {} and format {}, found {}."
 
@@ -1066,12 +1069,22 @@ class TestBadiDatetime_date(unittest.TestCase):
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, fmt, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___format__(self):
         """
         Test that the __format__ method 
         """
-        pass
+        data = (
+            ((181, 11, 17), '', '0181-11-17'),
+            ((181, 11, 17), '%D', '11/17/81'),
+            )
+        msg = "Expected {} with date {} and format {}, found {}."
+
+        for date, fmt, expected_result in data:
+            d = datetime.date(*date)
+            result = f"{d:{fmt}}"
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, fmt, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_isoformat(self):
@@ -1453,11 +1466,14 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the __add__ method can correctly add a date to a timedelta.
         """
         err_msg0 = "unsupported operand type(s) for +: 'date' and '{}'"
+        err_msg1 = "Result out of range."
         data = (
             ((1, 1, 1), (1,), False, (1, 1, 2)),
             ((1, 1, 1), (366,), False, (2, 1, 1)),     # Leap year
             ((181, 1, 1), (365,), False, (182, 1, 1)), # Non leap year
             ((1, 1, 1), None, True, err_msg0.format('NoneType')),
+            ((-1842, 1, 1), (-1,), True, err_msg1),
+            ((1161, 19, 19), (1,), True, err_msg1),
             )
         msg = "Expected {} with date {} and timedelta {}, found {}"
 
@@ -1476,7 +1492,7 @@ class TestBadiDatetime_date(unittest.TestCase):
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
-                    raise AssertionError(f"With '{date1}' an error is not "
+                    raise AssertionError(f"With '{date}' an error is not "
                                          f"raised, with result {result}.")
             else:
                 td0 = datetime.timedelta(*td)
