@@ -35,10 +35,10 @@ class DateTests(BahaiCalendar):
     # https://gml.noaa.gov/grad/solcalc/
     # https://aa.usno.navy.mil/data/RS_OneYear
     # https://www.sunrisesunset.com/England/GreaterLondon/Greenwich.asp
-    # Tehran: 35.696111 (35, 41, 45.9996), 51.423056 (51, 25, 23.0016)
-    # Nur Mazandaran Province, Iran (City Center)
-    # Nur: 36.569336, 52.0050234
-    # I use coordinates and the sunset in the city of Nur to determine the
+    # Tehran: 35.682376, 51.285817 USED
+    # *** Nur Mazandaran Province, Iran (City Center) NOT USED ***
+    # *** Nur: 36.569336, 52.0050234 NOT USED ***
+    # I use coordinates and the sunset in the city of Tehran to determine the
     # yearly Badi epochs.
     TMP_ANS_DATES = (
         (   1, 3, 20, 18, 16), (   2, 3, 21, 18, 16), (   3, 3, 21, 18, 16),
@@ -901,6 +901,9 @@ class DateTests(BahaiCalendar):
 
     def analyze_date_error(self, options):
         """
+        Finds the the Julian Period day (yearly epoch) that corresponds to
+        the day of the Vernal Equinox.
+
         -a, optional -C, -G, and -X
         Also if -S and -E are used they must be used together.
         """

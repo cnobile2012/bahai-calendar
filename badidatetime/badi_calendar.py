@@ -21,9 +21,8 @@ class BahaiCalendar(BaseCalendar):
 #https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
 #https://www.google.com/maps/place/Tehran,+Tehran+Province,+Iran/@35.9098957,51.51371,9.49z/data=!4m6!3m5!1s0x3f8e02c69b919039:0x17c26479772c5928!8m2!3d35.6891975!4d51.3889736!16s%2Fm%2F025zk75?entry=ttu
     # https://gml.noaa.gov/grad/solcalc/ Sunset data
-    # Nur Mazandaran Province, Iran (City Center)
-    #BAHAI_LOCATION = (36.569336, 52.0050234, 3.5, 0)
-    BAHAI_LOCATION = (35.681117, 51.4016521, 3.5, 0) # Moniriyeh Square Tehran
+    # Near Mehrabad International Airport
+    BAHAI_LOCATION = (35.682376, 51.285817, 3.5, 0)
     GMT_LOCATION = (51.477928, -0.001545, 0, 0)
     BADI_EPOCH = 2394644.261791 # 2394646.261791 using Meeus' algorithm
     BADI_MONTH_NAMES = (
