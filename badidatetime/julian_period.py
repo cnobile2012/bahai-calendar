@@ -28,29 +28,10 @@ class JulianPeriod:
     # See: https://aa.usno.navy.mil/faq/sun_approx
     JULIAN_EPOCH = 0 # This is the actual Julian Epoch
     J2000 = 2451545.0 # TDT
-    # Modified Julian day
-    MJD = 2400000.5
-
     # 28 (solar cycle) × 19 (lunar cycle) × 15 (indiction cycle) = 7980 years
-    JULIAN_PERIOD = 7980
+    #JULIAN_PERIOD = 7980
     JULIAN_YEAR = 365.25
-
-    JD_EPOCH = -1721424.5
-    MJD_EPOCH = 678576
-
-    JANUARY = 1
-    FEBRUARY = 2
-    MARCH = 3
-    APRIL = 4
-    MAY = 5
-    JUNE = 6
-    JULY = 7
-    AUGUEST = 8
-    SEPTEMBER = 9
-    OCTOBER = 10
-    NOVEMBER = 11
-    DECEMBER = 12
-    JULIAN_MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
 
     def julian_centuries(self, jde):
         """

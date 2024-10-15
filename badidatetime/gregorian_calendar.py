@@ -18,7 +18,6 @@ class GregorianCalendar(BaseCalendar):
     # https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/calendar_calculations.htm
     GREGORIAN_EPOCH = 1721423.5
     MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
     GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
