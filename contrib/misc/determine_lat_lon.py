@@ -82,7 +82,7 @@ Vernal Equinox        Sunset of Epoch
 
 class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
     WC_DATA = (
-        #Year WC Naw-Ruz     Vernal Equinox
+        #Year WC Naw-Ruz     Vernal Equinox (GMT)
         (172, (2015, 3, 20), (2015, 3, 20, 22, 45)),
         (173, (2016, 3, 19), (2016, 3, 20,  4, 30)),
         (174, (2017, 3, 19), (2017, 3, 20, 10, 29)),
