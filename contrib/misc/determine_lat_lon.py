@@ -161,8 +161,7 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
 
             # It is allowed to have a Vernal Equinox to be up to one minute
             # before sunset and still use that sunset as the beginning of
-            # the year.
-            # if a day = 1 then 1 minute is 0.0006944444444444444
+            # the year. If a day = 1 then 1 minute is 0.0006944444444444444
             if my_ve_jd >= (my_ss_jd - 0.0006944444444444444):
                 begin_of_year = my_ss_jd
             else:
@@ -276,11 +275,11 @@ if __name__ == "__main__":
         print("The SS Diff is the difference between the Julian Period days "
               "of the World Centre and my sunset times in Tehran and the "
               "VE Diff\nis the difference between the Julian Period days of "
-              "the NASA Vernal Equinox, and my Vernal Equinox. The USNO "
+              "the USNO Vernal Equinox, and my Vernal Equinox. The USNO "
               "Vernal Equinox date\nand time was originally in UTC time "
               "which I converted to Tehran standard time. (+03:30)\n")
         print("Year WC Sunset     My Gregorian Sunset            SS Diff  "
-              "NASA's Vernal Equinox (Tehran) My Vernal Equinox (Tehran)     "
+              "USNO's Vernal Equinox (Tehran) My Vernal Equinox (Tehran)     "
               "VE Diff")
         print('-'*130)
         data = [f"{year}  "
