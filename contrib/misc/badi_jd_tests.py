@@ -178,6 +178,7 @@ class DateTests(BahaiCalendar):
     def find_coefficents_precursor(self, options):
         """
         -p or --precursor
+        -S and -E must be Gregorian dates
 
         This determines which coefficient group should be used for the
         years provided. The years provided are on the Badi Calendar - or +
@@ -185,12 +186,12 @@ class DateTests(BahaiCalendar):
 
         Arguments to the process_segment() function.
         --------------------------------------------
-        1. First run `badi_jd_tests.py -aGX > filename.txt`
+        1. First run `badi_jd_tests.py -aX > filename.txt`
            This file will be long so use `less filename.txt` to look at it.
-           The last column will usually be -1.0, 0.0, or 1.0. The 0.0 values
-           are already correct, the other two values means there is a
-           difference in the between the Gregorian and Badi Julian Period
-           days. These are the ones than need the coefficients which fixes them.
+           The last column will usually be -1, 0, or 1. The 0 values are
+           already correct, the other two values means there is a difference
+           between the Gregorian and Badi Julian Period days. These are the
+           ones than need the coefficients to fix them.
         2. The first argument is the current Badi year being processed
            subtracted from the end year argument.
         3. The second argument is the 1st coefficient corresponding to the
@@ -228,25 +229,31 @@ class DateTests(BahaiCalendar):
         If -X is used the more exact mode is used. This should be the
         normal usage.
         """
+        start = options.start
+        end = options.end
+        options.start = options.start + self.TRAN_COFF
+        options.end = options.end + self.TRAN_COFF
         data = self._date_range(options)
+        options.start = start
+        options.end = end
         cp = {by: (n, a)
               for gy, by, n, a in self.find_coefficents_precursor(options)}
         items = []
 
         for item in data:
             b_year, month, day = item[0][:3]
-            h, m, s = dt._get_hms(item[0], short_in=True)
+            h, m, s, ms = self._get_hms(item[0], short_in=True)
             bjd = item[1]
             msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
                    f"{s:<02} {bjd:<14} ")
             g_year, month, day = item[2][:3]
-            h, m, s = dt._get_hms(item[2], short_in=True)
+            h, m, s, ms = self._get_hms(item[2], short_in=True)
             gjd = item[3]
             msg += (f"{g_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                    f"{s:<02} {gjd:<9} ")
+                    f"{s:<07} {gjd:<14} ")
             diff = item[4]
             offby = item[5]
-            msg += f"{diff:< 9} {offby:> 2} "
+            msg += f"{diff:< 9} {offby:< 1} "
             j, k = cp.get(b_year)
             msg += f"{j} {k:<3}"
             items.append(msg)
@@ -417,12 +424,12 @@ class DateTests(BahaiCalendar):
         # The if or elif statments may not have the same ranges as are
         # passed into the process_segment method because we may need to skip
         # over already good results.
-        if year < -1819: # -1842 to -1820 (range -S-1920 -E-1821)
-            coff = process_segment(-1821 - year, 1, 1, (1, 2))
-        ## elif year < -1796: # -1819 to -1797 (range -S-1819 -E-1800)
-        ##     coff = process_segment(-1800 - year, -1, -1, (1, 2, 3))
-        ## elif year < -1747: # -1796 to -1748 (range -S-1792  -E-1782)
-        ##     coff = process_segment(-1782 - year, 0, 1, (2,))
+        if year < -1819: # -1842 to -1820 (range -S-1920 -E-1819)
+            coff = process_segment(-1819 - year, 1, 1, (0, 1, 2, 3))
+        elif year < -1799: # -1819 to -1800 (range -S-1819 -E-1799)
+            coff = process_segment(-1799 - year, 1, 1, (1, 2, 3))
+        elif year < -1787: # -1796 to -1788 (range -S-1799 -E-1787)
+            coff = process_segment(-1786 - year, 1, 2, (0, 2, 3))
         ## elif year < -1715: # -1747 to -1716 (range -S-1747 -E-1717)
         ##     coff = process_segment(-1717 - year, 0, -1, (2,))
         ## elif year < -1697: # -1715 to -1698 (range -S-1715 -E-1701)
@@ -815,12 +822,10 @@ if __name__ == "__main__":
         '-Y', '--year', action='store_true', default=False, dest='year',
         help="Test for the consecutive defined years 1 - 3004.")
     options = parser.parse_args()
-    exclusive_error = (options.list, options.ck_dates, options.analyze,
-                       options.consecutive, options.range != 0)
     dt = DateTests()
     ret = 0
 
-    if options.analyze:
+    if options.analyze: # -a
         if options.start is None or options.end is None:
             # Set default Gregorian years.
             options.start = 1  # Julian year 1
@@ -882,7 +887,7 @@ if __name__ == "__main__":
             if options.coff:
                 coff = sum(diffs) / len(diffs)
                 print(f"Average Coefficient: {coff}")
-    elif options.ck_dates:
+    elif options.ck_dates: # -c
         if options.start is None or options.end is None:
             print("If option -c is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -892,7 +897,23 @@ if __name__ == "__main__":
             bad_items = dt.check_long_date_from_short_date(data)
             bad_items = bad_items if bad_items else "All dates match."
             pprint.pprint(bad_items)
-    elif options.list:
+    elif options.leap_years: # -e
+        if options.start is None or options.end is None:
+            print("If option -e is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            [print(f"{str(date):<14} "
+                   f"{str(g_date):<21} "
+                   f"{weekday} "
+                   f"{wd_name:<8} "
+                   f"{m_name:<10} "
+                   f"{str(leap):5s} "
+                   f"{days:<3} "
+                   f"{total:>3}"
+                   ) for (date, g_date, weekday, wd_name, m_name,
+                          leap, days, total) in dt.find_leap_years(options)]
+    elif options.list: # -l
         if options.start is None or options.end is None:
             print("If option -l is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -900,11 +921,7 @@ if __name__ == "__main__":
         else:
             data = dt.create_date_lists(options)
             pprint.pprint(data)
-    elif options.range != 0:
-        data = dt.get_range(options.range)
-        [print(item) for item in data]
-        print(f"Total years: {len(data)}")
-    elif options.precursor:
+    elif options.precursor: # -p
         if options.start is None or options.end is None:
             print("If option -p is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -914,14 +931,18 @@ if __name__ == "__main__":
             [print(f"{gy:> 5} {by:> 5}, {n:<1} {a:>2}")
              for gy, by, n, a in data]
             print(f"Total years: {len(data)}")
-    elif options.coeff:
+    elif options.coeff: # -q
         if options.start is None or options.end is None:
             print("If option -q is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
         else:
             [print(item) for item in dt.find_coefficents(options)]
-    elif options.g_dates:
+    elif options.range != 0: # -r
+        data = dt.get_range(options.range)
+        [print(item) for item in data]
+        print(f"Total years: {len(data)}")
+    elif options.g_dates: # -g
         if options.start is None or options.end is None:
             print("If option -g is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -942,36 +963,7 @@ if __name__ == "__main__":
                    )
              for (b_date, bjd, g_date,
                   gjd, diff, offby) in dt.find_gregorian_dates(options)]
-    elif options.leap_years:
-        if options.start is None or options.end is None:
-            print("If option -e is used, -S and -E must also be used.",
-                  file=sys.stderr)
-            ret = 1
-        else:
-            [print(f"{str(date):<14} "
-                   f"{str(g_date):<21} "
-                   f"{weekday} "
-                   f"{wd_name:<8} "
-                   f"{m_name:<10} "
-                   f"{str(leap):5s} "
-                   f"{days:<3} "
-                   f"{total:>3}"
-                   ) for (date, g_date, weekday, wd_name, m_name,
-                          leap, days, total) in dt.find_leap_years(options)]
-    elif options.weekday:
-        if options.start is None or options.end is None:
-            print("If option -w is used, -S and -E must also be used.",
-                  file=sys.stderr)
-            ret = 1
-        else:
-            [print(f"{str(date):15} "
-                   f"{r_day:8} "
-                   f"{idx} "
-                   f"{bwd:8} "
-                   f"{gwd:9}"
-                   ) for (date, r_day, idx,
-                       bwd, gwd) in dt.find_day_of_week(options)]
-    elif options.twenty_four:
+    elif options.twenty_four: # -t
         if options.start is None or options.end is None:
             print("If option -t is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -987,6 +979,19 @@ if __name__ == "__main__":
                    f"{str(hms):19}"
                    ) for (b_date, g_date, fss0, fss1,
                           ss_diff, hms) in dt.twenty_four_hours(options)]
+    elif options.weekday: # -w
+        if options.start is None or options.end is None:
+            print("If option -w is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            [print(f"{str(date):15} "
+                   f"{r_day:8} "
+                   f"{idx} "
+                   f"{bwd:8} "
+                   f"{gwd:9}"
+                   ) for (date, r_day, idx,
+                       bwd, gwd) in dt.find_day_of_week(options)]
     else:
         parser.print_help()
 
