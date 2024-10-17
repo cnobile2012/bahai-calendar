@@ -405,14 +405,22 @@ class DateTests(BahaiCalendar):
         return round(jd + ss_a + coff, 6)
 
     def _get_coff(self, year):
-        def process_segment(y, coff1, coff2, onoff):
-            func = lambda y: 1 < y < 100 and y % 4 in onoff
+        def process_segment(y, pc, c=0, onoff=(), *, c0=0, c1=0, c2=0, c3=0):
+            func = lambda y, onoff: 1 < y < 100 and y % 4 in onoff
             coff = 0
 
-            if coff1 and y in (1, 34, 67, 100):
-                coff = coff1
-            elif coff2 and func(y):
-                coff = coff2
+            if pc and y in (1, 34, 67, 100):
+                coff = pc
+            elif c and func(y, onoff): # Whatever is passed in onoff.
+                coff = c
+            elif c0:
+                coff = c0
+            elif c1:
+                coff = c1
+            elif c2:
+                coff = c2
+            elif c3:
+                coff = c3
 
             return coff
 
@@ -420,16 +428,16 @@ class DateTests(BahaiCalendar):
         # ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
         # Where -S is the 1st year and -E is the nth year + 1 that needs to
         # be process. Use the following command to test the results.
-        # ./contrib/misc/badi_jd_tests.py -qX -S start_year -E end_year
+        # ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
         # The if or elif statments may not have the same ranges as are
         # passed into the process_segment method because we may need to skip
-        # over already good results.
-        if year < -1819: # -1842 to -1820 (range -S-1920 -E-1819)
+        # over already good results. Full range is -1842 to 1161
+        if year < -1819: # -1842 to -1820 (range -S-1842 -E-1819)
             coff = process_segment(-1819 - year, 1, 1, (0, 1, 2, 3))
         elif year < -1799: # -1819 to -1800 (range -S-1819 -E-1799)
             coff = process_segment(-1799 - year, 1, 1, (1, 2, 3))
-        elif year < -1787: # -1796 to -1788 (range -S-1799 -E-1787)
-            coff = process_segment(-1786 - year, 1, 2, (0, 2, 3))
+        elif year < -1787: # -1799 to -1788 (range -S-1799 -E-1787)
+            coff = process_segment(-1787 - year, 2, 2, (1, 2, 3), c0=1)
         ## elif year < -1715: # -1747 to -1716 (range -S-1747 -E-1717)
         ##     coff = process_segment(-1717 - year, 0, -1, (2,))
         ## elif year < -1697: # -1715 to -1698 (range -S-1715 -E-1701)
@@ -681,6 +689,8 @@ class DateTests(BahaiCalendar):
 
         for g_year in range(options.start, options.end):
             g_date = (g_year, 3, 1)
+            # We must use the Meeus algorithm not mine when finding the
+            # equinox and sunset. So don't use exact=options.exact here.
             jd = self.gc.jd_from_gregorian_date(g_date) # Julian Period day
             ve_jd = self.find_moment_of_equinoxes_or_solstices(jd, zone=3.5)
             ss_jd = self._sun_setting(ve_jd, *self.BAHAI_LOCATION[:3])
@@ -694,7 +704,7 @@ class DateTests(BahaiCalendar):
                 jd_boyear = self._sun_setting(ve_jd-1, *self.BAHAI_LOCATION[:3])
 
             g_ss = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
-                jd_boyear))
+                jd_boyear, exact=options.exact))
             # Get the Badi date for the beginning of the year.
             b_date = (g_year - self.TRAN_COFF, 1, 1)
             self._calculate_b_date(b_date, g_ss, data, options)
