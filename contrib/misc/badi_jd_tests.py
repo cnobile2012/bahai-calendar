@@ -449,7 +449,12 @@ class DateTests(BahaiCalendar):
         p1100 = ((-1643, -1627), )
         p1110 = ((-1627, -1599), )
         p1112 = ((-1566, -1546), )
-        p3222 = ((-1543, -1531), )
+        p2 = ((-1471, -1435), (-1401, -1399), )
+        p2211 = ((-1399, -1375), )
+        p2221 = ((-1499, -1471), ) #(-1375, -1344), )
+        p3 = ((-1403, -1401), )
+        p32 = ((-1501, -1499), )
+        p3222 = ((-1543, -1531), (-1435, -1403), )
         p3322 = ((-1531, -1501), )
         z0_flag = False
         coff = 0
@@ -500,6 +505,22 @@ class DateTests(BahaiCalendar):
 
             if not coff:
                 coff = process_segments(year, p1112, -2, -1, (0, 2, 3), c1=-2)
+
+            if not coff:
+                coff = process_segments(year, p2, -2, -2, (0, 1, 2, 3))
+
+            if not coff:
+                coff = process_segments(year, p2211, -1, -2, (0, 3),
+                                        c1=-1, c2=-1)
+
+            if not coff:
+                coff = process_segments(year, p2221, -1, -2, (0, 2, 3), c1=-1)
+
+            if not coff:
+                coff = process_segments(year, p3, -3, c2=-3)
+
+            if not coff:
+                coff = process_segments(year, p32, -2, c2=-3)
 
             if not coff:
                 coff = process_segments(year, p3222, -2, -2, (1, 2, 3), c0=-3)
