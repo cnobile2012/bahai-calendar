@@ -424,11 +424,11 @@ class DateTests(BahaiCalendar):
 
             return coff
 
-        def process_segments(year, p, pc, c=0, onoff=(), *,
+        def process_segments(year, pn, pc, c=0, onoff=(), *,
                              c0=0, c1=0, c2=0, c3=0):
             coff = 0
 
-            for start, end in p:
+            for start, end in pn:
                 if year in range(start, end):
                     # start to end (range -S start -E end)
                     coff = process_segment(end - year, pc, c=c, onoff=onoff,
@@ -436,66 +436,77 @@ class DateTests(BahaiCalendar):
 
             return coff
 
-        p1 = ((-1842, -1819), (-1727, -1699), (-1599, -1563), (-1500, -1499),
-              (-1471, -1435), (-1401, -1399), (-1343, -1307), (-1306, -1303),
-              (-1302, -1299), (-1215, -1179), (-1087, -1051), (-955, -919),
-              (-827, -795), (-700, -663), (-567, -535), (-501, -499),
-              (-439, -403), (-299, -275), (-179, -143), (-47, -11), (101, 117),
-              (213, 249), (345, 381), (501, 513), (609, 645), (741, 777),
-              (901, 909), (1005, 1041), (1137, 1162))
-        p0111 = ((-1819, -1799), (-1563, -1531), (-1435, -1403),
-                 (-1179, -1151), (-1051, -1019), (-919, -899), (-795, -763),
-                 (-663, -631), (-535, -503), (-403, -371), (-275, -243),
-                 (-143, -111), (-11, 21), (117, 149), (249, 281), (381, 413),
-                 (513, 545), (645, 677), (777, 809), (909, 941), (1041, 1073))
-        p1222 = ((-1799, -1787), (-1691, -1659), (-1299, -1275), (-899, -891))
-        p1122 = ((-1787, -1755), (-1659, -1627), (-1399, -1375),
-                 (-1275, -1247), (-999, -987), (-891, -859), (-499, -471),
-                 (-99, -79), (301, 313), (701, 709), (1101, 1105))
-        p1112 = ((-1755, -1727), (-1627, -1599), (-1499, -1471),
-                 (-1375, -1343), (-1247, -1215), (-1099, -1087), (-987, -955),
-                 (-859, -827), (-599, -567), (-471, -439), (-199, -179),
-                 (-79, -47), (201, 213), (313, 345), (601, 609), (709, 741),
-                 (1001, 1005), (1105, 1137))
-        p2 = ((-1699, -1691),)
-        p0011 = ((-1531, -1503), (-1151, -1119), (-1019, -999), (-763, -731),
-                 (-631, -599), (-371, -339), (-243, -211), (-111, -99),
-                 (21, 53), (149, 185), (281, 301), (413, 445), (545, 577),
-                 (677, 701), (809, 841), (941, 973), (1073, 1101))
-        p0001 = ((-1119, -1099), (-731, -699), (-339, -307), (-211, -199),
-                 (53, 85), (185, 201), (445, 477), (513, 545), (577, 601),
-                 (841, 873), (973, 1001))
+        z0 = ((-1727, -1699), )
+        n1 = ((-1842, -1819), (-1699, -1691), )
+        n0111 = ((-1819, -1799), (-1691, -1659), )
+        n1222 = ((-1799, -1787), )
+        n1122 = ((-1787, -1755), )
+        n1112 = ((-1755, -1743),)
+        n0011 = ((-1659, -1643), )
+        n0001 = ((-1743, -1727), )
+        n2 = ()
+        p1 = ((-1599, -1566), (-1599, -1566), (-1546, -1543), )
+        p1100 = ((-1643, -1627), )
+        p1110 = ((-1627, -1599), )
+        p1112 = ((-1566, -1546), )
+        p3222 = ((-1543, -1531), )
+        p3322 = ((-1531, -1501), )
+        z0_flag = False
+        coff = 0
 
         # General ranges are determined with:
         # ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
         # Where -S is the 1st year and -E is the nth year + 1 that needs to
-        # be process. Use the following command to test the results.
-        # ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
-        # The if or elif statments may not have the same ranges as are
-        # passed into the process_segment method because we may need to skip
-        # over already good results. Full range is -1842 to 1161
-        coff = process_segments(year, p1, 1, 1, (0, 1, 2, 3))
+        # be process. Use the following command to test the results of each
+        # segment. ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
+        # Full range is -1842 to 1161
+        for start, end in z0:
+            if year in range(start, end):
+                z0_flag = True
 
-        if not coff:
-            coff = process_segments(year, p0111, 1, 1, (1, 2, 3))
+        if not z0_flag:
+            if not coff:
+                coff = process_segments(year, n1, 1, 1, (0, 1, 2, 3))
 
-        if not coff:
-            coff = process_segments(year, p1222, 2, 2, (1, 2, 3), c0=1)
+            if not coff:
+                coff = process_segments(year, n0111, 1, 1, (1, 2, 3))
 
-        if not coff:
-            coff = process_segments(year, p1122, 2, 1, (0, 3,), c1=2, c2=2)
+            if not coff:
+                coff = process_segments(year, n1222, 2, 2, (1, 2, 3), c0=1)
 
-        if not coff:
-            coff = process_segments(year, p1112, 2, 1, (0, 2, 3), c1=2)
+            if not coff:
+                coff = process_segments(year, n1122, 2, 1, (0, 3,), c1=2, c2=2)
 
-        if not coff:
-            coff = process_segments(year, p2, 2, 2, (0, 1, 2, 3))
+            if not coff:
+                coff = process_segments(year, n1112, 2, 1, (0, 2, 3), c1=2)
 
-        if not coff:
-            coff = process_segments(year, p0011, 1, 1, (1, 2))
+            if not coff:
+                coff = process_segments(year, n2, 2, 2, (0, 1, 2, 3))
 
-        if not coff:
-            coff = process_segments(year, p0001, 1, c1=1)
+            if not coff:
+                coff = process_segments(year, n0011, 1, 1, (1, 2))
+
+            if not coff:
+                coff = process_segments(year, n0001, 1, c1=1)
+
+            if not coff:
+                coff = process_segments(year, p1, -1, -1, (0, 1, 2, 3))
+
+            if not coff:
+                coff = process_segments(year, p1100, 0, -1, (0, 3))
+
+            if not coff:
+                coff = process_segments(year, p1110, 0, -1, (0, 2, 3))
+
+            if not coff:
+                coff = process_segments(year, p1112, -2, -1, (0, 2, 3), c1=-2)
+
+            if not coff:
+                coff = process_segments(year, p3222, -2, -2, (1, 2, 3), c0=-3)
+
+            if not coff:
+                coff = process_segments(year, p3322, -3,
+                                        c0=-2, c1=-3, c2=-3, c3=-2)
 
         return coff
 
@@ -584,7 +595,7 @@ class DateTests(BahaiCalendar):
                 jd_boyear = self._sun_setting(ve_jd-1, *self.BAHAI_LOCATION[:3])
 
             g_ss = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
-                jd_boyear, exact=options.exact))
+                jd_boyear))
             # Get the Badi date for the beginning of the year.
             b_date = (g_year - self.TRAN_COFF, 1, 1)
             self._calculate_b_date(b_date, g_ss, data, options)
