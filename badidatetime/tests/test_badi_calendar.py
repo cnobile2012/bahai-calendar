@@ -846,49 +846,6 @@ class TestBadiCalendar(unittest.TestCase):
                 expected_result, date, short_in, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__meeus_algorithm_jd_compensation(self):
-        """
-        Test that the _meeus_algorithm_jd_compensation method returns
-        the correct difference needed to compensate for the differences
-        in mime and Meesus' algorithms.
-        """
-        data = (
-            (1757641.5, 0),
-            (1757642.5, 1),
-            (1794164.5, 1),
-            (1794165.5, 2),
-            (1830688.5, 2),
-            (1830689.5, 3),
-            (1903737.5, 3),
-            (1903738.5, 4),
-            (1940261.5, 4),
-            (1940262.5, 5),
-            (1976785.5, 5),
-            (1976786.5, 6),
-            (2049834.5, 6),
-            (2049835.5, 7),
-            (2086358.5, 7),
-            (2086359.5, 8),
-            (2122882.5, 8),
-            (2122883.5, 9),
-            (2195931.5, 9),
-            (2195932.5, 10),
-            (2232455.5, 10),
-            (2232456.5, 11),
-            (2268979.5, 11),
-            (2268980.5, 12),
-            (2299157.5, 12),
-            (2299158.5, 2),
-            (2460388.26032, 2),
-            )
-        msg = "Expected {} for jd {}, found {}"
-
-        for jd, expected_result in data:
-            result = self._bc._meeus_algorithm_jd_compensation(jd)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jd, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test__adjust_day_for_24_hours(self):
         """
         Test that the _adjust_day_for_24_hours method returns the

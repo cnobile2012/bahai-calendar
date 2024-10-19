@@ -197,7 +197,7 @@ class BahaiCalendar(BaseCalendar):
 
         # The diff value converts my jd to the Meeus algorithm for
         # determining the sunset jd.
-        diff = self._meeus_algorithm_jd_compensation(jd)
+        diff = self._meeus_from_exact(jd)
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_coff(year), self.ROUNDING_PLACES)
 
@@ -616,9 +616,9 @@ class BahaiCalendar(BaseCalendar):
             b_date = date
 
         jd = self.jd_from_badi_date(b_date)
-        diff0 = self._meeus_algorithm_jd_compensation(jd)
+        diff0 = self._meeus_from_exact(jd)
         ss0 = self._sun_setting(jd + diff0, *self.GMT_LOCATION[:3])
-        diff1 = self._meeus_algorithm_jd_compensation(jd + 1)
+        diff1 = self._meeus_from_exact(jd + 1)
         ss1 = self._sun_setting(jd + 1 + diff1, *self.GMT_LOCATION[:3])
         mid = (ss1 - ss0) / 2
         return self.hms_from_decimal_day(mid) if hms else mid
@@ -763,33 +763,6 @@ class BahaiCalendar(BaseCalendar):
         ms = date[s+3] if t_len > s+3 and date[s+3] is not None else 0
         return hour, minute, second, ms
 
-    def _meeus_algorithm_jd_compensation(self, jd:float) -> int:
-        """
-        The returned diff value converts my jd to the Meeus algorithm jd
-        for determining the sunset jd.
-
-        :param jd: My Julian Period day.
-        :type jd: float
-        :return: The difference to subtract from my jd algorithm to arrive
-                 at Meeus' jd algorithm so that all his algorithms can be
-                 use accurately.
-        :rtype: int
-        """
-        jd_diff = (
-            (1757642.5, 0), (1794165.5, 1), (1830689.5, 2), (1903738.5, 3),
-            (1940262.5, 4), (1976786.5, 5), (2049835.5, 6), (2086359.5, 7),
-            (2122883.5, 8), (2195932.5, 9), (2232456.5, 10), (2268980.5, 11),
-            (2299158.5, 12),
-            )
-        diff = 2
-
-        for j, df in jd_diff:
-            if jd < j:
-                diff = df
-                break
-
-        return diff
-
     def _adjust_day_for_24_hours(self, jd:float, lat:float, lon:float,
                                  zone:float, *, day:float=None,
                                  hms:bool=False, rtd=False) -> float|tuple:
@@ -839,12 +812,12 @@ class BahaiCalendar(BaseCalendar):
         # The diff values converts my jd to the Meeus algorithm jd so
         # that the sunset can be determined properly. The fractional day
         # of either algorithm would be the same.
-        diff1 = self._meeus_algorithm_jd_compensation(jd1)
+        diff1 = self._meeus_from_exact(jd1)
         mjd1 = jd1 + diff1
         ss1 = self._sun_setting(mjd1, lat, lon, zone)
 
         if hms:
-            diff0 = self._meeus_algorithm_jd_compensation(jd0)
+            diff0 = self._meeus_from_exact(jd0)
             mjd0 = jd0 + diff0
             ss0 = self._sun_setting(mjd0, lat, lon, zone)
             value = self.hms_from_decimal_day(ss1 - ss0)

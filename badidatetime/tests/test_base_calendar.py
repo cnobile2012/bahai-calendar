@@ -1335,6 +1335,103 @@ class TestBaseCalendar(unittest.TestCase):
                              msg.format(expected_result, year, alt, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test__meeus_from_exact(self):
+        """
+        Test that the _meeus_from_exact method returns the correct
+        difference needed to compensate for the differences in the exact
+        and the Meeus algorithms.
+        """
+        data = (
+            (1757640.5, 0),
+            (1757641.5, 1),
+            (1794164.5, 1),
+            (1794165.5, 2),
+            (1830688.5, 2),
+            (1830689.5, 3),
+            (1903737.5, 3),
+            (1903738.5, 4),
+            (1940261.5, 4),
+            (1940262.5, 5),
+            (1976785.5, 5),
+            (1976786.5, 6),
+            (2049834.5, 6),
+            (2049835.5, 7),
+            (2086358.5, 7),
+            (2086359.5, 8),
+            (2122882.5, 8),
+            (2122883.5, 9),
+            (2195931.5, 9),
+            (2195932.5, 10),
+            (2232455.5, 10),
+            (2232456.5, 11),
+            (2268979.5, 11),
+            (2268980.5, 12),
+            (2299157.5, 12),
+            (2299158.5, 2),
+            (2460388.26032, 2),
+            )
+        msg = "Expected {} for jd {}, found {}"
+
+        for jd, expected_result in data:
+            result = self.bc._meeus_from_exact(jd)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jd, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__exact_from_meeus(self):
+        """
+        Test that the _exact_from_meeus method returns the correct
+        difference needed to compensate for the differences in the Meeus
+        and the exact algorithms.
+         """
+        data = (
+            (1757640.5, 0),
+            (1757641.5, 0), # Non existant day
+            (1757642.5, 1),
+            (1794165.5, 1),
+            (1794166.5, 1), # Non existant day
+            (1794167.5, 2),
+            (1830690.5, 2),
+            (1830691.5, 2), # Non existant day
+            (1830692.5, 3),
+            (1903740.5, 3),
+            (1903741.5, 3), # Non existant day
+            (1903742.5, 4),
+            (1940265.5, 4),
+            (1940266.5, 4), # Non existant day
+            (1940267.5, 5),
+            (1976790.5, 5),
+            (1976791.5, 5), # Non existant day
+            (1976792.5, 6),
+            (2049840.5, 6),
+            (2049841.5, 6), # Non existant day
+            (2049842.5, 7),
+            (2086365.5, 7),
+            (2086366.5, 7), # Non existant day
+            (2086367.5, 8),
+            (2122890.5, 8),
+            (2122891.5, 8), # Non existant day
+            (2122892.5, 9),
+            (2195940.5, 9),
+            (2195941.5, 9), # Non existant day
+            (2195942.5, 10),
+            (2232465.5, 10),
+            (2232466.5, 10), # Non existant day
+            (2232467.5, 11),
+            (2268990.5, 11),
+            (2268991.5, 11), # Non existant day
+            (2268992.5, 12),
+            (2299159.5, 12),
+            (2299160.5, 2),
+            )
+        msg = "Expected {} for jd {}, found {}"
+
+        for jd, expected_result in data:
+            result = self.bc._exact_from_meeus(jd)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, jd, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__coterminal_angle(self):
         """
         Test that the _coterminal_angle method converts degrees greater

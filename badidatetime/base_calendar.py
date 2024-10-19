@@ -1345,6 +1345,56 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         b = y - a # Leap years
         return a * 365 + b * 366
 
+    def _meeus_from_exact(self, jd:float) -> int:
+        """
+        The returned difference value to convert an exact algorithm jd to
+        a Meeus algorithm jd.
+
+        :param jd: Exact Julian Period day.
+        :type jd: float
+        :return: The difference to subtract from an exact algorithm jd.
+        :rtype: int
+        """
+        jd_diff = (
+            (1757641.5, 0), (1794165.5, 1), (1830689.5, 2), (1903738.5, 3),
+            (1940262.5, 4), (1976786.5, 5), (2049835.5, 6), (2086359.5, 7),
+            (2122883.5, 8), (2195932.5, 9), (2232456.5, 10), (2268980.5, 11),
+            (2299158.5, 12),
+            )
+        diff = 2
+
+        for j, df in jd_diff:
+            if jd < j:
+                diff = df
+                break
+
+        return diff
+
+    def _exact_from_meeus(self, jd:float) -> int:
+        """
+        The returned difference value to convert a Meeus algorithm jd to
+        an exact algorithm jd.
+
+        :param jd: Meeus Julian Period day.
+        :type jd: float
+        :return: The difference to subtract from a Meeus algorithm jd.
+        :rtype: int
+         """
+        jd_diff = (
+            (1757642.5, 0), (1794167.5, 1), (1830692.5, 2), (1903742.5, 3),
+            (1940267.5, 4), (1976792.5, 5), (2049842.5, 6), (2086367.5, 7),
+            (2122892.5, 8), (2195942.5, 9), (2232467.5, 10), (2268992.5, 11),
+            (2299160.5, 12),
+            )
+        diff = 2
+
+        for j, df in jd_diff:
+            if jd < j:
+                diff = df
+                break
+
+        return diff
+
     def _coterminal_angle(self, value:float) -> float:
         """
         Find the Coterminal Angle.
