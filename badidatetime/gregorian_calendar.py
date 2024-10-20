@@ -49,7 +49,7 @@ class GregorianCalendar(BaseCalendar):
         :param g_date: A Gregorian date in the (year, month, day) format.
         :type g_date: tuple
         :param exact: Julian days as if the Gregorian calendar started on
-                      year 1. This astronomically correct but not
+                      year 1. This is astronomically correct but not
                       historically correct.
         :type exact: bool
         :param alt: Use a more accurate leap year calculation, only valid when
@@ -108,9 +108,9 @@ class GregorianCalendar(BaseCalendar):
 
         :param jd: A Julian period day.
         :type jd: float
-        :param exact: If True use the astronomically correct algorithm
-                      else is False use the historically correct algorithm.
-                      The default is False.
+        :param exact: Julian days as if the Gregorian calendar started on
+                      year 1. This is astronomically correct but not
+                      historically correct.
         :type exact: bool
         :param alt: If True use the 4/128 algorithm for leap years else
                     use the 4/100/400 algorithm. The default is False.

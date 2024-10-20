@@ -1015,6 +1015,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                 jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
                                      -0.00823, 0.00032))
 
+        # JD♈(Y) = JD0+78.814+365.24236 ΔY+5.004*10^−8 ΔY^2−2.87*10^−12
+        # ΔY^3−4.5*10^−16 ΔY^4
+
         return jde
 
     def find_moment_of_equinoxes_or_solstices(self, jd:float, lam:int=SPRING,
@@ -1023,7 +1026,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         With the jd and time of year find an equinoxe or solstice at
         Greenwich.
 
-        :param jd: Julian day.
+        :param jd: Meeus algorithm Julian day.
         :type jd: float
         :param lam: Lambda is the season as in (SPRING, SUMMER, AUTUMN, WINTER)
         :type lam: int
@@ -1045,8 +1048,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         dl = 1 + 0.0334 * self._cos_deg(w + 0.0007) * self._cos_deg(2*w)
         s = self._sigma((self.EQ_SO_A, self.EQ_SO_B, self.EQ_SO_C),
                         lambda a, b, c: a * self._cos_deg(b + c * tc))
-        return round(jde + (0.00001 * s) / dl + self.HR(zone),
-                     self.ROUNDING_PLACES)
+        jde += (0.00001 * s) / dl + self.HR(zone)
+        return round(jde, self.ROUNDING_PLACES)
 
     def decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
                          direction:str='N') -> float:
@@ -1348,7 +1351,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _meeus_from_exact(self, jd:float) -> int:
         """
         The returned difference value to convert an exact algorithm jd to
-        a Meeus algorithm jd.
+        a Meeus algorithm jd. This is added to the exact jd.
 
         :param jd: Exact Julian Period day.
         :type jd: float
@@ -1373,7 +1376,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _exact_from_meeus(self, jd:float) -> int:
         """
         The returned difference value to convert a Meeus algorithm jd to
-        an exact algorithm jd.
+        an exact algorithm jd. This is subtracted from the meeus jd.
 
         :param jd: Meeus Julian Period day.
         :type jd: float
@@ -1412,7 +1415,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type y2: float
         :param y3: 3rd of the three parameters.
         :type y3: float
-        :param n: 
+        :param n: The factor.
         :type n: float
         """
         a = y2 - y1
