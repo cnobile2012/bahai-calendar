@@ -42,9 +42,80 @@ class DateTests(BahaiCalendar):
     ########################################################
     # I use coordinates and the sunset in the city of Tehran to determine the
     # yearly Badi epochs. Below are the Gregorian dates of the Vernal Equinox.
+    VE_0001_1582 = (
+        (   1, 3, 20, 13, 19), (   2, 3, 20, 19,  8), (   3, 3, 21,  0, 58),
+        (   4, 3, 20,  6, 47), (   5, 3, 20, 12, 36), (   6, 3, 20, 18, 25),
+        (   7, 3, 21,  0, 14), (   8, 3, 20,  6,  4), (   9, 3, 20, 11, 53),
+        (  10, 3, 20, 17, 42), (  11, 3, 20, 23, 31), (  12, 3, 20,  5, 20),
+        (  13, 3, 20, 11, 10), (  14, 3, 20, 16, 59), (  15, 3, 20, 22, 48),
+        (  16, 3, 20,  4, 37), (  17, 3, 20, 10, 26), (  18, 3, 20, 16, 16),
+        (  19, 3, 20, 22,  5), (  20, 3, 20,  3, 54), (  21, 3, 20,  9, 43),
+        (  22, 3, 20, 15, 32), (  23, 3, 20, 21, 22), (  24, 3, 20,  3, 11),
+        (  25, 3, 20,  9,  0), (  26, 3, 20, 14, 49), (  27, 3, 20, 20, 38),
+        (  28, 3, 20,  2, 28), (  29, 3, 20,  8, 17), (  30, 3, 20, 14,  6),
+        (  31, 3, 20, 19, 55), (  32, 3, 20,  1, 44), (  33, 3, 20,  7, 34),
+        (  34, 3, 20, 13, 23), (  35, 3, 20, 19, 12), (  36, 3, 20,  1,  1),
+        (  37, 3, 20,  6, 50), (  38, 3, 20, 12, 40), (  39, 3, 20, 18, 29),
+        (  40, 3, 20,  0, 18), (  41, 3, 20,  6,  7), (  42, 3, 20, 11, 56),
+        (  43, 3, 20, 17, 46), (  44, 3, 19, 23, 35), (  45, 3, 20,  5, 24),
+        (  46, 3, 20, 11, 13), (  47, 3, 20, 17,  2), (  48, 3, 19, 22, 52),
+        (  49, 3, 20,  4, 41), (  50, 3, 20, 10, 30), (  51, 3, 20, 16, 19),
+        (  52, 3, 19, 22,  8), (  53, 3, 20,  3, 58), (  54, 3, 20,  9, 47),
+        (  55, 3, 20, 15, 36), (  56, 3, 19, 21, 25), (  57, 3, 20,  3, 14),
+        (  58, 3, 20,  9,  4), (  59, 3, 20, 14, 53), (  60, 3, 19, 20, 42),
+        (  61, 3, 20,  2, 31), (  62, 3, 20,  8, 20), (  63, 3, 20, 14, 10),
+        (  64, 3, 19, 19, 59), (  65, 3, 20,  1, 48), (  66, 3, 20,  7, 37),
+        (  67, 3, 20, 13, 26), (  68, 3, 19, 19, 16), (  69, 3, 20,  1,  5),
+        (  70, 3, 20,  6, 54), (  71, 3, 20, 12, 43), (  72, 3, 19, 18, 32),
+        (  73, 3, 20,  0, 22), (  74, 3, 20,  6, 11), (  75, 3, 20, 12,  0),
+        (  76, 3, 19, 17, 49), (  77, 3, 19, 23, 38), (  78, 3, 20,  5, 28),
+        (  79, 3, 20, 11, 17), (  80, 3, 19, 17,  6), (  81, 3, 19, 22, 55),
+        (  82, 3, 20,  4, 44), (  83, 3, 20, 10, 34), (  84, 3, 19, 16, 23),
+        (  85, 3, 19, 22, 12), (  86, 3, 20,  4,  1), (  87, 3, 20,  9, 50),
+        (  88, 3, 19, 15, 40), (  89, 3, 19, 21, 29), (  90, 3, 20,  3, 18),
+        (  91, 3, 20,  9,  7), (  92, 3, 19, 14, 56), (  93, 3, 19, 20, 46),
+        (  94, 3, 20,  2, 35), (  95, 3, 20,  8, 24), (  96, 3, 19, 14, 13),
+        (  97, 3, 19, 20,  2), (  98, 3, 20,  1, 52), (  99, 3, 20,  7, 41),
+        ( 100, 3, 20, 13, 30), ( 101, 3, 20, 19, 19), ( 102, 3, 21,  1,  8),
+        ( 103, 3, 21,  6, 58), ( 104, 3, 20, 12, 47), ( 105, 3, 20, 18, 36),
+        ( 106, 3, 21,  0, 25), ( 107, 3, 21,  6, 14), ( 108, 3, 20, 12,  4),
+        ( 109, 3, 20, 17, 53), ( 110, 3, 20, 23, 42), ( 111, 3, 21,  5, 31),
+        ( 112, 3, 20, 11, 20), ( 113, 3, 20, 17, 10), ( 114, 3, 20, 22, 59),
+        ( 115, 3, 21,  4, 48), ( 116, 3, 20, 10, 37), ( 117, 3, 20, 16, 26),
+        ( 118, 3, 20, 22, 16), ( 119, 3, 21,  4,  5), ( 120, 3, 20,  9, 54),
+        ( 121, 3, 20, 15, 43), ( 122, 3, 20, 21, 32), ( 123, 3, 21,  3, 22),
+        ( 124, 3, 20,  9, 11), ( 125, 3, 20, 15,  0), ( 126, 3, 20, 20, 49),
+        ( 127, 3, 21,  2, 38), ( 128, 3, 20,  8, 28), ( 129, 3, 20, 14, 17),
+        ( 130, 3, 20, 20,  6), ( 131, 3, 21,  1, 55), ( 132, 3, 20,  7, 44),
+        ( 133, 3, 20, 13, 34), ( 134, 3, 20, 19, 23), ( 135, 3, 21,  1, 12),
+        ( 136, 3, 20,  7,  1), ( 137, 3, 20, 12, 50), ( 138, 3, 20, 18, 40),
+        ( 139, 3, 21,  0, 29), ( 140, 3, 20,  6, 18), ( 141, 3, 20, 12,  7),
+        ( 142, 3, 20, 17, 56), ( 143, 3, 20, 23, 46), ( 144, 3, 20,  5, 35),
+        ( 145, 3, 20, 11, 24), ( 146, 3, 20, 17, 13), ( 147, 3, 20, 23,  2),
+        ( 148, 3, 20,  4, 52), ( 149, 3, 20, 10, 41), ( 150, 3, 20, 16, 30),
+        ( 151, 3, 20, 22, 19), ( 152, 3, 20,  4,  8), ( 153, 3, 20,  9, 58),
+        ( 154, 3, 20, 15, 47), ( 155, 3, 20, 21, 36), ( 156, 3, 20,  3, 25),
+        ( 157, 3, 20,  9, 14), ( 158, 3, 20, 15,  4), ( 159, 3, 20, 20, 53),
+        ( 160, 3, 20,  2, 42), ( 161, 3, 20,  8, 31), ( 162, 3, 20, 14, 20),
+        ( 163, 3, 20, 20, 10), ( 164, 3, 20,  1, 59), ( 165, 3, 20,  7, 48),
+        ( 166, 3, 20, 13, 37), ( 167, 3, 20, 19, 26), ( 168, 3, 20,  1, 16),
+        ( 169, 3, 20,  7,  5), ( 170, 3, 20, 12, 54), ( 171, 3, 20, 18, 43),
+        ( 172, 3, 20,  0, 32), ( 173, 3, 20,  6, 22), ( 174, 3, 20, 12, 11),
+        ( 175, 3, 20, 18,  0), ( 176, 3, 19, 23, 49), ( 177, 3, 20,  5, 38),
+        ( 178, 3, 20, 11, 28), ( 179, 3, 20, 17, 17), ( 180, 3, 19, 23,  6),
+        ( 181, 3, 20,  4, 55), ( 182, 3, 20, 10, 44), ( 183, 3, 20, 16, 34),
+        ( 184, 3, 19, 22, 23), ( 185, 3, 20,  4, 12), ( 186, 3, 20, 10,  1),
+        ( 187, 3, 20, 15, 50), ( 188, 3, 19, 21, 40), ( 189, 3, 20,  3, 29),
+        ( 190, 3, 20,  9, 18), ( 191, 3, 20, 15,  7), ( 192, 3, 19, 20, 56),
+        ( 193, 3, 20,  2, 46), ( 194, 3, 20,  8, 35), ( 195, 3, 20, 14, 24),
+        ( 196, 3, 19, 20, 13), ( 197, 3, 20,  2,  2), ( 198, 3, 20,  7, 52),
+        ( 199, 3, 20, 13, 41), ( 200, 3, 20, 19, 30), ( 201, 3, 21,  1, 19),
+        ( 202, 3, 21,  7,  8), ( 203, 3, 21, 12, 58), ( 204, 3, 20, 18, 47),
+        #( ), ( ), ( ),
+        )
     INJECT = (
-        ((178, 0, 5), (2022, 3, 1, 17, 59)),
-        ((178, 19, 1), (2022, 3, 2, 18)),
+        ((178, 0, 5), (2022, 3, 1, 17, 59)), # *** TODO *** Convert all to
+        ((178, 19, 1), (2022, 3, 2, 18)),    #              correct sunset
         ((178, 19, 2), (2022, 3, 3, 18, 1)),
         ((181, 1, 2), (2024, 3, 21, 18, 17)),
         ((181, 1, 5), (2024, 3, 24, 18, 20)),
@@ -308,8 +379,8 @@ class DateTests(BahaiCalendar):
                     g_date = self.gc.gregorian_date_from_jd(jd, exact=True)
                     jd0 = math.floor(jd)
                     jd1 = jd0 + 1
-                    diff0 = self._meeus_algorithm_jd_compensation(jd0)
-                    diff1 = self._meeus_algorithm_jd_compensation(jd1)
+                    diff0 = self._meeus_from_exact(jd0)
+                    diff1 = self._meeus_from_exact(jd1)
                     mjd0 = jd0 + diff0
                     mjd1 = jd1 + diff1
                     ss0 = self._sun_setting(mjd0, lat, lon, zone)
@@ -374,7 +445,7 @@ class DateTests(BahaiCalendar):
     # Supporting methods
     #
     def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None, *,
-                           options=None):
+                           coeffon=True):
         year, month, day = self.date_from_kvymdhms(
             self.long_date_from_short_date(b_date), short=True)
 
@@ -393,14 +464,15 @@ class DateTests(BahaiCalendar):
 
         # The diff value converts my jd to the Meeus algorithm for
         # determining the sunset jd.
-        diff = self._meeus_algorithm_jd_compensation(jd)
+        diff = self._meeus_from_exact(jd)
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
-        #print(f"{str(b_date):<15} {day:<9} {jd:<14} {ss_a:<20}")
+        #print(f"{str(b_date):<15} {day:<9} {jd:<14} {ss_a:<20}",
+        #      file=sys.stderr)
 
-        if options:
-            coff = 0 if options.coff else self._get_coff(year)
-        else:
+        if coeffon:
             coff = self._get_coff(year)
+        else:
+            coff = 0
 
         return round(jd + ss_a + coff, 6)
 
@@ -604,36 +676,37 @@ class DateTests(BahaiCalendar):
             # We must use the Meeus algorithm not mine when finding the
             # equinox and sunset. So don't use exact=options.exact here.
             jd = self.gc.jd_from_gregorian_date(g_date) # Julian Period day
-            ve_jd = self.find_moment_of_equinoxes_or_solstices(jd, zone=3.5)
+            ve_jd = self.find_moment_of_equinoxes_or_solstices(
+                jd, zone=3.5)
             ss_jd = self._sun_setting(ve_jd, *self.BAHAI_LOCATION[:3])
 
             # It is allowed to have a Vernal Equinox to be up to one minute
             # before sunset and still use that sunset as the beginning of
             # the year. If a day == 1 then 1 minute is 0.0006944444444444444
             if ve_jd >= (ss_jd - 0.0006944444444444444):
-                jd_boyear = ss_jd
+                jd_ss = ss_jd
             else:
-                jd_boyear = self._sun_setting(ve_jd-1, *self.BAHAI_LOCATION[:3])
+                jd_ss = self._sun_setting(ve_jd-1, *self.BAHAI_LOCATION[:3])
 
-            g_ss = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
-                jd_boyear))
-            # Get the Badi date for the beginning of the year.
+            # Make the Badi date for the beginning of the year.
             b_date = (g_year - self.TRAN_COFF, 1, 1)
-            self._calculate_b_date(b_date, g_ss, data, options)
+            self._calculate_b_date(b_date, jd_ss, data, options)
 
-            #for dates in self._find_dates(b_date[0], inject):
-            #    self._calculate_b_date(*dates, data, options)
+            #for b_date, g_ss_date in self._find_dates(b_date[0], inject):
+            #    jd_ss = self.gc.jd_from_gregorian_date(g_ss_date)
+            #    self._calculate_b_date(b_date, jd_ss, data, options)
 
         return data
 
-    def _calculate_b_date(self, b_date, g_date, data, options):
+    def _calculate_b_date(self, b_date, jd_ss, data, options):
         try:
-            gjd = self.gc.jd_from_gregorian_date(
-                g_date, exact=options.exact, alt=options.alt_leap)
-            bjd = self._jd_from_badi_date(b_date, options=options)
-            diff = round(bjd - gjd, 6)
-            offby = math.floor(bjd) - math.floor(gjd)
-            data.append((b_date, bjd, g_date, gjd, diff, offby))
+            g_date = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
+                jd_ss)) # Sunset before VE
+            bjd = self._jd_from_badi_date(b_date, coeffon=options.coff)
+            e_jd_ss = jd_ss - self._exact_from_meeus(jd_ss)
+            diff = round(bjd - e_jd_ss, 6)
+            offby = math.floor(diff)
+            data.append((b_date, bjd, g_date, e_jd_ss, diff, offby))
         except Exception as e:
             msg = f"Badi date {b_date} and Gregorian date {g_date}, {e}"
             print(msg, file=sys.stderr)
