@@ -111,7 +111,61 @@ class DateTests(BahaiCalendar):
         ( 196, 3, 19, 20, 13), ( 197, 3, 20,  2,  2), ( 198, 3, 20,  7, 52),
         ( 199, 3, 20, 13, 41), ( 200, 3, 20, 19, 30), ( 201, 3, 21,  1, 19),
         ( 202, 3, 21,  7,  8), ( 203, 3, 21, 12, 58), ( 204, 3, 20, 18, 47),
+        ( 205, 3, 21,  0, 36), ( 206, 3, 21,  6, 25), ( 207, 3, 21, 12, 14),
+        ( 208, 3, 20, 18,  4), ( 209, 3, 20, 23, 53), ( 210, 3, 21,  5, 42),
+        ( 211, 3, 21, 11, 31), ( 212, 3, 20, 17, 20), ( 213, 3, 20, 23, 10),
+        ( 214, 3, 21,  4, 59), ( 215, 3, 21, 10, 48), ( 216, 3, 20, 16, 37),
+        ( 217, 3, 20, 22, 26), ( 218, 3, 21,  4, 16), ( 219, 3, 21, 10,  5),
+        ( 220, 3, 20, 15, 54), ( 221, 3, 20, 21, 43), ( 222, 3, 21,  3, 32),
+        ( 223, 3, 21,  9, 22), ( 224, 3, 20, 15, 11), ( 225, 3, 20, 21,  0),
+        ( 226, 3, 21,  2, 49), ( 227, 3, 21,  8, 38), ( 228, 3, 20, 14, 28),
+        ( 229, 3, 20, 20, 17), ( 230, 3, 21,  2,  6), ( 231, 3, 21,  7, 55),
+        ( 232, 3, 20, 13, 44), ( 233, 3, 20, 19, 34), ( 234, 3, 21,  1, 23),
+        ( 235, 3, 21,  7, 12), ( 236, 3, 20, 13,  1), ( 237, 3, 20, 18, 50),
+        ( 238, 3, 21,  0, 40), ( 239, 3, 21,  6, 29), ( 240, 3, 20, 12, 18),
+        ( 241, 3, 20, 18,  7), ( 242, 3, 20, 23, 56), ( 243, 3, 21,  5, 46),
+        ( 244, 3, 20, 11, 35), ( 245, 3, 20, 17, 24), ( 246, 3, 20, 23, 13),
+        ( 247, 3, 21,  5,  2), ( 248, 3, 20, 10, 52), ( 249, 3, 20, 16, 41),
+        ( 250, 3, 20, 22, 30), ( 251, 3, 21,  4, 19), ( 252, 3, 20, 10,  8),
+        ( 253, 3, 20, 15, 58), ( 254, 3, 20, 21, 47), ( 255, 3, 21,  3, 36),
+        ( 256, 3, 20,  9, 25), ( 257, 3, 20, 15, 14), ( 258, 3, 20, 21,  4),
+        ( 259, 3, 21,  2, 53), ( 260, 3, 20,  8, 42), ( 261, 3, 20, 14, 31),
+        ( 262, 3, 20, 20, 20), ( 263, 3, 21,  2, 10), ( 264, 3, 20,  7, 59),
+        ( 265, 3, 20, 13, 48), ( 266, 3, 20, 19, 37), ( 267, 3, 21,  1, 26),
+        ( 268, 3, 20, 13,  5), ( 269, 3, 20,  7, 16), ( 270, 3, 20, 18, 54),
+        ( 271, 3, 21,  0, 43), ( 272, 3, 20, 12, 22), ( 273, 3, 20, 12, 22),
+        ( 274, 3, 20, 18, 11), ( 275, 3, 21,  0,  0), ( 276, 3, 20, 11, 38),
+        ( 277, 3, 20, 11, 38), ( 278, 3, 20, 17, 28), ( 279, 3, 20, 23, 17),
+        ( 280, 3, 20,  5,  6), ( 281, 3, 20, 10, 55), ( 282, 3, 20, 16, 44),
+        ( 283, 3, 20, 22, 34), ( 284, 3, 20,  4, 23), ( 285, 3, 20, 10, 12),
+        ( 286, 3, 20, 16,  1), ( 287, 3, 20, 21, 50), ( 288, 3, 20,  3, 40),
+        ( 289, 3, 20,  9, 29), ( 290, 3, 20, 15, 18), ( 291, 3, 20, 21,  7),
+        ( 292, 3, 20,  2, 56), ( 293, 3, 20,  8, 46), ( 294, 3, 20, 14, 35),
+        ( 295, 3, 20, 20, 24), ( 296, 3, 20,  2, 13), ( 297, 3, 20,  8,  2),
+        ( 298, 3, 20, 13, 52), ( 299, 3, 20, 19, 41), ( 300, 3, 21,  1, 39),
+        ( 301, 3, 21,  7, 19), ( 302, 3, 21, 13,  8), ( 303, 3, 21, 18, 58),
+        ( 304, 3, 21,  0, 47), ( 305, 3, 21,  6, 36), ( 306, 3, 21, 12, 25),
+        ( 307, 3, 21, 18, 14), ( 308, 3, 21,  0,  4), ( 309, 3, 21,  5, 53),
+        ( 310, 3, 21, 11, 42), ( 311, 3, 21, 17, 31), ( 312, 3, 20, 23, 20),
+        ( 313, 3, 21,  5, 10), ( 314, 3, 21, 10, 59), ( 315, 3, 21, 16, 48),
+        ( 316, 3, 20, 22, 37), ( 317, 3, 21,  4, 26), ( 318, 3, 21, 10, 16),
+        ( 319, 3, 21, 16,  5), ( 320, 3, 20, 21, 54), ( 321, 3, 21,  3, 43),
+        ( 322, 3, 21,  9, 32), ( 323, 3, 21, 15, 22), ( 324, 3, 20, 21, 11),
+        ( 325, 3, 21,  3,  0), ( 326, 3, 21,  8, 49), ( 327, 3, 21, 14, 38),
+        ( 328, 3, 20, 20, 28), ( 329, 3, 21,  2, 17), ( 330, 3, 21,  8,  6),
+        ( 331, 3, 21, 13, 55), ( 332, 3, 20, 19, 44), ( 333, 3, 21,  1, 34),
         #( ), ( ), ( ),
+
+        (1553, 3, 20, 21, 58), (1554, 3, 21,  3, 21), (1555, 3, 21,  9, 36),
+        (1556, 3, 20, 15, 25), (1557, 3, 20, 21, 14), (1558, 3, 21,  3,  4),
+        (1559, 3, 21,  8, 53), (1560, 3, 20, 14, 42), (1561, 3, 20, 20, 31),
+        (1562, 3, 21,  2, 20), (1563, 3, 21,  8, 10), (1564, 3, 20, 13, 59),
+        (1565, 3, 20, 19, 48), (1566, 3, 21,  1, 37), (1567, 3, 21,  7, 26),
+        (1568, 3, 20, 13, 16), (1569, 3, 20, 19,  5), (1570, 3, 21,  0, 54),
+        (1571, 3, 21,  6, 43), (1572, 3, 20, 12, 32), (1573, 3, 20, 18, 22),
+        (1574, 3, 21,  0, 11), (1575, 3, 21,  6,  0), (1576, 3, 20, 11, 49),
+        (1577, 3, 20, 17, 38), (1578, 3, 20, 23, 28), (1579, 3, 21,  5, 17),
+        (1580, 3, 20, 11,  6), (1581, 3, 20, 16, 55), (1582, 3, 20, 22, 44),
         )
     INJECT = (
         ((178, 0, 5), (2022, 3, 1, 17, 59)), # *** TODO *** Convert all to
@@ -470,64 +524,65 @@ class DateTests(BahaiCalendar):
         #      file=sys.stderr)
 
         if coeffon:
-            coff = self._get_coff(year)
+            coff = 0 if coeffon else self._get_coff(year)
         else:
-            coff = 0
+            coff = self._get_coff(year)
 
         return round(jd + ss_a + coff, 6)
 
     def _get_coff(self, year):
-        def process_segment(y, pc, c=0, onoff=(), *, c0=0, c1=0, c2=0, c3=0):
-            func = lambda y, onoff: 1 < y < 100 and y % 4 in onoff
+        def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
+            func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
             coff = 0
 
-            if pc and y in (1, 34, 67, 100):
-                coff = pc
-            elif c and func(y, onoff): # Whatever is passed in onoff.
-                coff = c
-            elif c0 and func(y, (0,)):
-                coff = c0
-            elif c1 and func(y, (1,)):
-                coff = c1
-            elif c2 and func(y, (2,)):
-                coff = c2
-            elif c3 and func(y, (3,)):
-                coff = c3
+            if a and func(y, onoff0): # Whatever is passed in onoff0.
+                coff = a
+            elif b and func(y, onoff1): # Whatever is passed in onoff0.
+                coff = b
 
             return coff
 
-        def process_segments(year, pn, pc, c=0, onoff=(), *,
-                             c0=0, c1=0, c2=0, c3=0):
+        def process_segments(year, pn, a=0, onoff0=(), b=0, onoff1=()):
             coff = 0
 
             for start, end in pn:
                 if year in range(start, end):
                     # start to end (range -S start -E end)
-                    coff = process_segment(end - year, pc, c=c, onoff=onoff,
-                                           c0=c0, c1=c1, c2=c2, c3=c3)
+                    coff0 = process_segment(end - year, a=a, onoff0=onoff0)
+                    coff1 = process_segment(end - year, b=b, onoff1=onoff1)
+                    coff = coff0 if coff0 != 0 else coff1
 
             return coff
 
-        z0 = ((-1727, -1699), )
-        n1 = ((-1842, -1819), (-1699, -1691), )
-        n0111 = ((-1819, -1799), (-1691, -1659), )
-        n1222 = ((-1799, -1787), )
-        n1122 = ((-1787, -1755), )
-        n1112 = ((-1755, -1743),)
-        n0011 = ((-1659, -1643), )
-        n0001 = ((-1743, -1727), )
-        n2 = ()
-        p1 = ((-1599, -1566), (-1599, -1566), (-1546, -1543), )
-        p1100 = ((-1643, -1627), )
-        p1110 = ((-1627, -1599), )
-        p1112 = ((-1566, -1546), )
-        p2 = ((-1471, -1435), (-1401, -1399), )
-        p2211 = ((-1399, -1375), )
-        p2221 = ((-1499, -1471), ) #(-1375, -1344), )
-        p3 = ((-1403, -1401), )
-        p32 = ((-1501, -1499), )
-        p3222 = ((-1543, -1531), (-1435, -1403), )
-        p3322 = ((-1531, -1501), )
+        z0 = ()
+        #n1 = ()
+        #n0111 = ()
+        #n1222 = ()
+        #n1122 = ()
+        #n1112 = ()
+        #n0011 = ()
+        #n0001 = ()
+        #n2 = ()
+        p1 = ((-1783, -1750), )#(-1651, -1616), (-1616, -1615), )
+        p1001 = ((-1698, -1682), )
+        #p1100 = ((-1699, -1683), )
+        p1101 = ((-1682, -1650), )
+        p1110 = ((-1799, -1783), )
+        p1112 = ((-1750, -1714), )
+        #p1121 = ((-285, -245), )
+        #p1211 = ((-1748, -1734), )
+        #p2 = ((), )
+        #p211 = ((-1702, -1699), )
+        p2111 = ((-1702, -1698), )#(-1615, -1583), )
+        p2112 = ((-1842, -1814), (-1714, -1702), )
+        #p221  = ((-1802, -1799), )
+        #p2211 = ((-1583, -1551), )
+        p2212 = ((-1814, -1802), )
+        p2221 = ((-1803, -1799), )
+        #p3 = ()
+        #p32 = ()
+        #p3222 = ()
+        #p3322 = ()
         z0_flag = False
         coff = 0
 
@@ -542,64 +597,95 @@ class DateTests(BahaiCalendar):
                 z0_flag = True
 
         if not z0_flag:
-            if not coff:
-                coff = process_segments(year, n1, 1, 1, (0, 1, 2, 3))
+            ## if not coff:
+            ##     coff = process_segments(year, n1, 1, 1, (0, 1, 2, 3))
+
+            ## if not coff:
+            ##     coff = process_segments(year, n0111, 1, 1, (1, 2, 3))
+
+            ## if not coff:
+            ##     coff = process_segments(year, n1222, 2, 2, (1, 2, 3), c0=1)
+
+            ## if not coff:
+            ##     coff = process_segments(year, n1122, 2, 1, (0, 3,), c1=2, c2=2)
+
+            ## if not coff:
+            ##     coff = process_segments(year, n1112, 2, 1, (0, 2, 3), c1=2)
+
+            ## if not coff:
+            ##     coff = process_segments(year, n2, 2, 2, (0, 1, 2, 3))
+
+            ## if not coff:
+            ##     coff = process_segments(year, n0011, 1, 1, (1, 2))
+
+            ## if not coff:
+            ##     coff = process_segments(year, n0001, 1, c1=1)
+
+            #if not coff:
+            #    coff = process_segments(year, p010n1, )
 
             if not coff:
-                coff = process_segments(year, n0111, 1, 1, (1, 2, 3))
+                coff = process_segments(year, p1, -1, (0, 1, 2, 3))
 
             if not coff:
-                coff = process_segments(year, n1222, 2, 2, (1, 2, 3), c0=1)
+                coff = process_segments(year, p1001, -1, (0, 1))
 
             if not coff:
-                coff = process_segments(year, n1122, 2, 1, (0, 3,), c1=2, c2=2)
+                coff = process_segments(year, p1101, -1, (0, 1, 3))
+
+            ## if not coff:
+            ##     coff = process_segments(year, p1100, 0, -1, (0, 3))
 
             if not coff:
-                coff = process_segments(year, n1112, 2, 1, (0, 2, 3), c1=2)
+                coff = process_segments(year, p1110, -1, (0, 2, 3))
 
             if not coff:
-                coff = process_segments(year, n2, 2, 2, (0, 1, 2, 3))
+                coff = process_segments(year, p1112, -1, (0, 2, 3), -2, (1,))
+
+            ## if not coff:
+            ##     coff = process_segments(year, p1211, -2, -1, (0, 2, 3), c1=-2)
+
+            ## if not coff:
+            ##     coff = process_segments(year, p2, -2, -2, (0, 1, 2, 3))
+
+            ## if not coff:
+            ##     coff = process_segments(year, p2211, -1, -2, (0, 3),
+            ##                             c1=-1, c2=-1)
+
+            ## if not coff:
+            ##     coff = process_segments(year, p211, -1, c2=-1, c3=-2)
 
             if not coff:
-                coff = process_segments(year, n0011, 1, 1, (1, 2))
+                coff = process_segments(year, p2111, -2, (0,), -1, (1, 2, 3))
 
             if not coff:
-                coff = process_segments(year, n0001, 1, c1=1)
+                coff = process_segments(year, p2112, -1, (2, 3), -2, (0, 1))
+
+            ## if not coff:
+            ##     coff = process_segments(year, p221, -1, -2, (2, 3))
+
+            ## if not coff:
+            ##     coff = process_segments(year, p2211, -1, -2, (0, 3),
+            ##                             c1=-1, c2=-1)
 
             if not coff:
-                coff = process_segments(year, p1, -1, -1, (0, 1, 2, 3))
+                coff = process_segments(year, p2212, -2, (0, 1, 3), -1, (2,))
 
             if not coff:
-                coff = process_segments(year, p1100, 0, -1, (0, 3))
+                coff = process_segments(year, p2221, -2, (0, 2, 3), -1, (1,))
 
-            if not coff:
-                coff = process_segments(year, p1110, 0, -1, (0, 2, 3))
+            ## if not coff:
+            ##     coff = process_segments(year, p3, -3, c2=-3)
 
-            if not coff:
-                coff = process_segments(year, p1112, -2, -1, (0, 2, 3), c1=-2)
+            ## if not coff:
+            ##     coff = process_segments(year, p32, -2, c2=-3)
 
-            if not coff:
-                coff = process_segments(year, p2, -2, -2, (0, 1, 2, 3))
+            ## if not coff:
+            ##     coff = process_segments(year, p3222, -2, -2, (1, 2, 3), c0=-3)
 
-            if not coff:
-                coff = process_segments(year, p2211, -1, -2, (0, 3),
-                                        c1=-1, c2=-1)
-
-            if not coff:
-                coff = process_segments(year, p2221, -1, -2, (0, 2, 3), c1=-1)
-
-            if not coff:
-                coff = process_segments(year, p3, -3, c2=-3)
-
-            if not coff:
-                coff = process_segments(year, p32, -2, c2=-3)
-
-            if not coff:
-                coff = process_segments(year, p3222, -2, -2, (1, 2, 3), c0=-3)
-
-            if not coff:
-                coff = process_segments(year, p3322, -3,
-                                        c0=-2, c1=-3, c2=-3, c3=-2)
+            ## if not coff:
+            ##     coff = process_segments(year, p3322, -3,
+            ##                             c0=-2, c1=-3, c2=-3, c3=-2)
 
         return coff
 
@@ -667,17 +753,25 @@ class DateTests(BahaiCalendar):
 
     def _date_range(self, options):
         data = []
+        ve_jd_0001_1582 = self.pre_process_vernal_equinoxs()
         last_year = 0
         inject = [(b_date[0], (b_date, g_date))
                   for b_date, g_date in self.INJECT]
 
         for g_year in range(options.start, options.end):
-            g_date = (g_year, 3, 1)
-            # We must use the Meeus algorithm not mine when finding the
-            # equinox and sunset. So don't use exact=options.exact here.
-            jd = self.gc.jd_from_gregorian_date(g_date) # Julian Period day
-            ve_jd = self.find_moment_of_equinoxes_or_solstices(
-                jd, zone=3.5)
+            if g_year < 1583:
+                if g_year in ve_jd_0001_1582:
+                    ve_jd = ve_jd_0001_1582[g_year]
+                else:
+                    continue
+            else:
+                g_date = (g_year, 3, 1)
+                # We must use the Meeus algorithm not mine when finding the
+                # equinox and sunset. So don't use exact=options.exact here.
+                jd = self.gc.jd_from_gregorian_date(g_date) # Julian Period day
+                ve_jd = self.find_moment_of_equinoxes_or_solstices(
+                    jd, zone=3.5)
+
             ss_jd = self._sun_setting(ve_jd, *self.BAHAI_LOCATION[:3])
 
             # It is allowed to have a Vernal Equinox to be up to one minute
@@ -710,6 +804,16 @@ class DateTests(BahaiCalendar):
         except Exception as e:
             msg = f"Badi date {b_date} and Gregorian date {g_date}, {e}"
             print(msg, file=sys.stderr)
+
+    def pre_process_vernal_equinoxs(self):
+        data = {}
+
+        for date in self.VE_0001_1582:
+            jd = self.gc.jd_from_gregorian_date(date)
+            jd += 0.14583333333333333333 # 3.5 hours for Tehran time
+            data[date[0]] = jd
+
+        return data
 
     def _find_dates(self, year, inject):
         items = []
