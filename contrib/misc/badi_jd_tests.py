@@ -554,35 +554,30 @@ class DateTests(BahaiCalendar):
 
             return coff
 
-        z0 = ()
-        #n1 = ()
-        #n0111 = ()
-        #n1222 = ()
-        #n1122 = ()
-        #n1112 = ()
-        #n0011 = ()
-        #n0001 = ()
-        #n2 = ()
-        p1 = ((-1783, -1750), )#(-1651, -1616), (-1616, -1615), )
-        p1001 = ((-1698, -1682), )
-        #p1100 = ((-1699, -1683), )
-        p1101 = ((-1682, -1650), )
-        p1110 = ((-1799, -1783), )
-        p1112 = ((-1750, -1714), )
-        #p1121 = ((-285, -245), )
-        #p1211 = ((-1748, -1734), )
-        #p2 = ((), )
-        #p211 = ((-1702, -1699), )
-        p2111 = ((-1702, -1698), )#(-1615, -1583), )
-        p2112 = ((-1842, -1814), (-1714, -1702), )
-        #p221  = ((-1802, -1799), )
-        #p2211 = ((-1583, -1551), )
-        p2212 = ((-1814, -1802), )
-        p2221 = ((-1803, -1799), )
-        #p3 = ()
-        #p32 = ()
-        #p3222 = ()
-        #p3322 = ()
+        z0 = ((-12, -11), (128, 129), (364, 365))
+        p0100 = ((-95, -91),)
+        p1 = ((-1783, -1750), (-1650, -1615), (-179, -143), (-47, -12),
+              (101, 116), (213, 249), (345, 364), (365, 381), (501, 513),
+              (609, 645), (741, 777), (901, 909), (1005, 1041), (1137, 1162))
+        p1001 = ((-1698, -1682),)
+        p1100 = ((-99, -95), (-91, -79), (301, 313), (605, 609), (701, 709),
+                 (1101, 1105))
+        p1101 = ((-1682, -1650),)
+        p1110 = ((-1799, -1783), (-199, -179), (-79, -47), (201, 213),
+                 (313, 345), (601, 605), (709, 741), (1001, 1005), (1105, 1137))
+        p1112 = ((-1750, -1714),)
+        p1211 = ((116, 128),)
+        p2 = ((85, 101), (477, 501), (873, 901))
+        p2111 = ((-1702, -1698), (-1615, -1583), (-283, -243), (-143, -111),
+                 (-11, 21), (117, 125), (129, 149), (249, 281), (381, 413),
+                 (513, 545), (645, 677), (777, 809), (909, 941), (1041, 1073))
+        p2112 = ((-1842, -1814), (-1714, -1702))
+        p2211 = ((-1583, -1551), (-243, -211), (-111, -99), (21, 53),
+                 (149, 185), (281, 301), (413, 445), (545, 577), (677, 701),
+                 (809, 841), (941, 973), (1073, 1101))
+        p2212 = ((-1814, -1802),)
+        p2221 = ((-1803, -1799), (-1551, -1519), (-211, -199), (53, 85),
+                 (185, 201), (445, 477), (577, 601), (841, 873), (973, 1001))
         z0_flag = False
         coff = 0
 
@@ -597,32 +592,8 @@ class DateTests(BahaiCalendar):
                 z0_flag = True
 
         if not z0_flag:
-            ## if not coff:
-            ##     coff = process_segments(year, n1, 1, 1, (0, 1, 2, 3))
-
-            ## if not coff:
-            ##     coff = process_segments(year, n0111, 1, 1, (1, 2, 3))
-
-            ## if not coff:
-            ##     coff = process_segments(year, n1222, 2, 2, (1, 2, 3), c0=1)
-
-            ## if not coff:
-            ##     coff = process_segments(year, n1122, 2, 1, (0, 3,), c1=2, c2=2)
-
-            ## if not coff:
-            ##     coff = process_segments(year, n1112, 2, 1, (0, 2, 3), c1=2)
-
-            ## if not coff:
-            ##     coff = process_segments(year, n2, 2, 2, (0, 1, 2, 3))
-
-            ## if not coff:
-            ##     coff = process_segments(year, n0011, 1, 1, (1, 2))
-
-            ## if not coff:
-            ##     coff = process_segments(year, n0001, 1, c1=1)
-
-            #if not coff:
-            #    coff = process_segments(year, p010n1, )
+            if not coff:
+                coff = process_segments(year, p0100, -1, (3,))
 
             if not coff:
                 coff = process_segments(year, p1, -1, (0, 1, 2, 3))
@@ -631,10 +602,10 @@ class DateTests(BahaiCalendar):
                 coff = process_segments(year, p1001, -1, (0, 1))
 
             if not coff:
-                coff = process_segments(year, p1101, -1, (0, 1, 3))
+                coff = process_segments(year, p1100, -1, (0, 3))
 
-            ## if not coff:
-            ##     coff = process_segments(year, p1100, 0, -1, (0, 3))
+            if not coff:
+                coff = process_segments(year, p1101, -1, (0, 1, 3))
 
             if not coff:
                 coff = process_segments(year, p1110, -1, (0, 2, 3))
@@ -642,50 +613,26 @@ class DateTests(BahaiCalendar):
             if not coff:
                 coff = process_segments(year, p1112, -1, (0, 2, 3), -2, (1,))
 
-            ## if not coff:
-            ##     coff = process_segments(year, p1211, -2, -1, (0, 2, 3), c1=-2)
+            if not coff:
+                coff = process_segments(year, p1211, -1, (0, 1, 2), -2, (3,))
 
-            ## if not coff:
-            ##     coff = process_segments(year, p2, -2, -2, (0, 1, 2, 3))
-
-            ## if not coff:
-            ##     coff = process_segments(year, p2211, -1, -2, (0, 3),
-            ##                             c1=-1, c2=-1)
-
-            ## if not coff:
-            ##     coff = process_segments(year, p211, -1, c2=-1, c3=-2)
+            if not coff:
+                coff = process_segments(year, p2, -2, (0, 1, 2, 3))
 
             if not coff:
                 coff = process_segments(year, p2111, -2, (0,), -1, (1, 2, 3))
 
             if not coff:
-                coff = process_segments(year, p2112, -1, (2, 3), -2, (0, 1))
+                coff = process_segments(year, p2112, -2, (0, 1), -1, (2, 3))
 
-            ## if not coff:
-            ##     coff = process_segments(year, p221, -1, -2, (2, 3))
-
-            ## if not coff:
-            ##     coff = process_segments(year, p2211, -1, -2, (0, 3),
-            ##                             c1=-1, c2=-1)
+            if not coff:
+                coff = process_segments(year, p2211, -2, (0, 3), -1, (1, 2))
 
             if not coff:
                 coff = process_segments(year, p2212, -2, (0, 1, 3), -1, (2,))
 
             if not coff:
                 coff = process_segments(year, p2221, -2, (0, 2, 3), -1, (1,))
-
-            ## if not coff:
-            ##     coff = process_segments(year, p3, -3, c2=-3)
-
-            ## if not coff:
-            ##     coff = process_segments(year, p32, -2, c2=-3)
-
-            ## if not coff:
-            ##     coff = process_segments(year, p3222, -2, -2, (1, 2, 3), c0=-3)
-
-            ## if not coff:
-            ##     coff = process_segments(year, p3322, -3,
-            ##                             c0=-2, c1=-3, c2=-3, c3=-2)
 
         return coff
 
