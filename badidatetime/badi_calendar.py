@@ -24,7 +24,7 @@ class BahaiCalendar(BaseCalendar):
     # Near Mehrabad International Airport
     BAHAI_LOCATION = (35.682376, 51.285817, 3.5, 0)
     GMT_LOCATION = (51.477928, -0.001545, 0, 0)
-    BADI_EPOCH = 2394644.261791 # 2394646.261791 using Meeus' algorithm
+    BADI_EPOCH = 2394643.262113 # 2394645.261536 using Meeus' algorithm
     BADI_MONTH_NAMES = (
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
         (6, 'Raḥmat'), (7, 'Kalimát'), (8, 'Kamál'), (9, "Asmá'"),
@@ -190,7 +190,7 @@ class BahaiCalendar(BaseCalendar):
             m = 18 * 19 + 4 + self._is_leap_year(year)
 
         td = self._days_in_years(year-1)
-        jd = td + math.floor(self.BADI_EPOCH) + m + day
+        jd = td + math.floor(self.BADI_EPOCH+1) + m + day
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
@@ -201,67 +201,63 @@ class BahaiCalendar(BaseCalendar):
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_coff(year), self.ROUNDING_PLACES)
 
+
     def _get_coff(self, year):
-        def process_segment(y, pc, c=0, onoff=(), *, c0=0, c1=0, c2=0, c3=0):
-            func = lambda y, onoff: 1 < y < 100 and y % 4 in onoff
+        def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
+            func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
             coff = 0
 
-            if pc and y in (1, 34, 67, 100):
-                coff = pc
-            elif c and func(y, onoff): # Whatever is passed in onoff.
-                coff = c
-            elif c0 and func(y, (0,)):
-                coff = c0
-            elif c1 and func(y, (1,)):
-                coff = c1
-            elif c2 and func(y, (2,)):
-                coff = c2
-            elif c3 and func(y, (3,)):
-                coff = c3
+            if a and func(y, onoff0): # Whatever is passed in onoff0.
+                coff = a
+            elif b and func(y, onoff1): # Whatever is passed in onoff0.
+                coff = b
 
             return coff
 
-        def process_segments(year, p, pc, c=0, onoff=(), *,
-                             c0=0, c1=0, c2=0, c3=0):
+        def process_segments(year, pn, a=0, onoff0=(), b=0, onoff1=()):
             coff = 0
 
-            for start, end in p:
+            for start, end in pn:
                 if year in range(start, end):
                     # start to end (range -S start -E end)
-                    coff = process_segment(end - year, pc, c=c, onoff=onoff,
-                                           c0=c0, c1=c1, c2=c2, c3=c3)
+                    coff0 = process_segment(end - year, a=a, onoff0=onoff0)
+                    coff1 = process_segment(end - year, b=b, onoff1=onoff1)
+                    coff = coff0 if coff0 != 0 else coff1
 
             return coff
 
-        p1 = ((-1842, -1819), (-1727, -1699), (-1599, -1563), (-1500, -1499),
-              (-1471, -1435), (-1401, -1399), (-1343, -1307), (-1306, -1303),
-              (-1302, -1299), (-1215, -1179), (-1087, -1051), (-955, -919),
-              (-827, -795), (-700, -663), (-567, -535), (-501, -499),
-              (-439, -403), (-299, -275), (-179, -143), (-47, -11), (101, 117),
-              (213, 249), (345, 381), (501, 513), (609, 645), (741, 777),
-              (901, 909), (1005, 1041), (1137, 1162))
-        p0111 = ((-1819, -1799), (-1563, -1531), (-1435, -1403),
-                 (-1179, -1151), (-1051, -1019), (-919, -899), (-795, -763),
-                 (-663, -631), (-535, -503), (-403, -371), (-275, -243),
-                 (-143, -111), (-11, 21), (117, 149), (249, 281), (381, 413),
-                 (513, 545), (645, 677), (777, 809), (909, 941), (1041, 1073))
-        p1222 = ((-1799, -1787), (-1691, -1659), (-1299, -1275), (-899, -891))
-        p1122 = ((-1787, -1755), (-1659, -1627), (-1399, -1375),
-                 (-1275, -1247), (-999, -987), (-891, -859), (-499, -471),
+        p1 = ((-1783, -1747), (-1651, -1615), (-1499, -1483), (-1383, -1347),
+              (-1251, -1215), (-1099, -1083), (-983, -947), (-851, -815),
+              (-699, -683), (-583, -547), (-451, -415), (-299, -283),
+              (-179, -143), (-47, -11), (101, 117), (213, 249), (345, 381),
+              (501, 513), (609, 645), (741, 777), (901, 909), (1005, 1041),
+              (1137, 1162))
+        p1100 = ((-1699, -1683), (-1299, -1283), (-899, -883), (-499, -483),
                  (-99, -79), (301, 313), (701, 709), (1101, 1105))
-        p1112 = ((-1755, -1727), (-1627, -1599), (-1499, -1471),
-                 (-1375, -1343), (-1247, -1215), (-1099, -1087), (-987, -955),
-                 (-859, -827), (-599, -567), (-471, -439), (-199, -179),
-                 (-79, -47), (201, 213), (313, 345), (601, 609), (709, 741),
-                 (1001, 1005), (1105, 1137))
-        p2 = ((-1699, -1691),)
-        p0011 = ((-1531, -1503), (-1151, -1119), (-1019, -999), (-763, -731),
-                 (-631, -599), (-371, -339), (-243, -211), (-111, -99),
-                 (21, 53), (149, 185), (281, 301), (413, 445), (545, 577),
-                 (677, 701), (809, 841), (941, 973), (1073, 1101))
-        p0001 = ((-1119, -1099), (-731, -699), (-339, -307), (-211, -199),
-                 (53, 85), (185, 201), (445, 477), (513, 545), (577, 601),
-                 (841, 873), (973, 1001))
+        p1110 = ((-1799, -1783), (-1683, -1651), (-1399, -1383),
+                 (-1283, -1251), (-999, -983), (-883, -851), (-599, -583),
+                 (-483, -451), (-199, -179), (-79, -47), (201, 213),
+                 (313, 345), (601, 609), (709, 741), (1001, 1005),
+                 (1105, 1137))
+        p2 = ((-1519, -1499), (-1119, -1099), (-319, -299), (-719, -699),
+              (85, 101), (477, 501), (873, 901))
+        p2111 = ((-1747, -1715), (-1615, -1583), (-1483, -1451),
+                 (-1347, -1315), (-1327, -1315 ), (-1215,-1183 ),
+                 (-1083, -1051), (-947, -915), (-815, -783), (-683, -651),
+                 (-547, -515), (-415, -383), (-283, -243), (-143, -111),
+                 (-11, 21), (117, 149), (249, 281), (381, 413), (513, 545),
+                 (645, 677), (777, 809), (909, 941), (1041, 1073))
+        p2211 = ((-1843, -1815), (-1715, -1699), (-1583, -1551),
+                 (-1451, -1435), (-1435, -1415), (-1315, -1299 ),
+                 (-1183, -1151), (-1051, -1019), (-915, -899), (-783, -751),
+                 (-651, -619), (-515, -499), (-383, -351), (-243, -211),
+                 (-111, -99), (21, 53), (149, 185), (281, 301), (413, 445),
+                 (545, 577), (677, 701), (809, 841), (941, 973), (1073, 1101))
+        p2221 = ((-1815, -1799), (-1551, -1519), (-1415, -1399),
+                 (-1151, -1119), (-1019, -999), (-751, -719), (-619, -599),
+                 (-351, -319), (-211, -199), (53, 85), (185, 201), (445, 477),
+                 (577, 601), (841, 873), (973, 1001))
+        coff = 0
 
         # General ranges are determined with:
         # ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
@@ -269,28 +265,26 @@ class BahaiCalendar(BaseCalendar):
         # be process. Use the following command to test the results of each
         # segment. ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
         # Full range is -1842 to 1161
-        coff = process_segments(year, p1, 1, 1, (0, 1, 2, 3))
+        if not coff:
+            coff = process_segments(year, p1, -1, (0, 1, 2, 3))
 
         if not coff:
-            coff = process_segments(year, p0111, 1, 1, (1, 2, 3))
+            coff = process_segments(year, p1100, -1, (0, 3))
 
         if not coff:
-            coff = process_segments(year, p1222, 2, 2, (1, 2, 3), c0=1)
+            coff = process_segments(year, p1110, -1, (0, 2, 3))
 
         if not coff:
-            coff = process_segments(year, p1122, 2, 1, (0, 3,), c1=2, c2=2)
+            coff = process_segments(year, p2, -2, (0, 1, 2, 3))
 
         if not coff:
-            coff = process_segments(year, p1112, 2, 1, (0, 2, 3), c1=2)
+            coff = process_segments(year, p2111, -2, (0,), -1, (1, 2, 3))
 
         if not coff:
-            coff = process_segments(year, p2, 2, 2, (0, 1, 2, 3))
+            coff = process_segments(year, p2211, -2, (0, 3), -1, (1, 2))
 
         if not coff:
-            coff = process_segments(year, p0011, 1, 1, (1, 2))
-
-        if not coff:
-            coff = process_segments(year, p0001, 1, c1=1)
+            coff = process_segments(year, p2221, -2, (0, 2, 3), -1, (1,))
 
         return coff
 

@@ -828,9 +828,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         date from a POSIX timestamp.
         """
         data = (
-            (0, True, '0126-16-01'),
-            (1723057467.0619307, False, '01-10-10-08-08'),
-            (1723057467.0619307, True, '0181-08-08'),
+            (0, True, '0126-16-02'),
+            (1723057467.0619307, False, '01-10-10-08-09'),
+            (1723057467.0619307, True, '0181-08-09'),
             )
         msg = "Expected {} with timestamp {}, found {}."
 

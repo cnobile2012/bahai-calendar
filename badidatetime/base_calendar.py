@@ -92,10 +92,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # converting from a Julian Period day add 0.5 to the value before
     # calling the function.
     PARTIAL_DAY_TO_HOURS = lambda self, x: round(
-        (x % 1), self.ROUNDING_PLACES) * 24
+        (x % 1) * 24, self.ROUNDING_PLACES)
     PARTIAL_HOUR_TO_MINUTE = lambda self, x: round(
-        (x % 1), self.ROUNDING_PLACES) * 60
+        (x % 1) * 60, self.ROUNDING_PLACES)
     PARTIAL_MINUTE_TO_SECOND = PARTIAL_HOUR_TO_MINUTE
+    PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(round(
+        (x % 1) * 1000000, self.ROUNDING_PLACES))
 
     MEAN_TROPICAL_YEAR = 365.2421897
     #MEAN_SIDEREAL_YEAR = 365.256363004
@@ -110,7 +112,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     SUN_OFFSET = 0.8333333333333334
     STARS_PLANET_OFFSET = 0.5666666666666667
     ROUNDING_PLACES = 6
-    POSIX_EPOCH = 2440585.5 # This is using my algorithm.
+    POSIX_EPOCH = 2440585.5 # This is using the more exact algorithm.
 
     def __init__(self):
         self._time = None
@@ -1211,7 +1213,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
          """
         return self.dhms_from_seconds(dec * 86400)
 
-    def hms_from_decimal_day(self, dec:float) -> tuple:
+    def hms_from_decimal_day(self, dec:float, *, ms=False) -> tuple:
         """
         Convert a decimal day to hours, minutes, and seconds. If this
         method is used for a Julian Period day, 0.5 must be added to the
@@ -1219,20 +1221,30 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param dec: A decimal number.
         :type dec: float
+        :param ms: If False (default) no seperate field for microseconds
+                   is returned else return microseconds.
+        :type ms: bool
         :return: A tuple representing the hour, minute, and seconds.
         :rtype: tuple
 
         .. note::
 
            If a whole number as in 10.5 is passed in, the value to the left
-           of the decimal will stripped off before calculations are done.
+           of the decimal will be stripped off before calculations are done.
         """
         h = self.PARTIAL_DAY_TO_HOURS(dec)
         hour = math.floor(h)
         m = self.PARTIAL_HOUR_TO_MINUTE(h)
         minute = math.floor(m)
         second = self.PARTIAL_MINUTE_TO_SECOND(m)
-        return hour, minute, round(second, self.ROUNDING_PLACES)
+
+        if ms:
+            microsec = (self.PARTIAL_SECOND_TO_MICROSECOND(second),)
+            second = math.floor(second)
+        else:
+            microsec = ()
+
+        return (hour, minute, second) + microsec
 
     def decimal_day_from_hms(self, h:int, m:int, s:float) -> float:
         """
@@ -1254,7 +1266,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Split the second and microseconds.
 
-        :param second: The second with a partial indication the microseconds.
+        :param second: The second with a partial indicating the microseconds.
         :type second: float
         :return: The second split between the second and microseconds.
         :rtype: tuple
@@ -1262,7 +1274,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         p = second % 1
         s = abs(second) - p
         s *= -1 if second < 0 else 1
-        return math.floor(s), math.floor(p * 1000000)
+        ms = self.PARTIAL_SECOND_TO_MICROSECOND(second)
+        return math.floor(s), ms
 
     def _sin_deg(self, theta:float) -> float:
         """

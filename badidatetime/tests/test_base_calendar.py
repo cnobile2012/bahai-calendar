@@ -142,6 +142,30 @@ class TestBaseCalendar(unittest.TestCase):
         msg = f"MOD3 should be {expected_mod3}, found {mod3}."
         self.assertEqual(expected_mod3, mod3, msg)
 
+    @unittest.skip("Temporarily skipped")
+    def test_PARTIAL_DAY_TO_HOURS(self):
+        """
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_PARTIAL_HOUR_TO_MINUTE(self):
+        """
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_PARTIAL_MINUTE_TO_SECOND(self):
+        """
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_PARTIAL_SECOND_TO_MICROSECOND(self):
+        """
+        """
+        pass
+
     #@unittest.skip("Temporarily skipped")
     def test_QUOTIENT(self):
         """
@@ -1205,17 +1229,19 @@ class TestBaseCalendar(unittest.TestCase):
         and seconds deom a decimal number.
         """
         data = (
-            (0.5, (12, 0, 0.0)),
-            (0.25, (6, 0, 0.0)),
-            (0.1, (2, 24, 0.0)),
-            (.1774306, (4, 15, 30.0384))
+            (0.5, False, (12, 0, 0.0)),
+            (0.25, False, (6, 0, 0.0)),
+            (0.1, False, (2, 24, 0.0)),
+            (0.1774306, False, (4, 15, 30.0024)),
+            (1.75757575, True, (18, 10, 54, 544800)),
+            (0.90005, True, (21, 36, 4, 320000)),
             )
-        msg = "Expected {} with decimal {}, found {}."
+        msg = "Expected {} with decimal {} and ms {}, found {}."
 
-        for dec, expected_result in data:
-            result = self.bc.hms_from_decimal_day(dec)
+        for dec, ms, expected_result in data:
+            result = self.bc.hms_from_decimal_day(dec, ms=ms)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, dec, result))
+                             msg.format(expected_result, dec, ms, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_decimal_day_from_hms(self):

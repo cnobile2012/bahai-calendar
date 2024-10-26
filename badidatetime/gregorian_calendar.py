@@ -303,22 +303,19 @@ class GregorianCalendar(BaseCalendar):
         :rtype: tuple
         """
         self._check_valid_gregorian_month_day(date)
+        date_len = len(date)
         year = date[0]
         month = date[1]
         day = date[2]
-        hd = self.PARTIAL_DAY_TO_HOURS(day)
-        hour = math.floor(hd)
-        md = self.PARTIAL_HOUR_TO_MINUTE(hd)
-        minute = math.floor(md)
-        second = round(self.PARTIAL_MINUTE_TO_SECOND(md), self.ROUNDING_PLACES)
-        date = (year, month, math.floor(day), hour, minute)
-
-        if ms:
-            date += self._sec_microsec_from_seconds(second)
-        else:
-            date += (second,)
-
-        return date
+        hour = date[3] if date_len > 3 else 0
+        minute = date[4] if date_len > 4 else 0
+        second = date[5] if date_len > 5 else 0
+        microsec = date[6] if date_len > 6 else 0
+        total_seconds = ((hour * 3600) + (minute * 60) + second +
+                         (microsec / 1000000))
+        day += total_seconds / 86400
+        hhmmssms = self.hms_from_decimal_day(day, ms=ms)
+        return (year, month, math.floor(day)) + hhmmssms
 
     def _check_valid_gregorian_month_day(self, g_date:tuple,
                                          historical:bool=False) -> None:
