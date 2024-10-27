@@ -142,29 +142,56 @@ class TestBaseCalendar(unittest.TestCase):
         msg = f"MOD3 should be {expected_mod3}, found {mod3}."
         self.assertEqual(expected_mod3, mod3, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_PARTIAL_DAY_TO_HOURS(self):
         """
+        Test that the PARTIAL_DAY_TO_HOURS lambda returns the correct hours.
         """
-        pass
+        day = 1.5
+        expected_result = 12
+        result = self.bc.PARTIAL_DAY_TO_HOURS(day)
+        msg = (f"PARTIAL_DAY_TO_HOURS should be {expected_result}, "
+               f"found (result).")
+        self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_PARTIAL_HOUR_TO_MINUTE(self):
         """
+        Test that the PARTIAL_HOUR_TO_MINUTE lambda returns the correct
+        minutes.
         """
-        pass
+        day = 1.5
+        expected_result = 30
+        result = self.bc.PARTIAL_HOUR_TO_MINUTE(day)
+        msg = (f"PARTIAL_HOUR_TO_MINUTE should be {expected_result}, "
+               f"found (result).")
+        self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_PARTIAL_MINUTE_TO_SECOND(self):
         """
+        Test that the PARTIAL_MINUTE_TO_SECOND lambda returns the correct
+        seconds.
         """
-        pass
+        day = 1.5
+        expected_result = 30
+        result = self.bc.PARTIAL_MINUTE_TO_SECOND(day)
+        msg = (f"PARTIAL_MINUTE_TO_SECOND should be {expected_result}, "
+               f"found (result).")
+        self.assertEqual(expected_result, result, msg)
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_PARTIAL_SECOND_TO_MICROSECOND(self):
         """
+        Test that the PARTIAL_SECOND_TO_MICROSECOND lambda returns the
+        correct microseconds.
         """
-        pass
+        day = 1.5
+        expected_result = 500000
+        result = self.bc.PARTIAL_SECOND_TO_MICROSECOND(day)
+        msg = (f"PARTIAL_SECOND_TO_MICROSECOND should be {expected_result}, "
+               f"found (result).")
+        self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_QUOTIENT(self):
