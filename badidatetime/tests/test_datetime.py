@@ -2202,6 +2202,108 @@ class TestBadiDatetime_time(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, time0, time1, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test___hash__(self):
+        """
+        Test that the __hash__ method returns the proper hash of the class.
+        """
+        data = (
+            (1, 30, 30),
+            (1, 30, 30, 500000),
+            )
+        msg = "time {}, found {}."
+
+        for time in data:
+            t = datetime.time(*time)
+            result = hash(t)
+            self.assertTrue(len(str(result)) > 15, msg.format(time, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test__tzstr(self):
+        """
+        Test that the _tzstr method returns a formatted timezone offset.
+        """
+        data = (
+            ((1, 30, 30, 500000), ZoneInfo('Asia/Tehran'), 0, ''),
+            )
+        msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
+
+        for time, tz, fold, expected_result in data:
+            t = datetime.time(*time, tzinfo=tz, fold=fold)
+            result = t._tzstr()
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, tz, fold, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___repr__(self):
+        """
+        Test that the __repr__ method returns the correct string.
+        """
+        data = (
+            ((0, 0, 0, 0), None, 0, 'badidatetime.datetime.time(0, 0)'),
+            ((1, 30), None, 0, 'badidatetime.datetime.time(1, 30)'),
+            ((1, 30, 30), None, 0, 'badidatetime.datetime.time(1, 30, 30)'),
+            ((1, 30, 30, 50000), None, 0,
+             'badidatetime.datetime.time(1, 30, 30, 50000)'),
+            ((1, 30, 30, 50000), ZoneInfo('Asia/Tehran'), 0,
+             'badidatetime.datetime.time(1, 30, 30, 50000, '
+             'tzinfo=Asia/Tehran)'),
+            ((1, 30, 30, 50000), ZoneInfo('Asia/Tehran'), 1,
+             'badidatetime.datetime.time(1, 30, 30, 50000, '
+             'tzinfo=Asia/Tehran, fold=1)'),
+            )
+        msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
+
+        for time, tz, fold, expected_result in data:
+            d = datetime.time(*time, tzinfo=tz, fold=fold)
+            result = repr(d)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, tz, fold, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_isoformat(self):
+        """
+        Test that the isoformat method an ISO formatted string.
+        """
+        data = (
+            ((1, 30, 30), None, 0, '01:30:30'),
+            ((1, 30, 30, 500000), None, 0, '01:30:30.500000'),
+            # *** TODO *** No timezone yet
+            #((1, 30, 30, 500000), ZoneInfo('Asia/Tehran'), 0,
+            # '01:30:30.500000'),
+            )
+        msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
+
+        for time, tz, fold, expected_result in data:
+            t = datetime.time(*time, tzinfo=tz, fold=fold)
+            result = t.isoformat()
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, tz, fold, result))
+
+
+
+
+
+    @unittest.skip("Temporarily skipped")
+    def test_utcoffset(self):
+        """
+        Test that the utcoffset method returns the correct timezone offset.
+        """
+        data = (
+            ((1, 30, 30, 500000), None, 0, None),
+            ((1, 30, 30, 500000), ZoneInfo('Asia/Tehran'), 0, ''),
+            )
+        msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
+
+        for time, tz, fold, expected_result in data:
+            t = datetime.time(*time, tzinfo=tz, fold=fold)
+            result = t.utcoffset()
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, tz, fold, result))
+
+
+
+
 
 class TestBadiDatetime_datetime(unittest.TestCase):
 

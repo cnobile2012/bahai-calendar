@@ -20,6 +20,14 @@ _MAXORDINAL = 1097267 # date.max.toordinal()
 def _cmp(x, y):
     return 0 if x == y else 1 if x > y else -1
 
+def _get_class_module(self):
+    module_name = self.__class__.__module__
+
+    if module_name == '_pydatetime':
+        return 'datetime'
+    else:
+        return module_name
+
 def _divide_and_round(a, b):
     """
     Divide a by b and round result to the nearest integer.
@@ -1232,7 +1240,7 @@ class time:
 
             tzoff = t.utcoffset()
 
-            if not tzoff:  # zero or None
+            if not tzoff: # zero or None
                 self._hashcode = hash(t._getstate()[0])
             else:
                 h, m = divmod(timedelta(hours=self.hour,
@@ -1253,27 +1261,34 @@ class time:
     # Conversion to string
 
     def _tzstr(self):
-        """Return formatted timezone offset (+xx:xx) or an empty string."""
+        """
+        Return a formatted timezone offset (+xx:xx) or an empty string.
+        """
         off = self.utcoffset()
         return _format_offset(off)
 
     def __repr__(self):
-        """Convert to formal string, for repr()."""
+        """
+        Convert to formal string, for repr().
+        """
         if self._microsecond != 0:
-            s = ", %d, %d" % (self._second, self._microsecond)
+            s = f", {self._second:d}, {self._microsecond:d}"
         elif self._second != 0:
-            s = ", %d" % self._second
+            s = f", {self._second:d}"
         else:
             s = ""
-        s= "%s.%s(%d, %d%s)" % (_get_class_module(self),
-                                self.__class__.__qualname__,
-                                self._hour, self._minute, s)
+
+        s = (f"{_get_class_module(self):s}.{self.__class__.__qualname__}"
+             f"({self._hour:d}, {self._minute:d}{s})")
+
         if self._tzinfo is not None:
             assert s[-1:] == ")"
-            s = s[:-1] + ", tzinfo=%r" % self._tzinfo + ")"
+            s = s[:-1] + f", tzinfo={self._tzinfo})"
+
         if self._fold:
             assert s[-1:] == ")"
             s = s[:-1] + ", fold=1)"
+
         return s
 
     def isoformat(self, timespec='auto'):
@@ -1288,10 +1303,12 @@ class time:
         'minutes', 'seconds', 'milliseconds' and 'microseconds'.
         """
         s = _format_time(self._hour, self._minute, self._second,
-                          self._microsecond, timespec)
+                         self._microsecond, timespec)
         tz = self._tzstr()
+
         if tz:
             s += tz
+
         return s
 
     __str__ = isoformat
@@ -1340,6 +1357,7 @@ class time:
         if self._tzinfo is not None:
             offset = self._tzinfo.utcoffset(None)
             _check_utc_offset("utcoffset", offset)
+            print('POOP', offset)
             return offset
 
 ##     def tzname(self):
@@ -1387,39 +1405,45 @@ class time:
 ##             fold = self._fold
 ##         return type(self)(hour, minute, second, microsecond, tzinfo, fold=fold)
 
-##     # Pickle support.
+    # Pickle support.
 
-##     def _getstate(self, protocol=3):
-##         us2, us3 = divmod(self._microsecond, 256)
-##         us1, us2 = divmod(us2, 256)
-##         h = self._hour
-##         if self._fold and protocol > 3:
-##             h += 128
-##         basestate = bytes([h, self._minute, self._second,
-##                            us1, us2, us3])
-##         if self._tzinfo is None:
-##             return (basestate,)
-##         else:
-##             return (basestate, self._tzinfo)
+    def _getstate(self, protocol=3):
+        us2, us3 = divmod(self._microsecond, 256)
+        us1, us2 = divmod(us2, 256)
+        h = self._hour
 
-##     def __setstate(self, string, tzinfo):
-##         if tzinfo is not None and not isinstance(tzinfo, _tzinfo_class):
-##             raise TypeError("bad tzinfo state arg")
-##         h, self._minute, self._second, us1, us2, us3 = string
-##         if h > 127:
-##             self._fold = 1
-##             self._hour = h - 128
-##         else:
-##             self._fold = 0
-##             self._hour = h
-##         self._microsecond = (((us1 << 8) | us2) << 8) | us3
-##         self._tzinfo = tzinfo
+        if self._fold and protocol > 3:
+            h += 128
 
-##     def __reduce_ex__(self, protocol):
-##         return (self.__class__, self._getstate(protocol))
+        basestate = bytes([h, self._minute, self._second,
+                           us1, us2, us3])
 
-##     def __reduce__(self):
-##         return self.__reduce_ex__(2)
+        if self._tzinfo is None:
+            return (basestate,)
+        else:
+            return (basestate, self._tzinfo)
+
+    def __setstate(self, string, tzinfo):
+        if tzinfo is not None and not isinstance(tzinfo, _tzinfo_class):
+            raise TypeError("bad tzinfo state arg")
+
+        h, self._minute, self._second, us1, us2, us3 = string
+
+        if h > 127:
+            self._fold = 1
+            self._hour = h - 128
+        else:
+            self._fold = 0
+            self._hour = h
+
+        self._microsecond = (((us1 << 8) | us2) << 8) | us3
+        self._tzinfo = tzinfo
+
+    def __reduce_ex__(self, protocol):
+        return (self.__class__, self._getstate(protocol))
+
+    def __reduce__(self):
+        return self.__reduce_ex__(2)
 
 ## _time_class = time  # so functions w/ args named "time" can get at the class
 
