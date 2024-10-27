@@ -10,6 +10,8 @@ import sys
 import time
 import pickle
 import unittest
+from datetime import UTC
+from zoneinfo import ZoneInfo
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
@@ -42,8 +44,8 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
 
         for x, y, expected_result in data:
             result = datetime._cmp(x, y)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, x, y, result))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, x, y, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__divide_and_round(self):
@@ -59,8 +61,144 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
 
         for values, expected_result in data:
             result = datetime._divide_and_round(*values)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, values, result))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, values, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__check_utc_offset(self):
+        """
+        Test that the _check_utc_offset function returns the correct result.
+        """
+        err_msg0 = ("Invalid name argument '{}' must be one of "
+                    "('utcoffset', 'dst').")
+        err_msg1 = "tzinfo.{}() must return None or timedelta, not '{}'"
+        err_msg2 = ("{}()={}, must be strictly between -timedelta(hours=24) "
+                    "and timedelta(hours=24)")
+        data = (
+            ('utcoffset', datetime.timedelta(hours=10), False, None),
+            ('dst', datetime.timedelta(hours=1), False, None),
+            ('utcoffset', None, False, None),
+            ('junk', None, True, err_msg0.format('junk')),
+            ('utcoffset', 10, True, err_msg1.format('utcoffset', type(10))),
+            ('utcoffset', datetime.timedelta(hours=24), True,
+             err_msg2.format('utcoffset', '1 day, 0:00:00')),
+            )
+        msg = "Expected {} with name {} and offset {}, found {}."
+
+        for name, offset, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime._check_utc_offset(name, offset)
+                except (AssertionError, TypeError, ValueError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(
+                        f"With {name} and {offset} an error is "
+                        f"not raised, with result {result}.")
+            else:
+                result = datetime._check_utc_offset(name, offset)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, name, offset, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__check_tzinfo_arg(self):
+        """
+        Test that the _check_tzinfo_arg function returns the correct result.
+        """
+        err_msg0 = "tzinfo argument must be None or of a tzinfo subclass"
+        data = (
+            (ZoneInfo('Asia/Tehran'), False, None),
+            ('JUNK', True, err_msg0),
+            )
+        msg = "Expected {} with tz {}, found {}."
+
+        for tz, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime._check_tzinfo_arg(tz)
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(
+                        f"With {name} and {offset} an error is "
+                        f"not raised, with result {result}.")
+            else:
+                result = datetime._check_tzinfo_arg(tz)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, tz, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__format_time(self):
+        """
+        Test that the _format_time function returns the correct result.
+        """
+        specs = ('auto', 'hours', 'minutes', 'seconds', 'milliseconds',
+                 'microseconds')
+        err_msg0 = f"Invalid timespec '{{}}', must be one of {specs}."
+        data = (
+            ((12, 30, 30, 0), 'auto', False, '12:30:30'),
+            ((12, 30, 30, 1000), 'auto', False, '12:30:30.001000'),
+            ((12, 30, 30, 1000), 'milliseconds', False, '12:30:30.001'),
+            ((12, 30, 30, 0), 'hours', False, '12'),
+            ((12, 30, 30, 0), 'minutes', False, '12:30'),
+            ((12, 30, 30, 0), 'seconds', False, '12:30:30'),
+            ((12, 30, 30, 500000), 'microseconds', False, '12:30:30.500000'),
+            ((12, 30, 30, 0), 'junk', True, err_msg0.format('junk')),
+            )
+        msg = "Expected {} with hhmmssus {} and ts {}, found {}."
+
+        for hhmmssus, ts, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime._format_time(*hhmmssus, timespec=ts)
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(
+                        f"With {hhmmssus} and {ts} an error is "
+                        f"not raised, with result {result}.")
+            else:
+                result = datetime._format_time(*hhmmssus, timespec=ts)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, hhmmssus, ts, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__format_offset(self):
+        """
+        Test that the _format_offset returns the correct result.
+        """
+        err_msg0 = "The off value '{}', must be a timedelta object or None."
+        data = (
+            (None, False, ''),
+            (datetime.timedelta(hours=2), False, '+02:00'),
+            (datetime.timedelta(hours=2, minutes=5), False, '+02:05'),
+            (datetime.timedelta(hours=2, minutes=5, seconds=30), False,
+             '+02:05:30'),
+            (datetime.timedelta(
+                hours=2, minutes=5, seconds=30, microseconds=5000), False,
+             '+02:05:30.005000'),
+            (datetime.timedelta(days=-1, hours=2), False, '-22:00'),
+            (100, True, err_msg0.format(100)),
+            )
+        msg = "Expected {} with off {}, found {}."
+
+        for off, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime._format_offset(off)
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {off} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = datetime._format_offset(off)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, off, result))
 
 
 class TestBadiDatetime_timedelta(unittest.TestCase):
@@ -1708,98 +1846,6 @@ class TestBadiDatetime_date(unittest.TestCase):
                 b_date0, date, b_date1))
 
 
-class TestBadiDatetime_tzinfo(unittest.TestCase):
-
-    def __init__(self, name):
-        super().__init__(name)
-
-    #@unittest.skip("Temporarily skipped")
-    def test_tzname(self):
-        """
-        Test that the tzname method raises an exception is not overridden.
-        """
-        err_msg0 = "tzinfo subclass must override tzname()"
-        data = (
-            ((181, 1, 1), err_msg0),
-            )
-        msg = "Expected {}, with date {}, found {}"
-
-        for date, expected_result in data:
-            dt = datetime.date(*date)
-            tz = datetime.tzinfo()
-
-            try:
-                result = tz.tzname(dt)
-            except NotImplementedError as e:
-                self.assertEqual(expected_result, str(e))
-            else:
-                result = result if result else None
-                raise AssertionError(f"With {value} an error is not "
-                                     f"raised, with result {result}.")
-
-    #@unittest.skip("Temporarily skipped")
-    def test_utcoffset(self):
-        """
-        Test that the utcoffset method raises an exception is not overridden.
-        """
-        err_msg0 = "tzinfo subclass must override utcoffset()"
-        data = (
-            ((181, 1, 1), err_msg0),
-            )
-        msg = "Expected {}, with date {}, found {}"
-
-        for date, expected_result in data:
-            dt = datetime.date(*date) # *** TODO *** Use datetime() later on.
-            tz = datetime.tzinfo()
-
-            try:
-                result = tz.utcoffset(dt)
-            except NotImplementedError as e:
-                self.assertEqual(expected_result, str(e))
-            else:
-                result = result if result else None
-                raise AssertionError(f"With {value} an error is not "
-                                     f"raised, with result {result}.")
-
-    #@unittest.skip("Temporarily skipped")
-    def test_dst(self):
-        """
-        Test that the dst method raises an exception is not overridden.
-        """
-        err_msg0 = "tzinfo subclass must override dst()"
-        data = (
-            ((181, 1, 1), err_msg0),
-            )
-        msg = "Expected {}, with date {}, found {}"
-
-        for date, expected_result in data:
-            dt = datetime.date(*date) # *** TODO *** Use datetime() later on.
-            tz = datetime.tzinfo()
-
-            try:
-                result = tz.dst(dt)
-            except NotImplementedError as e:
-                self.assertEqual(expected_result, str(e))
-            else:
-                result = result if result else None
-                raise AssertionError(f"With {value} an error is not "
-                                     f"raised, with result {result}.")
-
-    @unittest.skip("Temporarily skipped")
-    def test_fromutc(self):
-        """
-        Test that the fromutc method 
-        """
-        pass
-
-    @unittest.skip("Temporarily skipped")
-    def test___reduce__(self):
-        """
-        Test that the __reduce__ method 
-        """
-        pass
-
-
 class TestBadiDatetime__IsoCalendarDate(unittest.TestCase):
 
     def __init__(self, name):
@@ -1901,13 +1947,274 @@ class TestBadiDatetime_time(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
+    #@unittest.skip("Temporarily skipped")
+    def test___new__(self):
+        """
+        Test that the __new__ method creates an instance from both a pickle
+        object and a normal instantiation.
+        """
+        tzinfo = ZoneInfo('Asia/Tehran')
+        data = (
+            ((12, 30), None, 0, False, '12:30:00'),
+            ((12, 30, 30), None, 0, False, '12:30:30'),
+            ((12, 30, 30, 10), None, 0, False, '12:30:30.000010'),
+            ((12, 30, 30, 50000), tzinfo, 0, False, '12:30:30.050000'),
+            ((12, 30, 30, 50000), None, 1, False, '12:30:30.050000'),
+            # Test errors when picking
+            )
+        msg = "Expected {} with value {}, found {}."
 
+        for value, tz, fold, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime.time(*value, tzinfo=tz, fold=fold)
+                except (AssertionError, ValueError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {value} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = datetime.time(*value, tzinfo=tz, fold=fold)
+                self.assertEqual(expected_result, str(result),
+                                 msg.format(expected_result, value, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_hour(self):
+        """
+        Test that the hour property returns the correct value.
+        """
+        data = (
+            ((12, 30), 12),
+            ((24, 0), 24),
+            )
+        msg = "Expected {} with time {}, found {}."
+
+        for time, expected_result in data:
+            td = datetime.time(*time)
+            result = td.hour
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_minute(self):
+        """
+        Test that the minute returns the correct value.
+        """
+        data = (
+            ((12, 30), 30),
+            ((24, 10), 10),
+            )
+        msg = "Expected {} with time {}, found {}."
+
+        for time, expected_result in data:
+            td = datetime.time(*time)
+            result = td.minute
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_second(self):
+        """
+        Test that the second returns the correct value.
+        """
+        data = (
+            ((12, 30, 30), 30),
+            ((24, 10, 20), 20),
+            )
+        msg = "Expected {} with time {}, found {}."
+
+        for time, expected_result in data:
+            td = datetime.time(*time)
+            result = td.second
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_microsecond(self):
+        """
+        Test that the microsecond returns the correct value.
+        """
+        data = (
+            ((12, 30, 30, 1), 1),
+            ((24, 10, 20, 999999), 999999),
+            )
+        msg = "Expected {} with time {}, found {}."
+
+        for time, expected_result in data:
+            td = datetime.time(*time)
+            result = td.microsecond
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_tzinfo(self):
+        """
+        Test that the tzinfo returns the correct value.
+        """
+        data = (
+            ((12, 30, 30), ZoneInfo('Asia/Tehran'), 'Asia/Tehran'),
+            ((24, 10, 20), UTC, 'UTC'),
+            )
+        msg = "Expected {} with time {}, found {}."
+
+        for time, tz, expected_result in data:
+            td = datetime.time(*time, tzinfo=tz)
+            result = td.tzinfo
+            self.assertEqual(expected_result, str(result), msg.format(
+                expected_result, time, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_fold(self):
+        """
+        Test that the fold returns the correct value.
+        """
+        data = (
+            ((12, 30, 30, 1), 0, 0),
+            ((24, 10, 20, 999999), 1, 1),
+            )
+        msg = "Expected {} with time {}, found {}."
+
+        for time, fold, expected_result in data:
+            td = datetime.time(*time, fold=fold)
+            result = td.fold
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___eq__(self):
+        """
+        Test that the __eq__ method returns  True if equal and False if
+        not equal.
+        """
+        data = (
+            ((12, 30, 30, 10000), (12, 30, 30, 10000), True),
+            ((12, 30, 30), (12, 30, 29), False),
+            ((12, 30, 30), (12, 30, 31), False),
+            )
+        msg = "Expected {} with time0 {} and time1 {}, found {}."
+
+        for time0, time1, expected_result in data:
+            t0 = datetime.time(*time0)
+            t1 = datetime.time(*time1)
+            result = t0 == t1
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time0, time1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___le__(self):
+        """
+        Test that the __le__ method returns  True if less than or equal and
+        False if not less than or equal.
+        """
+        data = (
+            ((12, 30, 30, 10000), (12, 30, 30, 10000), True),
+            ((12, 30, 30), (12, 30, 29), False),
+            ((12, 30, 30), (12, 30, 31), True),
+            )
+        msg = "Expected {} with time0 {} and time1 {}, found {}."
+
+        for time0, time1, expected_result in data:
+            t0 = datetime.time(*time0)
+            t1 = datetime.time(*time1)
+            result = t0 <= t1
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time0, time1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___lt__(self):
+        """
+        Test that the __lt__ method returns True if less than and False
+        if not less than.
+        """
+        data = (
+            ((12, 30, 30, 10000), (12, 30, 30, 10000), False),
+            ((12, 30, 30), (12, 30, 29), False),
+            ((12, 30, 30), (12, 30, 31), True),
+            )
+        msg = "Expected {} with time0 {} and time1 {}, found {}."
+
+        for time0, time1, expected_result in data:
+            t0 = datetime.time(*time0)
+            t1 = datetime.time(*time1)
+            result = t0 < t1
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time0, time1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___ge__(self):
+        """
+        Test that the __ge__ method returns True if greater than or equal
+        and False if not greater than or equal.
+        """
+        data = (
+            ((12, 30, 30, 10000), (12, 30, 30, 10000), True),
+            ((12, 30, 30), (12, 30, 29), True),
+            ((12, 30, 30), (12, 30, 31), False),
+            )
+        msg = "Expected {} with time0 {} and time1 {}, found {}."
+
+        for time0, time1, expected_result in data:
+            t0 = datetime.time(*time0)
+            t1 = datetime.time(*time1)
+            result = t0 >= t1
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time0, time1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___gt__(self):
+        """
+        Test that the __gt__ method returns True if greater than and False
+        if not greater than.
+        """
+        data = (
+            ((12, 30, 30, 10000), (12, 30, 30, 10000), False),
+            ((12, 30, 30), (12, 30, 29), True),
+            ((12, 30, 30), (12, 30, 31), False),
+            )
+        msg = "Expected {} with time0 {} and time1 {}, found {}."
+
+        for time0, time1, expected_result in data:
+            t0 = datetime.time(*time0)
+            t1 = datetime.time(*time1)
+            result = t0 > t1
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time0, time1, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__cmp(self):
+        """
+        Test that the _cmp method returns 1 if the two times are equal, +1
+        if the current time is greater than the test time, and -1 if the
+        inverse.
+        """
+        data = (
+            ((12, 30, 30, 10000), (12, 30, 30, 10000), 0),
+            ((12, 30, 30), (12, 30, 29), 1),
+            ((12, 30, 30), (12, 30, 31), -1),
+            )
+        msg = "Expected {} with time0 {} and time1 {}, found {}."
+
+        for time0, time1, expected_result in data:
+            t0 = datetime.time(*time0)
+            t1 = datetime.time(*time1)
+            result = t0._cmp(t1)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time0, time1, result))
 
 
 class TestBadiDatetime_datetime(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)
+
+    @unittest.skip("Temporarily skipped")
+    def test___new__(self):
+        """
+        Test that the __new__ method creates an instance from both a pickle
+        object and a normal instantiation.
+        """
+
 
 
 

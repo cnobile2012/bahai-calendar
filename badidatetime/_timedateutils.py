@@ -8,6 +8,7 @@ import time
 import locale
 import math
 from typing import NamedTuple
+from operator import index as _index
 
 from ._structures import struct_time, ShortFormStruct, LongFormStruct
 from .badi_calendar import BahaiCalendar
@@ -966,6 +967,16 @@ class TimeDateUtils(BahaiCalendar):
             b_date = (a, b, c, d, e)
 
         self._check_valid_badi_date(b_date, short_in=short_in)
+
+    def _check_time_fields(self, hour, minute, second, microsecond, fold):
+        hour = _index(hour)
+        minute = _index(minute)
+        second = _index(second)
+        microsecond = _index(microsecond)
+        self._check_valid_badi_time(hour, minute, second, microsecond)
+        assert fold in (0, 1), (
+            f"The fold argument '{fold}' must be either 0 or 1.")
+        return hour, minute, second, microsecond, fold
 
     def _wrap_strftime(self, object, format, timetuple):
         """

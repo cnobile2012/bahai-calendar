@@ -643,7 +643,7 @@ class BahaiCalendar(BaseCalendar):
     def _check_valid_badi_date(self, b_date:tuple, short_in=False) -> None:
         """
         Check that the Kull-i-Shay, Váḥids, year, month, day, hour, minute,
-        and second values are valid.
+        second, and microsecond values are valid.
 
         :param b_date: A long form Badi date.
         :type b_date: tuple
@@ -654,7 +654,8 @@ class BahaiCalendar(BaseCalendar):
         :return: Nothing
         :rtype: None
         :raises AssertionError: When a date Váḥid, year, month, day, hour,
-                                minute, or second are out of range.
+                                minute, second, or microsecond are out of
+                                range.
         """
         cycle = 20
 
@@ -687,15 +688,7 @@ class BahaiCalendar(BaseCalendar):
         assert 1 <= day < (cycle), (
             f"Invalid day '{day}' for month '{month}', it must be in the "
             f"range of [1, {cycle-1}].")
-        assert 0 <= hour < 25, (
-            f"Invalid hour '{hour}', it must be in the range of [0, 24].")
-        assert 0 <= minute < 60, (
-            f"Invalid minute '{minute}', it must be in the range of [0, 59].")
-        assert 0 <= second < 60, (
-            f"Invalid second '{second}', it must be in the range of [0, 59].")
-        assert 0 <= ms < 1000000, (
-            f"Invalid microseconds '{ms}', it must be in the range of "
-            "[0, 999999].")
+        self._check_valid_badi_time(hour, minute, second, ms)
 
         # Check if there are any fractionals that invalidate other values.
         if any((hour, minute, second)):
@@ -710,6 +703,34 @@ class BahaiCalendar(BaseCalendar):
         if second:
             assert not minute % 1, (
                 "If there is a part minute then there can be no seconds.")
+
+    def _check_valid_badi_time(self, hour:float, minute:float, second:float,
+                               ms:int) -> None:
+        """
+        Check that the hour, minute, second, and microsecond values are valid.
+
+        :param hour: Hours
+        :type hour: float
+        :param minute: Minutes
+        :type minute: float
+        :param second: Seconds
+        :type second: float
+        :param ms: Microseconds
+        :type ms: int
+        :return: Nothing
+        :rtype: None
+        :raises AssertionError: When an hour, minute, second, or microsecond
+                                are out of range.
+        """
+        assert 0 <= hour < 25, (
+            f"Invalid hour '{hour}', it must be in the range of [0, 24].")
+        assert 0 <= minute < 60, (
+            f"Invalid minute '{minute}', it must be in the range of [0, 59].")
+        assert 0 <= second < 60, (
+            f"Invalid second '{second}', it must be in the range of [0, 59].")
+        assert 0 <= ms < 1000000, (
+            f"Invalid microseconds '{ms}', it must be in the range of "
+            "[0, 999999].")
 
     def _is_leap_year(self, year:tuple) -> bool:
         """

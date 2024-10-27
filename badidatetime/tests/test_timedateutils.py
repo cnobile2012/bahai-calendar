@@ -859,9 +859,46 @@ class TestTimeDateUtils(unittest.TestCase):
                 except AssertionError as e:
                     self.assertEqual(err_msg, str(e))
                 else:
-                    raise AssertionError(f"date {date}, {e}")
+                    raise AssertionError(f"date {date}")
             else:
                 _td_utils._check_date_fields(*date, short_in=short_in)
+
+    #@unittest.skip("Temporarily skipped")
+    def test__check_time_fields(self):
+        """
+        Test that the _check_time_fields function correctly raises
+        assertion exceptions.
+        """
+        err_msg0 = "Invalid hour '{}', it must be in the range of [0, 24]."
+        err_msg1 = "Invalid minute '{}', it must be in the range of [0, 59]."
+        err_msg2 = "Invalid second '{}', it must be in the range of [0, 59]."
+        err_msg3 = ("Invalid microseconds '{}', it must be in the range of "
+                    "[0, 999999].")
+        err_msg4 = "The fold argument '{}' must be either 0 or 1."
+        data = (
+            ((0, 0, 0, 0, 0), False, ''),
+            ((24, 59, 59, 999999, 1), False, ''),
+            ((-1, 0, 0, 0, 0), True, err_msg0.format(-1)),
+            ((25, 0, 0, 0, 0), True, err_msg0.format(25)),
+            ((0, -1, 0, 0, 0), True, err_msg1.format(-1)),
+            ((0, 60, 0, 0, 0), True, err_msg1.format(60)),
+            ((0, 0, -1, 0, 0), True, err_msg2.format(-1)),
+            ((0, 0, 60, 0, 0), True, err_msg2.format(60)),
+            ((0, 0, 0, -1, 0), True, err_msg3.format(-1)),
+            ((0, 0, 0, 1000000, 0), True, err_msg3.format(1000000)),
+            ((0, 0, 0, 0, -1), True, err_msg4.format(-1)),
+            ((0, 0, 0, 0, 2), True, err_msg4.format(2)),
+            )
+        for time, validity, err_msg in data:
+            if validity:
+                try:
+                    _td_utils._check_time_fields(*time)
+                except AssertionError as e:
+                    self.assertEqual(err_msg, str(e))
+                else:
+                    raise AssertionError(f"time {time}")
+            else:
+                _td_utils._check_time_fields(*time)
 
     #@unittest.skip("Temporarily skipped")
     def test__wrap_strftime(self):

@@ -6,6 +6,8 @@ __docformat__ = "restructuredtext en"
 
 import time as _time
 import math as _math
+from datetime import tzinfo
+from types import NoneType
 
 from .badi_calendar import BahaiCalendar
 from ._structures import struct_time
@@ -34,6 +36,81 @@ def _divide_and_round(a, b):
     r *= 2
     greater_than_half = r > b if b > 0 else r < b
     return q + (1 if greater_than_half or r == b and q % 2 == 1 else 0)
+
+def _check_utc_offset(name, offset):
+    """
+    name is the offset-producing method, 'utcoffset' or 'dst'.
+    offset is what it returned.
+    If offset isn't None or timedelta, raises TypeError.
+    If offset is None, returns None.
+    Else offset is checked for being in range.
+    If it is, its integer value is returned.  Else ValueError is raised.
+    """
+    assert name in ("utcoffset", "dst"), (
+        f"Invalid name argument '{name}' must be one of ('utcoffset', 'dst').")
+
+    if offset is not None:
+        if not isinstance(offset, timedelta):
+            raise TypeError(f"tzinfo.{name}() must return None "
+                            f"or timedelta, not '{type(offset)}'")
+
+        if not -timedelta(1) < offset < timedelta(1):
+            raise ValueError(f"{name}()={offset}, must be strictly between "
+                             "-timedelta(hours=24) and timedelta(hours=24)")
+
+def _check_tzinfo_arg(tz):
+    if tz is not None and not isinstance(tz, tzinfo):
+        raise TypeError("tzinfo argument must be None or of a tzinfo subclass")
+
+def _format_time(hh, mm, ss, us, timespec='auto'):
+    specs = {
+        'auto': '',
+        'hours': '{:02d}',
+        'minutes': '{:02d}:{:02d}',
+        'seconds': '{:02d}:{:02d}:{:02d}',
+        'milliseconds': '{:02d}:{:02d}:{:02d}.{:03d}',
+        'microseconds': '{:02d}:{:02d}:{:02d}.{:06d}'
+        }
+
+    if timespec == 'auto':
+        # Skip trailing microseconds when us==0.
+        timespec = 'microseconds' if us else 'seconds'
+    elif timespec == 'milliseconds':
+        us //= 1000
+
+    try:
+        fmt = specs[timespec]
+    except KeyError:
+        raise ValueError( f"Invalid timespec '{timespec}', must be one "
+                          f"of {tuple(specs.keys())}.")
+    else:
+        return fmt.format(hh, mm, ss, us)
+
+def _format_offset(off):
+    if not isinstance(off, (timedelta, NoneType)):
+        raise TypeError(f"The off value '{off}', must be a timedelta object "
+                        "or None.")
+
+    s = ''
+
+    if off is not None:
+        if off.days < 0:
+            sign = "-"
+            off = -off
+        else:
+            sign = "+"
+
+        hh, mm = divmod(off, timedelta(hours=1))
+        mm, ss = divmod(mm, timedelta(minutes=1))
+        s += f"{sign}{hh:02d}:{mm:02d}"
+
+        if ss or ss.microseconds:
+            s += f":{ss.seconds:02d}"
+
+            if ss.microseconds:
+                s += f'.{ss.microseconds:06d}'
+
+    return s
 
 
 class timedelta:
@@ -616,7 +693,8 @@ class date(BahaiCalendar):
 
             return ret
 
-        raise TypeError(f"Must be a str, not a {type(fmt).__name__}") # pragma: no cover
+        raise TypeError(
+            f"Must be a str, not a {type(fmt).__name__}") # pragma: no cover
 
     def isoformat(self):
         """
@@ -955,80 +1033,6 @@ date.max = date(_td_utils.MAXYEAR, 19, 19)
 date.resolution = timedelta(days=1)
 
 
-class tzinfo:
-    """
-    Abstract base class for time zone info classes.
-
-    Subclasses must override the tzname(), utcoffset() and dst() methods.
-    """
-    __slots__ = ()
-
-    def tzname(self, dt):
-        "datetime -> string name of time zone."
-        raise NotImplementedError("tzinfo subclass must override tzname()")
-
-    def utcoffset(self, dt):
-        """
-        datetime -> timedelta, positive for east of UTC, negative for west
-                    of UTC
-        """
-        raise NotImplementedError("tzinfo subclass must override utcoffset()")
-
-    def dst(self, dt):
-        """
-        datetime -> DST offset as timedelta, positive for east of UTC.
-
-        Return 0 if DST not in effect.  utcoffset() must include the DST
-        offset.
-        """
-        raise NotImplementedError("tzinfo subclass must override dst()")
-
-    def fromutc(self, dt):
-        """
-        datetime in UTC -> datetime in local time.
-        """
-        if not isinstance(dt, datetime):
-            raise TypeError("fromutc() requires a datetime argument")
-
-        if dt.tzinfo is not self:
-            raise ValueError("dt.tzinfo is not self")
-
-        dtoff = dt.utcoffset()
-
-        if dtoff is None:
-            raise ValueError("fromutc() requires a non-None utcoffset() "
-                             "result")
-
-        # See the long comment block at the end of this file for an
-        # explanation of this algorithm.
-        dtdst = dt.dst()
-
-        if dtdst is None:
-            raise ValueError("fromutc() requires a non-None dst() result")
-        delta = dtoff - dtdst
-
-        if delta:
-            dt += delta
-            dtdst = dt.dst()
-
-            if dtdst is None:
-                raise ValueError("fromutc(): dt.dst gave inconsistent "
-                                 "results; cannot convert")
-
-        return dt + dtdst
-
-    # Pickle support.
-    def __reduce__(self):
-        getinitargs = getattr(self, "__getinitargs__", None)
-
-        if getinitargs:
-            args = getinitargs()
-        else:
-            args = ()
-
-        return (self.__class__, args, self.__getstate__())
-
-
 class _IsoCalendarDate(tuple):
 
     def __new__(cls, year, week, weekday, /):
@@ -1082,16 +1086,25 @@ class time:
     __slots__ = ('_hour', '_minute', '_second', '_microsecond', '_tzinfo',
                  '_hashcode', '_fold')
 
-    def __new__(cls, hour=0, minute=0, second=0, microsecond=0, tzinfo=None,
-                *, fold=0):
-        """Constructor.
+    def __new__(cls, hour:int=0, minute:int=0, second:int=0, microsecond:int=0,
+                tzinfo:tzinfo=None, *, fold:int=0):
+        """
+        Constructor.
 
-        Arguments:
-
-        hour, minute (required)
-        second, microsecond (default to zero)
-        tzinfo (default to None)
-        fold (keyword only, default to zero)
+        :param hour: Hours (required)
+        :type hour: int
+        :param minute: Minutes (required)
+        :type minute: int
+        :param second: Seconds (default to zero)
+        :type second: int
+        :param microsecond: Microseconds (default to zero)
+        :type microsecond: int
+        :param tzinfo: Timezone information (default to None)
+        :type tzinfo: tzinfo
+        :param fold:  (keyword only, default to zero)
+        :type fold: int
+        :return: the instantiated object self.
+        :rtype: time
         """
         if (isinstance(hour, (bytes, str)) and len(hour) == 6 and
             ord(hour[0:1])&0x7F < 24):
@@ -1105,27 +1118,30 @@ class time:
                         "Failed to encode latin1 string when unpickling "
                         "a time object. "
                         "pickle.load(data, encoding='latin1') is assumed.")
+
             self = object.__new__(cls)
             self.__setstate(hour, minute or None)
             self._hashcode = -1
-            return self
-        hour, minute, second, microsecond, fold = _check_time_fields(
-            hour, minute, second, microsecond, fold)
-        _check_tzinfo_arg(tzinfo)
-        self = object.__new__(cls)
-        self._hour = hour
-        self._minute = minute
-        self._second = second
-        self._microsecond = microsecond
-        self._tzinfo = tzinfo
-        self._hashcode = -1
-        self._fold = fold
+        else:
+            (hour, minute, second,
+             microsecond, fold) = _td_utils._check_time_fields(
+                hour, minute, second, microsecond, fold)
+            _check_tzinfo_arg(tzinfo)
+            self = object.__new__(cls)
+            self._hour = hour
+            self._minute = minute
+            self._second = second
+            self._microsecond = microsecond
+            self._tzinfo = tzinfo
+            self._hashcode = -1
+            self._fold = fold
+
         return self
 
     # Read-only field accessors
     @property
     def hour(self):
-        """hour (0-23)"""
+        """hour (0-24)"""
         return self._hour
 
     @property
@@ -1152,136 +1168,133 @@ class time:
     def fold(self):
         return self._fold
 
-    # Standard conversions, __hash__ (and helpers)
-
     # Comparisons of time objects with other.
 
-##     def __eq__(self, other):
-##         if isinstance(other, time):
-##             return self._cmp(other, allow_mixed=True) == 0
-##         else:
-##             return NotImplemented
+    def __eq__(self, other):
+        return (self._cmp(other, allow_mixed=True) == 0
+                if isinstance(other, time) else NotImplemented)
 
-##     def __le__(self, other):
-##         if isinstance(other, time):
-##             return self._cmp(other) <= 0
-##         else:
-##             return NotImplemented
+    def __le__(self, other):
+        return (self._cmp(other, time) <= 0 if isinstance(other, time)
+                else NotImplemented)
 
-##     def __lt__(self, other):
-##         if isinstance(other, time):
-##             return self._cmp(other) < 0
-##         else:
-##             return NotImplemented
+    def __lt__(self, other):
+        return (self._cmp(other) < 0 if isinstance(other, time)
+                else NotImplemented)
 
-##     def __ge__(self, other):
-##         if isinstance(other, time):
-##             return self._cmp(other) >= 0
-##         else:
-##             return NotImplemented
+    def __ge__(self, other):
+        return (self._cmp(other) >= 0 if isinstance(other, time)
+                else NotImplemented)
 
-##     def __gt__(self, other):
-##         if isinstance(other, time):
-##             return self._cmp(other) > 0
-##         else:
-##             return NotImplemented
+    def __gt__(self, other):
+        return (self._cmp(other) > 0 if isinstance(other, time)
+                else NotImplemented)
 
-##     def _cmp(self, other, allow_mixed=False):
-##         assert isinstance(other, time)
-##         mytz = self._tzinfo
-##         ottz = other._tzinfo
-##         myoff = otoff = None
+    def _cmp(self, other, allow_mixed=False):
+        assert isinstance(other, time), f"Invalid time module, found {other}."
+        mytz = self._tzinfo
+        ottz = other._tzinfo
+        myoff = otoff = None
 
-##         if mytz is ottz:
-##             base_compare = True
-##         else:
-##             myoff = self.utcoffset()
-##             otoff = other.utcoffset()
-##             base_compare = myoff == otoff
+        if mytz is ottz:
+            base_compare = True
+        else:
+            myoff = self.utcoffset()
+            otoff = other.utcoffset()
+            base_compare = myoff == otoff
 
-##         if base_compare:
-##             return _cmp((self._hour, self._minute, self._second,
-##                          self._microsecond),
-##                         (other._hour, other._minute, other._second,
-##                          other._microsecond))
-##         if myoff is None or otoff is None:
-##             if allow_mixed:
-##                 return 2 # arbitrary non-zero value
-##             else:
-##                 raise TypeError("cannot compare naive and aware times")
-##         myhhmm = self._hour * 60 + self._minute - myoff//timedelta(minutes=1)
-##         othhmm = other._hour * 60 + other._minute - otoff//timedelta(minutes=1)
-##         return _cmp((myhhmm, self._second, self._microsecond),
-##                     (othhmm, other._second, other._microsecond))
+        if base_compare:
+            return _cmp((self._hour, self._minute, self._second,
+                         self._microsecond),
+                        (other._hour, other._minute, other._second,
+                         other._microsecond))
 
-##     def __hash__(self):
-##         """Hash."""
-##         if self._hashcode == -1:
-##             if self.fold:
-##                 t = self.replace(fold=0)
-##             else:
-##                 t = self
-##             tzoff = t.utcoffset()
-##             if not tzoff:  # zero or None
-##                 self._hashcode = hash(t._getstate()[0])
-##             else:
-##                 h, m = divmod(timedelta(hours=self.hour,
-##                                         minutes=self.minute) - tzoff,
-##                               timedelta(hours=1))
-##                 assert not m % timedelta(minutes=1), "whole minute"
-##                 m //= timedelta(minutes=1)
-##                 if 0 <= h < 24:
-##                     self._hashcode = hash(time(h, m, self.second,
-##                                                self.microsecond))
-##                 else:
-##                     self._hashcode = hash((h, m, self.second,
-##                                            self.microsecond))
-##         return self._hashcode
+        if myoff is None or otoff is None:
+            if allow_mixed:
+                return 2 # arbitrary non-zero value
+            else:
+                raise TypeError("cannot compare naive and aware times")
 
-##     # Conversion to string
+        myhhmm = self._hour * 60 + self._minute - myoff//timedelta(minutes=1)
+        othhmm = other._hour * 60 + other._minute - otoff//timedelta(minutes=1)
+        return _cmp((myhhmm, self._second, self._microsecond),
+                    (othhmm, other._second, other._microsecond))
 
-##     def _tzstr(self):
-##         """Return formatted timezone offset (+xx:xx) or an empty string."""
-##         off = self.utcoffset()
-##         return _format_offset(off)
+    # Standard conversions, __hash__ (and helpers)
 
-##     def __repr__(self):
-##         """Convert to formal string, for repr()."""
-##         if self._microsecond != 0:
-##             s = ", %d, %d" % (self._second, self._microsecond)
-##         elif self._second != 0:
-##             s = ", %d" % self._second
-##         else:
-##             s = ""
-##         s= "%s.%s(%d, %d%s)" % (_get_class_module(self),
-##                                 self.__class__.__qualname__,
-##                                 self._hour, self._minute, s)
-##         if self._tzinfo is not None:
-##             assert s[-1:] == ")"
-##             s = s[:-1] + ", tzinfo=%r" % self._tzinfo + ")"
-##         if self._fold:
-##             assert s[-1:] == ")"
-##             s = s[:-1] + ", fold=1)"
-##         return s
+    def __hash__(self):
+        """Hash."""
+        if self._hashcode == -1:
+            if self.fold:
+                t = self.replace(fold=0)
+            else:
+                t = self
 
-##     def isoformat(self, timespec='auto'):
-##         """Return the time formatted according to ISO.
+            tzoff = t.utcoffset()
 
-##         The full format is 'HH:MM:SS.mmmmmm+zz:zz'. By default, the fractional
-##         part is omitted if self.microsecond == 0.
+            if not tzoff:  # zero or None
+                self._hashcode = hash(t._getstate()[0])
+            else:
+                h, m = divmod(timedelta(hours=self.hour,
+                                        minutes=self.minute) - tzoff,
+                              timedelta(hours=1))
+                assert not m % timedelta(minutes=1), "whole minute"
+                m //= timedelta(minutes=1)
 
-##         The optional argument timespec specifies the number of additional
-##         terms of the time to include. Valid options are 'auto', 'hours',
-##         'minutes', 'seconds', 'milliseconds' and 'microseconds'.
-##         """
-##         s = _format_time(self._hour, self._minute, self._second,
-##                           self._microsecond, timespec)
-##         tz = self._tzstr()
-##         if tz:
-##             s += tz
-##         return s
+                if 0 <= h < 24:
+                    self._hashcode = hash(time(h, m, self.second,
+                                               self.microsecond))
+                else:
+                    self._hashcode = hash((h, m, self.second,
+                                           self.microsecond))
 
-##     __str__ = isoformat
+        return self._hashcode
+
+    # Conversion to string
+
+    def _tzstr(self):
+        """Return formatted timezone offset (+xx:xx) or an empty string."""
+        off = self.utcoffset()
+        return _format_offset(off)
+
+    def __repr__(self):
+        """Convert to formal string, for repr()."""
+        if self._microsecond != 0:
+            s = ", %d, %d" % (self._second, self._microsecond)
+        elif self._second != 0:
+            s = ", %d" % self._second
+        else:
+            s = ""
+        s= "%s.%s(%d, %d%s)" % (_get_class_module(self),
+                                self.__class__.__qualname__,
+                                self._hour, self._minute, s)
+        if self._tzinfo is not None:
+            assert s[-1:] == ")"
+            s = s[:-1] + ", tzinfo=%r" % self._tzinfo + ")"
+        if self._fold:
+            assert s[-1:] == ")"
+            s = s[:-1] + ", fold=1)"
+        return s
+
+    def isoformat(self, timespec='auto'):
+        """
+        Return the time formatted according to ISO.
+
+        The full format is 'HH:MM:SS.mmmmmm+zz:zz'. By default, the fractional
+        part is omitted if self.microsecond == 0.
+
+        The optional argument timespec specifies the number of additional
+        terms of the time to include. Valid options are 'auto', 'hours',
+        'minutes', 'seconds', 'milliseconds' and 'microseconds'.
+        """
+        s = _format_time(self._hour, self._minute, self._second,
+                          self._microsecond, timespec)
+        tz = self._tzstr()
+        if tz:
+            s += tz
+        return s
+
+    __str__ = isoformat
 
 ##     @classmethod
 ##     def fromisoformat(cls, time_string):
@@ -1317,16 +1330,17 @@ class time:
 ##             return self.strftime(fmt)
 ##         return str(self)
 
-##     # Timezone functions
+    # Timezone functions
 
-##     def utcoffset(self):
-##         """Return the timezone offset as timedelta, positive east of UTC
-##          (negative west of UTC)."""
-##         if self._tzinfo is None:
-##             return None
-##         offset = self._tzinfo.utcoffset(None)
-##         _check_utc_offset("utcoffset", offset)
-##         return offset
+    def utcoffset(self):
+        """
+        Return the timezone offset as timedelta, positive east of UTC
+        (negative west of UTC).
+        """
+        if self._tzinfo is not None:
+            offset = self._tzinfo.utcoffset(None)
+            _check_utc_offset("utcoffset", offset)
+            return offset
 
 ##     def tzname(self):
 ##         """Return the timezone name.
