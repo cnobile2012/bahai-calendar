@@ -8,7 +8,6 @@ import time
 import locale
 import math
 from typing import NamedTuple
-from operator import index as _index
 
 from ._structures import struct_time, ShortFormStruct, LongFormStruct
 from .badi_calendar import BahaiCalendar
@@ -913,22 +912,28 @@ class TimeDateUtils(BahaiCalendar):
                     ph = float(dtstr[3:]) * 60
                     minute = math.floor(ph)
                     second = (ph % 1) * 60
+                    second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
-                elif dtstr[5+pos0:6+pos0] == '.': # Thhmm.mmm or Thh:mm.mmm
-                    minute = int(dtstr[3+pos0:5+pos0])
-                    pm = float(dtstr[5+pos0:])
+                elif dtstr[5 + pos0:6 + pos0] == '.':
+                    # Thhmm.mmm or Thh:mm.mmm
+                    minute = int(dtstr[3 + pos0:5 + pos0])
+                    pm = float(dtstr[5 + pos0:])
                     second = pm * 60
+                    second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
-                elif dtstr[7+pos0:8+pos0] == '.': # Thhmmss.sss or Thh:mm:ss.sss
-                    minute = int(dtstr[3+pos0:5+pos0])
-                    second = float(dtstr[5+pos0:])
+                elif dtstr[7 + pos0:8 + pos0] == '.':
+                    # Thhmmss.sss or Thh:mm:ss.sss
+                    minute = int(dtstr[3 + pos0:5 + pos0])
+                    second = float(dtstr[5 + pos0:])
+                    second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
-                elif t_len == 5+pos0: # Thhmm or Thh:mm
-                    minute = int(dtstr[3+pos0:5+pos0])
+                elif t_len == 5 + pos0: # Thhmm or Thh:mm
+                    minute = int(dtstr[3 + pos0:5 + pos0])
                     time = (hour, minute, 0)
-                elif t_len >= 7+pos1: # Thhmmss.sss or Thh:mm:ss.sss
-                    minute = int(dtstr[3+pos0:5+pos0])
-                    second = float(dtstr[5+pos1:])
+                elif t_len >= 7 + pos1: # Thhmmss.sss or Thh:mm:ss.sss
+                    minute = int(dtstr[3 + pos0:5 + pos0])
+                    second = float(dtstr[5 + pos1:])
+                    second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
                 else:
                     raise ValueError(f"Invalid time string, found {dtstr}")
@@ -969,10 +974,6 @@ class TimeDateUtils(BahaiCalendar):
         self._check_valid_badi_date(b_date, short_in=short_in)
 
     def _check_time_fields(self, hour, minute, second, microsecond, fold):
-        hour = _index(hour)
-        minute = _index(minute)
-        second = _index(second)
-        microsecond = _index(microsecond)
         self._check_valid_badi_time(hour, minute, second, microsecond)
         assert fold in (0, 1), (
             f"The fold argument '{fold}' must be either 0 or 1.")

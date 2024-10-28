@@ -20,14 +20,6 @@ _MAXORDINAL = 1097267 # date.max.toordinal()
 def _cmp(x, y):
     return 0 if x == y else 1 if x > y else -1
 
-def _get_class_module(self):
-    module_name = self.__class__.__module__
-
-    if module_name == '_pydatetime':
-        return 'datetime'
-    else:
-        return module_name
-
 def _divide_and_round(a, b):
     """
     Divide a by b and round result to the nearest integer.
@@ -73,11 +65,11 @@ def _check_tzinfo_arg(tz):
 def _format_time(hh, mm, ss, us, timespec='auto'):
     specs = {
         'auto': '',
-        'hours': '{:02d}',
-        'minutes': '{:02d}:{:02d}',
-        'seconds': '{:02d}:{:02d}:{:02d}',
-        'milliseconds': '{:02d}:{:02d}:{:02d}.{:03d}',
-        'microseconds': '{:02d}:{:02d}:{:02d}.{:06d}'
+        'hours': '{:02}',
+        'minutes': '{:02}:{:02}',
+        'seconds': '{:02}:{:02}:{:02}',
+        'milliseconds': '{:02}:{:02}:{:02}.{:03}',
+        'microseconds': '{:02}:{:02}:{:02}.{:06}'
         }
 
     if timespec == 'auto':
@@ -1094,17 +1086,17 @@ class time:
     __slots__ = ('_hour', '_minute', '_second', '_microsecond', '_tzinfo',
                  '_hashcode', '_fold')
 
-    def __new__(cls, hour:int=0, minute:int=0, second:int=0, microsecond:int=0,
-                tzinfo:tzinfo=None, *, fold:int=0):
+    def __new__(cls, hour:float=0, minute:float=0, second:float=0,
+                microsecond:int=0, tzinfo:tzinfo=None, *, fold:int=0):
         """
         Constructor.
 
         :param hour: Hours (required)
-        :type hour: int
+        :type hour: float
         :param minute: Minutes (required)
-        :type minute: int
+        :type minute: float
         :param second: Seconds (default to zero)
-        :type second: int
+        :type second: float
         :param microsecond: Microseconds (default to zero)
         :type microsecond: int
         :param tzinfo: Timezone information (default to None)
@@ -1278,7 +1270,7 @@ class time:
         else:
             s = ""
 
-        s = (f"{_get_class_module(self):s}.{self.__class__.__qualname__}"
+        s = (f"{self.__class__.__module__}.{self.__class__.__qualname__}"
              f"({self._hour:d}, {self._minute:d}{s})")
 
         if self._tzinfo is not None:
@@ -1313,39 +1305,38 @@ class time:
 
     __str__ = isoformat
 
-##     @classmethod
-##     def fromisoformat(cls, time_string):
-##         """Construct a time from a string in one of the ISO 8601 formats."""
-##         if not isinstance(time_string, str):
-##             raise TypeError('fromisoformat: argument must be str')
+    @classmethod
+    def fromisoformat(cls, time_string):
+        """
+        Construct a time from a string in one of the ISO 8601 formats.
+        """
+        if not isinstance(time_string, str):
+            raise TypeError('fromisoformat: argument must be str')
 
-##         # The spec actually requires that time-only ISO 8601 strings start with
-##         # T, but the extended format allows this to be omitted as long as there
-##         # is no ambiguity with date strings.
-##         time_string = time_string.removeprefix('T')
+        try:
+            return cls(*_td_utils._parse_isoformat_time(time_string))
+        except Exception as e:
+            raise ValueError(f'Invalid isoformat string: {time_string!r}, {e}')
 
-##         try:
-##             return cls(*_parse_isoformat_time(time_string))
-##         except Exception:
-##             raise ValueError(f'Invalid isoformat string: {time_string!r}')
+    def strftime(self, format):
+        """Format using strftime().  The date part of the timestamp passed
+        to underlying strftime should not be used.
+        """
+        # The year must be >= 1000 else Python's strftime implementation
+        # can raise a bogus exception.
+        timetuple = (1900, 1, 1,
+                     self._hour, self._minute, self._second,
+                     0, 1, -1)
+        return _wrap_strftime(self, format, timetuple)
 
-##     def strftime(self, format):
-##         """Format using strftime().  The date part of the timestamp passed
-##         to underlying strftime should not be used.
-##         """
-##         # The year must be >= 1000 else Python's strftime implementation
-##         # can raise a bogus exception.
-##         timetuple = (1900, 1, 1,
-##                      self._hour, self._minute, self._second,
-##                      0, 1, -1)
-##         return _wrap_strftime(self, format, timetuple)
+    def __format__(self, fmt):
+        if not isinstance(fmt, str):
+            raise TypeError(f"Must be a str, not {type(fmt).__name__}")
 
-##     def __format__(self, fmt):
-##         if not isinstance(fmt, str):
-##             raise TypeError("must be str, not %s" % type(fmt).__name__)
-##         if len(fmt) != 0:
-##             return self.strftime(fmt)
-##         return str(self)
+        if len(fmt) != 0:
+            return self.strftime(fmt)
+
+        return str(self)
 
     # Timezone functions
 
@@ -1357,7 +1348,6 @@ class time:
         if self._tzinfo is not None:
             offset = self._tzinfo.utcoffset(None)
             _check_utc_offset("utcoffset", offset)
-            print('POOP', offset)
             return offset
 
 ##     def tzname(self):

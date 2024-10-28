@@ -2280,7 +2280,51 @@ class TestBadiDatetime_time(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, time, tz, fold, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_fromisoformat(self):
+        """
+        Test that the fromisoformat classmethod returns a correctly
+        formatted ISO time string.
+        """
+        err_msg0 = ("Cannot have both a 'T' and a space or more than one "
+                    "of either to indicate time.")
+        err_msg1 = "Invalid number of colons (:), can be 0 - 2, found {}"
+        err_msg2 = "Invalid number of dots (.), can be 0 - 1, found {}"
+        err_msg3 = "Invalid time string, found {}"
+        data = (
+            ('T12', False, '12:00:00'),
+            ('T12.5', False, '12:30:00'),
+            ('T12:30', False, '12:30:00'),
+            ('T12:30.5', False, '12:30:30'),
+            ('T1230', False, '12:30:00'),
+            ('T1230.5', False, '12:30:30'),
+            (' 12:30', False, '12:30:00'),
+            (' 12:30.5', False, '12:30:30'),
+            (' 1230', False, '12:30:00'),
+            (' 1230.5', False, '12:30:30'),
+            ('T12:30:30', False, '12:30:30'),
+            ('T12:30:30.5', False, '12:30:30.5'),
+            ('T123030', False, '12:30:30'),
+            ('T123030.5', False, '12:30:30.5'),
+            # Error conditions
 
+            )
+        msg = "Expected {} with format {}, found {}."
+
+        for iso, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime.time.fromisoformat(iso)
+                except (AssertionError, ValueError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {iso} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = datetime.time.fromisoformat(iso)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, iso, result))
 
 
 
