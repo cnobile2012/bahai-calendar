@@ -112,6 +112,14 @@ def _format_offset(off):
 
     return s
 
+def _check_tzname(name):
+    """
+    Just raise TypeError if the arg isn't None or a string.
+    """
+    if name is not None and not isinstance(name, str):
+        raise TypeError("tzinfo.tzname() must return None or string, "
+                        f"not {type(name)!r}")
+
 
 class timedelta:
     """
@@ -1223,7 +1231,9 @@ class time:
     # Standard conversions, __hash__ (and helpers)
 
     def __hash__(self):
-        """Hash."""
+        """
+        Hash the hour, minute, second and microsecond.
+        """
         if self._hashcode == -1:
             if self.fold:
                 t = self.replace(fold=0)
@@ -1310,33 +1320,34 @@ class time:
         """
         Construct a time from a string in one of the ISO 8601 formats.
         """
-        if not isinstance(time_string, str):
-            raise TypeError('fromisoformat: argument must be str')
+        if isinstance(time_string, str):
+            try:
+                return cls(*_td_utils._parse_isoformat_time(time_string))
+            except Exception as e:
+                raise ValueError(
+                    f'Invalid isoformat string: {time_string!r}, {e}')
 
-        try:
-            return cls(*_td_utils._parse_isoformat_time(time_string))
-        except Exception as e:
-            raise ValueError(f'Invalid isoformat string: {time_string!r}, {e}')
+        raise TypeError('fromisoformat: argument must be str')
 
     def strftime(self, format):
-        """Format using strftime().  The date part of the timestamp passed
+        """
+        Format using strftime().  The date part of the timestamp passed
         to underlying strftime should not be used.
         """
-        # The year must be >= 1000 else Python's strftime implementation
-        # can raise a bogus exception.
-        timetuple = (1900, 1, 1,
-                     self._hour, self._minute, self._second,
-                     0, 1, -1)
-        return _wrap_strftime(self, format, timetuple)
+        # We use the Badi epoch for the year, month and day.
+        timetuple = (1, 1, 1, self._hour, self._minute, self._second, 0, 1, -1)
+        return _td_utils._wrap_strftime(self, format, timetuple)
 
     def __format__(self, fmt):
-        if not isinstance(fmt, str):
-            raise TypeError(f"Must be a str, not {type(fmt).__name__}")
+        if isinstance(fmt, str):
+            if len(fmt) != 0:
+                ret = self.strftime(fmt)
+            else:
+                ret = str(self)
 
-        if len(fmt) != 0:
-            return self.strftime(fmt)
+            return ret
 
-        return str(self)
+        raise TypeError(f"Must be a str, not {type(fmt).__name__}")
 
     # Timezone functions
 
@@ -1350,50 +1361,58 @@ class time:
             _check_utc_offset("utcoffset", offset)
             return offset
 
-##     def tzname(self):
-##         """Return the timezone name.
+    def tzname(self):
+        """
+        Return the timezone name.
 
-##         Note that the name is 100% informational -- there's no requirement that
-##         it mean anything in particular. For example, "GMT", "UTC", "-500",
-##         "-5:00", "EDT", "US/Eastern", "America/New York" are all valid replies.
-##         """
-##         if self._tzinfo is None:
-##             return None
-##         name = self._tzinfo.tzname(None)
-##         _check_tzname(name)
-##         return name
+        Note that the name is 100% informational -- there's no requirement that
+        it mean anything in particular. For example, 'GMT', 'UTC', '-500',
+        '-5:00', 'EDT', 'US/Eastern', 'America/New York' are all valid replies.
+        """
+        if self._tzinfo is not None:
+            name = self._tzinfo.tzname(None)
+            _check_tzname(name)
+            return name
 
-##     def dst(self):
-##         """Return 0 if DST is not in effect, or the DST offset (as timedelta
-##         positive eastward) if DST is in effect.
+    def dst(self):
+        """Return 0 if DST is not in effect, or the DST offset (as timedelta
+        positive eastward) if DST is in effect.
 
-##         This is purely informational; the DST offset has already been added to
-##         the UTC offset returned by utcoffset() if applicable, so there's no
-##         need to consult dst() unless you're interested in displaying the DST
-##         info.
-##         """
-##         if self._tzinfo is None:
-##             return None
-##         offset = self._tzinfo.dst(None)
-##         _check_utc_offset("dst", offset)
-##         return offset
+        This is purely informational; the DST offset has already been added to
+        the UTC offset returned by utcoffset() if applicable, so there's no
+        need to consult dst() unless you're interested in displaying the DST
+        info.
+        """
+        if self._tzinfo is None:
+            return None
+        offset = self._tzinfo.dst(None)
+        _check_utc_offset("dst", offset)
+        return offset
 
-##     def replace(self, hour=None, minute=None, second=None, microsecond=None,
-##                 tzinfo=True, *, fold=None):
-##         """Return a new time with new values for the specified fields."""
-##         if hour is None:
-##             hour = self.hour
-##         if minute is None:
-##             minute = self.minute
-##         if second is None:
-##             second = self.second
-##         if microsecond is None:
-##             microsecond = self.microsecond
-##         if tzinfo is True:
-##             tzinfo = self.tzinfo
-##         if fold is None:
-##             fold = self._fold
-##         return type(self)(hour, minute, second, microsecond, tzinfo, fold=fold)
+    def replace(self, hour=None, minute=None, second=None, microsecond=None,
+                tzinfo=True, *, fold=None):
+        """
+        Return a new time with new values for the specified fields.
+        """
+        if hour is None:
+            hour = self.hour
+
+        if minute is None:
+            minute = self.minute
+
+        if second is None:
+            second = self.second
+
+        if microsecond is None:
+            microsecond = self.microsecond
+
+        if tzinfo is True:
+            tzinfo = self.tzinfo
+
+        if fold is None:
+            fold = self._fold
+
+        return type(self)(hour, minute, second, microsecond, tzinfo, fold=fold)
 
     # Pickle support.
 
@@ -1401,12 +1420,8 @@ class time:
         us2, us3 = divmod(self._microsecond, 256)
         us1, us2 = divmod(us2, 256)
         h = self._hour
-
-        if self._fold and protocol > 3:
-            h += 128
-
-        basestate = bytes([h, self._minute, self._second,
-                           us1, us2, us3])
+        h += 128 if self._fold and protocol > 3 else 0
+        basestate = bytes([h, self._minute, self._second, us1, us2, us3])
 
         if self._tzinfo is None:
             return (basestate,)
@@ -1435,11 +1450,11 @@ class time:
     def __reduce__(self):
         return self.__reduce_ex__(2)
 
-## _time_class = time  # so functions w/ args named "time" can get at the class
+_time_class = time # so functions w/ args named "time" can get at the class
 
-## time.min = time(0, 0, 0)
-## time.max = time(23, 59, 59, 999999)
-## time.resolution = timedelta(microseconds=1)
+time.min = time(0, 0, 0)
+time.max = time(23, 59, 59, 999999) # *** TODO *** Badi days can be lonnger that 24 hours
+time.resolution = timedelta(microseconds=1)
 
 
 class datetime(date):

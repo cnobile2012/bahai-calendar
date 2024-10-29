@@ -7,6 +7,7 @@ __docformat__ = "restructuredtext en"
 import re
 import os
 import sys
+import locale
 import time
 import pickle
 import unittest
@@ -25,6 +26,10 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)
+
+    @classmethod
+    def setUpClass(cls):
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
     def setUp(self):
         self._bc = BahaiCalendar()
@@ -199,6 +204,32 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 result = datetime._format_offset(off)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, off, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__check_tzname(self):
+        """
+        Test that the _check_tzname function raises a TypeError is the name
+        argument is not None or a string.
+        """
+        err_msg0 = "tzinfo.tzname() must return None or string, not {}"
+        data = (
+            ('', False, ''),
+            (None, False, ''),
+            (100, True, err_msg0.format(int)),
+            )
+        msg = "Expected {} with name {}, found {}."
+
+        for name, validity, expected_result in data:
+            if validity:
+                try:
+                    datetime._check_tzname(name)
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    raise AssertionError(
+                        f"With {name} an error is not raised.")
+            else:
+                datetime._check_tzname(name)
 
 
 class TestBadiDatetime_timedelta(unittest.TestCase):
@@ -898,6 +929,10 @@ class TestBadiDatetime_date(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
+    @classmethod
+    def setUpClass(cls):
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+
     #@unittest.skip("Temporarily skipped")
     def test___new__(self):
         """
@@ -1210,7 +1245,7 @@ class TestBadiDatetime_date(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test___format__(self):
         """
-        Test that the __format__ method 
+        Test that the __format__ method returns a correctly formatted string.
         """
         data = (
             ((181, 11, 17), '', '0181-11-17'),
@@ -1947,6 +1982,10 @@ class TestBadiDatetime_time(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
+    @classmethod
+    def setUpClass(cls):
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+
     #@unittest.skip("Temporarily skipped")
     def test___new__(self):
         """
@@ -2208,15 +2247,19 @@ class TestBadiDatetime_time(unittest.TestCase):
         Test that the __hash__ method returns the proper hash of the class.
         """
         data = (
-            (1, 30, 30),
-            (1, 30, 30, 500000),
+            ((1, 30, 30), None, 0),
+            ((1, 30, 30), None, 1),
+            ((1, 30, 30, 500000), None, 0),
+            ((1, 30, 30), ZoneInfo('Asia/Tehran'), 0),
+            # *** TODO *** Test utcoffset not zero or None
             )
-        msg = "time {}, found {}."
+        msg = "time {}, timezone {}, and fold {}, found {}."
 
-        for time in data:
-            t = datetime.time(*time)
-            result = hash(t)
-            self.assertTrue(len(str(result)) > 15, msg.format(time, result))
+        for time, tz, fold in data:
+            t = datetime.time(*time, tzinfo=tz, fold=fold)
+            result = str(hash(t))
+            self.assertTrue(len(result) > 15, msg.format(
+                time, tz, fold, result))
 
     @unittest.skip("Temporarily skipped")
     def test__tzstr(self):
@@ -2286,11 +2329,15 @@ class TestBadiDatetime_time(unittest.TestCase):
         Test that the fromisoformat classmethod returns a correctly
         formatted ISO time string.
         """
-        err_msg0 = ("Cannot have both a 'T' and a space or more than one "
-                    "of either to indicate time.")
-        err_msg1 = "Invalid number of colons (:), can be 0 - 2, found {}"
-        err_msg2 = "Invalid number of dots (.), can be 0 - 1, found {}"
-        err_msg3 = "Invalid time string, found {}"
+        err_msg0 = ("Invalid isoformat string: {}, Cannot have both a 'T' "
+                    "and a space or more than one of either to indicate time.")
+        err_msg1 = ("Invalid isoformat string: {}, Invalid time string, 1st "
+                    "character must be one of ( T), found {}")
+        err_msg2 = ("Invalid isoformat string: {}, Invalid number of colons "
+                    "(:), can be 0 - 2, found {}")
+        err_msg3 = ("Invalid isoformat string: {}, Invalid number of dots "
+                    "(.), can be 0 - 1, found {}")
+        err_msg4 = "Invalid isoformat string: {}, Invalid time string, found {}"
         data = (
             ('T12', False, '12:00:00'),
             ('T12.5', False, '12:30:00'),
@@ -2307,7 +2354,11 @@ class TestBadiDatetime_time(unittest.TestCase):
             ('T123030', False, '12:30:30'),
             ('T123030.5', False, '12:30:30.5'),
             # Error conditions
-
+            (' T', True, err_msg0.format("' T'")),
+            ('abcdefg', True, err_msg1.format("'abcdefg'", "'abcdefg'")),
+            ('T:::', True, err_msg2.format("'T:::'", 3)),
+            ('T..', True, err_msg3.format("'T..'", 2)),
+            ('T014.2', True, err_msg4.format("'T014.2'", "'T014.2'")),
             )
         msg = "Expected {} with format {}, found {}."
 
@@ -2315,7 +2366,7 @@ class TestBadiDatetime_time(unittest.TestCase):
             if validity:
                 try:
                     result = datetime.time.fromisoformat(iso)
-                except (AssertionError, ValueError) as e:
+                except ValueError as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
@@ -2326,7 +2377,43 @@ class TestBadiDatetime_time(unittest.TestCase):
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, iso, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test_strftime(self):
+        """
+        Test that the strftime method returns a correctly formatting string.
+        """
+        data = (
+            ((1, 30, 30), '%X', '01:30:30'),
+            ((1, 30, 30), '%r', '01:30:30 AM'),
+            ((1, 30, 30), '%c', 'Jal Bah  1 01:30:30 0001'),
+            ((1, 30, 30, 500000), '%T.%f', '01:30:30.500000'),
+            ((1, 30, 30, 500000), 'T%H:%M:%S.%f','T01:30:30.500000'),
+            )
+        msg = "Expected {} with time {} and format {}, found {}."
 
+        for time, fmt, expected_result in data:
+            result = datetime.time(*time).strftime(fmt)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, fmt, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___format__(self):
+        """
+        Test that the __format__ method returns a correctly formatting string.
+        """
+        data = (
+            ((1, 30, 30), '', '01:30:30'),
+            ((1, 30, 30), '%X', '01:30:30'),
+            ((1, 30, 30, 500000), '%T.%f', '01:30:30.500000'),
+            ((1, 30, 30, 500000), 'T%H:%M:%S.%f','T01:30:30.500000'),
+            )
+        msg = "Expected {} with time {} and format {}, found {}."
+
+        for time, fmt, expected_result in data:
+            t = datetime.time(*time)
+            result = f"{t:{fmt}}"
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, time, fmt, result))
 
     @unittest.skip("Temporarily skipped")
     def test_utcoffset(self):

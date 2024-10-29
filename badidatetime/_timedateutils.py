@@ -884,6 +884,8 @@ class TimeDateUtils(BahaiCalendar):
                             an integer or when an invalid ISO string is being
                             parsed.
         """
+        t_len = len(dtstr)
+        tmp_dtstr = dtstr
         tc = dtstr.count('T')
         sc = dtstr.count(' ')
         assert ((tc == 0 and sc == 0) or
@@ -896,11 +898,15 @@ class TimeDateUtils(BahaiCalendar):
             del sc
             tc = 1
 
+        if t_len > 0 and 'T' != dtstr[0]:
+            raise ValueError("Invalid time string, 1st character must be "
+                             f"one of ( T), found {tmp_dtstr!r}")
+
+        del tmp_dtstr
         cc = dtstr.count(':')
         assert cc < 3, f"Invalid number of colons (:), can be 0 - 2, found {cc}"
         pc = dtstr.count('.')
         assert pc <= 1, f"Invalid number of dots (.), can be 0 - 1, found {pc}"
-        t_len = len(dtstr)
 
         if t_len > 2:
             hour = int(dtstr[1:3])
@@ -936,7 +942,7 @@ class TimeDateUtils(BahaiCalendar):
                     second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
                 else:
-                    raise ValueError(f"Invalid time string, found {dtstr}")
+                    raise ValueError(f"Invalid time string, found {dtstr!r}")
             else: # Thh
                 time = (hour, 0, 0)
         else:

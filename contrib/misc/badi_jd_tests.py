@@ -1192,6 +1192,9 @@ if __name__ == "__main__":
         '-c', '--ck-dates', action='store_true', default=False, dest='ck_dates',
         help="Check that long_date_from_short_date() works correctly.")
     parser.add_argument(
+        '-d', '--day', action='store_true', default=False, dest='day',
+        help="Find the longest and shortest day.")
+    parser.add_argument(
         '-e', '--leap-years', action='store_true', default=False,
         dest='leap_years', help="Convert Badi to Gregorian dates.")
     parser.add_argument(
@@ -1330,6 +1333,10 @@ if __name__ == "__main__":
             bad_items = dt.check_long_date_from_short_date(data)
             bad_items = bad_items if bad_items else "All dates match."
             pprint.pprint(bad_items)
+    elif options.day: # -d
+        pass
+
+
     elif options.leap_years: # -e
         if options.start is None or options.end is None:
             print("If option -e is used, -S and -E must also be used.",
