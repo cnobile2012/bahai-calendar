@@ -641,9 +641,8 @@ class DateTests(BahaiCalendar):
         -d and -S and -E
 
         As of 181-12-16 (2024-10-29) the shortest and longest days are:
-                                             This one is bogus |
-                                                               v
-        ((1057, 10, 11), (23, 58, 31.008), (-261, 11, 7), (24, 11, 0.0096))
+        ((-1842, 1, 1), (23, 59, 40.9056), (-344, 19, 1), (24, 0, 2.16))
+        2024-10-30 15:53:02.883745 -> 2024-10-30 16:45:24.637078
         """
         start = options.start
         end = options.end
@@ -662,7 +661,9 @@ class DateTests(BahaiCalendar):
                     jd = self.jd_from_badi_date(date)
                     jd += self._meeus_from_exact(jd)
                     ssjd = self._sun_setting(jd, *locate)
-                    hms = self._adjust_day_for_24_hours(ssjd, *locate, hms=True)
+                    essjd = self._exact_from_meeus(ssjd)
+                    hms = self._adjust_day_for_24_hours(essjd, *locate,
+                                                        hms=True)
 
                     if short_day == () or long_day == ():
                         short_day = long_day = date
@@ -1226,6 +1227,7 @@ class DateTests(BahaiCalendar):
 
 
 if __name__ == "__main__":
+    import datetime
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -1382,7 +1384,9 @@ if __name__ == "__main__":
         if options.end is None:
             options.end = 1162    # Gregorian Calendar year 3005
 
+        print(datetime.datetime.now())
         print(dt.find_longest_and_shortest_days(options))
+        print(datetime.datetime.now())
     elif options.leap_years: # -e
         if options.start is None or options.end is None:
             print("If option -e is used, -S and -E must also be used.",

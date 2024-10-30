@@ -791,7 +791,7 @@ class BahaiCalendar(BaseCalendar):
         also corrects the day and the fraction of the day when the Badi day
         is more or less than 24 hours.
 
-        :param jd: The Julian Period day possibly with a fraction.
+        :param jd: Exact Julian Period day possibly with a fraction.
         :type jd: float
         :param lat: The latitude.
         :type lat: float
