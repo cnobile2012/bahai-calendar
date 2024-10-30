@@ -634,6 +634,51 @@ class DateTests(BahaiCalendar):
 
         return items
 
+    def find_longest_and_shortest_days(self, options):
+        """
+        Find the longest and shortest days from year -1842 to 1161.
+
+        -d and -S and -E
+
+        As of 181-12-16 (2024-10-29) the shortest and longest days are:
+                                             This one is bogus |
+                                                               v
+        ((1057, 10, 11), (23, 58, 31.008), (-261, 11, 7), (24, 11, 0.0096))
+        """
+        start = options.start
+        end = options.end
+        short_day = ()
+        long_day = ()
+        short_hms = ()
+        long_hms = ()
+        locate = self.BAHAI_LOCATION[:3]
+
+        for year in range(start, end):
+            for month in self.MONTHS:
+                dm = 19 if month != 0 else 4 + self._is_leap_year(year)
+
+                for day in range(1, dm + 1):
+                    date = (year, month, day)
+                    jd = self.jd_from_badi_date(date)
+                    jd += self._meeus_from_exact(jd)
+                    ssjd = self._sun_setting(jd, *locate)
+                    hms = self._adjust_day_for_24_hours(ssjd, *locate, hms=True)
+
+                    if short_day == () or long_day == ():
+                        short_day = long_day = date
+                        short_hms = long_hms = hms
+                    elif hms < short_hms :
+                        short_hms = hms
+                        short_day = date
+                    elif hms > long_hms:
+                        long_hms = hms
+                        long_day = date
+
+            if not year % 100:
+                print(year, file=sys.stderr)
+
+        return short_day, short_hms, long_day, long_hms
+
     def find_leap_years(self, options):
         """
         -e and -S and -E
@@ -654,7 +699,7 @@ class DateTests(BahaiCalendar):
             total = 0
 
             for month in self.MONTHS:
-                dm = 19 if month != 0 else 4 + self._is_leap_year(year)
+                dm = 19 if month != 0 else 4 + is_leap
 
                 for day in range(1, dm + 1):
                     date = (year, month, day)
@@ -1226,9 +1271,6 @@ if __name__ == "__main__":
         '-C', '--coff', action='store_true', default=False, dest='coff',
         help="Turn off all coefficients during an analysis.")
     parser.add_argument(
-        '-D', '--dates', action='store_true', default=False, dest='dates',
-        help="Test for the consecutive dates from JDs.")
-    parser.add_argument(
         '-E', '--end', type=int, default=None, dest='end',
         help="End Badi year of sequence.")
     parser.add_argument(
@@ -1334,9 +1376,13 @@ if __name__ == "__main__":
             bad_items = bad_items if bad_items else "All dates match."
             pprint.pprint(bad_items)
     elif options.day: # -d
-        pass
+        if options.start is None:
+            options.start = -1842 # Julian Calendar year 1
 
+        if options.end is None:
+            options.end = 1162    # Gregorian Calendar year 3005
 
+        print(dt.find_longest_and_shortest_days(options))
     elif options.leap_years: # -e
         if options.start is None or options.end is None:
             print("If option -e is used, -S and -E must also be used.",

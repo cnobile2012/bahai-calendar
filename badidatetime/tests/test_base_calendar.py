@@ -423,13 +423,13 @@ class TestBaseCalendar(unittest.TestCase):
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
             (2460389.5, 51.423056, 0, True, 0.5051079209771144),
             )
-        msg = "Expected {}, for jd {}, zone {}, and exact {}, found {}."
+        msg = "Expected {}, for jd {}, zone {}, and exact_tz {}, found {}."
 
-        for jd, lon, zone, exact, expected_result in data:
-            result = self.bc._sun_transit(jd, lon, zone=zone, exact=exact)
-            self.assertEqual(
-                expected_result, result,
-                msg.format(expected_result, jd, zone, exact, result))
+        for jd, lon, zone, exact_tz, expected_result in data:
+            result = self.bc._sun_transit(jd, lon, zone=zone,
+                                          exact_tz=exact_tz)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, jd, zone, exact_tz, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_setting(self):
@@ -491,19 +491,18 @@ class TestBaseCalendar(unittest.TestCase):
             (2460389.5, 35.696111, 51.423056, 0, True, self.bc.SUN_OFFSET,
              (0.25232413593097636, 0.7582907476972021)),
             )
-        msg = "Expected {}, for jd {}, zone {}, exact {}, found {}."
+        msg = "Expected {}, for jd {}, zone {}, exact_tz {}, found {}."
 
-        for jd, lat, lon, zone, exact, offset, expected_result in data:
+        for jd, lat, lon, zone, exact_tz, offset, expected_result in data:
             result0 = self.bc._rising_setting(
-                jd, lat, lon, zone=zone, exact=exact, offset=offset,
+                jd, lat, lon, zone=zone, exact_tz=exact_tz, offset=offset,
                 sr_ss='rise')
             result1 = self.bc._rising_setting(
-                jd, lat, lon, zone=zone, exact=exact, offset=offset,
+                jd, lat, lon, zone=zone, exact_tz=exact_tz, offset=offset,
                 sr_ss='set')
             result = (result0, result1)
-            self.assertEqual(
-                expected_result, result,
-                msg.format(expected_result, jd, zone, exact, result))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, jd, zone, exact_tz, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__nutation_longitude(self):

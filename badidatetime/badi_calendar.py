@@ -619,8 +619,11 @@ class BahaiCalendar(BaseCalendar):
 
     def _trim_hms(self, hms:tuple) -> tuple:
         """
-        Trim the hours, minutes, seconds or microseconds off if zero unless
-        a lower value was not zero.
+        Trim the hours, minutes, seconds or microseconds off the date if
+        zero unless a lower value was not zero.
+        Examples: (12, 30, 6, 0) The zero microseconds would be trimmed.
+                  (12, 0, 6, 0) The zero microseconds would be trimmed but
+                                the zero minutes would not be trimmed.
 
         :param hms: An hour, minute, and second object.
         :type hms: tuple
@@ -780,7 +783,7 @@ class BahaiCalendar(BaseCalendar):
 
     def _adjust_day_for_24_hours(self, jd:float, lat:float, lon:float,
                                  zone:float, *, day:float=None,
-                                 hms:bool=False, rtd=False) -> float|tuple:
+                                 rtd=False, hms:bool=False) -> float|tuple:
         """
         We have to deal with days that are either more or less than 24 hours.
         This method does two things. It corrects the Badi time which starts
@@ -798,20 +801,20 @@ class BahaiCalendar(BaseCalendar):
         :type zone: float
         :param day: The day that gets modified. This parameter is optional.
         :type day: float
+        :param rtd: Round to closest day only when the day is used. Has no
+                    effect if hms is True.
+        :type rtd: bool
         :param hms: If True the returned value is a tuple in the form of
                     (hh, mm, ss) indicating the length of the day else if
                     False one of the other two values are returned.
         :type hms: bool
-        :param rtd: Round to closest day only when the day is used. Has no
-                    effect if hms is True.
-        :type rtd: bool
-        :return: See the below note.
+        :return: See the note below.
         :rtype: float | tuple
 
         .. note::
 
-           1. There are three different outputs that can be returned.
-              a. The adjusted day.
+           1. There are two different outputs that can be returned.
+              a. The adjusted day based on when the day ends.
               b. The hour, minute, and seconds of the days offset either
                  less than or more than 24 hours.
         """
@@ -824,18 +827,19 @@ class BahaiCalendar(BaseCalendar):
 
         jd0 = math.floor(jd)
         jd1 = jd0 + 1
-        # The diff values converts my jd to the Meeus algorithm jd so
-        # that the sunset can be determined properly. The fractional day
-        # of either algorithm would be the same.
-        diff1 = self._meeus_from_exact(jd1)
-        mjd1 = jd1 + diff1
+        # The return value from _meeus_from_exact() is used to convert the
+        # more exact jd to the Meeus algorithm jd so that the sunset can be
+        # determined properly. The fractional day of either algorithm would
+        # be the same.
+        mjd1 = jd1 + self._meeus_from_exact(jd1)
         ss1 = self._sun_setting(mjd1, lat, lon, zone)
 
         if hms:
-            diff0 = self._meeus_from_exact(jd0)
-            mjd0 = jd0 + diff0
+            mjd0 = jd0 + self._meeus_from_exact(jd0)
             ss0 = self._sun_setting(mjd0, lat, lon, zone)
-            value = self.hms_from_decimal_day(ss1 - ss0)
+            value = list(self.hms_from_decimal_day(ss1 - ss0))
+            value[0] = 24 if value[0] == 0 else value[0]
+            value = tuple(value)
         else:
             fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES)
             v = 1 if (day + fraction) < 1 else day + fraction

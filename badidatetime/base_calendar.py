@@ -320,7 +320,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return math.degrees(math.acos(cos_h0))
 
     def _sun_transit(self, jd:float, lon:float, zone:float=0.0,
-                     exact:bool=False) -> float:
+                     exact_tz:bool=False) -> float:
         """
         The transit is when the body crosses the local maridian at upper
         culmination.
@@ -331,10 +331,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lon: float
         :param zone: This is the political timezone.
         :type zone: float
-        :param exact: Derive the timezone from the longitude. The 'zone'
-                      parameter is not used if this is True, Default is
-                      False.
-        :type exact: bool
+        :param exact_tz: Derive the timezone from the longitude. The 'zone'
+                         parameter is not used if this is True, Default is
+                         False.
+        :type exact_tz: bool
         :return:
         :rtype: float
 
@@ -342,10 +342,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        assert (-180 <= zone <= 180 and not exact) or (zone == 0 and exact), (
-            f"If exact is True then zone must be 0, found zone: {zone} "
-            f"and exact: {exact}.")
-        zone = zone if not exact else lon / 15
+        assert ((-180 <= zone <= 180 and not exact_tz) or
+                (zone == 0 and exact_tz)), (
+            f"If exact_tz is True then zone must be 0, found zone: {zone} "
+            f"and exact_tz: {exact_tz}.")
+        zone = zone if not exact_tz else lon / 15
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self.julian_centuries(jd)
         dt = self.delta_t(jd)
@@ -370,9 +371,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return -h / 360
 
     def _sun_rising(self, jd:float, lat:float, lon:float, zone:float=0, *,
-                    exact:bool=False, offset:float=SUN_OFFSET) -> float:
+                    exact_tz:bool=False, offset:float=SUN_OFFSET) -> float:
         """
-        Find the exact jd for sunrise of the given jd.
+        Find the jd for sunrise of the given jd.
 
         :param jd: Julian day in UT.
         :type jd: float
@@ -382,10 +383,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lon: float
         :param zone: The time zone, defaults to the zero zone in Greenwich UK.
         :type zone: float
-        :param exact: The political time zones or the exact time zone derived
-                      from the longitude (15 degrees = 360 / 24). Default is
-                      False or the political time zone.
-        :type exact: bool
+        :param exact_tz: The political time zones or the exact time zone
+                         derived from the longitude (15 degrees = 360 / 24).
+                         Default is False or the political time zone.
+        :type exact_tz: bool
         :param offset: A constant “standard” altitude, i.e., the geometric
                        altitude of the center of the body at the time of
                        apparent rising or setting, namely,
@@ -401,14 +402,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, exact=exact,
+        jd += self._rising_setting(jd, lat, lon, zone, exact_tz=exact_tz,
                                    offset=offset, sr_ss='RISE')
         return round(jd, self.ROUNDING_PLACES)
 
     def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0, *,
-                     exact:bool=False, offset:float=SUN_OFFSET) -> float:
+                     exact_tz:bool=False, offset:float=SUN_OFFSET) -> float:
         """
-        Find the exact jd for sunset of the given jd.
+        Find the jd for sunset of the given jd.
 
         :param jd: Julian day in UT.
         :type jd: float
@@ -418,10 +419,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lon: float
         :param zone: The time zone, defaults to the zero zone in Greenwich UK.
         :type zone: float
-        :param exact: The political time zones or the exact time zone derived
-                      from the longitude (15 degrees = 360 / 24). Default is
-                      False or the political time zone.
-        :type exact: bool
+        :param exact_tz: The political time zones or the exact time zone
+                         derived from the longitude (15 degrees = 360 / 24).
+                         Default is False or the political time zone.
+        :type exact_tz: bool
         :param offset: A constant “standard” altitude, i.e., the geometric
                        altitude of the center of the body at the time of
                        apparent rising or setting, namely,
@@ -437,12 +438,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, exact=exact,
+        jd += self._rising_setting(jd, lat, lon, zone, exact_tz=exact_tz,
                                    offset=offset, sr_ss='SET')
         return round(jd, self.ROUNDING_PLACES)
 
     def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0, *,
-                        exact:bool=False, offset:float=SUN_OFFSET,
+                        exact_tz:bool=False, offset:float=SUN_OFFSET,
                         sr_ss:str='RISE') -> float:
         """
         Find the jd difference for sunrise or sunset of the given jd.
@@ -455,10 +456,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lon: float
         :param zone: The time zone, defaults to the zero zone in Greenwich UK.
         :type zone: float
-        :param exact: The political time zones or the exact time zone derived
-                      from the longitude (15 degrees = 360 / 24). Default is
-                      False or the political time zone.
-        :type exact: bool
+        :param exact_tz: The political time zones or the exact time zone
+                         derived from the longitude (15 degrees = 360 / 24).
+                         Default is False or the political time zone.
+        :type exact_tz: bool
         :param offset: A constant “standard” altitude, i.e., the geometric
                        altitude of the center of the body at the time of
                        apparent rising or setting, namely,
@@ -476,10 +477,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
         """
-        assert (-180 <= zone <= 180 and not exact) or (zone == 0 and exact), (
-            f"If exact is True then zone must be 0, found zone: {zone} "
-            f"and exact: {exact}.")
-        zone = zone if not exact else lon / 15
+        assert ((-180 <= zone <= 180 and not exact_tz) or
+                (zone == 0 and exact_tz)), (
+            f"If exact_tz is True then zone must be 0, found zone: {zone} "
+            f"and exact_tz: {exact_tz}.")
+        zone = zone if not exact_tz else lon / 15
         flags = ('RISE', 'SET')
         sr_ss = sr_ss.upper()
         assert sr_ss in flags, (
