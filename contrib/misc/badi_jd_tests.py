@@ -640,9 +640,19 @@ class DateTests(BahaiCalendar):
 
         -d and -S and -E
 
-        As of 181-12-16 (2024-10-29) the shortest and longest days are:
+        The shortest and longest days are:
+
+        First occurrence
+        ---------------
         ((-1842, 1, 1), (23, 59, 40.9056), (-344, 19, 1), (24, 0, 2.16))
         2024-10-30 15:53:02.883745 -> 2024-10-30 16:45:24.637078
+        52 minutes, 21 seconds, 753333 microseconds
+
+        Last occurrence
+        --------------
+        ((-1744, 19, 1), (23, 59, 40.9056), (-261, 11, 9), (24, 0, 2.16))
+        2024-10-30 21:22:48.037574 -> 2024-10-30 22:14:48.889369
+        52 minutes, 0 seconds, 851795 microseconds
         """
         start = options.start
         end = options.end

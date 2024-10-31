@@ -1456,13 +1456,13 @@ class time:
     def __reduce_ex__(self, protocol):
         return (self.__class__, self._getstate(protocol))
 
-    def __reduce__(self):
-        return self.__reduce_ex__(2)
+    #def __reduce__(self):
+    #    return self.__reduce_ex__(2)
 
 _time_class = time # so functions w/ args named "time" can get at the class
 
 time.min = time(0, 0, 0)
-time.max = time(23, 59, 59, 999999) # *** TODO *** Badi days can be lonnger than 24 hours
+time.max = time(24, 0, 3) # See contrib/misc/badi_jd_tests.py --day
 time.resolution = timedelta(microseconds=1)
 
 

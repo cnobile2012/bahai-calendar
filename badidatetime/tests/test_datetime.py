@@ -2538,7 +2538,7 @@ class TestBadiDatetime_time(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test___setstate(self):
         """
-        Test that the __setstate
+        Test that the __setstate method sets the correct state for pickeling.
         """
         err_msg0 = "bad tzinfo state arg"
         data = (
@@ -2573,8 +2573,51 @@ class TestBadiDatetime_time(unittest.TestCase):
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, time, tz, fold, bytes_str, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test___reduce_ex__(self):
+        """
+        Test that the __reduce_ex__ method creates the correct pickle value
+        for protocol 3.
+        """
+        data = (
+            ((12, 30, 30, 500000), datetime.BADI_TZ, 0),
+            ((12, 30, 30, 500000), datetime.UTC, 1),
+            )
+        msg = "Expected {}, with time {}, found {}"
 
+        for time, tz, fold in data:
+            t0 = datetime.time(*time, tzinfo=tz, fold=fold)
+            obj = pickle.dumps(t0)
+            t1 = pickle.loads(obj)
+            t0_result = (t0.hour, t0.minute, t0.second, t0.microsecond,
+                         t0.tzinfo, t0.fold)
+            t1_result = (t1.hour, t1.minute, t1.second, t1.microsecond,
+                         t1.tzinfo, t1.fold)
+            self.assertEqual(t0_result, t1_result, msg.format(
+                t0_result, time, tz, fold, t1_result))
 
+    ## @unittest.skip("Temporarily skipped")
+    ## def test___reduce__(self):
+    ##     """
+    ##     Test that the __reduce__ method creates the correct pickle value
+    ##     for protocol 2.
+    ##     """
+    ##     data = (
+    ##         ((12, 30, 30, 500000), datetime.BADI_TZ, 0),
+    ##         ((12, 30, 30, 500000), datetime.UTC, 1),
+    ##         )
+    ##     msg = "Expected {}, with time {}, tz {}, and fold {}, found {}"
+
+    ##     for time, tz, fold in data:
+    ##         t0 = datetime.time(*time, tzinfo=tz, fold=fold)
+    ##         obj = pickle.dumps(t0)
+    ##         t1 = pickle.loads(obj)
+    ##         t0_result = (t0.hour, t0.minute, t0.second, t0.microsecond,
+    ##                      t0.tzinfo, t0.fold)
+    ##         t1_result = (t1.hour, t1.minute, t1.second, t1.microsecond,
+    ##                      t1.tzinfo, t1.fold)
+    ##         self.assertEqual(t0_result, t1_result, msg.format(
+    ##             t0_result, time, tz, fold, t1_result))
 
 
 class TestBadiDatetime_datetime(unittest.TestCase):
