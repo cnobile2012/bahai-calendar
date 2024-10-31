@@ -668,10 +668,10 @@ class DateTests(BahaiCalendar):
                     if short_day == () or long_day == ():
                         short_day = long_day = date
                         short_hms = long_hms = hms
-                    elif hms < short_hms :
+                    elif hms <= short_hms :
                         short_hms = hms
                         short_day = date
-                    elif hms > long_hms:
+                    elif hms >= long_hms:
                         long_hms = hms
                         long_day = date
 

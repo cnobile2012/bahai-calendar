@@ -4,17 +4,24 @@
 #
 __docformat__ = "restructuredtext en"
 
+__all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
+           "MINYEAR", "MAXYEAR", "UTC", "BADI_TZ")
+
 import time as _time
 import math as _math
-from datetime import tzinfo
+from datetime import tzinfo, timezone
 from types import NoneType
+from zoneinfo import ZoneInfo
 
 from .badi_calendar import BahaiCalendar
 from ._structures import struct_time
 from ._timedateutils import _td_utils
 from typing import NamedTuple
 
-
+MINYEAR = _td_utils.MINYEAR
+MAXYEAR = _td_utils.MAXYEAR
+UTC = timezone.utc
+BADI_TZ = ZoneInfo('Asia/Tehran')
 _MAXORDINAL = 1097267 # date.max.toordinal()
 
 def _cmp(x, y):
@@ -1067,6 +1074,8 @@ class _IsoCalendarDate(tuple):
         return (f'{self.__class__.__name__}'
                 f'(year={self[0]}, week={self[1]}, weekday={self[2]})')
 
+_tzinfo_class = tzinfo
+
 class time:
     """
     Time with time zone.
@@ -1375,7 +1384,8 @@ class time:
             return name
 
     def dst(self):
-        """Return 0 if DST is not in effect, or the DST offset (as timedelta
+        """
+        Return 0 if DST is not in effect, or the DST offset (as timedelta
         positive eastward) if DST is in effect.
 
         This is purely informational; the DST offset has already been added to
@@ -1383,11 +1393,10 @@ class time:
         need to consult dst() unless you're interested in displaying the DST
         info.
         """
-        if self._tzinfo is None:
-            return None
-        offset = self._tzinfo.dst(None)
-        _check_utc_offset("dst", offset)
-        return offset
+        if self._tzinfo is not None:
+            offset = self._tzinfo.dst(None)
+            _check_utc_offset("dst", offset)
+            return offset
 
     def replace(self, hour=None, minute=None, second=None, microsecond=None,
                 tzinfo=True, *, fold=None):
@@ -1453,13 +1462,9 @@ class time:
 _time_class = time # so functions w/ args named "time" can get at the class
 
 time.min = time(0, 0, 0)
-time.max = time(23, 59, 59, 999999) # *** TODO *** Badi days can be lonnger that 24 hours
+time.max = time(23, 59, 59, 999999) # *** TODO *** Badi days can be lonnger than 24 hours
 time.resolution = timedelta(microseconds=1)
 
 
 class datetime(date):
-    pass
-
-
-class timezone:
     pass
