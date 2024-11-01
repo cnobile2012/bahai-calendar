@@ -1771,9 +1771,9 @@ class TestBadiDatetime_date(unittest.TestCase):
                              msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_is_pickle_data(self):
+    def test__is_pickle_data(self):
         """
-        Test that the is_pickle_data classmethod returns the correct results
+        Test that the _is_pickle_data classmethod returns the correct results
         depending on the incoming data.
         """
         err_msg0 = "Invalid string {} had length of {} for pickle."
@@ -1794,7 +1794,7 @@ class TestBadiDatetime_date(unittest.TestCase):
         for value, validity, expected_result in data:
             if validity:
                 try:
-                    result = datetime.date.is_pickle_data(*value)
+                    result = datetime.date._is_pickle_data(*value)
                 except (AssertionError, ValueError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -1802,7 +1802,7 @@ class TestBadiDatetime_date(unittest.TestCase):
                     raise AssertionError(f"With {value} an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = datetime.date.is_pickle_data(*value)
+                result = datetime.date._is_pickle_data(*value)
                 self.assertEqual(expected_result, result,
                                  msg.format(expected_result, value, result))
 
@@ -2596,34 +2596,12 @@ class TestBadiDatetime_time(unittest.TestCase):
             self.assertEqual(t0_result, t1_result, msg.format(
                 t0_result, time, tz, fold, t1_result))
 
-    ## @unittest.skip("Temporarily skipped")
-    ## def test___reduce__(self):
-    ##     """
-    ##     Test that the __reduce__ method creates the correct pickle value
-    ##     for protocol 2.
-    ##     """
-    ##     data = (
-    ##         ((12, 30, 30, 500000), datetime.BADI_TZ, 0),
-    ##         ((12, 30, 30, 500000), datetime.UTC, 1),
-    ##         )
-    ##     msg = "Expected {}, with time {}, tz {}, and fold {}, found {}"
-
-    ##     for time, tz, fold in data:
-    ##         t0 = datetime.time(*time, tzinfo=tz, fold=fold)
-    ##         obj = pickle.dumps(t0)
-    ##         t1 = pickle.loads(obj)
-    ##         t0_result = (t0.hour, t0.minute, t0.second, t0.microsecond,
-    ##                      t0.tzinfo, t0.fold)
-    ##         t1_result = (t1.hour, t1.minute, t1.second, t1.microsecond,
-    ##                      t1.tzinfo, t1.fold)
-    ##         self.assertEqual(t0_result, t1_result, msg.format(
-    ##             t0_result, time, tz, fold, t1_result))
-
 
 class TestBadiDatetime_datetime(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)
+        self._time_fields = ('hour', 'minute', 'second', 'microsecond')
 
     @unittest.skip("Temporarily skipped")
     def test___new__(self):
@@ -2632,4 +2610,145 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         object and a normal instantiation.
         """
 
+
+
+
+    #@unittest.skip("Temporarily skipped")
+    def test_hour(self):
+        """
+        Test that the hour property returns the correct value.
+        """
+        data = (
+            ((1, 1, 1), (12, 30, 30), None, 0, 12),
+            ((1, 1, 1, 1, 1), (12, 30, 30), None, 0, 12)
+            )
+        msg = ("Expected {} with date {}, time {}, timezone {}, "
+               "and fold {}, found {}.")
+
+        for date, time, tz, fold, expected_result in data:
+            kwargs = {self._time_fields[i] : time[i]
+                      for i, v in enumerate(time)}
+            kwargs['tzinfo'] = tz
+            kwargs['fold'] = fold
+            dt = datetime.datetime(*date, **kwargs)
+            result = dt.hour
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, time, tz, fold, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_minute(self):
+        """
+        Test that the minute returns the correct value.
+        """
+        data = (
+            ((1, 1, 1), (12, 30, 30), None, 0, 30),
+            ((1, 1, 1, 1, 1), (12, 30, 30), None, 0, 30)
+            )
+        msg = ("Expected {} with date {}, time {}, timezone {}, "
+               "and fold {}, found {}.")
+
+        for date, time, tz, fold, expected_result in data:
+            kwargs = {self._time_fields[i] : time[i]
+                      for i, v in enumerate(time)}
+            kwargs['tzinfo'] = tz
+            kwargs['fold'] = fold
+            dt = datetime.datetime(*date, **kwargs)
+            result = dt.minute
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, time, tz, fold, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_second(self):
+        """
+        Test that the second returns the correct value.
+        """
+        data = (
+            ((1, 1, 1), (12, 30, 30), None, 0, 30),
+            ((1, 1, 1, 1, 1), (12, 30, 30), None, 0, 30)
+            )
+        msg = ("Expected {} with date {}, time {}, timezone {}, "
+               "and fold {}, found {}.")
+
+        for date, time, tz, fold, expected_result in data:
+            kwargs = {self._time_fields[i] : time[i]
+                      for i, v in enumerate(time)}
+            kwargs['tzinfo'] = tz
+            kwargs['fold'] = fold
+            dt = datetime.datetime(*date, **kwargs)
+            result = dt.second
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, time, tz, fold, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_microsecond(self):
+        """
+        Test that the microsecond returns the correct value.
+        """
+        data = (
+            ((1, 1, 1), (12, 30, 30, 500000), None, 0, 500000),
+            ((1, 1, 1, 1, 1), (12, 30, 30, 999999), None, 0, 999999)
+            )
+        msg = ("Expected {} with date {}, time {}, timezone {}, "
+               "and fold {}, found {}.")
+
+        for date, time, tz, fold, expected_result in data:
+            kwargs = {self._time_fields[i] : time[i]
+                      for i, v in enumerate(time)}
+            kwargs['tzinfo'] = tz
+            kwargs['fold'] = fold
+            dt = datetime.datetime(*date, **kwargs)
+            result = dt.microsecond
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, time, tz, fold, str(result)))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_tzinfo(self):
+        """
+        Test that the tzinfo returns the correct value.
+        """
+        data = (
+            ((1, 1, 1), (12, 30, 30), None, 0, None),
+            ((1, 1, 1, 1, 1), (12, 30, 30), datetime.BADI_TZ, 0,
+             datetime.BADI_TZ)
+            )
+        msg = ("Expected {} with date {}, time {}, timezone {}, "
+               "and fold {}, found {}.")
+
+        for date, time, tz, fold, expected_result in data:
+            kwargs = {self._time_fields[i] : time[i]
+                      for i, v in enumerate(time)}
+            kwargs['tzinfo'] = tz
+            kwargs['fold'] = fold
+            dt = datetime.datetime(*date, **kwargs)
+            result = dt.tzinfo
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, time, tz, fold, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_fold(self):
+        """
+        Test that the fold returns the correct value.
+        """
+        data = (
+            ((1, 1, 1), (12, 30, 30), None, 0, 0),
+            ((1, 1, 1, 1, 1), (12, 30, 30), None, 1, 1)
+            )
+        msg = ("Expected {} with date {}, time {}, timezone {}, "
+               "and fold {}, found {}.")
+
+        for date, time, tz, fold, expected_result in data:
+            kwargs = {self._time_fields[i] : time[i]
+                      for i, v in enumerate(time)}
+            kwargs['tzinfo'] = tz
+            kwargs['fold'] = fold
+            dt = datetime.datetime(*date, **kwargs)
+            result = dt.fold
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, time, tz, fold, str(result)))
+
+    @unittest.skip("Temporarily skipped")
+    def test__fromtimestamp(self):
+        """
+        Test that the _fromtimestamp classmethod 
+        """
 

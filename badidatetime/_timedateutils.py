@@ -983,7 +983,6 @@ class TimeDateUtils(BahaiCalendar):
         self._check_valid_badi_time(hour, minute, second, microsecond)
         assert fold in (0, 1), (
             f"The fold argument '{fold}' must be either 0 or 1.")
-        return hour, minute, second, microsecond, fold
 
     def _wrap_strftime(self, object, format, timetuple):
         """
