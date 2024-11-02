@@ -1551,7 +1551,7 @@ class datetime(date):
         return self._fold
 
     @classmethod
-    def _fromtimestamp(cls, t, utc, tz):
+    def _fromtimestamp(cls, t, badi, tz):
         """
         Construct a datetime from a POSIX timestamp (like time.time()).
 
@@ -1567,7 +1567,18 @@ class datetime(date):
             t -= 1
             us += 1000000
 
-        converter = _time.gmtime if utc else _time.localtime
+        # To get local time:
+        # 1st get BADI_TZ date and time with posix_timestamp().
+        # 2nd get local timezone.
+        # 3rd get local utc offset in hours _td_utils._local_badi_offset_hours()
+
+        #if not badi:
+        #    location = None
+
+
+        converter = _time.gmtime if badi else _time.localtime
+
+
         y, m, d, hh, mm, ss, weekday, jday, dst = converter(t)
         ss = min(ss, 59)    # clamp out leap seconds if the platform has them
         result = cls(y, m, d, hh, mm, ss, us, tz)
