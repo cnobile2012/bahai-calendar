@@ -7,8 +7,6 @@ __docformat__ = "restructuredtext en"
 import time
 import locale
 import math
-from tzlocal import get_localzone
-from datetime import datetime as _dt
 from typing import NamedTuple
 
 from ._structures import struct_time, ShortFormStruct, LongFormStruct
@@ -1062,9 +1060,5 @@ class TimeDateUtils(BahaiCalendar):
 
         newformat = "".join(newformat)
         return self.strftime(newformat, timetuple)
-
-    def _local_badi_offset_hours(self):
-        return (_dt.now(get_localzone()).utcoffset().total_seconds() / 3600 -
-                self.BAHAI_LOCATION[2])
 
 _td_utils = TimeDateUtils()
