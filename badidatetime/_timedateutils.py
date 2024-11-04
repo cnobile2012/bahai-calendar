@@ -711,7 +711,7 @@ class TimeDateUtils(BahaiCalendar):
         # be the same as the date value passed into _ymd2ord.
         jd = (self.jd_from_badi_date((self.MINYEAR-1, 19, 19)) -
               self.DAYS_BEFORE_1ST_YEAR + n)
-        return self.badi_date_from_jd(jd, short=short, rtd=True)
+        return self.badi_date_from_jd(jd, short=short, trim=True, rtd=True)
 
     def _build_struct_time(self, date:tuple, dstflag:int, *,
                            short_in=False) -> NamedTuple:

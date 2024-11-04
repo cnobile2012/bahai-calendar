@@ -2746,9 +2746,24 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, time, tz, fold, str(result)))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__fromtimestamp(self):
         """
-        Test that the _fromtimestamp classmethod 
+        Test that the _fromtimestamp classmethod creates an instance
+        of datetime.
         """
+        data = (
+            (0, False, None, True, '0126-16-02 00:00:00'),
+            #(1, False, datetime.BADI_TZ, True, ''),
+            )
+        msg = ("Expected {} with timestamp {}, badi {}, timezone {}, "
+               "and short {}, found {}, ")
+
+        for t, badi, tz, short, expected_result in data:
+            result = datetime.datetime._fromtimestamp(t, badi, tz, short=short)
+            self.assertEqual(expected_result, str(result), msg.format(
+                expected_result, t, badi, tz, short, result))
+
+
+
 

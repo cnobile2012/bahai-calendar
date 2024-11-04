@@ -47,19 +47,19 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # Badi epoch (Sunset 1844-03-19T18:16:36)
-            ((1844, 3, 19, 18, 16, 36.7104), False, (1, 1, 1, 1, 1)),
+            ((1844, 3, 19, 18, 16, 36.7104), False, True, (1, 1, 1, 1, 1)),
             # CC ch#16 p271 First day of Riḍván
-            ((1930, 4, 20, 18, 43, 55, 27200), False,
+            ((1930, 4, 20, 18, 43, 55, 27200), False, True,
              (1, 5, 11, 2, 13, 0, 0, 50.0256)),
             # B.E. 100 (Vernal Equinox 1943-03-20T18:17:22.675500)
-            ((1943, 3, 20, 18, 17, 22, 675200), False,
+            ((1943, 3, 20, 18, 17, 22, 675200), False, True,
              (1, 6, 5, 1, 1, 0, 0, 49.4208)),
             # World Centre update (Vernal Equinox 2015-03-21T02:15:00)
-            ((2015, 3, 21, 2, 15), True, (172, 1, 1, 7, 58, 2.64)),
+            ((2015, 3, 21, 2, 15), True, True, (172, 1, 1, 7, 58, 2.64)),
             )
         msg = "Expected {} with g_date {}, found {}"
 
-        for g_date, short, expected_result in data:
+        for g_date, short, trim, expected_result in data:
             if len(g_date) == 6:
                 sm = self._bc._sec_microsec_from_seconds(g_date[-1])
             else:
@@ -67,7 +67,7 @@ class TestBadiCalendar(unittest.TestCase):
 
             date = g_date[:5] + sm if sm else g_date
             dt = datetime.datetime(*date)
-            self._bc.parse_gregorian_datetime(dt, short=short)
+            self._bc.parse_gregorian_datetime(dt, short=short, trim=trim)
             result = self._bc.date_representation
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
@@ -314,70 +314,83 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # 0001-03-19T18:14:32:00
-            (1721501.261143, lat, lon, zone, True, False,
+            (1721501.261143, lat, lon, zone, False, True, True, False,
              (-1842, 1, 1, 0, 0, 45.0144)),
             # 0001-04-08T18:30:00
-            (1721521.271346, lat, lon, zone, True, False,
+            (1721521.271346, lat, lon, zone, False, True, True, False,
              (-1842, 2, 2, 0, 0, 39.8304)),
             # 0002-02-24T17:56:00
-            (1721843.248313, lat, lon, zone, True, False,
+            (1721843.248313, lat, lon, zone, False, True, True, False,
              (-1842, 0, 1, 0, 0, 51.4944)),
             # 0002-02-25T17:58:00
-            (1721844.249203, lat, lon, zone, True, False,
+            (1721844.249203, lat, lon, zone, False, True, True, False,
              (-1842, 0, 2, 0, 1, 16.896)),
             # 0002-02-26T17:59:00
-            (1721845.249894, lat, lon, zone, True, False,
+            (1721845.249894, lat, lon, zone, False, True, True, False,
              (-1842, 0, 3, 0, 1, 25.4496)),
             # 0002-03-02T18:02:00
-            (1721849.251389, lat, lon, zone, True, False,
+            (1721849.251389, lat, lon, zone, False, True, True, False,
              (-1842, 19, 2, 0, 0, 13.5648)),
             # 0002-03-06T18:05:00
-            (1721853.254053, lat, lon, zone, True, False,
+            (1721853.254053, lat, lon, zone, False, True, True, False,
              (-1842, 19, 6, 0, 0, 48.1248)),
             # 1583-03-18T18:16:57.187199
-            (2299315.261773, lat, lon, zone, True, False, (-260, 1, 1)),
+            (2299315.261773, lat, lon, zone, False, True, True, False,
+             (-260, 1, 1)),
             # 1844-03-19T18:16:36.710400
-            (2394643.261528, lat, lon, zone, True,  False, (1, 1, 1)),
+            (2394643.261528, lat, lon, zone, False, True, True, False,
+             (1, 1, 1)),
             # 1845-03-20T18:16:24
-            (2395009.261389, lat, lon, zone, True,  False, (2, 1, 1)),
+            (2395009.261389, lat, lon, zone, False, True, True,  False,
+             (2, 1, 1)),
             # 1863-03-20T18:16:05
-            (2401583.261169, lat, lon, zone, True,  False, (20, 1, 1)),
+            (2401583.261169, lat, lon, zone, False, True, True, False,
+             (20, 1, 1)),
             # 1970-01-01T:00:00:00Z
-            (self._bc.POSIX_EPOCH, 51.477928, -0.001545, 0, True, False,
-             (126, 16, 2, 7, 58, 31.4976)),
+            (self._bc.POSIX_EPOCH, 51.477928, -0.001545, 0, False, True, True,
+             False, (126, 16, 2, 7, 58, 31.4976)),
             # 2015-03-20T18:16:07
-            (2457100.261192, lat, lon, zone, True, False, (172, 1, 1)),
+            (2457100.261192, lat, lon, zone, False, True, True, False,
+             (172, 1, 1)),
             # 2024-03-19T18:15:57
-            (2460387.261076, lat, lon, zone, True, False, (181, 1, 1)),
+            (2460387.261076, lat, lon, zone, False, True, True, False,
+             (181, 1, 1)),
             # 2024-04-20T18:42:00
-            (2460419.279167, lat, lon, zone, True,  False,
+            (2460419.279167, lat, lon, zone, False, True, True,  False,
              (181, 2, 13, 23, 57, 49.7088)),
             # 1st day of Ayyám-i-Há -> 2022-02-24T17:57:55.152000
-            (2459633.248555, lat, lon, zone, True, False,
+            (2459633.248555, lat, lon, zone, False, True, True, False,
              (178, 0, 1, 0, 0, 55.8144)),
             # 5th day of Ayyám-i-Há -> 2022-03-28T18:01:35.40000
-            (2459637.2511, lat, lon, zone, True, False,
+            (2459637.2511, lat, lon, zone, False, True, True, False,
              (178, 0, 5, 0, 0, 54.5184)),
             # 2022-03-01T18:02:29.299200
-            (2459638.251728, lat, lon, zone, True, False,
+            (2459638.251728, lat, lon, zone, False, True, True, False,
              (178, 19, 1, 0, 0, 54.2592)),
             # Badi short form -> 2024-05-12T19:02:00
-            (2460443.293056, lat, lon, zone, True,  False,
+            (2460443.293056, lat, lon, zone, False, True, True, False,
              (181, 3, 18, 23, 57, 55.9296)),
+            (2460443.293056, lat, lon, zone, True, True, True, False,
+             (181, 3, 18, 23, 57, 55, 929600)),
             # Badi long form -> 2024-05-14T19:02:00
-            (2460443.293056, lat, lon, zone, False, False,
+            (2460443.293056, lat, lon, zone, False, False, True, False,
              (1, 10, 10, 3, 18, 23, 57, 55.9296)),
+            (2460443.293056, lat, lon, zone, True, False, True, False,
+             (1, 10, 10, 3, 18, 23, 57, 55, 929600)),
             # 2024-07-17T19:19:00
-            (2460507.304861, lat, lon, zone, True, False,
+            (2460507.304861, lat, lon, zone, False, True, True, False,
              (181, 7, 7, 0, 0, 18.7488)),
             # 2024-07-17T19:19:00 Test fractional day.
-            (2460507.304861, lat, lon, zone, True, True, (181, 7, 7.000217)),
+            (2460507.304861, lat, lon, zone, False, True, True, True,
+             (181, 7, 7.000217)),
             )
         msg = "Expected {} for jd {} for lat {}, lon {}, and zone {}, found {}"
 
-        for jd, lat, lon, zone, short, fraction, expected_result in data:
+        for (jd, lat, lon, zone, ms, short, trim,
+             fraction, expected_result) in data:
             result = self._bc.badi_date_from_jd(
-                jd, lat, lon, zone, short=short, fraction=fraction)
+                jd, lat, lon, zone, ms=ms, short=short, trim=trim,
+                fraction=fraction)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, jd, lat, lon, zone, result))
 
@@ -524,23 +537,25 @@ class TestBadiCalendar(unittest.TestCase):
         correct Badi date.
         """
         data = (
-            ((1844, 3, 19, 18, 16, 36.7104), False, True, (1, 1, 1, 1, 1)),
-            ((1844, 3, 19, 18, 16, 36.7104), True, True, (1, 1, 1)),
-            ((2024, 5, 14, 20), False, True,
+            ((1844, 3, 19, 18, 16, 36.7104), False, True, True,
+             (1, 1, 1, 1, 1)),
+            ((1844, 3, 19, 18, 16, 36.7104), True, True, True, (1, 1, 1)),
+            ((2024, 5, 14, 20), False, True, True,
              (1, 10, 10, 3, 19, 0, 55, 55.8624)),
-            ((2024, 5, 14, 20), True, True, (181, 3, 19, 0, 55, 55.8624)),
+            ((2024, 5, 14, 20), True, True, True,
+             (181, 3, 19, 0, 55, 55.8624)),
             # The next tests may show the wrong month and day if
             # exact=False is used.
             # The exact=False condition is generally used in testing.
-            ((1844, 3, 19, 18, 16, 36.7104), True, False,
+            ((1844, 3, 19, 18, 16, 36.7104), True, True, False,
              (1, 1, 2, 23, 57, 30.8736)),
-            ((2024, 5, 14, 20), True, False, (181, 4, 2, 0, 54, 21.6)),
+            ((2024, 5, 14, 20), True, True, False, (181, 4, 2, 0, 54, 21.6)),
             )
         msg = "Expected {} for date {}, short {} and exact {}, found {}"
 
-        for date, short, exact, expected_result in data:
+        for date, short, trim, exact, expected_result in data:
             result = self._bc.badi_date_from_gregorian_date(
-                date, short=short, _exact=exact)
+                date, short=short, trim=trim, _exact=exact)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, short, exact, result))
 
@@ -591,25 +606,30 @@ class TestBadiCalendar(unittest.TestCase):
             # 1970-01-01T00:00:00 -> UNIX Epoch at UTC
             # sunset the day before 16:01 lat=51.4769, lon=0, zone=0
             #                      UTC 12am == (126, 16, 2, 8, 0, 0)
-            (0, 51.477928, -0.001545, 0, True, (126, 16, 2, 7, 58, 31.4976)),
+            (0, 51.477928, -0.001545, 0, False, True, True,
+             (126, 16, 2, 7, 58, 31.4976)),
             #                      UTC 12am == (1, 7, 12, 16, 1, 8, 0, 0)
-            (0, 51.477928, -0.001545, 0, False,
+            (0, 51.477928, -0.001545, 0, False, False, True,
              (1, 7, 12, 16, 2, 7, 58, 31.4976)),
             # 1969-12-31T23:59:59 This is one second before the POSIX epoch
-            (-1, 51.477928, -0.001545, 0, True, (126, 16, 2, 7, 58, 30.4608)),
+            (-1, 51.477928, -0.001545, 0, False, True, True,
+             (126, 16, 2, 7, 58, 30.4608)),
+            (-1, 51.477928, -0.001545, 0, True, True, True,
+             (126, 16, 2, 7, 58, 30, 460800)),
             # 2024-08-24T14:33:46.24610090255737 -- Raleigh, NC USA
             # The h, m, & s are counted from the beginning of the Badi day
             # which would be the previous Gregorian day.
-            (1724265226.246101, 35.7796, -78.6382, -4, True,
+            (1724265226.246101, 35.7796, -78.6382, -4, False, True, True,
              (181, 9, 3, 22, 39, 4.5792)),
             # Test with zone 3.5 (Tehran Iran) 2024-08-28T01:00:00+3:30
-            (1724794198.5490103, None, None, None, True,
+            (1724794198.5490103, None, None, None, False, True, True,
              (181, 9, 10, 2, 53, 58.3296)),
             )
         msg = "Expected {} for timestamp {}, found {}"
 
-        for t, lat, lon, zone, short, expected_result in data:
-            result = self._bc.posix_timestamp(t, lat, lon, zone, short=short)
+        for t, lat, lon, zone, ms, short, trim, expected_result in data:
+            result = self._bc.posix_timestamp(t, lat, lon, zone, ms=ms,
+                                              short=short, trim=trim)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, t, result))
 

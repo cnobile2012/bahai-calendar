@@ -7,11 +7,13 @@ __docformat__ = "restructuredtext en"
 __all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
            "MINYEAR", "MAXYEAR", "UTC", "BADI_TZ")
 
+import sys
 import time as _time
 import math as _math
-from datetime import tzinfo, timezone
+from datetime import tzinfo, timezone, datetime as _dt
 from types import NoneType
 from zoneinfo import ZoneInfo
+from tzlocal import get_localzone
 
 from .badi_calendar import BahaiCalendar
 from ._structures import struct_time
@@ -126,6 +128,9 @@ def _check_tzname(name):
     if name is not None and not isinstance(name, str):
         raise TypeError("tzinfo.tzname() must return None or string, "
                         f"not {type(name)!r}")
+
+def _local_tz_utc_offset_seconds():
+    return _dt.now(get_localzone()).utcoffset().total_seconds()
 
 
 class timedelta:
@@ -503,7 +508,7 @@ class date(BahaiCalendar):
         # Pickle support
         if (short := date._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
-            self.__short = short
+            self._short = short
             self.__setstate(a)
         else:
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
@@ -519,24 +524,24 @@ class date(BahaiCalendar):
                 self._year = c
                 self._month = d
                 self._day = e
-                self.__date = b_date
-                self.__short = False
+                self._date = b_date
+                self._short = False
             else:
                 self._year = a
                 self._month = b
                 self._day = c
-                self.__date = b_date
-                self.__short = True
+                self._date = b_date
+                self._short = True
 
         self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
         super().__init__(self)
-        _td_utils._check_date_fields(*self.__date, short_in=self.__short)
+        _td_utils._check_date_fields(*self._date, short_in=self._short)
         self._hashcode = -1
         return self
 
     @property
     def is_short(self):
-        return self.__short
+        return self._short
 
     # Additional constructors
 
@@ -556,7 +561,7 @@ class date(BahaiCalendar):
         :rtype: date
         """
         bc = BahaiCalendar()
-        date = bc.posix_timestamp(t, short=short)
+        date = bc.posix_timestamp(t, short=short, trim=True)
         del bc
         return cls(*date[:-3]) # We do not need any time values.
 
@@ -678,8 +683,8 @@ class date(BahaiCalendar):
         """
         Convert the long form Badi date to a short form Badi date.
         """
-        return (self.__date if self.__short else
-                self.short_date_from_long_date(self.__date, trim=True))
+        return (self._date if self._short else
+                self.short_date_from_long_date(self._date, trim=True))
 
     def ctime(self):
         """
@@ -732,7 +737,7 @@ class date(BahaiCalendar):
         from date the returned Badi date is in ISO format. Thre is not iso
         standard for the long form Badi date.
         """
-        if self.__short:
+        if self._short:
             ret = self.isoformat()
         else:
             ind = 3 if self._kull_i_shay < 0 else 2
@@ -774,8 +779,8 @@ class date(BahaiCalendar):
         """
         Return local time tuple compatible with time.localtime().
         """
-        return _td_utils._build_struct_time(self.__date + (0, 0, 0), -1,
-                                            short_in=self.__short)
+        return _td_utils._build_struct_time(self._date + (0, 0, 0), -1,
+                                            short_in=self._short)
 
     def toordinal(self):
         """
@@ -792,14 +797,14 @@ class date(BahaiCalendar):
         """
         Return a new date with new values for the specified fields.
         """
-        if self.__short and (kull_i_shay or vahid):
+        if self._short and (kull_i_shay or vahid):
             msg = "Cannot convert from a short to a long form date."
             raise ValueError(msg)
-        elif not self.__short and year is not None and (year < 1 or year > 19):
+        elif not self._short and year is not None and (year < 1 or year > 19):
             msg = ("Cannot convert from a long to a short form date. The "
                    f"value {year} is not valid for long form dates.")
             raise ValueError(msg)
-        elif self.__short:
+        elif self._short:
             obj = self._replace_short(year=year, month=month, day=day)
         else:
             obj = self._replace_long(kull_i_shay=kull_i_shay, vahid=vahid,
@@ -870,7 +875,7 @@ class date(BahaiCalendar):
     def _cmp(self, other):
         assert isinstance(other, date)
 
-        if self.__short:
+        if self._short:
             d0 = self._year, self._month, self._day
             d1 = other._year, other._month, other._day
         else:
@@ -896,7 +901,7 @@ class date(BahaiCalendar):
             od = self.toordinal() + other.days
 
             if _td_utils.DAYS_BEFORE_1ST_YEAR < od <= _MAXORDINAL:
-                ret = type(self).fromordinal(od, short=self.__short)
+                ret = type(self).fromordinal(od, short=self._short)
             else:
                 raise OverflowError("Result out of range.")
         else:
@@ -1008,7 +1013,7 @@ class date(BahaiCalendar):
         return short
 
     def _getstate(self):
-        if self.__short:
+        if self._short:
             yhi, ylo = divmod(self._year - _td_utils.MINYEAR, 256)
             state = (yhi, ylo, self._month, self._day)
         else:
@@ -1025,10 +1030,10 @@ class date(BahaiCalendar):
         return bytes(state),
 
     def __setstate(self, bytes_str):
-        if self.__short:
+        if self._short:
             yhi, ylo, self._month, self._day = bytes_str
             self._year = yhi * 256 + _td_utils.MINYEAR + ylo
-            self.__date = (self._year, self._month, self._day)
+            self._date = (self._year, self._month, self._day)
         else:
             k, v, y, m, d = bytes_str
             self._kull_i_shay = k - 19
@@ -1036,7 +1041,7 @@ class date(BahaiCalendar):
             self._year = y
             self._month = m
             self._day = d
-            self.__date = (self._kull_i_shay, v, y, m, d)
+            self._date = (self._kull_i_shay, v, y, m, d)
 
     def __reduce__(self):
         return (self.__class__, self._getstate())
@@ -1481,10 +1486,11 @@ class datetime(date):
                 microsecond:int=0, tzinfo:tzinfo=None, *, fold:int=0):
         if (short := datetime._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
-            self.__short = short
+            self._short = short
             self.__setstate(a)
         else:
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
+            #b_date += (hour, minute, second, microsecond)
             date_len = len(b_date)
             assert date_len in (3, 5), (
                 "A full short or long form Badi date must be used, found "
@@ -1497,16 +1503,16 @@ class datetime(date):
                 self._year = c
                 self._month = d
                 self._day = e
-                self.__date = b_date
-                self.__short = False
+                self._date = b_date
+                self._short = False
             else:
                 self._year = a
                 self._month = b
                 self._day = c
-                self.__date = b_date
-                self.__short = True
+                self._date = b_date
+                self._short = True
 
-        _td_utils._check_date_fields(*self.__date, short_in=self.__short)
+        _td_utils._check_date_fields(*self._date, short_in=self._short)
         _td_utils._check_time_fields(hour, minute, second, microsecond, fold)
         _check_tzinfo_arg(tzinfo)
         self._hour = hour
@@ -1551,39 +1557,36 @@ class datetime(date):
         return self._fold
 
     @classmethod
-    def _fromtimestamp(cls, t, badi, tz):
+    def _fromtimestamp(cls, t, badi, tz, *, short=False):
         """
         Construct a datetime from a POSIX timestamp (like time.time()).
 
         A timezone info object may be passed in as well.
         """
-        frac, t = _math.modf(t)
-        us = round(frac * 1e6)
+        def split_date_time(date_time):
+            date = date_time[:3] if short else date_time[:5]
+            time = date_time[3:] if short else date_time[5:]
+            return date, time[0], time[1], time[2], time[3]
 
-        if us >= 1000000:
-            t += 1
-            us -= 1000000
-        elif us < 0:
-            t -= 1
-            us += 1000000
+        bc = BahaiCalendar()
 
-        # To get local time:
-        # 1st get BADI_TZ date and time with posix_timestamp().
-        # 2nd get local timezone.
-        # 3rd get local utc offset in hours _td_utils._local_badi_offset_hours()
+        # *** TODO *** Look into what should be done here, this isn't correct
+        if not badi and tz:
+            # Get local UTC offset then correct for the Baha'i location.
+            offset_sec = _local_tz_utc_offset_seconds()
+            offset_sec -= bc.BAHAI_LOCATION[2] * 3600
+        else:
+            offset_sec = 0
 
-        #if not badi:
-        #    location = None
+        t += offset_sec
+        date_time = bc.posix_timestamp(t, ms=True, short=short, trim=False)
+        date, hh, mm, ss, us = split_date_time(date_time)
+        # clamp out leap seconds if the platform has them
+        ss = min(ss, 59)
+        result = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
+                     tzinfo=tz)
 
-
-        converter = _time.gmtime if badi else _time.localtime
-
-
-        y, m, d, hh, mm, ss, weekday, jday, dst = converter(t)
-        ss = min(ss, 59)    # clamp out leap seconds if the platform has them
-        result = cls(y, m, d, hh, mm, ss, us, tz)
-
-        if tz is None and not utc:
+        if tz is None and not badi:
             # As of version 2015f max fold in IANA database is
             # 23 hours at 1969-09-30 13:00:00 in Kwajalein.
             # Let's probe 24 hours in the past to detect a transition:
@@ -1596,14 +1599,19 @@ class datetime(date):
             if t < max_fold_seconds and sys.platform.startswith("win"):
                 return result
 
-            y, m, d, hh, mm, ss = converter(t - max_fold_seconds)[:6]
-            probe1 = cls(y, m, d, hh, mm, ss, us, tz)
+            date_time = bc.posix_timestamp(t - max_fold_seconds, ms=True,
+                                           short=short, trim=False)
+            date, hh, mm, ss, um = split_date_time(date_time)
+            probe1 = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
+                         tzinfo=tz)
             trans = result - probe1 - timedelta(0, max_fold_seconds)
 
             if trans.days < 0:
-                y, m, d, hh, mm, ss = converter(
-                    t + trans // timedelta(0, 1))[:6]
-                probe2 = cls(y, m, d, hh, mm, ss, us, tz)
+                t += trans // timedelta(0, 1)
+                date_time = bc.posix_timestamp(t, ms=True, short=short,
+                                               trim=False)
+                probe2 = cls(*date, hour=hh, minute=mm, second=ss,
+                             microsecond=us, tzinfo=tz)
 
                 if probe2 == result:
                     result._fold = 1
