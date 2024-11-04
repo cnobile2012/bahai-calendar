@@ -2753,7 +2753,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         of datetime.
         """
         data = (
-            (0, False, None, True, '0126-16-02 00:00:00'),
+            (0, False, datetime.UTC, True, ''),
+            (0, False, None, True, '0126-16-01 00:00:00'),
             #(1, False, datetime.BADI_TZ, True, ''),
             )
         msg = ("Expected {} with timestamp {}, badi {}, timezone {}, "

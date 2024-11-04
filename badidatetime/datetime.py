@@ -10,7 +10,7 @@ __all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
 import sys
 import time as _time
 import math as _math
-from datetime import tzinfo, timezone, datetime as _dt
+from datetime import datetime as _dt
 from types import NoneType
 from zoneinfo import ZoneInfo
 from tzlocal import get_localzone
@@ -1055,6 +1055,68 @@ date.max = date(_td_utils.MAXYEAR, 19, 19)
 date.resolution = timedelta(days=1)
 
 
+class tzinfo:
+    """
+    Abstract base class for time zone info classes.
+
+    Subclasses must override the tzname(), utcoffset() and dst() methods.
+    """
+    __slots__ = ()
+
+    def tzname(self, dt):
+        "datetime -> string name of time zone."
+        raise NotImplementedError("tzinfo subclass must override tzname()")
+
+    def utcoffset(self, dt):
+        "datetime -> timedelta, positive for east of UTC, negative for west of UTC"
+        raise NotImplementedError("tzinfo subclass must override utcoffset()")
+
+    def dst(self, dt):
+        """datetime -> DST offset as timedelta, positive for east of UTC.
+
+        Return 0 if DST not in effect.  utcoffset() must include the DST
+        offset.
+        """
+        raise NotImplementedError("tzinfo subclass must override dst()")
+
+    def fromutc(self, dt):
+        "datetime in UTC -> datetime in local time."
+
+        if not isinstance(dt, datetime):
+            raise TypeError("fromutc() requires a datetime argument")
+        if dt.tzinfo is not self:
+            raise ValueError("dt.tzinfo is not self")
+
+        dtoff = dt.utcoffset()
+        if dtoff is None:
+            raise ValueError("fromutc() requires a non-None utcoffset() "
+                             "result")
+
+        # See the long comment block at the end of this file for an
+        # explanation of this algorithm.
+        dtdst = dt.dst()
+        if dtdst is None:
+            raise ValueError("fromutc() requires a non-None dst() result")
+        delta = dtoff - dtdst
+        if delta:
+            dt += delta
+            dtdst = dt.dst()
+            if dtdst is None:
+                raise ValueError("fromutc(): dt.dst gave inconsistent "
+                                 "results; cannot convert")
+        return dt + dtdst
+
+    # Pickle support.
+
+    def __reduce__(self):
+        getinitargs = getattr(self, "__getinitargs__", None)
+        if getinitargs:
+            args = getinitargs()
+        else:
+            args = ()
+        return (self.__class__, args, self.__getstate__())
+
+
 class _IsoCalendarDate(tuple):
 
     def __new__(cls, year, week, weekday, /):
@@ -1563,7 +1625,7 @@ class datetime(date):
 
         A timezone info object may be passed in as well.
         """
-        def split_date_time(date_time):
+        def split_date_time(date_time, short):
             date = date_time[:3] if short else date_time[:5]
             time = date_time[3:] if short else date_time[5:]
             return date, time[0], time[1], time[2], time[3]
@@ -1571,7 +1633,7 @@ class datetime(date):
         bc = BahaiCalendar()
 
         # *** TODO *** Look into what should be done here, this isn't correct
-        if not badi and tz:
+        if not badi:
             # Get local UTC offset then correct for the Baha'i location.
             offset_sec = _local_tz_utc_offset_seconds()
             offset_sec -= bc.BAHAI_LOCATION[2] * 3600
@@ -1580,7 +1642,7 @@ class datetime(date):
 
         t += offset_sec
         date_time = bc.posix_timestamp(t, ms=True, short=short, trim=False)
-        date, hh, mm, ss, us = split_date_time(date_time)
+        date, hh, mm, ss, us = split_date_time(date_time, short)
         # clamp out leap seconds if the platform has them
         ss = min(ss, 59)
         result = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
@@ -1601,7 +1663,7 @@ class datetime(date):
 
             date_time = bc.posix_timestamp(t - max_fold_seconds, ms=True,
                                            short=short, trim=False)
-            date, hh, mm, ss, um = split_date_time(date_time)
+            date, hh, mm, ss, um = split_date_time(date_time, short)
             probe1 = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
                          tzinfo=tz)
             trans = result - probe1 - timedelta(0, max_fold_seconds)
@@ -2110,7 +2172,132 @@ class datetime(date):
     def __reduce__(self):
         return self.__reduce_ex__(2)
 
-
 #datetime.min = datetime(1, 1, 1)
 #datetime.max = datetime(9999, 12, 31, 23, 59, 59, 999999)
 datetime.resolution = timedelta(microseconds=1)
+
+
+class timezone(tzinfo):
+    __slots__ = '_offset', '_name'
+
+    # Sentinel value to disallow None
+    _Omitted = object()
+    def __new__(cls, offset, name=_Omitted):
+        if not isinstance(offset, timedelta):
+            raise TypeError("offset must be a timedelta")
+        if name is cls._Omitted:
+            if not offset:
+                return cls.utc
+            name = None
+        elif not isinstance(name, str):
+            raise TypeError("name must be a string")
+        if not cls._minoffset <= offset <= cls._maxoffset:
+            raise ValueError("offset must be a timedelta "
+                             "strictly between -timedelta(hours=24) and "
+                             "timedelta(hours=24).")
+        return cls._create(offset, name)
+
+    @classmethod
+    def _create(cls, offset, name=None):
+        self = tzinfo.__new__(cls)
+        self._offset = offset
+        self._name = name
+        return self
+
+    def __getinitargs__(self):
+        """pickle support"""
+        if self._name is None:
+            return (self._offset,)
+        return (self._offset, self._name)
+
+    def __eq__(self, other):
+        if isinstance(other, timezone):
+            return self._offset == other._offset
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(self._offset)
+
+    def __repr__(self):
+        """Convert to formal string, for repr().
+
+        >>> tz = timezone.utc
+        >>> repr(tz)
+        'datetime.timezone.utc'
+        >>> tz = timezone(timedelta(hours=-5), 'EST')
+        >>> repr(tz)
+        "datetime.timezone(datetime.timedelta(-1, 68400), 'EST')"
+        """
+        if self is self.utc:
+            return 'datetime.timezone.utc'
+        if self._name is None:
+            return "%s.%s(%r)" % (self.__class__.__module__,
+                                  self.__class__.__qualname__,
+                                  self._offset)
+        return "%s.%s(%r, %r)" % (self.__class__.__module__,
+                                  self.__class__.__qualname__,
+                                  self._offset, self._name)
+
+    def __str__(self):
+        return self.tzname(None)
+
+    def utcoffset(self, dt):
+        if isinstance(dt, datetime) or dt is None:
+            return self._offset
+        raise TypeError("utcoffset() argument must be a datetime instance"
+                        " or None")
+
+    def tzname(self, dt):
+        if isinstance(dt, datetime) or dt is None:
+            if self._name is None:
+                return self._name_from_offset(self._offset)
+            return self._name
+        raise TypeError("tzname() argument must be a datetime instance"
+                        " or None")
+
+    def dst(self, dt):
+        if isinstance(dt, datetime) or dt is None:
+            return None
+        raise TypeError("dst() argument must be a datetime instance"
+                        " or None")
+
+    def fromutc(self, dt):
+        if isinstance(dt, datetime):
+            if dt.tzinfo is not self:
+                raise ValueError("fromutc: dt.tzinfo "
+                                 "is not self")
+            return dt + self._offset
+        raise TypeError("fromutc() argument must be a datetime instance"
+                        " or None")
+
+    _maxoffset = timedelta(hours=24, microseconds=-1)
+    _minoffset = -_maxoffset
+
+    @staticmethod
+    def _name_from_offset(delta):
+        if not delta:
+            return 'UTC'
+        if delta < timedelta(0):
+            sign = '-'
+            delta = -delta
+        else:
+            sign = '+'
+        hours, rest = divmod(delta, timedelta(hours=1))
+        minutes, rest = divmod(rest, timedelta(minutes=1))
+        seconds = rest.seconds
+        microseconds = rest.microseconds
+        if microseconds:
+            return (f'UTC{sign}{hours:02d}:{minutes:02d}:{seconds:02d}'
+                    f'.{microseconds:06d}')
+        if seconds:
+            return f'UTC{sign}{hours:02d}:{minutes:02d}:{seconds:02d}'
+        return f'UTC{sign}{hours:02d}:{minutes:02d}'
+
+UTC = timezone.utc = timezone._create(timedelta(0))
+
+# bpo-37642: These attributes are rounded to the nearest minute for backwards
+# compatibility, even though the constructor will accept a wider range of
+# values. This may change in the future.
+timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
+timezone.max = timezone._create(timedelta(hours=23, minutes=59))
+_EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
