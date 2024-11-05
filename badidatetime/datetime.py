@@ -67,8 +67,9 @@ def _check_utc_offset(name, offset):
                              "-timedelta(hours=24) and timedelta(hours=24)")
 
 def _check_tzinfo_arg(tz):
-    if tz is not None and not isinstance(tz, tzinfo):
-        raise TypeError("tzinfo argument must be None or of a tzinfo subclass")
+    if tz is not None and not isinstance(tz, (tzinfo, _tzinfo)):
+        raise TypeError("tzinfo argument must be None or of a tzinfo "
+                        f"subclass, found {tz!r}")
 
 def _format_time(hh, mm, ss, us, timespec='auto'):
     specs = {
@@ -1060,7 +1061,6 @@ class tzinfo(_tzinfo):
 
     Subclasses must override the tzname(), utcoffset() and dst() methods.
     """
-    __slots__ = ()
 
     def frombadi(self, dt):
         """
@@ -1556,9 +1556,7 @@ class time:
             return (basestate, self._tzinfo)
 
     def __setstate(self, string, tzinfo):
-        if tzinfo is not None and not isinstance(tzinfo, _tzinfo_class):
-            raise TypeError("bad tzinfo state arg")
-
+        _check_tzinfo_arg(tzinfo)
         h, self._minute, self._second, us1, us2, us3 = string
 
         if h > 127:
@@ -2284,8 +2282,8 @@ class datetime(date):
     def __reduce__(self):
         return self.__reduce_ex__(2)
 
-#datetime.min = datetime(1, 1, 1)
-#datetime.max = datetime(9999, 12, 31, 23, 59, 59, 999999)
+datetime.min = datetime(-1842, 1, 1)
+datetime.max = datetime(1161, 19, 19)
 datetime.resolution = timedelta(microseconds=1)
 
 

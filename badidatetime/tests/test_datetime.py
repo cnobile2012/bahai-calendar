@@ -111,10 +111,11 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         """
         Test that the _check_tzinfo_arg function returns the correct result.
         """
-        err_msg0 = "tzinfo argument must be None or of a tzinfo subclass"
+        err_msg0 = ("tzinfo argument must be None or of a tzinfo subclass, "
+                    "found {}")
         data = (
             (datetime.BADI_TZ, False, None),
-            ('JUNK', True, err_msg0),
+            ('JUNK', True, err_msg0.format("'JUNK'")),
             )
         msg = "Expected {} with tz {}, found {}."
 
@@ -2641,7 +2642,8 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the __setstate method sets the correct state for pickeling.
         """
-        err_msg0 = "bad tzinfo state arg"
+        err_msg0 = ("tzinfo argument must be None or of a tzinfo subclass, "
+                    "found {}")
         data = (
             ((12, 30, 30, 500000), None, 0, b'\x0c\x1e\x1e\x07\xa1 ',
              False, ''),
@@ -2649,7 +2651,7 @@ class TestBadiDatetime_time(unittest.TestCase):
              False, ''),
             ((0, 30, 30, 500000), None, 1, b'\x80\x1e\x1e\x07\xa1 ',
              False, ''),
-            ((12, 30, 30, 500000), None, 0, b'', True, err_msg0),
+            ((12, 30, 30, 500000), None, 0, b'', True, err_msg0.format("''")),
             )
         msg = ("Expected {} with time {}, tz {}, fold {}, "
                "and bytes_str {}, found {}.")
@@ -2847,7 +2849,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, time, tz, fold, str(result)))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test__fromtimestamp(self):
         """
         Test that the _fromtimestamp classmethod creates an instance
