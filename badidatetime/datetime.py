@@ -60,7 +60,7 @@ def _check_utc_offset(name, offset):
     if offset is not None:
         if not isinstance(offset, timedelta):
             raise TypeError(f"tzinfo.{name}() must return None "
-                            f"or timedelta, not '{type(offset)}'")
+                            f"or timedelta, not {type(offset)}")
 
         if not -timedelta(1) < offset < timedelta(1):
             raise ValueError(f"{name}()={offset}, must be strictly between "
@@ -733,7 +733,7 @@ class date(BahaiCalendar):
 
     def _str_convertion(self):
         """
-        Return a string representation od the date. In the case of a short
+        Return a string representation of the date. In the case of a short
         from date the returned Badi date is in ISO format. Thre is not iso
         standard for the long form Badi date.
         """
@@ -977,8 +977,7 @@ class date(BahaiCalendar):
     @classmethod
     def _is_pickle_data(cls, a, b):
         """
-        Check to see if the incoming date is pickle data or actual date
-        information.
+        Check if the incoming date is pickle data or actual date information.
 
         :param a: Pickle data, the kull_i_shay, or year.
         :type a: int, str, or bypes
@@ -1062,109 +1061,42 @@ class tzinfo(_tzinfo):
     Subclasses must override the tzname(), utcoffset() and dst() methods.
     """
 
+    def badioffset(self, dt):
+        badi_offset = timedelta(seconds=BahaiCalendar.BAHAI_LOCATION[2] * 3600)
+        return self.utcoffset(dt) + badi_offset
+
     def frombadi(self, dt):
         """
         datetime in Badi TZ -> datetime in local time.
         """
         if not isinstance(dt, datetime):
-            raise TypeError("fromutc() requires a datetime argument")
+            raise TypeError("frombadi() requires a datetime argument")
 
         if dt.tzinfo is not self:
             raise ValueError("dt.tzinfo is not self")
 
-        dtoff = dt.utcoffset()
+        dtoff = dt.badioffset()
 
         if dtoff is None:
-            raise ValueError("fromutc() requires a non-None utcoffset() "
+            raise ValueError("frombadi() requires a non-None utcoffset() "
                              "result")
 
         # See the long comment block at the end of this file for an
         # explanation of this algorithm.
-        dtdst = dt.dst()
+        if (dtdst := dt.dst()) is None:
+            raise ValueError("frombadi() requires a non-None dst() result")
 
-        if dtdst is None:
-            raise ValueError("fromutc() requires a non-None dst() result")
-
-        delta = dtoff - dtdst
-
-        if delta:
+        if (delta := dtoff - dtdst):
             dt += delta
             dtdst = dt.dst()
 
             if dtdst is None:
-                raise ValueError("fromutc(): dt.dst gave inconsistent "
+                raise ValueError("frombadi(): dt.dst gave inconsistent "
                                  "results; cannot convert")
 
         return dt + dtdst
 
-    ## def tzname(self, dt):
-    ##     """
-    ##     datetime -> string name of time zone.
-    ##     """
-    ##     raise NotImplementedError("tzinfo subclass must override tzname()")
-
-    ## def utcoffset(self, dt):
-    ##     """
-    ##     datetime -> timedelta, positive for east of UTC, negative for
-    ##     west of UTC
-    ##     """
-    ##     raise NotImplementedError("tzinfo subclass must override utcoffset()")
-
-    ## def dst(self, dt):
-    ##     """
-    ##     datetime -> DST offset as timedelta, positive for east of UTC.
-
-    ##     Return 0 if DST not in effect.  utcoffset() must include the DST
-    ##     offset.
-    ##     """
-    ##     raise NotImplementedError("tzinfo subclass must override dst()")
-
-    ## def fromutc(self, dt):
-    ##     """
-    ##     datetime in UTC -> datetime in local time.
-    ##     """
-    ##     if not isinstance(dt, datetime):
-    ##         raise TypeError("fromutc() requires a datetime argument")
-
-    ##     if dt.tzinfo is not self:
-    ##         raise ValueError("dt.tzinfo is not self")
-
-    ##     dtoff = dt.utcoffset()
-
-    ##     if dtoff is None:
-    ##         raise ValueError("fromutc() requires a non-None utcoffset() "
-    ##                          "result")
-
-    ##     # See the long comment block at the end of this file for an
-    ##     # explanation of this algorithm.
-    ##     dtdst = dt.dst()
-
-    ##     if dtdst is None:
-    ##         raise ValueError("fromutc() requires a non-None dst() result")
-
-    ##     delta = dtoff - dtdst
-
-    ##     if delta:
-    ##         dt += delta
-    ##         dtdst = dt.dst()
-
-    ##         if dtdst is None:
-    ##             raise ValueError("fromutc(): dt.dst gave inconsistent "
-    ##                              "results; cannot convert")
-
-    ##     return dt + dtdst
-
-    ## # Pickle support.
-
-    ## def __reduce__(self):
-    ##     getinitargs = getattr(self, "__getinitargs__", None)
-
-    ##     if getinitargs:
-    ##         args = getinitargs()
-    ##     else:
-    ##         args = ()
-
-    ##     return (self.__class__, args, self.__getstate__())
+_tzinfo_class = tzinfo
 
 
 class _IsoCalendarDate(tuple):
@@ -1193,7 +1125,6 @@ class _IsoCalendarDate(tuple):
         return (f'{self.__class__.__name__}'
                 f'(year={self[0]}, week={self[1]}, weekday={self[2]})')
 
-_tzinfo_class = tzinfo
 
 class time:
     """
@@ -1594,13 +1525,13 @@ class datetime(date):
     def __new__(cls, a:int, b:int=None, c:int=None, d:int=None, e:int=None,
                 hour:float=0, minute:float=0, second:float=0,
                 microsecond:int=0, tzinfo:tzinfo=None, *, fold:int=0):
+
         if (short := datetime._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
             self._short = short
             self.__setstate(a)
         else:
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
-            #b_date += (hour, minute, second, microsecond)
             date_len = len(b_date)
             assert date_len in (3, 5), (
                 "A full short or long form Badi date must be used, found "
@@ -1706,27 +1637,25 @@ class datetime(date):
             # thus we can't perform fold detection for values of time less
             # than the max time fold. See comments in _datetimemodule's
             # version of this method for more details.
-            if t < max_fold_seconds and sys.platform.startswith("win"):
-                return result
-
-            date_time = bc.posix_timestamp(t - max_fold_seconds, ms=True,
-                                           short=short, trim=False)
-            date, hh, mm, ss, um = split_date_time(date_time, short)
-            probe1 = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
-                         tzinfo=tz)
-            trans = result - probe1 - timedelta(0, max_fold_seconds)
-
-            if trans.days < 0:
-                t += trans // timedelta(0, 1)
-                date_time = bc.posix_timestamp(t, ms=True, short=short,
-                                               trim=False)
-                probe2 = cls(*date, hour=hh, minute=mm, second=ss,
+            if t > max_fold_seconds and not sys.platform.startswith("win"):
+                date_time = bc.posix_timestamp(t - max_fold_seconds, ms=True,
+                                               short=short, trim=False)
+                date, hh, mm, ss, um = split_date_time(date_time, short)
+                probe1 = cls(*date, hour=hh, minute=mm, second=ss,
                              microsecond=us, tzinfo=tz)
+                trans = result - probe1 - timedelta(0, max_fold_seconds)
 
-                if probe2 == result:
-                    result._fold = 1
+                if trans.days < 0:
+                    t += trans // timedelta(0, 1)
+                    date_time = bc.posix_timestamp(t, ms=True, short=short,
+                                                   trim=False)
+                    probe2 = cls(*date, hour=hh, minute=mm, second=ss,
+                                 microsecond=us, tzinfo=tz)
+
+                    if probe2 == result:
+                        result._fold = 1
         elif tz is not None:
-            result = tz.fromutc(result)
+            result = tz.frombadi(result)
 
         return result
 
@@ -1758,19 +1687,27 @@ class datetime(date):
 
     @classmethod
     def combine(cls, date, time, tzinfo=True):
-        "Construct a datetime from a given date and a given time."
+        """
+        Construct a datetime from a given date and a given time.
+        """
         if not isinstance(date, _date_class):
-            raise TypeError("date argument must be a date instance")
+            raise TypeError("date argument must be a date instance, "
+                            f"found {date!r}.")
 
         if not isinstance(time, _time_class):
-            raise TypeError("time argument must be a time instance")
+            raise TypeError("time argument must be a time instance, "
+                            f"found {time!r}.")
 
         if tzinfo is True:
             tzinfo = time.tzinfo
 
-        return cls(date.year, date.month, date.day,
-                   time.hour, time.minute, time.second, time.microsecond,
-                   tzinfo, fold=time.fold)
+        if date.is_short:
+            d = (date.year, date.month, date.day)
+        else:
+            d = (date.kull_i_shay, date.vahid, date.year, date.month, date.day)
+
+        return cls(*d, hour=time.hour, minute=time.minute, second=time.second,
+                   microsecond=time.microsecond, tzinfo=tzinfo, fold=time.fold)
 
     @classmethod
     def fromisoformat(cls, date_string):
@@ -1994,7 +1931,7 @@ class datetime(date):
         terms of the time to include. Valid options are 'auto', 'hours',
         'minutes', 'seconds', 'milliseconds' and 'microseconds'.
         """
-        s = ("%04d-%02d-%02d%c" % (self._year, self._month, self._day, sep) +
+        s = (f"{self._year:04d}-{self._month:02d}-{self._day:02d}{sep}" +
              _format_time(self._hour, self._minute, self._second,
                           self._microsecond, timespec))
 
@@ -2007,7 +1944,9 @@ class datetime(date):
         return s
 
     def __repr__(self):
-        """Convert to formal string, for repr()."""
+        """
+        Convert to formal string, for repr().
+        """
         L = [self._year, self._month, self._day,  # These are never zero
              self._hour, self._minute, self._second, self._microsecond]
 
@@ -2017,13 +1956,12 @@ class datetime(date):
         if L[-1] == 0:
             del L[-1]
 
-        s = "%s.%s(%s)" % (self.__class__.__module__,
-                           self.__class__.__qualname__,
-                           ", ".join(map(str, L)))
+        s = (f"{self.__class__.__module__}.{self.__class__.__qualname__}"
+             f"({', '.join(map(str, L))})")
 
         if self._tzinfo is not None:
             assert s[-1:] == ")"
-            s = s[:-1] + ", tzinfo=%r" % self._tzinfo + ")"
+            s = s[:-1] + ", tzinfo={self._tzinfo!r})"
 
         if self._fold:
             assert s[-1:] == ")"
@@ -2031,42 +1969,63 @@ class datetime(date):
 
         return s
 
-    def __str__(self):
-        "Convert to string, for str()."
-        return self.isoformat(sep=' ')
+    def _dt_str_conversion(self, sep='T'):
+        if self._short:
+            ret = self.isoformat(sep=sep)
+        else:
+            ret = self._str_convertion()
+            ret += f"{sep}{self.hour:02}:{self.minute:02}:{self.second:02}"
+            ret += f".{self.microsecond}" if self.microsecond else ""
+
+        return ret
+
+    __str__ = _dt_str_conversion
 
     @classmethod
     def strptime(cls, date_string, format):
-        'string, format -> new datetime parsed from a string (like time.strptime()).'
+        """
+        string, format -> new datetime parsed from a string
+        (like time.strptime()).
+        """
         import _strptime
         return _strptime._strptime_datetime(cls, date_string, format)
 
     def utcoffset(self):
-        """Return the timezone offset as timedelta positive east of UTC (negative west of
-        UTC)."""
-        if self._tzinfo is None:
-            return None
+        """
+        Return the timezone offset as timedelta positive east of UTC
+        (negative west of UTC).
+        """
+        if self._tzinfo is not None:
+            offset = self._tzinfo.utcoffset(self)
+            _check_utc_offset("utcoffset", offset)
+            return offset
 
-        offset = self._tzinfo.utcoffset(self)
-        _check_utc_offset("utcoffset", offset)
-        return offset
+    def badioffset(self):
+        """
+        Return the timezone offset as timedelta positive east of the BADI_TZ
+        (negative west of the BADI_TZ).
+        """
+        if self._tzinfo is not None:
+            offset = self._tzinfo.badioffset(self)
+            #_check_utc_offset("badioffset", offset) # *** TODO *** Fix me
+            return offset
 
     def tzname(self):
-        """Return the timezone name.
+        """
+        Return the timezone name.
 
         Note that the name is 100% informational -- there's no requirement that
-        it mean anything in particular. For example, "GMT", "UTC", "-500",
-        "-5:00", "EDT", "US/Eastern", "America/New York" are all valid replies.
+        it mean anything in particular. For example, 'GMT', 'UTC', '-500',
+        '-5:00', 'EDT', 'US/Eastern', 'America/New_York' are all valid replies.
         """
-        if self._tzinfo is None:
-            return None
-
-        name = self._tzinfo.tzname(self)
-        _check_tzname(name)
-        return name
+        if self._tzinfo is not None:
+            name = self._tzinfo.tzname(self)
+            _check_tzname(name)
+            return name
 
     def dst(self):
-        """Return 0 if DST is not in effect, or the DST offset (as timedelta
+        """
+        Return 0 if DST is not in effect, or the DST offset (as timedelta
         positive eastward) if DST is in effect.
 
         This is purely informational; the DST offset has already been added to
@@ -2074,12 +2033,10 @@ class datetime(date):
         need to consult dst() unless you're interested in displaying the DST
         info.
         """
-        if self._tzinfo is None:
-            return None
-
-        offset = self._tzinfo.dst(self)
-        _check_utc_offset("dst", offset)
-        return offset
+        if self._tzinfo is not None:
+            offset = self._tzinfo.dst(self)
+            _check_utc_offset("dst", offset)
+            return offset
 
     # Comparisons of datetime objects with other.
 
@@ -2342,19 +2299,17 @@ class timezone(tzinfo):
         'datetime.timezone.utc'
         >>> tz = timezone(timedelta(hours=-5), 'EST')
         >>> repr(tz)
-        "datetime.timezone(datetime.timedelta(-1, 68400), 'EST')"
+        'datetime.timezone(datetime.timedelta(-1, 68400), 'EST')'
         """
         if self is self.utc:
             return 'datetime.timezone.utc'
 
         if self._name is None:
-            return "%s.%s(%r)" % (self.__class__.__module__,
-                                  self.__class__.__qualname__,
-                                  self._offset)
+            return (f"{self.__class__.__module__}."
+                    f"{self.__class__.__qualname__}({self._offset!r})")
 
-        return "%s.%s(%r, %r)" % (self.__class__.__module__,
-                                  self.__class__.__qualname__,
-                                  self._offset, self._name)
+        return (f"{self.__class__.__module__}.{self.__class__.__qualname__}"
+                f"({self._offset!r}, {self._name!r})")
 
     def __str__(self):
         return self.tzname(None)

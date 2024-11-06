@@ -76,7 +76,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         """
         err_msg0 = ("Invalid name argument '{}' must be one of "
                     "('utcoffset', 'dst').")
-        err_msg1 = "tzinfo.{}() must return None or timedelta, not '{}'"
+        err_msg1 = "tzinfo.{}() must return None or timedelta, not {}"
         err_msg2 = ("{}()={}, must be strictly between -timedelta(hours=24) "
                     "and timedelta(hours=24)")
         data = (
@@ -1887,69 +1887,6 @@ class TestBadiDatetime_tzinfo(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
-    ## def test_tzname(self):
-    ##     """
-    ##     Test that the tzname method raises an exception.
-    ##     """
-    ##     err_msg0 = "tzinfo subclass must override tzname()"
-    ##     data = (
-    ##         ((181, 1, 1), err_msg0),
-    ##         )
-
-    ##     for date, expected_result in data:
-    ##         dt = datetime.datetime(*date)
-    ##         tzinfo = datetime.tzinfo()
-
-    ##         try:
-    ##             tzinfo.tzname(dt)
-    ##         except NotImplementedError as e:
-    ##             self.assertEqual(expected_result, str(e))
-    ##         else:
-    ##             raise AssertionError(f"With {date} an error is not "
-    ##                                  f"raised, with result {result}.")
-
-    ## def test_utcoffset(self):
-    ##     """
-    ##     Test that the utcoffset method raises an exception.
-    ##     """
-    ##     err_msg0 = "tzinfo subclass must override utcoffset()"
-    ##     data = (
-    ##         ((181, 1, 1), err_msg0),
-    ##         )
-
-    ##     for date, expected_result in data:
-    ##         dt = datetime.datetime(*date)
-    ##         tzinfo = datetime.tzinfo()
-
-    ##         try:
-    ##             tzinfo.utcoffset(dt)
-    ##         except NotImplementedError as e:
-    ##             self.assertEqual(expected_result, str(e))
-    ##         else:
-    ##             raise AssertionError(f"With {date} an error is not "
-    ##                                  f"raised, with result {result}.")
-
-    ## def test_dst(self):
-    ##     """
-    ##     Test that the dst method raises an exception.
-    ##     """
-    ##     err_msg0 = "tzinfo subclass must override dst()"
-    ##     data = (
-    ##         ((181, 1, 1), err_msg0),
-    ##         )
-
-    ##     for date, expected_result in data:
-    ##         dt = datetime.datetime(*date)
-    ##         tzinfo = datetime.tzinfo()
-
-    ##         try:
-    ##             tzinfo.dst(dt)
-    ##         except NotImplementedError as e:
-    ##             self.assertEqual(expected_result, str(e))
-    ##         else:
-    ##             raise AssertionError(f"With {date} an error is not "
-    ##                                  f"raised, with result {result}.")
-
     @unittest.skip("Temporarily skipped")
     def test_frombadi(self):
         """
@@ -2861,13 +2798,80 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             #(1, False, datetime.BADI_TZ, True, ''),
             )
         msg = ("Expected {} with timestamp {}, badi {}, timezone {}, "
-               "and short {}, found {}, ")
+               "and short {}, found {}.")
 
         for t, badi, tz, short, expected_result in data:
             result = datetime.datetime._fromtimestamp(t, badi, tz, short=short)
             self.assertEqual(expected_result, str(result), msg.format(
                 expected_result, t, badi, tz, short, result))
 
+    @unittest.skip("Temporarily skipped")
+    def test_fromtimestamp(self):
+        """
+        Test that the fromtimestamp classmethod creates an instance
+        of datetime.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_utcfromtimestamp(self):
+        """
+        Test that the utcfromtimestamp classmethod creates an instance
+        of datetime.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_now(self):
+        """
+        Test that the now classmethod creates an instance
+        of datetime.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_utcnow(self):
+        """
+        Test that the utcnow classmethod creates an instance
+        of datetime.
+        """
+        pass
+
+    @unittest.skip("Temporarily skipped")
+    def test_combine(self):
+        """
+        Test that the combine classmethod creates an instance of datetime
+        from an instance of a date and a time object.
+        """
+        err_msg0 = "date argument must be a date instance, found {}."
+        err_msg1 = "time argument must be a time instance, found {}."
+        data = (
+            ((181, 1, 1), (12, 30, 30), True, False, '0181-01-01T12:30:30'),
+            ((1, 10, 10, 1, 1), (12, 30, 30), True, False,
+             '01-10-10-01-01T12:30:30'),
+            ((181, 13, 3), (12, 30, 30, 500000), True, False,
+             '0181-13-03T12:30:30.500000'),
+            ((181, 1, 1), (), datetime.BADI_TZ, False, ''),
+            )
+        msg = "Expected {} with date {}, time {}, and timezone {}, found {}."
+
+        for date, time, tz, validity, expected_result in data:
+            d = datetime.date(*date)
+            t = datetime.time(*time)
+
+            if validity:
+                try:
+                    result = datetime.datetime.combine(d, t, tzinfo=tz)
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {time} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = datetime.datetime.combine(d, t, tzinfo=tz)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, date, time, tz, result))
 
 
 
