@@ -2837,7 +2837,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         pass
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_combine(self):
         """
         Test that the combine classmethod creates an instance of datetime
@@ -2851,17 +2851,17 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              '01-10-10-01-01T12:30:30'),
             ((181, 13, 3), (12, 30, 30, 500000), True, False,
              '0181-13-03T12:30:30.500000'),
-            ((181, 1, 1), (), datetime.BADI_TZ, False, ''),
+            #((181, 1, 1), (12, 30, 30), datetime.BADI_TZ, False, ''),
             )
         msg = "Expected {} with date {}, time {}, and timezone {}, found {}."
 
         for date, time, tz, validity, expected_result in data:
             d = datetime.date(*date)
-            t = datetime.time(*time)
+            t = datetime.time(*time, tzinfo=tz if tz is not True else None)
 
             if validity:
                 try:
-                    result = datetime.datetime.combine(d, t, tzinfo=tz)
+                    result = datetime.datetime.combine(d, t, tzinfo=t.tzinfo)
                 except TypeError as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -2869,9 +2869,57 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                     raise AssertionError(f"With {time} an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = datetime.datetime.combine(d, t, tzinfo=tz)
+                result = datetime.datetime.combine(d, t, tzinfo=t.tzinfo)
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, time, tz, result))
 
 
 
+class TestBadiDatetime_timezone(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    #@unittest.skip("Temporarily skipped")
+    def test___new__(self):
+        """
+        Test that the __new__ method creates an instance from both a pickle
+        object and a normal instantiation.
+        """
+        err_msg0 = "offset must be a timedelta"
+        err_msg1 = "name must be a string"
+        err_msg2 = ("offset must be a timedelta strictly between "
+                    "-timedelta(hours=24) and timedelta(hours=24).")
+        iran_offset = BahaiCalendar.BAHAI_LOCATION[2] * 3600
+        td = datetime.timedelta(seconds=iran_offset)
+        data = (
+            (td, 'Asia/Terhan', False, 'Asia/Terhan'),
+            (td, datetime.timezone._Omitted, False, 'UTC+03:30'),
+            (td, '', False, ''),
+            (object, 'Asia/Terhan', True, err_msg0),
+            (td, object, True, err_msg1),
+            (datetime.timedelta(hours=25), '', True, err_msg2),
+            )
+        msg = "Expected {} with offset {} and name {}, found {}."
+
+        for offset, name, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime.timezone(offset, name)
+                except (TypeError, ValueError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {time} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = datetime.timezone(offset, name)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, offset, name, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___getinitargs__(self):
+        """
+        Test that the __getinitargs__ method 
+        """
+        

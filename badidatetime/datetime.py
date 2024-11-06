@@ -1686,7 +1686,7 @@ class datetime(date):
         return cls.utcfromtimestamp(t)
 
     @classmethod
-    def combine(cls, date, time, tzinfo=True):
+    def combine(cls, date:date, time:time, tzinfo:time.tzinfo=True):
         """
         Construct a datetime from a given date and a given time.
         """
@@ -2257,14 +2257,14 @@ class timezone(tzinfo):
         if name is cls._Omitted:
             if not offset:
                 return cls.utc
+
             name = None
         elif not isinstance(name, str):
             raise TypeError("name must be a string")
 
         if not cls._minoffset <= offset <= cls._maxoffset:
-            raise ValueError("offset must be a timedelta "
-                             "strictly between -timedelta(hours=24) and "
-                             "timedelta(hours=24).")
+            raise ValueError("offset must be a timedelta strictly between "
+                             "-timedelta(hours=24) and timedelta(hours=24).")
 
         return cls._create(offset, name)
 
@@ -2276,7 +2276,9 @@ class timezone(tzinfo):
         return self
 
     def __getinitargs__(self):
-        """pickle support"""
+        """
+        pickle support
+        """
         if self._name is None:
             return (self._offset,)
 
@@ -2292,7 +2294,8 @@ class timezone(tzinfo):
         return hash(self._offset)
 
     def __repr__(self):
-        """Convert to formal string, for repr().
+        """
+        Convert to formal string, for repr().
 
         >>> tz = timezone.utc
         >>> repr(tz)
@@ -2335,14 +2338,14 @@ class timezone(tzinfo):
         if isinstance(dt, datetime) or dt is None:
             return None
 
-        raise TypeError("dst() argument must be a datetime instance"
-                        " or None")
+        raise TypeError("dst() argument must be a datetime instance or None")
 
     def fromutc(self, dt):
         if isinstance(dt, datetime):
             if dt.tzinfo is not self:
                 raise ValueError("fromutc: dt.tzinfo "
                                  "is not self")
+
             return dt + self._offset
 
         raise TypeError("fromutc() argument must be a datetime instance"
