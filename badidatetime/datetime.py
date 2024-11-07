@@ -5,14 +5,13 @@
 __docformat__ = "restructuredtext en"
 
 __all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
-           "MINYEAR", "MAXYEAR", "UTC", "BADI_TZ")
+           "MINYEAR", "MAXYEAR", "UTC", "BADI")
 
 import sys
 import time as _time
 import math as _math
 from datetime import datetime as _dt, tzinfo as _tzinfo
 from types import NoneType
-from zoneinfo import ZoneInfo
 from tzlocal import get_localzone
 
 from .badi_calendar import BahaiCalendar
@@ -22,7 +21,6 @@ from typing import NamedTuple
 
 MINYEAR = _td_utils.MINYEAR
 MAXYEAR = _td_utils.MAXYEAR
-BADI_TZ = ZoneInfo('Asia/Tehran')
 _MAXORDINAL = 1097267 # date.max.toordinal()
 
 def _cmp(x, y):
@@ -67,7 +65,7 @@ def _check_utc_offset(name, offset):
                              "-timedelta(hours=24) and timedelta(hours=24)")
 
 def _check_tzinfo_arg(tz):
-    if tz is not None and not isinstance(tz, (tzinfo, _tzinfo)):
+    if tz is not None and not isinstance(tz, tzinfo):
         raise TypeError("tzinfo argument must be None or of a tzinfo "
                         f"subclass, found {tz!r}")
 
@@ -1525,7 +1523,6 @@ class datetime(date):
     def __new__(cls, a:int, b:int=None, c:int=None, d:int=None, e:int=None,
                 hour:float=0, minute:float=0, second:float=0,
                 microsecond:int=0, tzinfo:tzinfo=None, *, fold:int=0):
-
         if (short := datetime._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
             self._short = short
@@ -2002,8 +1999,8 @@ class datetime(date):
 
     def badioffset(self):
         """
-        Return the timezone offset as timedelta positive east of the BADI_TZ
-        (negative west of the BADI_TZ).
+        Return the timezone offset as timedelta positive east of the BADI
+        (negative west of the BADI).
         """
         if self._tzinfo is not None:
             offset = self._tzinfo.badioffset(self)
@@ -2275,23 +2272,11 @@ class timezone(tzinfo):
         self._name = name
         return self
 
-    def __getinitargs__(self):
-        """
-        pickle support
-        """
-        if self._name is None:
-            return (self._offset,)
-
-        return (self._offset, self._name)
-
     def __eq__(self, other):
         if isinstance(other, timezone):
             return self._offset == other._offset
 
         return NotImplemented
-
-    def __hash__(self):
-        return hash(self._offset)
 
     def __repr__(self):
         """
@@ -2379,7 +2364,19 @@ class timezone(tzinfo):
 
         return f'UTC{sign}{hours:02d}:{minutes:02d}'
 
+    # pickle support
+
+    def __getinitargs__(self):
+        if self._name is None:
+            return (self._offset,)
+
+        return (self._offset, self._name)
+
+    def __hash__(self):
+        return hash(self._offset)
+
 UTC = timezone.utc = timezone._create(timedelta(0))
+BADI = timezone.badi = timezone._create(timedelta(hours=3.5))
 
 # bpo-37642: These attributes are rounded to the nearest minute for backwards
 # compatibility, even though the constructor will accept a wider range of
