@@ -5,7 +5,7 @@
 __docformat__ = "restructuredtext en"
 
 __all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
-           "MINYEAR", "MAXYEAR", "UTC", "BADI")
+           "MINYEAR", "MAXYEAR", "UTC", "BADI", "BADI_TZ")
 
 import sys
 import time as _time
@@ -22,6 +22,7 @@ from typing import NamedTuple
 MINYEAR = _td_utils.MINYEAR
 MAXYEAR = _td_utils.MAXYEAR
 _MAXORDINAL = 1097267 # date.max.toordinal()
+BADI_TZ = ('Asia/Terhan', BahaiCalendar.BAHAI_LOCATION[2])
 
 def _cmp(x, y):
     return 0 if x == y else 1 if x > y else -1
@@ -130,6 +131,11 @@ def _check_tzname(name):
 def _local_tz_utc_offset_seconds():
     return _dt.now(get_localzone()).utcoffset().total_seconds()
 
+def _module_name(module):
+    idx = module.find('.')
+    dt_true = True if module[:idx] == 'datetime' else False
+    return module[idx + 1:] if idx != -1 and not dt_true else module
+
 
 class timedelta:
     """
@@ -152,7 +158,7 @@ class timedelta:
     __slots__ = '_days', '_seconds', '_microseconds', '_hashcode'
 
     def __new__(cls, days=0, seconds=0, microseconds=0,
-                milliseconds=0, minutes=0, hours=0, weeks=0):
+                milliseconds=0, minutes=0, hours=0, weeks=0) -> object:
         # Doing this efficiently and accurately in C is going to be difficult
         # and error-prone, due to ubiquitous overflow possibilities, and that
         # C double doesn't have enough bits of precision to represent
@@ -270,8 +276,8 @@ class timedelta:
         if not args:
             args.append('0')
 
-        return (f"{self.__class__.__module__}.{self.__class__.__qualname__}"
-                f"({', '.join(args)})")
+        return (f"{_module_name(self.__class__.__module__)}."
+                f"{self.__class__.__qualname__}({', '.join(args)})")
 
     def __str__(self):
         mm, ss = divmod(self._seconds, 60)
@@ -667,7 +673,8 @@ class date(BahaiCalendar):
 
         Badi date 0181-01-01 is Gregorian date 2024-03-20
         """
-        msg = f"{self.__class__.__module__}.{self.__class__.__qualname__}"
+        msg = (f"{_module_name(self.__class__.__module__)}."
+               f"{self.__class__.__qualname__}")
 
         if hasattr(self, '_kull_i_shay'):
             msg += (f"({self._kull_i_shay}, {self._vahid}, {self._year}, "
@@ -1011,7 +1018,7 @@ class date(BahaiCalendar):
 
     def _getstate(self):
         if self._short:
-            yhi, ylo = divmod(self._year - _td_utils.MINYEAR, 256)
+            yhi, ylo = divmod(self._year - MINYEAR, 256)
             state = (yhi, ylo, self._month, self._day)
         else:
             # We need to add an arbitrarily number (19) larger that any
@@ -1029,7 +1036,7 @@ class date(BahaiCalendar):
     def __setstate(self, bytes_str):
         if self._short:
             yhi, ylo, self._month, self._day = bytes_str
-            self._year = yhi * 256 + _td_utils.MINYEAR + ylo
+            self._year = yhi * 256 + MINYEAR + ylo
             self._date = (self._year, self._month, self._day)
         else:
             k, v, y, m, d = bytes_str
@@ -1046,8 +1053,8 @@ class date(BahaiCalendar):
 _date_class = date  # so functions w/ args named "date" can get at the class
 
 # This also needs to be done for long form date. *** TODO ***
-date.min = date(_td_utils.MINYEAR, 1, 1)
-date.max = date(_td_utils.MAXYEAR, 19, 19)
+date.min = date(MINYEAR, 1, 1)
+date.max = date(MAXYEAR, 19, 19)
 
 date.resolution = timedelta(days=1)
 
@@ -1060,7 +1067,7 @@ class tzinfo(_tzinfo):
     """
 
     def badioffset(self, dt):
-        badi_offset = timedelta(seconds=BahaiCalendar.BAHAI_LOCATION[2] * 3600)
+        badi_offset = timedelta(hourss=BADI_TZ[1])
         return self.utcoffset(dt) + badi_offset
 
     def frombadi(self, dt):
@@ -1099,7 +1106,7 @@ _tzinfo_class = tzinfo
 
 class _IsoCalendarDate(tuple):
 
-    def __new__(cls, year, week, weekday, /):
+    def __new__(cls, year, week, weekday, /) -> object:
         return super().__new__(cls, (year, week, weekday))
 
     @property
@@ -1120,7 +1127,7 @@ class _IsoCalendarDate(tuple):
         return (tuple, (tuple(self),))
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}'
+        return (f'{_module_name(self.__class__.__name__)}'
                 f'(year={self[0]}, week={self[1]}, weekday={self[2]})')
 
 
@@ -1152,7 +1159,8 @@ class time:
                  '_hashcode', '_fold')
 
     def __new__(cls, hour:float=0, minute:float=0, second:float=0,
-                microsecond:int=0, tzinfo:tzinfo=None, *, fold:int=0):
+                microsecond:int=0, tzinfo:tzinfo=None, *,
+                fold:int=0) -> object:
         """
         Constructor.
 
@@ -1336,7 +1344,8 @@ class time:
         else:
             s = ""
 
-        s = (f"{self.__class__.__module__}.{self.__class__.__qualname__}"
+        s = (f"{_module_name(self.__class__.__module__)}."
+             f"{self.__class__.__qualname__}"
              f"({self._hour:d}, {self._minute:d}{s})")
 
         if self._tzinfo is not None:
@@ -1522,7 +1531,8 @@ class datetime(date):
 
     def __new__(cls, a:int, b:int=None, c:int=None, d:int=None, e:int=None,
                 hour:float=0, minute:float=0, second:float=0,
-                microsecond:int=0, tzinfo:tzinfo=None, *, fold:int=0):
+                microsecond:int=0, tzinfo:tzinfo=None, *,
+                fold:int=0) -> object:
         if (short := datetime._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
             self._short = short
@@ -1612,7 +1622,7 @@ class datetime(date):
         if not badi:
             # Get local UTC offset then correct for the Baha'i location.
             offset_sec = _local_tz_utc_offset_seconds()
-            offset_sec -= bc.BAHAI_LOCATION[2] * 3600
+            offset_sec -= BADI_TZ[1] * 3600
         else:
             offset_sec = 0
 
@@ -1865,6 +1875,7 @@ class datetime(date):
             ts = self._mktime()
         else:
             ts = (self - _EPOCH) // timedelta(seconds=1)
+
         localtm = _time.localtime(ts)
         local = datetime(*localtm[:6])
         # Extract TZ data
@@ -1953,12 +1964,12 @@ class datetime(date):
         if L[-1] == 0:
             del L[-1]
 
-        s = (f"{self.__class__.__module__}.{self.__class__.__qualname__}"
-             f"({', '.join(map(str, L))})")
+        s = (f"{_module_name(self.__class__.__module__)}."
+             f"{self.__class__.__qualname__}({', '.join(map(str, L))})")
 
         if self._tzinfo is not None:
             assert s[-1:] == ")"
-            s = s[:-1] + ", tzinfo={self._tzinfo!r})"
+            s = s[:-1] + f", tzinfo={self._tzinfo!r})"
 
         if self._fold:
             assert s[-1:] == ")"
@@ -2195,17 +2206,28 @@ class datetime(date):
     # Pickle support.
 
     def _getstate(self, protocol=3):
-        yhi, ylo = divmod(self._year, 256)
-        us2, us3 = divmod(self._microsecond, 256)
-        us1, us2 = divmod(us2, 256)
+        if self._short:
+            yhi, ylo = divmod(self._year - MINYEAR, 256)
+            state = (yhi, ylo)
+        else:
+            # We need to add an arbitrarily number (19) larger that any
+            # Kull-i-Shay that I support so we don't get a negative number
+            # making bytes puke.
+            kull_i_shay = self._kull_i_shay + 19
+            vahid = self._vahid
+            year = self._year
+            state = (kull_i_shay, vahid, year)
+
         m = self._month
 
         if self._fold and protocol > 3:
             m += 128
 
-        basestate = bytes([yhi, ylo, m, self._day,
-                           self._hour, self._minute, self._second,
-                           us1, us2, us3])
+        us2, us3 = divmod(self._microsecond, 256)
+        us1, us2 = divmod(us2, 256)
+
+        basestate = bytes(state + (m, self._day, self._hour, self._minute,
+                                   self._second, us1, us2, us3))
 
         if self._tzinfo is None:
             return (basestate,)
@@ -2233,7 +2255,7 @@ class datetime(date):
     def __reduce_ex__(self, protocol):
         return (self.__class__, self._getstate(protocol))
 
-    def __reduce__(self):
+    def __reduce__(self): # pragma: no cover
         return self.__reduce_ex__(2)
 
 datetime.min = datetime(-1842, 1, 1)
@@ -2247,7 +2269,7 @@ class timezone(tzinfo):
     # Sentinel value to disallow None
     _Omitted = object()
 
-    def __new__(cls, offset, name=_Omitted):
+    def __new__(cls, offset:timedelta, name:str=_Omitted) -> object:
         if not isinstance(offset, timedelta):
             raise TypeError("offset must be a timedelta")
 
@@ -2266,7 +2288,7 @@ class timezone(tzinfo):
         return cls._create(offset, name)
 
     @classmethod
-    def _create(cls, offset, name=None):
+    def _create(cls, offset:timedelta, name:str=None):
         self = tzinfo.__new__(cls)
         self._offset = offset
         self._name = name
@@ -2292,55 +2314,60 @@ class timezone(tzinfo):
         if self is self.utc:
             return 'datetime.timezone.utc'
 
-        if self._name is None:
-            return (f"{self.__class__.__module__}."
-                    f"{self.__class__.__qualname__}({self._offset!r})")
+        if self is self.badi:
+            return 'datetime.timezone.badi'
 
-        return (f"{self.__class__.__module__}.{self.__class__.__qualname__}"
-                f"({self._offset!r}, {self._name!r})")
+        module = self.__class__.__module__
+        offset_name = f"{self._offset!r}"
+
+        if self._name is None:
+            return (f"{_module_name(module)}.{self.__class__.__qualname__}"
+                    f"({_module_name(offset_name)})")
+
+        return (f"{_module_name(module)}.{self.__class__.__qualname__}"
+                f"({_module_name(offset_name)}, {self._name!r})")
 
     def __str__(self):
         return self.tzname(None)
 
-    def utcoffset(self, dt):
+    def utcoffset(self, dt:datetime):
         if isinstance(dt, datetime) or dt is None:
             return self._offset
 
-        raise TypeError("utcoffset() argument must be a datetime instance"
-                        " or None")
+        raise TypeError("utcoffset() argument must be a datetime instance "
+                        "or None")
 
-    def tzname(self, dt):
+    def tzname(self, dt:datetime):
         if isinstance(dt, datetime) or dt is None:
             if self._name is None:
                 return self._name_from_offset(self._offset)
 
             return self._name
 
-        raise TypeError("tzname() argument must be a datetime instance"
-                        " or None")
+        raise TypeError("tzname() argument must be a datetime instance "
+                        "or None")
 
-    def dst(self, dt):
+    def dst(self, dt:datetime):
         if isinstance(dt, datetime) or dt is None:
             return None
 
         raise TypeError("dst() argument must be a datetime instance or None")
 
-    def fromutc(self, dt):
+    def fromutc(self, dt:datetime):
         if isinstance(dt, datetime):
             if dt.tzinfo is not self:
-                raise ValueError("fromutc: dt.tzinfo "
-                                 "is not self")
+                raise ValueError("fromutc: dt.tzinfo is not self")
 
             return dt + self._offset
 
-        raise TypeError("fromutc() argument must be a datetime instance"
-                        " or None")
+        raise TypeError("fromutc() argument must be a datetime instance "
+                        "or None")
 
     _maxoffset = timedelta(hours=24, microseconds=-1)
     _minoffset = -_maxoffset
 
     @staticmethod
-    def _name_from_offset(delta):
+    def _name_from_offset(delta:timedelta) -> str:
         if not delta:
             return 'UTC'
 

@@ -6,6 +6,6 @@ __docformat__ = "restructuredtext en"
 
 from badidatetime.badi_calendar import BahaiCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
-from badidatetime.datetime import date
+from badidatetime import datetime
 
-__all__ = ('date', 'BahaiCalendar', 'GregorianCalendar',)
+__all__ = ('datetime', 'BahaiCalendar', 'GregorianCalendar',)
