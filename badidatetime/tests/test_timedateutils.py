@@ -693,9 +693,9 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with dtstr {}, found {}."
 
         for dtstr, expected_result in data:
-            result = _td_utils._parse_isoformat_date_time(dtstr)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, dtstr, result))
+            date, time = _td_utils._parse_isoformat_date_time(dtstr)
+            self.assertEqual(expected_result, date + time, msg.format(
+                expected_result, dtstr, date + time))
 
     #@unittest.skip("Temporarily skipped")
     def test__parse_isoformat_date(self):

@@ -980,7 +980,7 @@ class date(BahaiCalendar):
     # Pickle support.
 
     @classmethod
-    def _is_pickle_data(cls, a, b):
+    def _is_pickle_data(cls, a, b, p_len=(4, 5)):
         """
         Check if the incoming date is pickle data or actual date information.
 
@@ -995,9 +995,9 @@ class date(BahaiCalendar):
         """
         if b is None and isinstance(a, (bytes, str)):
             a_len = len(a)
-            assert a_len in (4, 5), (
+            assert a_len in p_len, (
                 f"Invalid string {a} had length of {a_len} for pickle.")
-            short = True if a_len == 4 else False
+            short = True if a_len == p_len[0] else False
 
             if ((short and 1 <= ord(a[2:3])&0x7F <= 19)
                 or not short and 1 <= ord(a[3:4])&0x7F <= 19):
@@ -1007,7 +1007,7 @@ class date(BahaiCalendar):
                     except UnicodeEncodeError:
                         raise ValueError(
                             "Failed to encode latin1 string when unpickling "
-                            "a date object. "
+                            "a date or datetime object. "
                             "pickle.load(data, encoding='latin1') is assumed.")
             else:
                 short = None
@@ -1067,7 +1067,7 @@ class tzinfo(_tzinfo):
     """
 
     def badioffset(self, dt):
-        badi_offset = timedelta(hourss=BADI_TZ[1])
+        badi_offset = timedelta(hours=BADI_TZ[1])
         return self.utcoffset(dt) + badi_offset
 
     def frombadi(self, dt):
@@ -1086,8 +1086,6 @@ class tzinfo(_tzinfo):
             raise ValueError("frombadi() requires a non-None utcoffset() "
                              "result")
 
-        # See the long comment block at the end of this file for an
-        # explanation of this algorithm.
         if (dtdst := dt.dst()) is None:
             raise ValueError("frombadi() requires a non-None dst() result")
 
@@ -1533,10 +1531,11 @@ class datetime(date):
                 hour:float=0, minute:float=0, second:float=0,
                 microsecond:int=0, tzinfo:tzinfo=None, *,
                 fold:int=0) -> object:
-        if (short := datetime._is_pickle_data(a, b)) is not None:
+        if (short := datetime._is_pickle_data(
+            a, b, p_len=(10, 11))) is not None:
             self = object.__new__(cls)
             self._short = short
-            self.__setstate(a)
+            self.__setstate(a, tzinfo)
         else:
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
             date_len = len(b_date)
@@ -1560,15 +1559,18 @@ class datetime(date):
                 self._date = b_date
                 self._short = True
 
+            self._hour = hour
+            self._minute = minute
+            self._second = second
+            self._microsecond = microsecond
+            self._time = (self._hour, self._minute,
+                          self._second, self._microsecond)
+            self._tzinfo = tzinfo
+            self._fold = fold
+
         _td_utils._check_date_fields(*self._date, short_in=self._short)
-        _td_utils._check_time_fields(hour, minute, second, microsecond, fold)
+        _td_utils._check_time_fields(*self._time, fold)
         _check_tzinfo_arg(tzinfo)
-        self._hour = hour
-        self._minute = minute
-        self._second = second
-        self._microsecond = microsecond
-        self._tzinfo = tzinfo
-        self._fold = fold
         self._hashcode = -1
         return self
 
@@ -1604,6 +1606,11 @@ class datetime(date):
     def fold(self):
         return self._fold
 
+    def _split_date_time(self, date_time, short):
+        date = date_time[:3] if short else date_time[:5]
+        time = date_time[3:] if short else date_time[5:]
+        return date, time[0], time[1], time[2], time[3]
+
     @classmethod
     def _fromtimestamp(cls, t, badi, tz, *, short=False):
         """
@@ -1611,11 +1618,6 @@ class datetime(date):
 
         A timezone info object may be passed in as well.
         """
-        def split_date_time(date_time, short):
-            date = date_time[:3] if short else date_time[:5]
-            time = date_time[3:] if short else date_time[5:]
-            return date, time[0], time[1], time[2], time[3]
-
         bc = BahaiCalendar()
 
         # *** TODO *** Look into what should be done here, this isn't correct
@@ -1628,7 +1630,7 @@ class datetime(date):
 
         t += offset_sec
         date_time = bc.posix_timestamp(t, ms=True, short=short, trim=False)
-        date, hh, mm, ss, us = split_date_time(date_time, short)
+        date, hh, mm, ss, us = self._split_date_time(date_time, short)
         # clamp out leap seconds if the platform has them
         ss = min(ss, 59)
         result = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
@@ -1647,7 +1649,7 @@ class datetime(date):
             if t > max_fold_seconds and not sys.platform.startswith("win"):
                 date_time = bc.posix_timestamp(t - max_fold_seconds, ms=True,
                                                short=short, trim=False)
-                date, hh, mm, ss, um = split_date_time(date_time, short)
+                date, hh, mm, ss, um = self._split_date_time(date_time, short)
                 probe1 = cls(*date, hour=hh, minute=mm, second=ss,
                              microsecond=us, tzinfo=tz)
                 trans = result - probe1 - timedelta(0, max_fold_seconds)
@@ -1718,34 +1720,15 @@ class datetime(date):
 
     @classmethod
     def fromisoformat(cls, date_string):
-        """Construct a datetime from a string in one of the ISO 8601 formats."""
-        if not isinstance(date_string, str):
-            raise TypeError('fromisoformat: argument must be str')
-
-        if len(date_string) < 7:
-            raise ValueError(f'Invalid isoformat string: {date_string!r}')
-
-        # Split this at the separator
-        try:
-            separator_location = _find_isoformat_datetime_separator(date_string)
-            dstr = date_string[0:separator_location]
-            tstr = date_string[(separator_location+1):]
-
-            date_components = _parse_isoformat_date(dstr)
-        except ValueError:
-            raise ValueError(
-                f'Invalid isoformat string: {date_string!r}') from None
-
-        if tstr:
-            try:
-                time_components = _parse_isoformat_time(tstr)
-            except ValueError:
-                raise ValueError(
-                    f'Invalid isoformat string: {date_string!r}') from None
-        else:
-            time_components = [0, 0, 0, 0, None]
-
-        return cls(*(date_components + time_components))
+        """
+        Construct a datetime from a string in one of the ISO 8601 formats.
+        """
+        date, time = _td_utils._parse_isoformat_date_time(date_string)
+        t_len = len(time)
+        time = list(time)
+        time += [0 for v in range(4 - t_len)]
+        hh, mm, ss, us = time
+        return cls(*date, hour=hh, minute=mm, second=ss, microsecond=us)
 
     def timetuple(self):
         "Return local time tuple compatible with time.localtime()."
@@ -1759,8 +1742,7 @@ class datetime(date):
             dst = 0
 
         return _build_struct_time(self.year, self.month, self.day,
-                                  self.hour, self.minute, self.second,
-                                  dst)
+                                  self.hour, self.minute, self.second, dst)
 
     def _mktime(self):
         """Return integer POSIX timestamp."""
@@ -1984,6 +1966,11 @@ class datetime(date):
             ret = self._str_convertion()
             ret += f"{sep}{self.hour:02}:{self.minute:02}:{self.second:02}"
             ret += f".{self.microsecond}" if self.microsecond else ""
+            off = self.utcoffset()
+            tz = _format_offset(off)
+
+            if tz:
+                ret += tz
 
         return ret
 
@@ -2234,12 +2221,23 @@ class datetime(date):
         else:
             return (basestate, self._tzinfo)
 
-    def __setstate(self, string, tzinfo):
+    def __setstate(self, bytes_str, tzinfo):
         if tzinfo is not None and not isinstance(tzinfo, _tzinfo_class):
             raise TypeError("bad tzinfo state arg")
 
-        (yhi, ylo, m, self._day, self._hour,
-         self._minute, self._second, us1, us2, us3) = string
+        if self._short:
+            (yhi, ylo, m, self._day, self._hour,
+             self._minute, self._second, us1, us2, us3) = bytes_str
+            self._year = yhi * 256 + MINYEAR + ylo
+            self._date = (self._year,)
+        else:
+            (k, v, y, m, d, self._hour, self._minute,
+             self._second, us1, us2, us3) = bytes_str
+            self._kull_i_shay = k - 19
+            self._vahid = v
+            self._year = y
+            self._day = d
+            self._date = (self._kull_i_shay, v, y)
 
         if m > 127:
             self._fold = 1
@@ -2248,8 +2246,10 @@ class datetime(date):
             self._fold = 0
             self._month = m
 
-        self._year = yhi * 256 + ylo
         self._microsecond = (((us1 << 8) | us2) << 8) | us3
+        self._date += (self._month, self._day)
+        self._time = (self._hour, self._minute,
+                      self._second, self._microsecond)
         self._tzinfo = tzinfo
 
     def __reduce_ex__(self, protocol):

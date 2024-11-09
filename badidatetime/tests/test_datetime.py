@@ -960,8 +960,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg1 = "Invalid string {} had length of {} for pickle."
         err_msg2 = ("A full short or long form Badi date must be used, found "
                     "{} fields.")
-        err_msg3 = ("Failed to encode latin1 string when unpickling a date "
-                    "object. pickle.load(data, encoding='latin1') is assumed.")
+        err_msg3 = ("Failed to encode latin1 string when unpickling a date or "
+                    "datetime object. pickle.load(data, encoding='latin1') is "
+                    "assumed.")
         data = (
             ((1, 1, 1), False, '0001-01-01'),
             ((1, 1, 1, 1, 1), False, '01-01-01-01-01'),
@@ -1790,8 +1791,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         depending on the incoming data.
         """
         err_msg0 = "Invalid string {} had length of {} for pickle."
-        err_msg1 = ("Failed to encode latin1 string when unpickling a date "
-                    "object. pickle.load(data, encoding='latin1') is assumed.")
+        err_msg1 = ("Failed to encode latin1 string when unpickling a date or "
+                    "datetime object. pickle.load(data, encoding='latin1') is "
+                    "assumed.")
         data = (
             ((b'\x073\x01\x01', None), False, True),
             ((b'\x14\x01\x01\x01\x01', None), False, False),
@@ -2673,7 +2675,18 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((1, 1, 1), (12, 30, 30, 500000), None, 0, False,
              '0001-01-01T12:30:30.500000'),
             ((1, 1, 1, 1, 1), (), None, 0, False, '01-01-01-01-01T00:00:00'),
-            #(),
+            # Short form
+            ((b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ',), (), None, 0,
+             False, '-1842-01-01T12:30:30.500000'),
+            # Long form
+            ((b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ',), (), None, 0,
+             False, '-05-18-01-01-01T12:30:30.500000'),
+            # Short form
+            ((b'\x073\x01\x01\x00\x00\x00\x00\x00\x00',), (),
+             datetime.timezone.badi, 0, False, '0001-01-01T00:00:00+03:30'),
+            # Long form
+            ((b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00',), (),
+             datetime.timezone.badi, 0, False, '01-01-01-01-01T00:00:00+03:30'),
             )
         msg = ("Expected {} with date {}, time {}, timezone {}, "
                "and fold {}, found {}.")
@@ -2844,6 +2857,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                "and short {}, found {}.")
 
         for t, badi, tz, short, expected_result in data:
+            print(t, badi, tz, short)
+
             result = datetime.datetime._fromtimestamp(t, badi, tz, short=short)
             self.assertEqual(expected_result, str(result), msg.format(
                 expected_result, t, badi, tz, short, result))
@@ -2917,13 +2932,21 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, time, tz, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_fromisoformat(self):
         """
         Test that the fromisoformat classmethod creates an instance
         of datetime.
         """
-        pass
+        data =(
+            ('0181-01-01T12:30:30.500000', '0181-01-01T12:30:30.5'),
+            )
+        msg = "Expected {} with date and time {}, "
+
+        for dt, expected_result in data:
+            result = datetime.datetime.fromisoformat(dt)
+            self.assertEqual(expected_result, str(result), msg.format(
+                expected_result, dt, result))
 
     @unittest.skip("Temporarily skipped")
     def test_timetuple(self):
@@ -3134,13 +3157,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the _getstate method returns the correct state for pickling.
         """
         data = (
-            ((datetime.MINYEAR, 1, 1), (), None, 0,
-             (b'\x00\x00\x01\x01\x00\x00\x00\x00\x00\x00',)),
-
-
-            #((-5, 18, 1, 1, 1), (b'\x0e\x12\x01\x01\x01',)),
-            #((1, 1, 1), (b'\x073\x01\x01',)),
-            #((1, 1, 1, 1, 1), (b'\x14\x01\x01\x01\x01',)),
+            ((datetime.MINYEAR, 1, 1), (12, 30, 30, 500000), None, 0,
+             (b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ',)),
+            ((-5, 18, 1, 1, 1), (12, 30, 30, 500000), None, 0,
+             (b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ',)),
+            ((1, 1, 1), (), datetime.BADI, 0,
+             (b'\x073\x01\x01\x00\x00\x00\x00\x00\x00',
+              datetime.timezone.badi)),
+            ((1, 1, 1, 1, 1), (), datetime.BADI, 0,
+             (b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00',
+              datetime.timezone.badi)),
             )
         msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
                "found {}.")
@@ -3406,7 +3432,8 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         err_msg1 = "fromutc() argument must be a datetime instance or None"
         td = datetime.timedelta(hours=datetime.BADI_TZ[1])
         data = (
-            (td, 'Asia/Terhan', (181, 1, 1), False, "01-10-10-01-01T03:30:00"),
+            (td, 'Asia/Terhan', (181, 1, 1), False,
+             "01-10-10-01-01T03:30:00+03:30"),
             (td, 'Asia/Terhan', (181, 1, 1), True, err_msg0),
             (td, 'Asia/Terhan', None, True, err_msg1),
             )

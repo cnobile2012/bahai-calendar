@@ -799,18 +799,20 @@ class TimeDateUtils(BahaiCalendar):
         :return: The date and time.
         :rtype: tuple
         """
-        tc = dtstr.count('T')
-        sc = dtstr.count(' ')
-        idx = dtstr.index('T') if tc else dtstr.index(' ') if sc else len(dtstr)
+        tc = dtstr.find('T')
+        sc = dtstr.find(' ')
+        idx = tc if tc != -1 else sc if sc != -1 else len(dtstr)
         str_date = dtstr[:idx].strip('T ')
         str_time = dtstr[idx:]
         date = self._parse_isoformat_date(str_date) if str_date else ()
         time = self._parse_isoformat_time(str_time) if str_time else ()
-        return date + time
+        return date, time
 
     def _parse_isoformat_date(self, dtstr:str) -> tuple:
         """
         Parse a date ISO formatted string.
+
+        *** TODO *** Either assert error when a / is found or convert it to a -
 
         :param dtstr: A ISO compliant time string.
         :type dtstr: str
