@@ -812,8 +812,6 @@ class TimeDateUtils(BahaiCalendar):
         """
         Parse a date ISO formatted string.
 
-        *** TODO *** Either assert error when a / is found or convert it to a -
-
         :param dtstr: A ISO compliant time string.
         :type dtstr: str
         :return: The year, month, and day parsed from a ISO string.
@@ -825,6 +823,11 @@ class TimeDateUtils(BahaiCalendar):
                             an integer or when an invalid ISO string is being
                             parsed.
         """
+        for c in filter(lambda x: not x.isnumeric(), dtstr):
+            if c not in ('-', 'W'):
+                raise ValueError(
+                    f"Invalid character {c!r} in incoming date string.")
+
         if dtstr != '':
             neg = dtstr[0] == '-'
             year = int(dtstr[:4 + neg])
@@ -837,8 +840,8 @@ class TimeDateUtils(BahaiCalendar):
         wc = dtstr.count('W')
         assert (wc == 0 and dc in (0, 1, 2)) or (wc == 1 and dc in (0, 1, 2)), (
             "Invalid format, there must be between 0 to 2 hyphens (-) in the "
-            "date format or there can be one uppercase (W) week identifier and "
-            "between 0 and 2 hyphens (-) used.")
+            "date format or there can be one uppercase (W) week identifier "
+            "and between 0 and 2 hyphens (-) used.")
         d_len = len(dtstr)
 
         if dc == 1 and d_len == 7 and not wc:   # YYYY-MM
@@ -886,6 +889,11 @@ class TimeDateUtils(BahaiCalendar):
                             an integer or when an invalid ISO string is being
                             parsed.
         """
+        for c in filter(lambda x: not x.isnumeric(), dtstr):
+            if c not in ('T', ' ', ':', '.', 'Z'):
+                raise ValueError(
+                    f"Invalid character {c!r} in incoming time string.")
+
         t_len = len(dtstr)
         tmp_dtstr = dtstr
         tc = dtstr.count('T')

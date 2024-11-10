@@ -1379,16 +1379,15 @@ class time:
     __str__ = isoformat
 
     @classmethod
-    def fromisoformat(cls, time_string):
+    def fromisoformat(cls, t_str):
         """
         Construct a time from a string in one of the ISO 8601 formats.
         """
-        if isinstance(time_string, str):
+        if isinstance(t_str, str):
             try:
-                return cls(*_td_utils._parse_isoformat_time(time_string))
+                return cls(*_td_utils._parse_isoformat_time(t_str))
             except Exception as e:
-                raise ValueError(
-                    f'Invalid isoformat string: {time_string!r}, {e}')
+                raise ValueError(f'Invalid isoformat string: {t_str!r}, {e}')
 
         raise TypeError('fromisoformat: argument must be str')
 
@@ -1722,6 +1721,7 @@ class datetime(date):
     def fromisoformat(cls, date_string):
         """
         Construct a datetime from a string in one of the ISO 8601 formats.
+        This only works with short form dates.
         """
         date, time = _td_utils._parse_isoformat_date_time(date_string)
         t_len = len(time)

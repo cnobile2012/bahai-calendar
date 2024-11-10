@@ -703,13 +703,13 @@ class TestTimeDateUtils(unittest.TestCase):
         Test that the _parse_isoformat_date function parses the date
         correctly from ISO standard formats.
         """
-        err_msg_0 = "Year is out of range: {}, min {}, max {}."
-        err_msg_1 = ("Invalid format, there must be between 0 to 2 hyphens "
+        err_msg0 = "Invalid character {} in incoming date string."
+        err_msg1 = "Year is out of range: {}, min {}, max {}."
+        err_msg2 = ("Invalid format, there must be between 0 to 2 hyphens "
                      "(-) in the date format or there can be one uppercase "
                      "(W) week identifier and between 0 and 2 hyphens (-) "
                      "used.")
-        err_msg_2 = "invalid literal for int() with base 10: {}"
-        err_msg_3 = "Invalid ISO string {}."
+        err_msg3 = "Invalid ISO string {}."
         data = (
             ('', False, ()),
             ('0181-01', False, (181, 1, 1)),
@@ -736,14 +736,15 @@ class TestTimeDateUtils(unittest.TestCase):
             ('0182-347', False, (182, 0, 5)),
             ('0182-348', False, (182, 19, 1)),
             ('0182-366', False, (182, 19, 19)),
-            ('-1843-01', True, err_msg_0.format(-1843, _td_utils.MINYEAR,
-                                                _td_utils.MAXYEAR)),
-            ('1162-01', True, err_msg_0.format(1162, _td_utils.MINYEAR,
+            ('0001/01/01', True, err_msg0.format("'/'")),
+            ('015s', True, err_msg0.format("'s'")),
+            ('-1843-01', True, err_msg1.format(-1843, _td_utils.MINYEAR,
                                                _td_utils.MAXYEAR)),
-            ('0181-01-01-', True, err_msg_1),
-            ('0181-W10-1-', True, err_msg_1),
-            ('015s', True, err_msg_2.format("'015s'")),
-            ('0181-W101', True, err_msg_3.format('0181-W101')),
+            ('1162-01', True, err_msg1.format(1162, _td_utils.MINYEAR,
+                                              _td_utils.MAXYEAR)),
+            ('0181-01-01-', True, err_msg2),
+            ('0181-W10-1-', True, err_msg2),
+            ('0181-W101', True, err_msg3.format('0181-W101')),
             )
         msg = "Expected {} with ISO date {}, found {}."
 
@@ -768,13 +769,14 @@ class TestTimeDateUtils(unittest.TestCase):
         Test that the _parse_isoformat_time function parses the time
         correctly from ISO standard formats.
         """
-        err_msg0 = ("Cannot have both a 'T' and a space or more than one "
+        err_msg0 = "Invalid character {} in incoming time string."
+        err_msg1 = ("Cannot have both a 'T' and a space or more than one "
                      "of either to indicate time.")
-        err_msg1 = ("Invalid time string, 1st character must be one of ( T), "
+        err_msg2 = ("Invalid time string, 1st character must be one of ( T), "
                     "found {}")
-        err_msg2 = "Invalid number of colons (:), can be 0 - 2, found {}"
-        err_msg3 = "Invalid number of dots (.), can be 0 - 1, found {}"
-        err_msg4 = "Invalid time string, found {}"
+        err_msg3 = "Invalid number of colons (:), can be 0 - 2, found {}"
+        err_msg4 = "Invalid number of dots (.), can be 0 - 1, found {}"
+        err_msg5 = "Invalid time string, found {}"
         data = (
             ('', False, ()),
             ('T14', False, (14, 0, 0)),
@@ -788,13 +790,14 @@ class TestTimeDateUtils(unittest.TestCase):
             ('T14:12.45', False, (14, 12, 27)),
             ('T14:12:32', False, (14, 12, 32)),
             ('T14:12:32.029', False, (14, 12, 32.029)),
-            ('T ', True, err_msg0),
-            ('TT', True, err_msg0),
-            ('  ', True, err_msg0),
-            ('abc', True, err_msg1.format("'abc'")),
-            ('T:::', True, err_msg2.format(3)),
-            ('T..', True, err_msg3.format(2)),
-            ('T014.2', True, err_msg4.format("'T014.2'")),
+            ('S01:01:01', True, err_msg0.format("'S'")),
+            ('T ', True, err_msg1),
+            ('TT', True, err_msg1),
+            ('  ', True, err_msg1),
+            ('01:01:01', True, err_msg2.format("'01:01:01'")),
+            ('T:::', True, err_msg3.format(3)),
+            ('T..', True, err_msg4.format(2)),
+            ('T014.2', True, err_msg5.format("'T014.2'")),
             )
         msg = "Expected {} with ISO time {}, found {}."
 

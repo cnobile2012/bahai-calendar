@@ -2379,16 +2379,18 @@ class TestBadiDatetime_time(unittest.TestCase):
         Test that the fromisoformat classmethod returns a correctly
         formatted ISO time string.
         """
-        err_msg0 = ("Invalid isoformat string: {}, Cannot have both a 'T' "
+        err_msg0 = ("Invalid isoformat string: {}, Invalid character {} in "
+                    "incoming time string.")
+        err_msg1 = ("Invalid isoformat string: {}, Cannot have both a 'T' "
                     "and a space or more than one of either to indicate time.")
-        err_msg1 = ("Invalid isoformat string: {}, Invalid time string, 1st "
+        err_msg2 = ("Invalid isoformat string: {}, Invalid time string, 1st "
                     "character must be one of ( T), found {}")
-        err_msg2 = ("Invalid isoformat string: {}, Invalid number of colons "
+        err_msg3 = ("Invalid isoformat string: {}, Invalid number of colons "
                     "(:), can be 0 - 2, found {}")
-        err_msg3 = ("Invalid isoformat string: {}, Invalid number of dots "
+        err_msg4 = ("Invalid isoformat string: {}, Invalid number of dots "
                     "(.), can be 0 - 1, found {}")
-        err_msg4 = "Invalid isoformat string: {}, Invalid time string, found {}"
-        err_msg5 = "fromisoformat: argument must be str"
+        err_msg5 = "Invalid isoformat string: {}, Invalid time string, found {}"
+        err_msg6 = "fromisoformat: argument must be str"
         data = (
             ('T12', False, '12:00:00'),
             ('T12.5', False, '12:30:00'),
@@ -2405,12 +2407,13 @@ class TestBadiDatetime_time(unittest.TestCase):
             ('T123030', False, '12:30:30'),
             ('T123030.5', False, '12:30:30.5'),
             # Error conditions
-            (' T', True, err_msg0.format("' T'")),
-            ('abcdefg', True, err_msg1.format("'abcdefg'", "'abcdefg'")),
-            ('T:::', True, err_msg2.format("'T:::'", 3)),
-            ('T..', True, err_msg3.format("'T..'", 2)),
-            ('T014.2', True, err_msg4.format("'T014.2'", "'T014.2'")),
-            (10, True, err_msg5),
+            ('abcdefg', True, err_msg0.format("'abcdefg'", "'a'")),
+            (' T', True, err_msg1.format("' T'")),
+            ('1230.5', True, err_msg2.format("'1230.5'", "'1230.5'")),
+            ('T:::', True, err_msg3.format("'T:::'", 3)),
+            ('T..', True, err_msg4.format("'T..'", 2)),
+            ('T014.2', True, err_msg5.format("'T014.2'", "'T014.2'")),
+            (10, True, err_msg6),
             )
         msg = "Expected {} with format {}, found {}."
 
@@ -2940,6 +2943,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         data =(
             ('0181-01-01T12:30:30.500000', '0181-01-01T12:30:30.5'),
+            #('01-01-01-01-01', ''),
+
             )
         msg = "Expected {} with date and time {}, "
 
