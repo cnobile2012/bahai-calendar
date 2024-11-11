@@ -787,28 +787,26 @@ class TimeDateUtils(BahaiCalendar):
 
         return week1jalal
 
-    def _parse_isoformat_date_time(self, dtstr:str) -> tuple:
+    def _parse_isoformat_date_time_timezone(self, dtstr:str) -> tuple:
         """
         Parse both the date and time represented in an ISO string into a
         date and time tuple.
 
         :param dtstr: A ISO compliant time string.
         :type dtstr: str
-        :return: The year, month, and day parsed from a ISO string.
-        :rtype: tuple
-        :return: The date and time.
-        :rtype: tuple
+        :return: The date, time, and timezone.
+        :rtype: tuple, tuple, timezone
         """
         def find_index(string, lst):
-            indexes = [i for c in lst if (i := string.find(c)) > -1]
+            indexes = [i for c in lst if (i := string.rfind(c)) > -1]
             return indexes[0] if len(indexes) > 0 else len(string)
 
-        init_chars = ('T', ' ', 'Z', 'B')
+        tz_chars = ('Z', 'B', '+', '-')
+        init_chars = ('T', ' ') + tz_chars
         idx = find_index(dtstr, init_chars)
         str_date = dtstr[:idx]
         date = self._parse_isoformat_date(str_date) if str_date else ()
         str_other = dtstr[idx:]
-        tz_chars = ('-', '+', 'Z', 'B')
         tz_1st = str_other[0] in tz_chars
 
         if tz_1st:
@@ -816,10 +814,9 @@ class TimeDateUtils(BahaiCalendar):
                   if str_other else None)
             time = ()
         else:
-            str_time = str_other
-            idx = find_index(str_time, tz_chars)
-            str_time = str_time[:idx]
-            str_tz = str_time[idx:]
+            idx = find_index(str_other, tz_chars)
+            str_time = str_other[:idx]
+            str_tz = str_other[idx:]
             time = self._parse_isoformat_time(str_time) if str_time else ()
             tz = self._parse_isoformat_timezone(str_tz) if str_tz else None
 

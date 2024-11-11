@@ -2935,7 +2935,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, time, tz, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_fromisoformat(self):
         """
         Test that the fromisoformat classmethod creates an instance

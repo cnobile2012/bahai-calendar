@@ -598,8 +598,8 @@ class TestTimeDateUtils(unittest.TestCase):
 
         for date, expected_result in data:
             result = _td_utils._ymd2ord(*date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, result))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__ord2ymd(self):
@@ -654,8 +654,8 @@ class TestTimeDateUtils(unittest.TestCase):
                 self.assertEqual(expected_result, message)
             else:
                 result = _td_utils._isoweek_to_badi(*item, short=short)
-                self.assertEqual(expected_result, result,
-                             msg.format(expected_result, item, result))
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, item, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__isoweek1jalal(self):
@@ -673,13 +673,13 @@ class TestTimeDateUtils(unittest.TestCase):
 
         for year, expected_result in data:
             result = _td_utils._isoweek1jalal(year)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, year, result))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, year, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__parse_isoformat_date_time(self):
+    def test__parse_isoformat_date_time_timezone(self):
         """
-        Test that the _parse_isoformat_date_time function returns a
+        Test that the _parse_isoformat_date_time_timezone function returns a
         parsed date and time ISO string.
         """
         data = (
@@ -690,17 +690,21 @@ class TestTimeDateUtils(unittest.TestCase):
             ('0181-W20T12:00:00', (181, 8, 4, 12, 0, 0), 'None'),
             ('0181-W20-5T12:00:00', (181, 8, 8, 12, 0, 0), 'None'),
             ('0001-01-01B', (1, 1, 1), 'UTC+03:30'),
-            # *** TODO *** Do More
-
+            ('0001-01-01T00:00:00.0+03:30', (1, 1, 1, 0, 0, 0), 'UTC+03:30'),
+            ('-0126-16-02T07:58:31.4976Z', (-126, 16, 2, 7, 58, 31.4976),
+             'UTC'),
+            ('0181-13-09+02', (181, 13, 9), 'UTC+02:00'),
+            ('0181-13-09-05', (181, 13, 9), 'UTC-05:00'),
             )
         msg = "Expected {} with dtstr {}, found {}."
 
         for dtstr, expected_result0, expected_result1 in data:
-            date, time, timezone = _td_utils._parse_isoformat_date_time(dtstr)
+            date, time, tz = _td_utils._parse_isoformat_date_time_timezone(
+                dtstr)
             self.assertEqual(expected_result0, date + time, msg.format(
                 expected_result0, dtstr, date + time))
-            self.assertEqual(expected_result1, str(timezone), msg.format(
-                expected_result1, dtstr, timezone))
+            self.assertEqual(expected_result1, str(tz), msg.format(
+                expected_result1, dtstr, tz))
 
     #@unittest.skip("Temporarily skipped")
     def test__parse_isoformat_date(self):

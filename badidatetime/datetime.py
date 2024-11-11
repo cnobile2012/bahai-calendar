@@ -1724,7 +1724,8 @@ class datetime(date):
         Construct a datetime from a string in one of the ISO 8601 formats.
         This only works with short form dates.
         """
-        date, time, tz = _td_utils._parse_isoformat_date_time(date_string)
+        date, time, tz = _td_utils._parse_isoformat_date_time_timezone(
+            date_string)
         t_len = len(time)
         time = list(time)
         time += [0 for v in range(4 - t_len)]
