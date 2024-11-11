@@ -799,14 +799,31 @@ class TimeDateUtils(BahaiCalendar):
         :return: The date and time.
         :rtype: tuple
         """
-        tc = dtstr.find('T')
-        sc = dtstr.find(' ')
-        idx = tc if tc != -1 else sc if sc != -1 else len(dtstr)
-        str_date = dtstr[:idx].strip('T ')
-        str_time = dtstr[idx:]
+        def find_index(string, lst):
+            indexes = [i for c in lst if (i := string.find(c)) > -1]
+            return indexes[0] if len(indexes) > 0 else len(string)
+
+        init_chars = ('T', ' ', 'Z', 'B')
+        idx = find_index(dtstr, init_chars)
+        str_date = dtstr[:idx]
         date = self._parse_isoformat_date(str_date) if str_date else ()
-        time = self._parse_isoformat_time(str_time) if str_time else ()
-        return date, time
+        str_other = dtstr[idx:]
+        tz_chars = ('-', '+', 'Z', 'B')
+        tz_1st = str_other[0] in tz_chars
+
+        if tz_1st:
+            tz = (self._parse_isoformat_timezone(str_other)
+                  if str_other else None)
+            time = ()
+        else:
+            str_time = str_other
+            idx = find_index(str_time, tz_chars)
+            str_time = str_time[:idx]
+            str_tz = str_time[idx:]
+            time = self._parse_isoformat_time(str_time) if str_time else ()
+            tz = self._parse_isoformat_timezone(str_tz) if str_tz else None
+
+        return date, time, tz
 
     def _parse_isoformat_date(self, dtstr:str) -> tuple:
         """
@@ -874,12 +891,12 @@ class TimeDateUtils(BahaiCalendar):
 
         return date
 
-    def _parse_isoformat_time(self, dtstr:str) -> tuple:
+    def _parse_isoformat_time(self, tmstr:str) -> tuple:
         """
         Parse a time ISO formatted string.
 
-        :param dtstr: A ISO compliant time string.
-        :type dtstr: str
+        :param tmstr: A ISO compliant time string.
+        :type tmstr: str
         :return: The hour, minute, and second parsed from an ISO string.
         :rtype: tuple
         :raises AssertionError: Raised when there are invalid time designators,
@@ -889,76 +906,132 @@ class TimeDateUtils(BahaiCalendar):
                             an integer or when an invalid ISO string is being
                             parsed.
         """
-        for c in filter(lambda x: not x.isnumeric(), dtstr):
-            if c not in ('T', ' ', ':', '.', 'Z'):
+        for c in filter(lambda x: not x.isnumeric(), tmstr):
+            if c not in ('T', ' ', ':', '.'):
                 raise ValueError(
                     f"Invalid character {c!r} in incoming time string.")
 
-        t_len = len(dtstr)
-        tmp_dtstr = dtstr
-        tc = dtstr.count('T')
-        sc = dtstr.count(' ')
+        t_len = len(tmstr)
+        tmp_tmstr = tmstr
+        tc = tmstr.count('T')
+        sc = tmstr.count(' ')
         assert ((tc == 0 and sc == 0) or
                 (tc == 1 or sc == 1) and (tc or sc) and not (tc and sc)), (
             "Cannot have both a 'T' and a space or more than one of either to "
             "indicate time.")
 
         if sc:
-            dtstr = "T" + dtstr[1:]
+            tmstr = "T" + tmstr[1:]
             del sc
             tc = 1
 
-        if t_len > 0 and 'T' != dtstr[0]:
+        if t_len > 0 and 'T' != tmstr[0]:
             raise ValueError("Invalid time string, 1st character must be "
-                             f"one of ( T), found {tmp_dtstr!r}")
+                             f"one of ( T), found {tmp_tmstr!r}")
 
-        del tmp_dtstr
-        cc = dtstr.count(':')
+        del tmp_tmstr
+        cc = tmstr.count(':')
         assert cc < 3, f"Invalid number of colons (:), can be 0 - 2, found {cc}"
-        pc = dtstr.count('.')
+        pc = tmstr.count('.')
         assert pc <= 1, f"Invalid number of dots (.), can be 0 - 1, found {pc}"
 
         if t_len > 2:
-            hour = int(dtstr[1:3])
+            hour = int(tmstr[1:3])
             pos0 = 1 if cc else 0
             pos1 = 2 if cc == 2 else 0
 
             if t_len > 3:
-                if dtstr[3] == '.': # Thh.hhh
-                    ph = float(dtstr[3:]) * 60
+                if tmstr[3] == '.': # Thh.hhh
+                    ph = float(tmstr[3:]) * 60
                     minute = math.floor(ph)
                     second = (ph % 1) * 60
                     second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
-                elif dtstr[5 + pos0:6 + pos0] == '.':
+                elif tmstr[5 + pos0:6 + pos0] == '.':
                     # Thhmm.mmm or Thh:mm.mmm
-                    minute = int(dtstr[3 + pos0:5 + pos0])
-                    pm = float(dtstr[5 + pos0:])
+                    minute = int(tmstr[3 + pos0:5 + pos0])
+                    pm = float(tmstr[5 + pos0:])
                     second = pm * 60
                     second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
-                elif dtstr[7 + pos0:8 + pos0] == '.':
+                elif tmstr[7 + pos0:8 + pos0] == '.':
                     # Thhmmss.sss or Thh:mm:ss.sss
-                    minute = int(dtstr[3 + pos0:5 + pos0])
-                    second = float(dtstr[5 + pos0:])
+                    minute = int(tmstr[3 + pos0:5 + pos0])
+                    second = float(tmstr[5 + pos0:])
                     second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
                 elif t_len == 5 + pos0: # Thhmm or Thh:mm
-                    minute = int(dtstr[3 + pos0:5 + pos0])
+                    minute = int(tmstr[3 + pos0:5 + pos0])
                     time = (hour, minute, 0)
                 elif t_len >= 7 + pos1: # Thhmmss.sss or Thh:mm:ss.sss
-                    minute = int(dtstr[3 + pos0:5 + pos0])
-                    second = float(dtstr[5 + pos1:])
+                    minute = int(tmstr[3 + pos0:5 + pos0])
+                    second = float(tmstr[5 + pos1:])
                     second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
                 else:
-                    raise ValueError(f"Invalid time string, found {dtstr!r}")
+                    raise ValueError(f"Invalid time string, found {tmstr!r}")
             else: # Thh
                 time = (hour, 0, 0)
         else:
             time = ()
 
         return time
+
+    def _parse_isoformat_timezone(self, tzstr:str) -> tuple:
+        """
+        Parse a timezone ISO formatted string.
+
+        :param tzstr: A ISO compliant time string.
+        :type tzstr: str
+        :return: A timezone object indicating the offset from UTC.
+        :rtype: timezone
+        :raises AssertionError: Raised when there are invalid timezone
+                                delimitors are found.
+        :raises ValueError: Raised when an invalid ISO string is being parsed.
+        """
+        from .datetime import timezone, timedelta
+
+        for c in filter(lambda x: not x.isnumeric(), tzstr):
+            if c not in ('Z', 'B', '+', '-', ':'):
+                raise ValueError(
+                    f"Invalid character {c!r} in incoming timezone string.")
+
+        tz_len = len(tzstr)
+        tmp_tzstr = tzstr
+        nc = tzstr.count('-')
+        pc = tzstr.count('+')
+        zc = tzstr.count('Z')
+        bc = tzstr.count('B') # This is an extention to the ISO standard
+        c_none = all([True for c in (nc, pc, zc, bc) if c == 0]) # All eq 0
+        ct_gt_1 = sum((nc, pc, zc, bc)) > 1 # More than one eq 1
+        ca_gt_1 = any([True for c in (nc, pc, zc, bc) if c > 1]) # Any gt than 1
+        assert c_none and not ct_gt_1 and not ca_gt_1, (
+            "Can only have one of (-+Z) and no more than one of (-+Z) to "
+            "indicate a timezone.")
+
+        if tz_len > 0 and ('-' != tzstr[0] and '+' != tzstr[0] and
+                           'Z' != tzstr[0]) and 'B' != tzstr[0]:
+            raise ValueError("Invalid timezone string, 1st character must be "
+                             f"one of (-+Z), found {tmp_tzstr!r}")
+
+        del tmp_tzstr
+        cc = tzstr.count(':')
+        assert cc < 2, f"Invalid number of colons (:), can be 0 - 1, found {cc}"
+
+        if tz_len > 0:
+            if zc == 1 and tz_len == 1:
+                tz = timezone.utc
+            elif bc == 1 and tz_len == 1:
+                tz = timezone.badi
+            else:
+                offset = [int(x) for x in tzstr[1:].split(':')]
+                offset[0] = offset[0] * -1 if nc else offset[0]
+                offset += [0] if len(offset) == 1 else []
+                tz = timezone(timedelta(hours=offset[0], minutes=offset[1]))
+        else:
+            tz = None
+
+        return tz
 
     def _check_date_fields(self, a:int, b:int, c:int, d:int=None,
                            e:int=None, *, short_in:bool=False) -> None:

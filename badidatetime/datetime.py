@@ -1605,7 +1605,8 @@ class datetime(date):
     def fold(self):
         return self._fold
 
-    def _split_date_time(self, date_time, short):
+    @classmethod
+    def _split_date_time(cls, date_time, short):
         date = date_time[:3] if short else date_time[:5]
         time = date_time[3:] if short else date_time[5:]
         return date, time[0], time[1], time[2], time[3]
@@ -1629,7 +1630,7 @@ class datetime(date):
 
         t += offset_sec
         date_time = bc.posix_timestamp(t, ms=True, short=short, trim=False)
-        date, hh, mm, ss, us = self._split_date_time(date_time, short)
+        date, hh, mm, ss, us = cls._split_date_time(date_time, short)
         # clamp out leap seconds if the platform has them
         ss = min(ss, 59)
         result = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
@@ -1648,7 +1649,7 @@ class datetime(date):
             if t > max_fold_seconds and not sys.platform.startswith("win"):
                 date_time = bc.posix_timestamp(t - max_fold_seconds, ms=True,
                                                short=short, trim=False)
-                date, hh, mm, ss, um = self._split_date_time(date_time, short)
+                date, hh, mm, ss, um = cls._split_date_time(date_time, short)
                 probe1 = cls(*date, hour=hh, minute=mm, second=ss,
                              microsecond=us, tzinfo=tz)
                 trans = result - probe1 - timedelta(0, max_fold_seconds)
@@ -1723,12 +1724,13 @@ class datetime(date):
         Construct a datetime from a string in one of the ISO 8601 formats.
         This only works with short form dates.
         """
-        date, time = _td_utils._parse_isoformat_date_time(date_string)
+        date, time, tz = _td_utils._parse_isoformat_date_time(date_string)
         t_len = len(time)
         time = list(time)
         time += [0 for v in range(4 - t_len)]
         hh, mm, ss, us = time
-        return cls(*date, hour=hh, minute=mm, second=ss, microsecond=us)
+        return cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
+                   tzinfo=tz)
 
     def timetuple(self):
         "Return local time tuple compatible with time.localtime()."

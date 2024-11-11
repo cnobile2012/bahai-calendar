@@ -683,19 +683,24 @@ class TestTimeDateUtils(unittest.TestCase):
         parsed date and time ISO string.
         """
         data = (
-            ('-18420101T120000', (-1842, 1, 1, 12, 0, 0)),
-            ('-1842-01-01T12:00:00', (-1842, 1, 1, 12, 0, 0)),
-            ('11610101T120000', (1161, 1, 1, 12, 0, 0)),
-            ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0)),
-            ('0181-W20T12:00:00', (181, 8, 4, 12, 0, 0)),
-            ('0181-W20-5T12:00:00', (181, 8, 8, 12, 0, 0)),
+            ('-18420101T120000', (-1842, 1, 1, 12, 0, 0), 'None'),
+            ('-1842-01-01T12:00:00', (-1842, 1, 1, 12, 0, 0), 'None'),
+            ('11610101T120000', (1161, 1, 1, 12, 0, 0), 'None'),
+            ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0), 'None'),
+            ('0181-W20T12:00:00', (181, 8, 4, 12, 0, 0), 'None'),
+            ('0181-W20-5T12:00:00', (181, 8, 8, 12, 0, 0), 'None'),
+            ('0001-01-01B', (1, 1, 1), 'UTC+03:30'),
+            # *** TODO *** Do More
+
             )
         msg = "Expected {} with dtstr {}, found {}."
 
-        for dtstr, expected_result in data:
-            date, time = _td_utils._parse_isoformat_date_time(dtstr)
-            self.assertEqual(expected_result, date + time, msg.format(
-                expected_result, dtstr, date + time))
+        for dtstr, expected_result0, expected_result1 in data:
+            date, time, timezone = _td_utils._parse_isoformat_date_time(dtstr)
+            self.assertEqual(expected_result0, date + time, msg.format(
+                expected_result0, dtstr, date + time))
+            self.assertEqual(expected_result1, str(timezone), msg.format(
+                expected_result1, dtstr, timezone))
 
     #@unittest.skip("Temporarily skipped")
     def test__parse_isoformat_date(self):
@@ -760,8 +765,8 @@ class TestTimeDateUtils(unittest.TestCase):
                                          f"raised, with result {result}.")
             else:
                 result = _td_utils._parse_isoformat_date(date)
-                self.assertEqual(expected_result, result,
-                                 msg.format(expected_result, date, result))
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__parse_isoformat_time(self):
@@ -813,8 +818,48 @@ class TestTimeDateUtils(unittest.TestCase):
                                          f"raised, with result {result}.")
             else:
                 result = _td_utils._parse_isoformat_time(time)
-                self.assertEqual(expected_result, result,
-                                 msg.format(expected_result, time, result))
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, time, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__parse_isoformat_timezone(self):
+        """
+        Test that the _parse_isoformat_timezone
+        """
+        err_msg0 = "Invalid character {} in incoming timezone string."
+        err_msg1 = ("Can only have one of (-+Z) and no more than one of (-+Z) "
+                    "to indicate a timezone.")
+        err_msg2 = ("Invalid timezone string, 1st character must be one of "
+                    "(-+Z), found {}")
+        err_msg3 = "Invalid number of colons (:), can be 0 - 1, found {}"
+        data = (
+            ('', False, 'None'),
+            ('Z', False, 'UTC'),
+            ('B', False, 'UTC+03:30'),
+            ('+05', False, 'UTC+05:00'),
+            ('-05', False, 'UTC-05:00'),
+            ('A', True, err_msg0.format("'A'")),
+            ('-+0', True, err_msg1),
+            ('--0', True, err_msg1),
+            ('03:30', True, err_msg2.format("'03:30'")),
+            ('-05:30:30', True, err_msg3.format(2)),
+            )
+        msg = "Expected {} with ISO timezone {}, found {}."
+
+        for timezone, validity, expected_result in data:
+            if validity:
+                try:
+                    result = _td_utils._parse_isoformat_timezone(timezone)
+                except (AssertionError, ValueError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {timezone} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = _td_utils._parse_isoformat_timezone(timezone)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, timezone, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__check_date_fields(self):
