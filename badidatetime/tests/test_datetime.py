@@ -2945,7 +2945,9 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ('0181-01-01T12:30:30.500000', '0181-01-01T12:30:30.5'),
             ('0001-01-01T00:00:00.0+03:30', '0001-01-01T00:00:00+03:30'),
             ('-1842-01-01T00:00:00+03:30', '-1842-01-01T00:00:00+03:30'),
-            ('1161-19-19T+03:30', '1161-19-19T00:00:00+03:30')
+            ('1161-19-19T+03:30', '1161-19-19T00:00:00+03:30'),
+            ('0181-13-09B', '0181-13-09T00:00:00+03:30'),
+            ('0181-13-09Z', '0181-13-09T00:00:00+00:00'),
             )
         msg = "Expected {} with date and time {}, "
 
@@ -2954,12 +2956,26 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                 expected_result, dt, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_timetuple(self):
         """
-        Test that the timetuple method 
+        Test that the timetuple method returns either a short or long form
+        timetuple.
         """
-        pass
+        data = (
+            ((181, 13, 9), (12, 30, 30), None, 0,
+             'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
+             'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=2, tm_yday=237, '
+             'tm_isdst=-1)'),
+            #((1, 10, 10, 13, 9), (12, 30, 30), None, 0, ''),
+            )
+        msg = "Expected {} with date {}, time {}, and timezone {}, found {}."
+
+        for date, time, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date)
+            result = dt.timetuple()
+            self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, date, time, tz, result))
 
     @unittest.skip("Temporarily skipped")
     def test__mktime(self):

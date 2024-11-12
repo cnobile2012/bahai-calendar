@@ -19,8 +19,8 @@ from ._structures import struct_time
 from ._timedateutils import _td_utils
 from typing import NamedTuple
 
-MINYEAR = _td_utils.MINYEAR
-MAXYEAR = _td_utils.MAXYEAR
+MINYEAR = BahaiCalendar.MINYEAR
+MAXYEAR = BahaiCalendar.MAXYEAR
 _MAXORDINAL = 1097267 # date.max.toordinal()
 BADI_TZ = ('Asia/Terhan', BahaiCalendar.BAHAI_LOCATION[2])
 
@@ -1690,7 +1690,9 @@ class datetime(date):
 
     @classmethod
     def utcnow(cls):
-        "Construct a UTC datetime from time.time()."
+        """
+        Construct a UTC datetime from time.time().
+        """
         t = _time.time()
         return cls.utcfromtimestamp(t)
 
@@ -1734,7 +1736,9 @@ class datetime(date):
                    tzinfo=tz)
 
     def timetuple(self):
-        "Return local time tuple compatible with time.localtime()."
+        """
+        Return local time tuple compatible with time.localtime().
+        """
         dst = self.dst()
 
         if dst is None:
@@ -1744,11 +1748,14 @@ class datetime(date):
         else:
             dst = 0
 
-        return _build_struct_time(self.year, self.month, self.day,
-                                  self.hour, self.minute, self.second, dst)
+        return _td_utils._build_struct_time(
+            (self.year, self.month, self.day, self.hour, self.minute,
+            self.second), dst, short_in=self._short)
 
     def _mktime(self):
-        """Return integer POSIX timestamp."""
+        """
+        Return integer POSIX timestamp.
+        """
         epoch = datetime(1970, 1, 1)
         max_fold_seconds = 24 * 3600
         t = (self - epoch) // timedelta(0, 1)
@@ -1803,7 +1810,7 @@ class datetime(date):
 
         y, m, d = self.year, self.month, self.day
         hh, mm, ss = self.hour, self.minute, self.second
-        return _build_struct_time(y, m, d, hh, mm, ss, 0)
+        return _td_utils._build_struct_time(y, m, d, hh, mm, ss, 0)
 
     def date(self):
         "Return the date part."

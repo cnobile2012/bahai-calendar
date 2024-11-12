@@ -28,8 +28,6 @@ class TimeDateUtils(BahaiCalendar):
                       'Sha', 'Sul', 'Mul', 'Ayy', 'Alá')
     # This keeps the Badi day count in par with the Gregorian day count.
     DAYS_BEFORE_1ST_YEAR = 78 # This keeps us insync with Gregorian dates.
-    MINYEAR = -1842
-    MAXYEAR = 1161
 
     def __init__(self):
         """
@@ -604,7 +602,7 @@ class TimeDateUtils(BahaiCalendar):
         :return: The number of days since (-1841, 19, 19) of the Badi calendar.
         :rtype: int
         """
-        jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19))
+        jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False)
         jd1 = self.jd_from_badi_date((year, 1, 1), _chk_on=False)
         return math.floor(jd1 - jd0) - 1
 
@@ -709,9 +707,10 @@ class TimeDateUtils(BahaiCalendar):
         """
         # We subtract 78 days from the total so that the Badi date will
         # be the same as the date value passed into _ymd2ord.
-        jd = (self.jd_from_badi_date((self.MINYEAR-1, 19, 19)) -
+        jd = (self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False) -
               self.DAYS_BEFORE_1ST_YEAR + n)
-        return self.badi_date_from_jd(jd, short=short, trim=True, rtd=True)
+        return self.badi_date_from_jd(jd, short=short, trim=True, rtd=True,
+                                      _chk_on=False)
 
     def _build_struct_time(self, date:tuple, dstflag:int, *,
                            short_in=False) -> NamedTuple:
