@@ -14,6 +14,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
 from badidatetime import BahaiCalendar, GregorianCalendar, datetime
+from badidatetime._timedateutils import _td_utils
 
 
 class DateTests(BahaiCalendar):
@@ -1230,8 +1231,8 @@ class DateTests(BahaiCalendar):
             data.append(((k, v, y, m, d), (year, m, d)))
 
     def _day_of_week(self, year, month, day):
-        weekday = (datetime._ymd2ord(self, year, month, day) % 7 + 7) % 7
-        wd_name = datetime.DAYNAMES[weekday]
+        weekday = (_td_utils._ymd2ord(year, month, day) % 7 + 7) % 7
+        wd_name = _td_utils.DAYNAMES[weekday]
         m_name = self._MONTHNAMES[month]
         return weekday, wd_name, m_name
 
@@ -1253,7 +1254,7 @@ if __name__ == "__main__":
         help="Find the longest and shortest day.")
     parser.add_argument(
         '-e', '--leap-years', action='store_true', default=False,
-        dest='leap_years', help="Convert Badi to Gregorian dates.")
+        dest='leap_years', help="Find leap years between -1842 and 1161.")
     parser.add_argument(
         '-g', '--g-dates', action='store_true', default=False, dest='g_dates',
         help="Convert Badi to Gregorian dates.")
@@ -1403,14 +1404,19 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            print("Badi           Gregorian             Week Day      Month"
+                  "      Leap  Days Day in")
+            print("Date           Date                  Day  Name     Name "
+                  "      Year  Year Year")
+            print('-'*79)
             [print(f"{str(date):<14} "
                    f"{str(g_date):<21} "
-                   f"{weekday} "
+                   f"{weekday}    "
                    f"{wd_name:<8} "
                    f"{m_name:<10} "
                    f"{str(leap):5s} "
-                   f"{days:<3} "
-                   f"{total:>3}"
+                   f"{days:<3}  "
+                   f"{total:>03}"
                    ) for (date, g_date, weekday, wd_name, m_name,
                           leap, days, total) in dt.find_leap_years(options)]
     elif options.list: # -l
