@@ -19,6 +19,11 @@ sys.path.append(BASE_DIR)
 
 class YearStart:
     """
+    This script parses a test file and creates a CSV file that can be
+    imported into a spreadsheet program.
+
+    This data shows the differences between the Badi Calendar created
+    by Jan R. Greis and my code.
     """
     TXT_FILE = os.path.join(PWD, 'YearStart.txt')
     CSV_FILE = os.path.join(PWD, 'YearStart.csv')
@@ -28,9 +33,6 @@ class YearStart:
                            r' +(\d{3}) +(\d{3}) +(\d)')
     C_RE_WHO = re.compile(r'(\w+) +(\w+)')
     C_RE_DAT1 = re.compile(r'(\w+) +(\w+) +([\w/]+)(?: +(\w+)? +([\w/]+)?)?')
-
-    #def __init__(self):
-    #    self._csv : str
 
     def start(self):
         data = []
@@ -55,11 +57,8 @@ class YearStart:
         with open(self.CSV_FILE, 'w') as csv_file:
             csv_file.write(csv)
 
-        #pprint.pprint(csv)
-
 
 if __name__ == "__main__":
     ys = YearStart()
     ys.start()
-
     sys.exit(0)
