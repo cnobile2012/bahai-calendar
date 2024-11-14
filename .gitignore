@@ -21,6 +21,7 @@ package
 .~lock.*
 junk*
 poop*
+!contrib/charts/*.txt
 contrib/thirdparty/
 
 # C extensions
