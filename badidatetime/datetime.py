@@ -1749,8 +1749,8 @@ class datetime(date):
             dst = 0
 
         return _td_utils._build_struct_time(
-            (self.year, self.month, self.day, self.hour, self.minute,
-            self.second), dst, short_in=self._short)
+            self._date + (self.hour, self.minute, self.second),
+            dst, short_in=self._short)
 
     def _mktime(self):
         """
@@ -1775,6 +1775,7 @@ class datetime(date):
             # later one (if `fold` is 1).
             u2 = u1 + (-max_fold_seconds, max_fold_seconds)[self.fold]
             b = local(u2) - u2
+
             if a == b:
                 return u1
         else:
@@ -1789,6 +1790,7 @@ class datetime(date):
 
         if t1 == t:
             return u1
+
         # We have found both offsets a and b, but neither t - a nor t - b is
         # a solution.  This means t is in the gap.
         return (max, min)[self.fold](u1, u2)

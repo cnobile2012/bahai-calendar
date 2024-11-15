@@ -1262,12 +1262,12 @@ class TestBaseCalendar(unittest.TestCase):
             (1.75757575, True, (18, 10, 54, 544800)),
             (0.90005, True, (21, 36, 4, 320000)),
             )
-        msg = "Expected {} with decimal {} and ms {}, found {}."
+        msg = "Expected {} with decimal {} and us {}, found {}."
 
-        for dec, ms, expected_result in data:
-            result = self.bc.hms_from_decimal_day(dec, ms=ms)
+        for dec, us, expected_result in data:
+            result = self.bc.hms_from_decimal_day(dec, us=us)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, dec, ms, result))
+                             msg.format(expected_result, dec, us, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_decimal_day_from_hms(self):

@@ -385,10 +385,10 @@ class TestBadiCalendar(unittest.TestCase):
             )
         msg = "Expected {} for jd {} for lat {}, lon {}, and zone {}, found {}"
 
-        for (jd, lat, lon, zone, ms, short, trim,
+        for (jd, lat, lon, zone, us, short, trim,
              fraction, expected_result) in data:
             result = self._bc.badi_date_from_jd(
-                jd, lat, lon, zone, ms=ms, short=short, trim=trim,
+                jd, lat, lon, zone, us=us, short=short, trim=trim,
                 fraction=fraction)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, jd, lat, lon, zone, result))
@@ -397,7 +397,7 @@ class TestBadiCalendar(unittest.TestCase):
     def test_short_date_from_long_date(self):
         """
         Test that the short_date_from_long_date method returns the correct
-        (year, month, day, hour, minute, seconds, ms) date.
+        (year, month, day, hour, minute, seconds, us) date.
         """
         data = (
             # 1844-03-20T00:00:00
@@ -521,14 +521,14 @@ class TestBadiCalendar(unittest.TestCase):
             ((1, 10, 10, 9, 8, 19, 1, 3.5328, 0), True, True, False,
              (181, 9, 8, 19, 1, 3, 532800)),
             )
-        msg = ("Expected {} for date {} with ms {}, short {}, and "
+        msg = ("Expected {} for date {} with us {}, short {}, and "
                "trim {}, found {}")
 
-        for date, ms, short, trim, expected_result in data:
+        for date, us, short, trim, expected_result in data:
             result = self._bc.kvymdhms_from_b_date(
-                date, ms=ms, short=short, trim=trim)
+                date, us=us, short=short, trim=trim)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, ms, short, trim, result))
+                expected_result, date, us, short, trim, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_badi_date_from_gregorian_date(self):
@@ -627,8 +627,8 @@ class TestBadiCalendar(unittest.TestCase):
             )
         msg = "Expected {} for timestamp {}, found {}"
 
-        for t, lat, lon, zone, ms, short, trim, expected_result in data:
-            result = self._bc.posix_timestamp(t, lat, lon, zone, ms=ms,
+        for t, lat, lon, zone, us, short, trim, expected_result in data:
+            result = self._bc.posix_timestamp(t, lat, lon, zone, us=us,
                                               short=short, trim=trim)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, t, result))
@@ -781,7 +781,7 @@ class TestBadiCalendar(unittest.TestCase):
                     self.assertEqual(err_msg, message)
             elif short_in: # Test for valid short dates
                 year, month, day = b_date[:3]
-                hour, minute, second, ms = self._bc._get_hms(
+                hour, minute, second, us = self._bc._get_hms(
                     b_date, short_in=short_in)
                 cycle = 4 + self._bc._is_leap_year(year) if month == 0 else 19
 
@@ -790,7 +790,7 @@ class TestBadiCalendar(unittest.TestCase):
                     self._bc._check_valid_badi_date(date, short_in=short_in)
             else: # Test for valid long dates
                 kull_i_shay, vahid, year, month, day = b_date[:5]
-                hour, minute, second, ms = self._bc._get_hms(b_date)
+                hour, minute, second, us = self._bc._get_hms(b_date)
                 ly = ((kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year)
                 cycle = 4 + self._bc._is_leap_year(ly) if month == 0 else 19
 

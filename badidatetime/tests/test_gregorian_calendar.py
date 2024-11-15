@@ -288,12 +288,12 @@ class TestGregorianCalendar(unittest.TestCase):
             ((1844, 3, 20.761111), False, (1844, 3, 20, 18, 15, 59.9904)),
             ((1844, 3, 20.761111), True, (1844, 3, 20, 18, 15, 59, 990400)),
             )
-        msg = "Expected result {} for date {} and ms {}, found {}."
+        msg = "Expected result {} for date {} and us {}, found {}."
 
-        for date, ms, expected_result in data:
-            result = self._gc.ymdhms_from_date(date, ms=ms)
+        for date, us, expected_result in data:
+            result = self._gc.ymdhms_from_date(date, us=us)
             self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, ms, result))
+                             msg.format(expected_result, date, us, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__check_valid_gregorian_month_day(self):

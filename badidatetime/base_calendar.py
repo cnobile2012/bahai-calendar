@@ -18,12 +18,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     """
     Basic functionality used with all calenders.
 
-    R.D. = Fixed date—elapsed days since the onset of Monday, January 1, 1
-           (Gregorian)
     U.T. = Mean solar time at Greenwich, England (0◦ meridian), reckoned
-           from midnight; sometimes g.m.t., Greenwich Mean Time
-    Moment = We call an r.d. that has a fractional part giving the time of
-             day a “moment.”
+           from midnight; sometimes GMT, Greenwich Mean Time
 
     Transformations between Time Systems:
    https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems
@@ -59,7 +55,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     SECS = lambda self, x: x / 3600
 
     # Convert microseconds to a partial second.
-    MS = lambda self, x: x / 1000000
+    US = lambda self, x: x / 1000000
 
     #(defun angle (d m s)
     #  ;; TYPE (integer integer real) -> angle
@@ -1215,7 +1211,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
          """
         return self.dhms_from_seconds(dec * 86400)
 
-    def hms_from_decimal_day(self, dec:float, *, ms=False) -> tuple:
+    def hms_from_decimal_day(self, dec:float, *, us=False) -> tuple:
         """
         Convert a decimal day to hours, minutes, and seconds. If this
         method is used for a Julian Period day, 0.5 must be added to the
@@ -1223,9 +1219,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param dec: A decimal number.
         :type dec: float
-        :param ms: If False (default) no seperate field for microseconds
+        :param us: If False (default) no seperate field for microseconds
                    is returned else return microseconds.
-        :type ms: bool
+        :type us: bool
         :return: A tuple representing the hour, minute, and seconds.
         :rtype: tuple
 
@@ -1240,7 +1236,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         minute = math.floor(m)
         second = self.PARTIAL_MINUTE_TO_SECOND(m)
 
-        if ms:
+        if us:
             microsec = (self.PARTIAL_SECOND_TO_MICROSECOND(second),)
             second = math.floor(second)
         else:
@@ -1276,8 +1272,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         p = second % 1
         s = abs(second) - p
         s *= -1 if second < 0 else 1
-        ms = self.PARTIAL_SECOND_TO_MICROSECOND(second)
-        return math.floor(s), ms
+        us = self.PARTIAL_SECOND_TO_MICROSECOND(second)
+        return math.floor(s), us
 
     def _sin_deg(self, theta:float) -> float:
         """

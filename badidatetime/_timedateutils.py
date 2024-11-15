@@ -677,8 +677,6 @@ class TimeDateUtils(BahaiCalendar):
                  current day.
         :rtype: int
         """
-        #assert 0 <= month <= 19, (f"Invalid month '{month}', it must be "
-        #                          "in the range of [0, 19].")
         dim = self._days_in_month(year, month)
         assert 1 <= day <= dim, (
             f"Day '{day}' for month {month} must be in range of 1..{dim}")

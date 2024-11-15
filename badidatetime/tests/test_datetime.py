@@ -2962,27 +2962,45 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the timetuple method returns either a short or long form
         timetuple.
         """
+        # *** TODO *** Update the two test below that have timezone objects.
         data = (
             ((181, 13, 9), (12, 30, 30), None, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
-             'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=2, tm_yday=237, '
+             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=2, tm_yday=237, '
              'tm_isdst=-1)'),
-            #((1, 10, 10, 13, 9), (12, 30, 30), None, 0, ''),
+            ((181, 13, 9), (12, 30, 30), datetime.BADI, 0,
+             'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
+             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=2, tm_yday=237, '
+             'tm_isdst=-1)'),
+            ((1, 10, 10, 13, 9), (12, 30, 30), None, 0,
+             'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
+             'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
+             'tm_sec=30, tm_wday=2, tm_yday=237, tm_isdst=-1)'),
+            ((1, 10, 10, 13, 9), (12, 30, 30), datetime.BADI, 0,
+             'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
+             'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
+             'tm_sec=30, tm_wday=2, tm_yday=237, tm_isdst=-1)'),
             )
         msg = "Expected {} with date {}, time {}, and timezone {}, found {}."
 
         for date, time, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date)
+            dt = datetime.datetime(*date, hour=time[0],
+                                   minute=time[1], second=time[2])
             result = dt.timetuple()
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, time, tz, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__mktime(self):
         """
         Test that the _mktime method 
         """
-        pass
+        data = (
+            (),
+            )
+        msg = ""
+
+
 
     @unittest.skip("Temporarily skipped")
     def test_timestamp(self):
