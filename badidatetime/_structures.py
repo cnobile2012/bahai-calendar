@@ -7,10 +7,8 @@ __docformat__ = "restructuredtext en"
 import time
 import tzlocal
 from typing import NamedTuple
-from datetime import datetime
 
 from .badi_calendar import BahaiCalendar
-from .gregorian_calendar import GregorianCalendar
 
 
 class ShortFormStruct(NamedTuple):
@@ -112,26 +110,26 @@ class struct_time:
 
         return short
 
-    @classmethod
-    def __fill_in_missing(cls, date, short):
-        """
-        Fill in missing data.
+    ## @classmethod
+    ## def __fill_in_missing(cls, date, short):
+    ##     """
+    ##     Fill in missing data.
+    ##     """
+    ##     from .datetime import datetime
+    ##     bc = BahaiCalendar()
 
-        *** TODO *** We need to convert the Gregorian datetime objects to
-        Badi datetime objects when they are completed.
-        """
-        bc = BahaiCalendar()
-        gc = GregorianCalendar()
+    ##     if short:
+    ##         b_date = date[:3]
+    ##         b_time = date[3:6]
+    ##     else:
+    ##         b_date = date[:5]
+    ##         b_time = date[5:8]
 
-        if short:
-            b_date = date[:6]
-        else:
-            b_date = bc.short_date_from_long_date(date[:8], trim=True)
-
-        date = list(date)
-        g_date = gc.ymdhms_from_date(bc.gregorian_date_from_badi_date(
-            b_date, _chk_on=False), ms=True)
-        g_dt = datetime(*g_date, tzinfo=tzlocal.get_localzone())
-        # tm_zone and tm_gmtoff
-        date += [g_dt.tzname(), g_dt.utcoffset().total_seconds()]
-        return tuple(date)
+    ##     date = list(date)
+    ##     dt = datetime(*b_date, hour=b_time[0], minute=b_time[1],
+    ##                   second=b_time[2])
+    ##     # tm_zone and tm_gmtoff
+    ##     offset = dt.utcoffset()
+    ##     total_seconds = offset.total_seconds() if offset else None
+    ##     date += [dt.tzname(), total_seconds]
+    ##     return tuple(date)

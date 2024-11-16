@@ -44,17 +44,18 @@ def _divide_and_round(a, b):
     greater_than_half = r > b if b > 0 else r < b
     return q + (1 if greater_than_half or r == b and q % 2 == 1 else 0)
 
-def _check_utc_offset(name, offset):
+def _check_offset(name, offset):
     """
-    name is the offset-producing method, 'utcoffset' or 'dst'.
+    name is the offset-producing method, 'utcoffset', 'badioffset', or 'dst'.
     offset is what it returned.
     If offset isn't None or timedelta, raises TypeError.
     If offset is None, returns None.
     Else offset is checked for being in range.
-    If it is, its integer value is returned.  Else ValueError is raised.
+    If it is, its integer value is returned. Else ValueError is raised.
     """
-    assert name in ("utcoffset", "dst"), (
-        f"Invalid name argument '{name}' must be one of ('utcoffset', 'dst').")
+    assert name in ('utcoffset', 'badioffset', 'dst'), (
+        f"Invalid name argument '{name}' must be one of "
+        "('utcoffset', 'badioffset', 'dst').")
 
     if offset is not None:
         if not isinstance(offset, timedelta):
@@ -684,18 +685,18 @@ class date(BahaiCalendar):
 
         return msg
 
-    def __short_from_long_form(self):
+    def _short_from_long_form(self, time=()):
         """
         Convert the long form Badi date to a short form Badi date.
         """
-        return (self._date if self._short else
-                self.short_date_from_long_date(self._date, trim=True))
+        return (self._date + time if self._short else
+                self.short_date_from_long_date(self._date + time))
 
     def ctime(self):
         """
         Return ctime() style string in the short form Badi date.
         """
-        date = self.__short_from_long_form()
+        date = self._short_from_long_form()
         weekday = _td_utils._day_of_week(*date[:3])
         wd_name = _td_utils.DAYNAMES[weekday]
         year, month, day = date[:3]
@@ -733,7 +734,7 @@ class date(BahaiCalendar):
         - http://www.w3.org/TR/NOTE-datetime
         - http://www.cl.cam.ac.uk/~mgk25/iso-time.html
         """
-        year, month, day = self.__short_from_long_form()
+        year, month, day = self._short_from_long_form()[:3]
         return f"{year:04d}-{month:02d}-{day:02d}"
 
     def _str_convertion(self):
@@ -777,6 +778,10 @@ class date(BahaiCalendar):
         """day (1-31)"""
         return self._day
 
+    @property
+    def short(self):
+        return self._short
+
     # Standard conversions, __eq__, __le__, __lt__, __ge__, __gt__,
     # __hash__ (and helpers)
 
@@ -795,9 +800,9 @@ class date(BahaiCalendar):
         contribute to the result. If this class provides the long form
         Badi date it is converted to the short form before processing.
         """
-        return _td_utils._ymd2ord(*self.__short_from_long_form())
+        return _td_utils._ymd2ord(*self._short_from_long_form()[:3])
 
-    def replace(self, *, kull_i_shay:int=None, vahid:int=None, year:int=None,
+    def replace(self, kull_i_shay:int=None, vahid:int=None, year:int=None,
                 month:int=None, day:int=None) -> object:
         """
         Return a new date with new values for the specified fields.
@@ -817,43 +822,60 @@ class date(BahaiCalendar):
 
         return obj
 
-    def _replace_short(self, *, year:int=None, month:int=None,
-                       day:int=None) -> object:
+    def _replace_short(self, *, year:int=None, month:int=None, day:int=None,
+                       hour:int=None, minute:int=None, second:int=None,
+                       microsecond:int=None, tzinfo=True,
+                       fold:int=None) -> object:
         """
         Replace any of the year, month, or day.
         """
         if year is None:
-            year = self._year
+            year = self.year
 
         if month is None:
-            month = self._month
+            month = self.month
 
         if day is None:
-            day = self._day
+            day = self.day
 
-        return type(self)(year, month, day, None, None)
+        if isinstance(self, datetime):
+            obj = type(self)(year, month, day, None, None, hour, minute,
+                             second, microsecond, tzinfo, fold=fold)
+        else:
+            obj = type(self)(year, month, day, None, None)
+
+        return obj
 
     def _replace_long(self, *, kull_i_shay:int=None, vahid:int=None,
-                      year:int=None, month:int=None, day:int=None) -> object:
+                      year:int=None, month:int=None, day:int=None,
+                      hour:int=None, minute:int=None, second:int=None,
+                      microsecond:int=None, tzinfo=True,
+                      fold:int=None) -> object:
         """
         Replace any of the kull_i_shay, vahid, year, month, or day.
         """
         if kull_i_shay is None:
-            kull_i_shay = self._kull_i_shay
+            kull_i_shay = self.kull_i_shay
 
         if vahid is None:
-            vahid = self._vahid
+            vahid = self.vahid
 
         if year is None:
-            year = self._year
+            year = self.year
 
         if month is None:
-            month = self._month
+            month = self.month
 
         if day is None:
-            day = self._day
+            day = self.day
 
-        return type(self)(kull_i_shay, vahid, year, month, day)
+        if isinstance(self, datetime):
+            obj = type(self)(kull_i_shay, vahid, year, month, day, hour,
+                             minute, second, microsecond, tzinfo, fold=fold)
+        else:
+            obj = type(self)(kull_i_shay, vahid, year, month, day)
+
+        return obj
 
     # Comparisons of date objects with other.
 
@@ -934,7 +956,7 @@ class date(BahaiCalendar):
         Return day of the week, where Jalál (Saturday) == 0 ...
         Istiqlāl (Friday) == 6.
         """
-        date = self.__short_from_long_form()
+        date = self._short_from_long_form()
         return _td_utils._day_of_week(*date[:3])
 
     # Day-of-the-week and week-of-the-year, according to ISO
@@ -944,7 +966,7 @@ class date(BahaiCalendar):
         Return day of the week, where Jalál (Saturday) == 1 ...
         Istiqlāl (Friday) == 7.
         """
-        date = self.__short_from_long_form()
+        date = self._short_from_long_form()[:3]
         return _td_utils._day_of_week(*date) + 1
 
     def isocalendar(self):
@@ -961,7 +983,7 @@ class date(BahaiCalendar):
         http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
         modified for the Badi Calendar.
         """
-        year, month, day = self.__short_from_long_form()
+        year, month, day = self._short_from_long_form()[:3]
         week1jalal = _td_utils._isoweek1jalal(year)
         today = _td_utils._ymd2ord(year, month, day)
         # Internally, week and day have origin 0
@@ -1067,8 +1089,13 @@ class tzinfo(_tzinfo):
     """
 
     def badioffset(self, dt):
-        badi_offset = timedelta(hours=BADI_TZ[1])
-        return self.utcoffset(dt) + badi_offset
+        """
+        datetime -> timedelta, positive for east of BADI, negative
+        for west of BADI.
+        """
+        #badi_offset = timedelta(hours=BADI_TZ[1])
+        #return self.utcoffset(dt) + badi_offset
+        raise NotImplementedError("tzinfo subclass must override badioffset()")
 
     def frombadi(self, dt):
         """
@@ -1262,8 +1289,8 @@ class time:
 
     def _cmp(self, other, allow_mixed=False):
         assert isinstance(other, time), f"Invalid time module, found {other}."
-        mytz = self._tzinfo
-        ottz = other._tzinfo
+        mytz = self.tzinfo
+        ottz = other.tzinfo
         myoff = otoff = None
 
         if mytz is ottz:
@@ -1346,9 +1373,9 @@ class time:
              f"{self.__class__.__qualname__}"
              f"({self._hour:d}, {self._minute:d}{s})")
 
-        if self._tzinfo is not None:
+        if self.tzinfo is not None:
             assert s[-1:] == ")"
-            s = s[:-1] + f", tzinfo={self._tzinfo})"
+            s = s[:-1] + f", tzinfo={self.tzinfo})"
 
         if self._fold:
             assert s[-1:] == ")"
@@ -1418,9 +1445,19 @@ class time:
         Return the timezone offset as timedelta, positive east of UTC
         (negative west of UTC).
         """
-        if self._tzinfo is not None:
-            offset = self._tzinfo.utcoffset(None)
-            _check_utc_offset("utcoffset", offset)
+        if self.tzinfo is not None:
+            offset = self.tzinfo.utcoffset(None)
+            _check_offset("utcoffset", offset)
+            return offset
+
+    def badioffset(self):
+        """
+        Return the timezone offset as timedelta, positive east of UTC
+        (negative west of UTC).
+        """
+        if self.tzinfo is not None:
+            offset = self.tzinfo.badioffset(None)
+            _check_offset("utcoffset", offset)
             return offset
 
     def tzname(self):
@@ -1431,8 +1468,8 @@ class time:
         it mean anything in particular. For example, 'GMT', 'UTC', '-500',
         '-5:00', 'EDT', 'US/Eastern', 'America/New York' are all valid replies.
         """
-        if self._tzinfo is not None:
-            name = self._tzinfo.tzname(None)
+        if self.tzinfo is not None:
+            name = self.tzinfo.tzname(None)
             _check_tzname(name)
             return name
 
@@ -1446,9 +1483,9 @@ class time:
         need to consult dst() unless you're interested in displaying the DST
         info.
         """
-        if self._tzinfo is not None:
-            offset = self._tzinfo.dst(None)
-            _check_utc_offset("dst", offset)
+        if self.tzinfo is not None:
+            offset = self.tzinfo.dst(None)
+            _check_offset("dst", offset)
             return offset
 
     def replace(self, hour=None, minute=None, second=None, microsecond=None,
@@ -1485,10 +1522,10 @@ class time:
         h += 128 if self._fold and protocol > 3 else 0
         basestate = bytes([h, self._minute, self._second, us1, us2, us3])
 
-        if self._tzinfo is None:
+        if self.tzinfo is None:
             return (basestate,)
         else:
-            return (basestate, self._tzinfo)
+            return (basestate, self.tzinfo)
 
     def __setstate(self, string, tzinfo):
         _check_tzinfo_arg(tzinfo)
@@ -1796,53 +1833,63 @@ class datetime(date):
         return (max, min)[self.fold](u1, u2)
 
     def timestamp(self):
-        "Return POSIX timestamp as float"
-        if self._tzinfo is None:
+        """
+        Return POSIX timestamp as float
+        """
+        if self.tzinfo is None:
             s = self._mktime()
             return s + self.microsecond / 1e6
         else:
             return (self - _EPOCH).total_seconds()
 
     def utctimetuple(self):
-        "Return UTC time tuple compatible with time.gmtime()."
-        offset = self.utcoffset()
+        """
+        Return UTC time tuple compatible with time.gmtime().
+        """
+        return self._timetuple(self.utcoffset())
 
+    def baditimetuple(self):
+        """
+        Return BADI time tuple compatible with time.gmtime().
+        """
+        return self._timetuple(self.badioffset())
+
+    def _timetuple(self, offset):
+        """
+        Return UTC or BADI time tuple compatible with time.gmtime().
+        """
         if offset:
             self -= offset
 
-        y, m, d = self.year, self.month, self.day
-        hh, mm, ss = self.hour, self.minute, self.second
-        return _td_utils._build_struct_time(y, m, d, hh, mm, ss, 0)
+        date = self._date + (self.hour, self.minute, self.second)
+        return _td_utils._build_struct_time(date, 0, short_in=self._short)
 
     def date(self):
-        "Return the date part."
+        """
+        Return the date part.
+        """
         return date(self._year, self._month, self._day)
 
     def time(self):
-        "Return the time part, with tzinfo None."
+        """
+        Return the time part, with tzinfo None.
+        """
         return time(self.hour, self.minute, self.second, self.microsecond,
                     fold=self.fold)
 
     def timetz(self):
-        "Return the time part, with same tzinfo."
+        """
+        Return the time part, with same tzinfo.
+        """
         return time(self.hour, self.minute, self.second, self.microsecond,
-                    self._tzinfo, fold=self.fold)
+                    self.tzinfo, fold=self.fold)
 
-    def replace(self, year=None, month=None, day=None, hour=None,
-                minute=None, second=None, microsecond=None, tzinfo=True,
-                *, fold=None):
+    def replace(self, kull_i_shay=None, vahid=None, year=None, month=None,
+                day=None, hour=None, minute=None, second=None,
+                microsecond=None, tzinfo=True, *, fold=None):
         """
         Return a new datetime with new values for the specified fields.
         """
-        if year is None:
-            year = self.year
-
-        if month is None:
-            month = self.month
-
-        if day is None:
-            day = self.day
-
         if hour is None:
             hour = self.hour
 
@@ -1861,8 +1908,25 @@ class datetime(date):
         if fold is None:
             fold = self.fold
 
-        return type(self)(year, month, day, hour, minute, second,
-                          microsecond, tzinfo, fold=fold)
+        if self._short and (kull_i_shay or vahid):
+            msg = "Cannot convert from a short to a long form date."
+            raise ValueError(msg)
+        elif not self._short and year is not None and (year < 1 or year > 19):
+            msg = ("Cannot convert from a long to a short form date. The "
+                   f"value {year} is not valid for long form dates.")
+            raise ValueError(msg)
+        elif self._short:
+            obj = self._replace_short(
+                year=year, month=month, day=day, hour=hour, minute=minute,
+                second=second, microsecond=microsecond, tzinfo=tzinfo,
+                fold=fold)
+        else:
+            obj = self._replace_long(
+                kull_i_shay=kull_i_shay, vahid=vahid, year=year, month=month,
+                day=day, hour=hour, minute=minute, second=second,
+                microsecond=microsecond, tzinfo=tzinfo, fold=fold)
+
+        return obj
 
     def _local_timezone(self):
         if self.tzinfo is None:
@@ -1877,7 +1941,7 @@ class datetime(date):
         zone = localtm.tm_zone
         return timezone(timedelta(seconds=gmtoff), zone)
 
-    def astimezone(self, tz=None):
+    def asutctimezone(self, tz=None):
         if tz is None:
             tz = self._local_timezone()
         elif not isinstance(tz, tzinfo):
@@ -1900,21 +1964,52 @@ class datetime(date):
 
         # Convert self to UTC, and attach the new time zone object.
         utc = (self - myoffset).replace(tzinfo=tz)
-
         # Convert from UTC to tz's local time.
         return tz.fromutc(utc)
+
+    def asbaditimezone(self, tz=None):
+        if tz is None:
+            tz = self._local_timezone()
+        elif not isinstance(tz, tzinfo):
+            raise TypeError("tz argument must be an instance of tzinfo")
+
+        mytz = self.tzinfo
+
+        if mytz is None:
+            mytz = self._local_timezone()
+            myoffset = mytz.badioffset(self)
+        else:
+            myoffset = mytz.badioffset(self)
+
+            if myoffset is None:
+                mytz = self.replace(tzinfo=None)._local_timezone()
+                myoffset = mytz.badioffset(self)
+
+        if tz is mytz:
+            return self
+
+        # Convert self to BADI, and attach the new time zone object.
+        badi = (self - myoffset).replace(tzinfo=tz)
+        # Convert from BADI to tz's local time.
+        return tz.frombadi(badi)
 
     # Ways to produce a string.
 
     def ctime(self):
-        "Return ctime() style string."
-        weekday = self.toordinal() % 7 or 7
-        return "%s %s %2d %02d:%02d:%02d %04d" % (
-            _DAYNAMES[weekday],
-            _MONTHNAMES[self._month],
-            self._day,
-            self._hour, self._minute, self._second,
-            self._year)
+        """
+        Return ctime() style string.
+        """
+        if self.short:
+            date = self._date + self._time
+        else:
+            date = self._short_from_long_form(time=self._time)
+
+        weekday = _td_utils._day_of_week(*date[:3])
+        wd_name = _td_utils.DAYNAMES[weekday]
+        year, month, day, hour, minute, second, us = date
+        m_name = self._MONTHNAMES[month]
+        return (f"{wd_name}, {m_name}, {day:2d} "
+                f"{hour:02d}:{minute:02d}:{second:02d} {year:04d}")
 
     def isoformat(self, sep='T', timespec='auto'):
         """
@@ -1961,9 +2056,9 @@ class datetime(date):
         s = (f"{_module_name(self.__class__.__module__)}."
              f"{self.__class__.__qualname__}({', '.join(map(str, L))})")
 
-        if self._tzinfo is not None:
+        if self.tzinfo is not None:
             assert s[-1:] == ")"
-            s = s[:-1] + f", tzinfo={self._tzinfo!r})"
+            s = s[:-1] + f", tzinfo={self.tzinfo!r})"
 
         if self._fold:
             assert s[-1:] == ")"
@@ -2002,9 +2097,9 @@ class datetime(date):
         Return the timezone offset as timedelta positive east of UTC
         (negative west of UTC).
         """
-        if self._tzinfo is not None:
-            offset = self._tzinfo.utcoffset(self)
-            _check_utc_offset("utcoffset", offset)
+        if self.tzinfo is not None:
+            offset = self.tzinfo.utcoffset(self)
+            _check_offset("utcoffset", offset)
             return offset
 
     def badioffset(self):
@@ -2012,9 +2107,9 @@ class datetime(date):
         Return the timezone offset as timedelta positive east of the BADI
         (negative west of the BADI).
         """
-        if self._tzinfo is not None:
-            offset = self._tzinfo.badioffset(self)
-            #_check_utc_offset("badioffset", offset) # *** TODO *** Fix me
+        if self.tzinfo is not None:
+            offset = self.tzinfo.badioffset(self)
+            _check_offset("badioffset", offset)
             return offset
 
     def tzname(self):
@@ -2025,8 +2120,8 @@ class datetime(date):
         it mean anything in particular. For example, 'GMT', 'UTC', '-500',
         '-5:00', 'EDT', 'US/Eastern', 'America/New_York' are all valid replies.
         """
-        if self._tzinfo is not None:
-            name = self._tzinfo.tzname(self)
+        if self.tzinfo is not None:
+            name = self.tzinfo.tzname(self)
             _check_tzname(name)
             return name
 
@@ -2040,9 +2135,9 @@ class datetime(date):
         need to consult dst() unless you're interested in displaying the DST
         info.
         """
-        if self._tzinfo is not None:
-            offset = self._tzinfo.dst(self)
-            _check_utc_offset("dst", offset)
+        if self.tzinfo is not None:
+            offset = self.tzinfo.dst(self)
+            _check_offset("dst", offset)
             return offset
 
     # Comparisons of datetime objects with other.
@@ -2089,8 +2184,8 @@ class datetime(date):
 
     def _cmp(self, other, allow_mixed=False):
         assert isinstance(other, datetime)
-        mytz = self._tzinfo
-        ottz = other._tzinfo
+        mytz = self.tzinfo
+        ottz = other.tzinfo
         myoff = otoff = None
 
         if mytz is ottz:
@@ -2149,7 +2244,7 @@ class datetime(date):
             return type(self).combine(date.fromordinal(delta.days),
                                       time(hour, minute, second,
                                            delta.microseconds,
-                                           tzinfo=self._tzinfo))
+                                           tzinfo=self.tzinfo))
 
         raise OverflowError("result out of range")
 
@@ -2170,7 +2265,7 @@ class datetime(date):
                          secs1 - secs2,
                          self._microsecond - other._microsecond)
 
-        if self._tzinfo is other._tzinfo:
+        if self.tzinfo is other.tzinfo:
             return base
 
         myoff = self.utcoffset()
@@ -2228,10 +2323,10 @@ class datetime(date):
         basestate = bytes(state + (m, self._day, self._hour, self._minute,
                                    self._second, us1, us2, us3))
 
-        if self._tzinfo is None:
+        if self.tzinfo is None:
             return (basestate,)
         else:
-            return (basestate, self._tzinfo)
+            return (basestate, self.tzinfo)
 
     def __setstate(self, bytes_str, tzinfo):
         if tzinfo is not None and not isinstance(tzinfo, _tzinfo_class):
@@ -2347,6 +2442,13 @@ class timezone(tzinfo):
             return self._offset
 
         raise TypeError("utcoffset() argument must be a datetime instance "
+                        "or None")
+
+    def badioffset(self, dt:datetime):
+        if isinstance(dt, datetime) or dt is None:
+            return self._offset
+
+        raise TypeError("badioffset() argument must be a datetime instance "
                         "or None")
 
     def tzname(self, dt:datetime):
