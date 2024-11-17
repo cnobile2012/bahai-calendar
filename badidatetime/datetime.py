@@ -17,12 +17,13 @@ from tzlocal import get_localzone
 from .badi_calendar import BahaiCalendar
 from ._structures import struct_time
 from ._timedateutils import _td_utils
-from typing import NamedTuple
+
+_MAXORDINAL = 1097267 # date.max.toordinal()
+_MONTHNAMES = {num: name for num, name in BahaiCalendar.BADI_MONTH_NAMES}
 
 MINYEAR = BahaiCalendar.MINYEAR
 MAXYEAR = BahaiCalendar.MAXYEAR
-_MAXORDINAL = 1097267 # date.max.toordinal()
-BADI_TZ = ('Asia/Terhan', BahaiCalendar.BAHAI_LOCATION[2])
+BADI_TZ = BahaiCalendar.BAHAI_LOCATION[2:4]
 
 def _cmp(x, y):
     return 0 if x == y else 1 if x > y else -1
@@ -70,6 +71,10 @@ def _check_tzinfo_arg(tz):
     if tz is not None and not isinstance(tz, tzinfo):
         raise TypeError("tzinfo argument must be None or of a tzinfo "
                         f"subclass, found {tz!r}")
+
+def _cmperror(x, y):
+    raise TypeError(f"Cannot compare {type(x).__name__!r} to "
+                    f"{type(y).__name__!r}")
 
 def _format_time(hh, mm, ss, us, timespec='auto'):
     specs = {
@@ -483,7 +488,7 @@ class date(BahaiCalendar):
     Implements the date object for the Badi datetime package.
     """
     __slots__ = ('_kull_i_shay', '_vahid', '_year', '_month', '_day',
-                 '_hashcode')
+                 '_hashcode', '__date', '__short')
 
     def __new__(cls, a:int, b:int=None, c:int=None, d:int=None,
                 e:int=None) -> object:
@@ -513,7 +518,7 @@ class date(BahaiCalendar):
         # Pickle support
         if (short := date._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
-            self._short = short
+            self.__short = short
             self.__setstate(a)
         else:
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
@@ -529,24 +534,19 @@ class date(BahaiCalendar):
                 self._year = c
                 self._month = d
                 self._day = e
-                self._date = b_date
-                self._short = False
+                self.__date = b_date
+                self.__short = False
             else:
                 self._year = a
                 self._month = b
                 self._day = c
-                self._date = b_date
-                self._short = True
+                self.__date = b_date
+                self.__short = True
 
-        self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
         super().__init__(self)
-        _td_utils._check_date_fields(*self._date, short_in=self._short)
+        _td_utils._check_date_fields(*self.__date, short_in=self.__short)
         self._hashcode = -1
         return self
-
-    @property
-    def is_short(self):
-        return self._short
 
     # Additional constructors
 
@@ -689,8 +689,8 @@ class date(BahaiCalendar):
         """
         Convert the long form Badi date to a short form Badi date.
         """
-        return (self._date + time if self._short else
-                self.short_date_from_long_date(self._date + time))
+        return (self.b_date + time if self.is_short else
+                self.short_date_from_long_date(self.b_date + time))
 
     def ctime(self):
         """
@@ -700,7 +700,7 @@ class date(BahaiCalendar):
         weekday = _td_utils._day_of_week(*date[:3])
         wd_name = _td_utils.DAYNAMES[weekday]
         year, month, day = date[:3]
-        m_name = self._MONTHNAMES[month]
+        m_name = _MONTHNAMES[month]
         y_shim = 4 if year > -1 else 5
         return f"{wd_name} {m_name} {day:2d} 00:00:00 {year:0{y_shim}d}"
 
@@ -743,7 +743,7 @@ class date(BahaiCalendar):
         from date the returned Badi date is in ISO format. Thre is not iso
         standard for the long form Badi date.
         """
-        if self._short:
+        if self.is_short:
             ret = self.isoformat()
         else:
             ind = 3 if self._kull_i_shay < 0 else 2
@@ -779,8 +779,12 @@ class date(BahaiCalendar):
         return self._day
 
     @property
-    def short(self):
-        return self._short
+    def is_short(self):
+        return self.__short
+
+    @property
+    def b_date(self):
+        return self.__date
 
     # Standard conversions, __eq__, __le__, __lt__, __ge__, __gt__,
     # __hash__ (and helpers)
@@ -789,8 +793,8 @@ class date(BahaiCalendar):
         """
         Return local time tuple compatible with time.localtime().
         """
-        return _td_utils._build_struct_time(self._date + (0, 0, 0), -1,
-                                            short_in=self._short)
+        return _td_utils._build_struct_time(self.b_date + (0, 0, 0), -1,
+                                            short_in=self.is_short)
 
     def toordinal(self):
         """
@@ -807,14 +811,14 @@ class date(BahaiCalendar):
         """
         Return a new date with new values for the specified fields.
         """
-        if self._short and (kull_i_shay or vahid):
+        if self.is_short and (kull_i_shay or vahid):
             msg = "Cannot convert from a short to a long form date."
             raise ValueError(msg)
-        elif not self._short and year is not None and (year < 1 or year > 19):
+        elif not self.is_short and year is not None and (year < 1 or year > 19):
             msg = ("Cannot convert from a long to a short form date. The "
                    f"value {year} is not valid for long form dates.")
             raise ValueError(msg)
-        elif self._short:
+        elif self.is_short:
             obj = self._replace_short(year=year, month=month, day=day)
         else:
             obj = self._replace_long(kull_i_shay=kull_i_shay, vahid=vahid,
@@ -902,7 +906,7 @@ class date(BahaiCalendar):
     def _cmp(self, other):
         assert isinstance(other, date)
 
-        if self._short:
+        if self.is_short:
             d0 = self._year, self._month, self._day
             d1 = other._year, other._month, other._day
         else:
@@ -928,7 +932,7 @@ class date(BahaiCalendar):
             od = self.toordinal() + other.days
 
             if _td_utils.DAYS_BEFORE_1ST_YEAR < od <= _MAXORDINAL:
-                ret = type(self).fromordinal(od, short=self._short)
+                ret = type(self).fromordinal(od, short=self.is_short)
             else:
                 raise OverflowError("Result out of range.")
         else:
@@ -1039,7 +1043,7 @@ class date(BahaiCalendar):
         return short
 
     def _getstate(self):
-        if self._short:
+        if self.is_short:
             yhi, ylo = divmod(self._year - MINYEAR, 256)
             state = (yhi, ylo, self._month, self._day)
         else:
@@ -1056,10 +1060,10 @@ class date(BahaiCalendar):
         return bytes(state),
 
     def __setstate(self, bytes_str):
-        if self._short:
+        if self.is_short:
             yhi, ylo, self._month, self._day = bytes_str
             self._year = yhi * 256 + MINYEAR + ylo
-            self._date = (self._year, self._month, self._day)
+            self.__date = (self._year, self._month, self._day)
         else:
             k, v, y, m, d = bytes_str
             self._kull_i_shay = k - 19
@@ -1067,7 +1071,7 @@ class date(BahaiCalendar):
             self._year = y
             self._month = m
             self._day = d
-            self._date = (self._kull_i_shay, v, y, m, d)
+            self.__date = (self._kull_i_shay, v, y, m, d)
 
     def __reduce__(self):
         return (self.__class__, self._getstate())
@@ -1093,7 +1097,7 @@ class tzinfo(_tzinfo):
         datetime -> timedelta, positive for east of BADI, negative
         for west of BADI.
         """
-        #badi_offset = timedelta(hours=BADI_TZ[1])
+        #badi_offset = timedelta(hours=BADI_TZ[0])
         #return self.utcoffset(dt) + badi_offset
         raise NotImplementedError("tzinfo subclass must override badioffset()")
 
@@ -1102,7 +1106,8 @@ class tzinfo(_tzinfo):
         datetime in Badi TZ -> datetime in local time.
         """
         if not isinstance(dt, datetime):
-            raise TypeError("frombadi() requires a datetime argument")
+            raise TypeError("frombadi() requires a datetime argument, "
+                            f"found '{type(dt)}'.")
 
         if dt.tzinfo is not self:
             raise ValueError("dt.tzinfo is not self")
@@ -1570,7 +1575,7 @@ class datetime(date):
         if (short := datetime._is_pickle_data(
             a, b, p_len=(10, 11))) is not None:
             self = object.__new__(cls)
-            self._short = short
+            self.__short = short
             self.__setstate(a, tzinfo)
         else:
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
@@ -1586,26 +1591,26 @@ class datetime(date):
                 self._year = c
                 self._month = d
                 self._day = e
-                self._date = b_date
-                self._short = False
+                self.__date = b_date
+                self.__short = False
             else:
                 self._year = a
                 self._month = b
                 self._day = c
-                self._date = b_date
-                self._short = True
+                self.__date = b_date
+                self.__short = True
 
             self._hour = hour
             self._minute = minute
             self._second = second
             self._microsecond = microsecond
-            self._time = (self._hour, self._minute,
-                          self._second, self._microsecond)
+            self.__time = (self._hour, self._minute,
+                           self._second, self._microsecond)
             self._tzinfo = tzinfo
             self._fold = fold
 
-        _td_utils._check_date_fields(*self._date, short_in=self._short)
-        _td_utils._check_time_fields(*self._time, fold)
+        _td_utils._check_date_fields(*self.__date, short_in=self.__short)
+        _td_utils._check_time_fields(*self.__time, fold)
         _check_tzinfo_arg(tzinfo)
         self._hashcode = -1
         return self
@@ -1642,6 +1647,18 @@ class datetime(date):
     def fold(self):
         return self._fold
 
+    @property
+    def b_date(self):
+        return self.__date
+
+    @property
+    def b_time(self):
+        return self.__time
+
+    @property
+    def is_short(self):
+        return self.__short
+
     @classmethod
     def _split_date_time(cls, date_time, short):
         date = date_time[:3] if short else date_time[:5]
@@ -1661,7 +1678,7 @@ class datetime(date):
         if not badi:
             # Get local UTC offset then correct for the Baha'i location.
             offset_sec = _local_tz_utc_offset_seconds()
-            offset_sec -= BADI_TZ[1] * 3600
+            offset_sec -= BADI_TZ[0] * 3600
         else:
             offset_sec = 0
 
@@ -1786,8 +1803,8 @@ class datetime(date):
             dst = 0
 
         return _td_utils._build_struct_time(
-            self._date + (self.hour, self.minute, self.second),
-            dst, short_in=self._short)
+            self.b_date + (self.hour, self.minute, self.second),
+            dst, short_in=self.is_short)
 
     def _mktime(self):
         """
@@ -1861,8 +1878,8 @@ class datetime(date):
         if offset:
             self -= offset
 
-        date = self._date + (self.hour, self.minute, self.second)
-        return _td_utils._build_struct_time(date, 0, short_in=self._short)
+        date = self.b_date + (self.hour, self.minute, self.second)
+        return _td_utils._build_struct_time(date, 0, short_in=self.is_short)
 
     def date(self):
         """
@@ -1908,14 +1925,14 @@ class datetime(date):
         if fold is None:
             fold = self.fold
 
-        if self._short and (kull_i_shay or vahid):
+        if self.is_short and (kull_i_shay or vahid):
             msg = "Cannot convert from a short to a long form date."
             raise ValueError(msg)
-        elif not self._short and year is not None and (year < 1 or year > 19):
+        elif not self.is_short and year is not None and (year < 1 or year > 19):
             msg = ("Cannot convert from a long to a short form date. The "
                    f"value {year} is not valid for long form dates.")
             raise ValueError(msg)
-        elif self._short:
+        elif self.is_short:
             obj = self._replace_short(
                 year=year, month=month, day=day, hour=hour, minute=minute,
                 second=second, microsecond=microsecond, tzinfo=tzinfo,
@@ -1999,30 +2016,31 @@ class datetime(date):
         """
         Return ctime() style string.
         """
-        if self.short:
-            date = self._date + self._time
+        if self.is_short:
+            date = self.b_date + self.b_time
         else:
-            date = self._short_from_long_form(time=self._time)
+            date = self._short_from_long_form(time=self.b_time)
 
         weekday = _td_utils._day_of_week(*date[:3])
         wd_name = _td_utils.DAYNAMES[weekday]
         year, month, day, hour, minute, second, us = date
-        m_name = self._MONTHNAMES[month]
-        return (f"{wd_name}, {m_name}, {day:2d} "
-                f"{hour:02d}:{minute:02d}:{second:02d} {year:04d}")
+        m_name = _MONTHNAMES[month]
+        y_shim = 4 if year > -1 else 5
+        return (f"{wd_name} {m_name} {day:2d} "
+                f"{hour:02d}:{minute:02d}:{second:02d} {year:0{y_shim}d}")
 
     def isoformat(self, sep='T', timespec='auto'):
         """
         Return the time formatted according to ISO.
 
-        The full format looks like 'YYYY-MM-DD HH:MM:SS.mmmmmm'.
+        The full format looks like 'YYYY-MM-DDTHH:MM:SS.mmmmmm'.
         By default, the fractional part is omitted if self.microsecond == 0.
 
         If self.tzinfo is not None, the UTC offset is also attached, giving
-        giving a full format of 'YYYY-MM-DD HH:MM:SS.mmmmmm+HH:MM'.
+        giving a full format of 'YYYY-MM-DDTHH:MM:SS.mmmmmm+HH:MM'.
 
         Optional argument sep specifies the separator between date and
-        time, default 'T'.
+        time, default ' '.
 
         The optional argument timespec specifies the number of additional
         terms of the time to include. Valid options are 'auto', 'hours',
@@ -2044,17 +2062,22 @@ class datetime(date):
         """
         Convert to formal string, for repr().
         """
-        L = [self._year, self._month, self._day,  # These are never zero
-             self._hour, self._minute, self._second, self._microsecond]
+        L = [self._hour, self._minute, self._second, self._microsecond]
 
-        if L[-1] == 0:
-            del L[-1]
-
-        if L[-1] == 0:
-            del L[-1]
+        for i in range(2):
+            if L[-1] == 0:
+                del L[-1]
 
         s = (f"{_module_name(self.__class__.__module__)}."
-             f"{self.__class__.__qualname__}({', '.join(map(str, L))})")
+             f"{self.__class__.__qualname__}")
+
+        if hasattr(self, '_kull_i_shay'):
+            s += (f"({self._kull_i_shay}, {self._vahid}, {self._year}, "
+                  f"{self._month}, {self._day}")
+        else:
+            s += f"({self._year}, {self._month}, {self._day}"
+
+        s += f", {', '.join(map(str, L))})"
 
         if self.tzinfo is not None:
             assert s[-1:] == ")"
@@ -2067,7 +2090,7 @@ class datetime(date):
         return s
 
     def _dt_str_conversion(self, sep='T'):
-        if self._short:
+        if self.is_short:
             ret = self.isoformat(sep=sep)
         else:
             ret = self._str_convertion()
@@ -2086,8 +2109,10 @@ class datetime(date):
     @classmethod
     def strptime(cls, date_string, format):
         """
-        string, format -> new datetime parsed from a string
+        String, format -> new datetime parsed from a string
         (like time.strptime()).
+
+        *** TODO *** _strptime may need to be rewritten, bummer.
         """
         import _strptime
         return _strptime._strptime_datetime(cls, date_string, format)
@@ -2193,8 +2218,8 @@ class datetime(date):
         else:
             myoff = self.utcoffset()
             otoff = other.utcoffset()
-            # Assume that allow_mixed means that we are called from __eq__
 
+            # Assume that allow_mixed means that we are called from __eq__
             if allow_mixed:
                 if myoff != self.replace(fold=not self.fold).utcoffset():
                     return 2
@@ -2205,12 +2230,10 @@ class datetime(date):
             base_compare = myoff == otoff
 
         if base_compare:
-            return _cmp((self._year, self._month, self._day,
-                         self._hour, self._minute, self._second,
-                         self._microsecond),
-                        (other._year, other._month, other._day,
-                         other._hour, other._minute, other._second,
-                         other._microsecond))
+            return _cmp((self._year, self._month, self._day, self._hour,
+                         self._minute, self._second, self._microsecond),
+                        (other._year, other._month, other._day, other._hour,
+                         other._minute, other._second, other._microsecond))
 
         if myoff is None or otoff is None:
             if allow_mixed:
@@ -2300,7 +2323,7 @@ class datetime(date):
     # Pickle support.
 
     def _getstate(self, protocol=3):
-        if self._short:
+        if self.is_short:
             yhi, ylo = divmod(self._year - MINYEAR, 256)
             state = (yhi, ylo)
         else:
@@ -2332,11 +2355,11 @@ class datetime(date):
         if tzinfo is not None and not isinstance(tzinfo, _tzinfo_class):
             raise TypeError("bad tzinfo state arg")
 
-        if self._short:
+        if self.is_short:
             (yhi, ylo, m, self._day, self._hour,
              self._minute, self._second, us1, us2, us3) = bytes_str
             self._year = yhi * 256 + MINYEAR + ylo
-            self._date = (self._year,)
+            self.__date = (self._year,)
         else:
             (k, v, y, m, d, self._hour, self._minute,
              self._second, us1, us2, us3) = bytes_str
@@ -2344,7 +2367,7 @@ class datetime(date):
             self._vahid = v
             self._year = y
             self._day = d
-            self._date = (self._kull_i_shay, v, y)
+            self.__date = (self._kull_i_shay, v, y)
 
         if m > 127:
             self._fold = 1
@@ -2354,9 +2377,9 @@ class datetime(date):
             self._month = m
 
         self._microsecond = (((us1 << 8) | us2) << 8) | us3
-        self._date += (self._month, self._day)
-        self._time = (self._hour, self._minute,
-                      self._second, self._microsecond)
+        self.__date += (self._month, self._day)
+        self.__time = (self._hour, self._minute,
+                       self._second, self._microsecond)
         self._tzinfo = tzinfo
 
     def __reduce_ex__(self, protocol):
