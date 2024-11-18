@@ -946,7 +946,9 @@ class date(BahaiCalendar):
     __radd__ = __add__
 
     def __sub__(self, other):
-        """Subtract two dates, or a date and a timedelta."""
+        """
+        Subtract two dates, or a date and a timedelta.
+        """
         if isinstance(other, timedelta):
             ret = self + timedelta(-other.days)
         elif isinstance(other, date):
@@ -2254,34 +2256,39 @@ class datetime(date):
         return diff and 1 or 0
 
     def __add__(self, other):
-        "Add a datetime and a timedelta."
-        if not isinstance(other, timedelta):
+        """
+        Add a datetime and a timedelta.
+        """
+        if isinstance(other, timedelta):
+            delta = timedelta(self.toordinal(),
+                              hours=self._hour,
+                              minutes=self._minute,
+                              seconds=self._second,
+                              microseconds=self._microsecond)
+            delta += other
+            hour, rem = divmod(delta.seconds, 3600)
+            minute, second = divmod(rem, 60)
+
+            if _td_utils.DAYS_BEFORE_1ST_YEAR < delta.days <= _MAXORDINAL:
+                return type(self).combine(
+                    date.fromordinal(delta.days, short=self.is_short),
+                    time(hour, minute, second, delta.microseconds,
+                         tzinfo=self.tzinfo))
+        else:
             return NotImplemented
 
-        delta = timedelta(self.toordinal(),
-                          hours=self._hour,
-                          minutes=self._minute,
-                          seconds=self._second,
-                          microseconds=self._microsecond)
-        delta += other
-        hour, rem = divmod(delta.seconds, 3600)
-        minute, second = divmod(rem, 60)
-
-        if 0 < delta.days <= _MAXORDINAL:
-            return type(self).combine(date.fromordinal(delta.days),
-                                      time(hour, minute, second,
-                                           delta.microseconds,
-                                           tzinfo=self.tzinfo))
-
-        raise OverflowError("result out of range")
+        raise OverflowError("Result out of range.")
 
     __radd__ = __add__
 
     def __sub__(self, other):
-        "Subtract two datetimes, or a datetime and a timedelta."
+        """
+        Subtract two datetimes, or a datetime and a timedelta.
+        """
         if not isinstance(other, datetime):
             if isinstance(other, timedelta):
                 return self + -other
+
             return NotImplemented
 
         days1 = self.toordinal()

@@ -1701,8 +1701,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg1 = "Result out of range."
         data = (
             ((1, 1, 1), (1,), False, (1, 1, 2)),
-            ((1, 1, 1), (366,), False, (2, 1, 1)),     # Leap year
-            ((181, 1, 1), (365,), False, (182, 1, 1)), # Non leap year
+            ((1, 1, 1), (366,), False, (2, 1, 1)),             # Leap year
+            ((181, 1, 1), (365,), False, (182, 1, 1)),         # Non leap year
+            ((1, 1, 1, 1, 1), (366,), False, (1, 1, 2, 1, 1)), # Leap year
             ((1, 1, 1), None, True, err_msg0.format('NoneType')),
             ((-1842, 1, 1), (-1,), True, err_msg1),
             ((1161, 19, 19), (1,), True, err_msg1),
@@ -1729,7 +1730,13 @@ class TestBadiDatetime_date(unittest.TestCase):
             else:
                 td0 = datetime.timedelta(*td)
                 d1 = d0 + td0
-                result = (d1._year, d1._month, d1._day)
+
+                if d1.is_short:
+                    result = (d1.year, d1.month, d1.day)
+                else:
+                    result = (d1.kull_i_shay, d1.vahid, d1.year,
+                              d1.month, d1.day)
+
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, td, result))
 
@@ -3590,12 +3597,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              (181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 1, True,
              False, 2),
 
-
-
             ((181, 1, 1, None, None, 12, 30, 30), None, 0, None, None, 0,
              False, True, err_msg0.format("<class 'NoneType'>")),
             ((181, 1, 1, None, None, 12, 30, 30), None, 0,
-             (181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, False,
+             (182, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, False,
              True, err_msg1),
             )
         msg = "Expected {} with date0 {}, date1 {}, and mixed {}, found {}."
@@ -3623,24 +3628,114 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, date0, date1, mixed, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___add__(self):
         """
-        Test that the __add__ method 
+        Test that the __add__ method can correctly add a datetime to
+        a timedelta.
         """
-        pass
+        err_msg0 = "Result out of range."
+        data = (
+            ((1, 1, 1), (1,), False, (1, 1, 2)),
+            ((1, 1, 1), (366,), False, (2, 1, 1)),             # Leap year
+            ((181, 1, 1), (365,), False, (182, 1, 1)),         # Non leap year
+            ((1, 1, 1, 1, 1), (366,), False, (1, 1, 2, 1, 1)), # Leap year
+            ((-1842, 1, 1), (-1,), True, err_msg0),
+            ((1161, 19, 19), (1,), True, err_msg0),
+            )
+        msg = "Expected {} with date {} and timedelta {}, found {}"
 
-    @unittest.skip("Temporarily skipped")
+        for date, td, validity, expected_result in data:
+            dt0 = datetime.datetime(*date)
+
+            if validity:
+                if isinstance(td, tuple):
+                    td0 = datetime.timedelta(*td)
+                else:
+                    td0 = td
+
+                try:
+                    result = dt0 + td0
+                except OverflowError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                td0 = datetime.timedelta(*td)
+                dt1 = dt0 + td0
+
+                if dt1.is_short:
+                    result = (dt1.year, dt1.month, dt1.day)
+                else:
+                    result = (dt1.kull_i_shay, dt1.vahid, dt1.year,
+                              dt1.month, dt1.day)
+
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, td, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test___sub__(self):
         """
-        Test that the __sub__ method 
+        Test that the __sub__ method returns the correct results of a
+        timedelta object subtracted from a datetime object.
         """
-        pass
+        err_msg0 = "Result out of range."
+        data = (
+            ((1, 1, 1), (1,), (), False, (0, 19, 19)),
+            ((1, 1, 1), (366,), (), False, (-1, 19, 19)),  # Leap year
+            ((181, 1, 1), (365,), (), False, (180, 1, 1)), # Non leap year
+            # Leap year
+            ((1, 1, 1, 1, 1), (366,), (), False, (0, 19, 18, 19, 19)),
+            ((181, 1, 2), (), (181, 1, 1), False, (1, 0, 0, 86400.0)),
+            ((-1842, 1, 1), (1,), (), True, err_msg0),
+            ((1161, 19, 19), (-1,), (), True, err_msg0),
+            )
+        msg = "Expected {} with date0 {}, timedelta {}, and date1 {}, found {}"
+
+        for date0, td, date1, validity, expected_result in data:
+            dt0 = datetime.datetime(*date0)
+
+            if validity:
+                if isinstance(td, tuple):
+                    td0 = datetime.timedelta(*td)
+                else:
+                    td0 = td
+
+                try:
+                    result = dt0 - td0
+                except (TypeError, OverflowError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date0}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                if td:
+                    obj = datetime.timedelta(*td)
+                else:
+                    obj = datetime.datetime(*date1)
+
+                dt1 = dt0 - obj
+
+                if isinstance(dt1, datetime.timedelta):
+                    result = (dt1.days, dt1.seconds, dt1.microseconds,
+                              dt1.total_seconds())
+                elif dt1.is_short:
+                    result = (dt1.year, dt1.month, dt1.day)
+                else:
+                    result = (dt1.kull_i_shay, dt1.vahid, dt1.year,
+                              dt1.month, dt1.day)
+
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date0, td, date1, result))
 
     @unittest.skip("Temporarily skipped")
     def test___hash__(self):
         """
-        Test that the __hash__ method 
+        Test that the __hash__ method returns a valid hash for both short
+        and long form datetimes.
         """
         pass
 
@@ -3926,7 +4021,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         td = datetime.timedelta(hours=datetime.BADI_TZ[0])
         data = (
             (td, 'Asia/Terhan', (181, 1, 1), False,
-             "01-10-10-01-01T03:30:00+03:30"),
+             "0181-01-01T03:30:00+03:30"),
             (td, 'Asia/Terhan', (181, 1, 1), True, err_msg0),
             (td, 'Asia/Terhan', None, True, err_msg1),
             )
