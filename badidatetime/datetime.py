@@ -138,6 +138,9 @@ def _local_tz_utc_offset_seconds():
     return _dt.now(get_localzone()).utcoffset().total_seconds()
 
 def _module_name(module):
+    """
+    Find the package name without the first directory.
+    """
     idx = module.find('.')
     dt_true = True if module[:idx] == 'datetime' else False
     return module[idx + 1:] if idx != -1 and not dt_true else module
@@ -2208,7 +2211,8 @@ class datetime(date):
             _cmperror(self, other)
 
     def _cmp(self, other, allow_mixed=False):
-        assert isinstance(other, datetime)
+        assert isinstance(other, datetime), (
+            f"The other must be a datetime object, found '{type(other)}'.")
         mytz = self.tzinfo
         ottz = other.tzinfo
         myoff = otoff = None
@@ -2239,7 +2243,7 @@ class datetime(date):
             if allow_mixed:
                 return 2 # arbitrary non-zero value
             else:
-                raise TypeError("cannot compare naive and aware datetimes")
+                raise TypeError("Cannot compare naive and aware datetimes.")
 
         # XXX What follows could be done more efficiently...
         diff = self - other     # this will take offsets into account

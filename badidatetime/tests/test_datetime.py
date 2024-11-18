@@ -258,14 +258,36 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         Test that the _local_tz_utc_offset_seconds function returns the
         timezone offset in seconds.
         """
+        data = (
+            (),
+            )
 
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__module_name(self):
         """
         Test that the _module_name function returns the module path without
         the base directory.
         """
+        data = (
+            ((181, 1, 1), '__module__', 'datetime'),
+            ((181, 1, 1), '__name__', 'date'),
+            ((181, 1, 1, None, None, 12, 30, 30), '__module__', 'datetime'),
+            ((181, 1, 1, None, None, 12, 30, 30), '__name__', 'datetime'),
+            )
+        msg = "Expected {} with date {} and module {}, found {}."
+
+        for date, mod, expected_result in data:
+            d_len = len(date)
+
+            if d_len < 6:
+                obj = datetime.date(*date)
+            else:
+                obj = datetime.datetime(*date)
+
+        result = datetime._module_name(getattr(obj.__class__, mod))
+        self.assertEqual(expected_result, result, msg.format(
+            expected_result, date, mod, result))
 
 
 class TestBadiDatetime_timedelta(unittest.TestCase):
@@ -458,7 +480,7 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
             ((1, 1, 1), (1, 1, 1), False, (0, 0, 0)),
             ((0, 0, 0), (1, 1, 1), False, (-2, 86398, 999999)),
             ((10, 9, 8), (11, 1, 1), False, (-1, 8, 7)),
-            # NotImplemented
+            # NotImplemented exception
             ((1, 1, 1), None, True, err_msg0.format('NoneType')),
             )
         msg = "Expected {} with date0 {}, and date1 {}, found {}."
@@ -482,7 +504,7 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, date0, date1, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___rsub__(self):
         """
         Test that the __rsub__ method returns the inverse subtracted
@@ -490,17 +512,18 @@ class TestBadiDatetime_timedelta(unittest.TestCase):
         """
         data = (
             ((1, 1, 1), (1, 1, 1), (0, 0, 0)),
-            ((0, 0, 0), (0, 0, 0), (-2, 86398, 999999)),
-            ((10, 9, 8), (1, 1, 1), (-1, 8, 7)),
+            ((0, 0, 0), (1, 1, 1), (1, 1, 1)),
+            ((10, 9, 8), (11, 1, 1), (0, 86391, 999993)),
             )
-        msg = "Expected {} with date {}, and dividend {}, found {}."
+        msg = "Expected {} with date0 {}, and date1 {}, found {}."
 
-        for date, dividend, expected_result in data:
-            td0 = datetime.timedelta(*date)
-            td1 = td0 - dividend
-            result = (td1.days, td1.seconds, td1.microseconds)
+        for date0, date1, expected_result in data:
+            td0 = datetime.timedelta(*date0)
+            td1 = datetime.timedelta(*date1)
+            td = td1 - td0
+            result = (td.days, td.seconds, td.microseconds)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, dividend, result))
+                expected_result, date0, date1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___neg__(self):
@@ -1939,7 +1962,8 @@ class TestBadiDatetime_tzinfo(unittest.TestCase):
 
             (None, None, True, err_msg0.format("<class 'NoneType'>")),
             ((181, 1, 1), datetime.BADI, True, err_msg1),
-            #(),
+            #((181, 1, 1), None, True, err_msg2),
+            #((181, 1, 1), None, True, err_msg3),
             )
         msg = "Expected {}, with date {}, found {}"
 
@@ -3485,8 +3509,6 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              (181, 9, 14, None, None, 12, 30, 31), None, 0, False),
             ((181, 9, 14, None, None, 12, 30, 30), datetime.UTC, 0,
              (181, 9, 14, None, None, 12, 30, 30), None, 0, False),
-            #((181, 9, 14, None, None, 12, 30, 30), None, 0,
-            # (181, 9, 14, None, None, 12, 30, 30), None, 1, False),
             ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
              (1, 10, 10, 9, 14, 12, 30, 30), None, 0, True),
             ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
@@ -3537,14 +3559,69 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         pass
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__cmp(self):
         """
         Test that the _cmp method returns 1 if the two dates are equal, +1
         if the current date is greater than the test date, and -1 if the
         inverse.
         """
-        pass
+        err_msg0 = "The other must be a datetime object, found '{}'."
+        err_msg1 = "Cannot compare naive and aware datetimes."
+        data = (
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 30), None, 0, False, False, 0),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 29), None, 0, False, False, 1),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 31), None, 0, False, False, -1),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, False, False, 0),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, False, False, 1),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False, False, -1),
+            ((181, 1, 1, None, None, 12, 30, 30), None, 0,
+             (181, 1, 1, None, None, 12, 30, 30), None, 0, True, False, 0),
+            ((181, 1, 1, None, None, 12, 30, 30), None, 0,
+             (181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, True,
+             False, 2),
+            ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0,
+             (181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 1, True,
+             False, 2),
+
+
+
+            ((181, 1, 1, None, None, 12, 30, 30), None, 0, None, None, 0,
+             False, True, err_msg0.format("<class 'NoneType'>")),
+            ((181, 1, 1, None, None, 12, 30, 30), None, 0,
+             (181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, False,
+             True, err_msg1),
+            )
+        msg = "Expected {} with date0 {}, date1 {}, and mixed {}, found {}."
+
+        for (date0, tz0, fold0, date1, tz1, fold1, mixed,
+             validity, expected_result) in data:
+            dt0 = datetime.datetime(*date0)
+
+            if date1 is not None:
+                dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
+            else:
+                dt1 = date1
+
+            if validity:
+                try:
+                    result = dt0._cmp(dt1, allow_mixed=mixed)
+                except (AssertionError, TypeError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {time} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = dt0._cmp(dt1, allow_mixed=mixed)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date0, date1, mixed, result))
 
     @unittest.skip("Temporarily skipped")
     def test___add__(self):
