@@ -19,13 +19,15 @@ class TimeDateUtils(BahaiCalendar):
     DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl', '`Idāl',
                 'Istijlāl', 'Istiqlāl')
     DAYNAMES_ABV = ('Jal', 'Jam', 'Kam', 'Fiḍ', 'Idā', 'Isj', 'Isq')
-    MONTHNAMES = ('Ayyám-i-Há', 'Bahá', 'Jalál', 'Jamál', "'Aẓamat", 'Núr',
-                  'Raḥmat', 'Kalimát', 'Kamál', "Asmá'", "'Izzat", 'Mashíyyat',
-                  "'Ilm", 'Qudrat', 'Qawl', 'Masá’il', 'Sharaf', 'Sulṭán',
-                  'Mulk', 'Ayyám-i-Há', "'Alá'")
-    MONTHNAMES_ABV = ('Ayy', 'Bah', 'Jal', 'Jam', 'Aẓa', 'Núr', 'Raḥ', 'Kal',
-                      'Kam', 'Asm', 'Izz', 'Mas', 'Ilm', 'Qud', 'Qaw', 'Mas',
-                      'Sha', 'Sul', 'Mul', 'Ayy', 'Alá')
+    MONTHNAMES = {1: 'Bahá', 2: 'Jalál', 3: 'Jamál', 4: "'Aẓamat", 5: 'Núr',
+                  6: 'Raḥmat', 7: 'Kalimát', 8: 'Kamál', 9: "Asmá'",
+                  10: "'Izzat", 11: 'Mashíyyat', 12: "'Ilm", 13: 'Qudrat',
+                  14: 'Qawl', 15: 'Masá’il', 16: 'Sharaf', 17: 'Sulṭán',
+                  18: 'Mulk', 0: 'Ayyám-i-Há', 19: "'Alá'"}
+    MONTHNAMES_ABV = {1: 'Bah', 2: 'Jal', 3: 'Jam', 4: 'Aẓa', 5: 'Núr',
+                      6: 'Raḥ', 7: 'Kal', 8: 'Kam', 9: 'Asm', 10: 'Izz',
+                      11: 'Mas', 12: 'Ilm', 13: 'Qud', 14: 'Qaw', 15: 'Mas',
+                      16: 'Sha', 17: 'Sul', 18: 'Mul', 0: 'Ayy', 19: 'Alá'}
     # This keeps the Badi day count in par with the Gregorian day count.
     DAYS_BEFORE_1ST_YEAR = 78 # This keeps us insync with Gregorian dates.
 
@@ -871,7 +873,7 @@ class TimeDateUtils(BahaiCalendar):
             day = int(d) if d.isdigit() else 1
             date = self._isoweek_to_badi(year, wday, day, short=True)[:3]
         elif d_len in (7, 8):                   # YYYYDDD or YYYY-DDD
-            month_days = [(n, 19) for n, v in self.BADI_MONTH_NAMES]
+            month_days = self.BADI_MONTH_NUM_DAYS
             month_days[18] = (0, 4 + self._is_leap_year(year))
             days = int(dtstr[4:7] if dc == 0 else dtstr[5:8])
 

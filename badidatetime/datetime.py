@@ -19,8 +19,6 @@ from ._structures import struct_time
 from ._timedateutils import _td_utils
 
 _MAXORDINAL = 1097267 # date.max.toordinal()
-_MONTHNAMES = {num: name for num, name in BahaiCalendar.BADI_MONTH_NAMES}
-
 MINYEAR = BahaiCalendar.MINYEAR
 MAXYEAR = BahaiCalendar.MAXYEAR
 BADI_TZ = BahaiCalendar.BAHAI_LOCATION[2:4]
@@ -135,7 +133,21 @@ def _check_tzname(name):
                         f"not {type(name)!r}")
 
 def _local_tz_utc_offset_seconds():
-    return _dt.now(get_localzone()).utcoffset().total_seconds()
+    """
+    Returns the offset in seconds.
+
+    :returns: Offset in seconds.
+    :rtype: float
+
+    .. note::
+
+       Current this must use the Python built in datetime, because the
+       tzlocal package does not work with the badi datetime package.
+    """
+    dt = _dt.now(get_localzone())
+    offset = dt.utcoffset().total_seconds()
+    dst = dt.dst().total_seconds() != 0
+    return offset, dst
 
 def _module_name(module):
     """
@@ -703,7 +715,7 @@ class date(BahaiCalendar):
         weekday = _td_utils._day_of_week(*date[:3])
         wd_name = _td_utils.DAYNAMES[weekday]
         year, month, day = date[:3]
-        m_name = _MONTHNAMES[month]
+        m_name = _td_utils.MONTHNAMES[month]
         y_shim = 4 if year > -1 else 5
         return f"{wd_name} {m_name} {day:2d} 00:00:00 {year:0{y_shim}d}"
 
@@ -1682,7 +1694,7 @@ class datetime(date):
         # *** TODO *** Look into what should be done here, this isn't correct
         if not badi:
             # Get local UTC offset then correct for the Baha'i location.
-            offset_sec = _local_tz_utc_offset_seconds()
+            offset_sec = _local_tz_utc_offset_seconds()[0]
             offset_sec -= BADI_TZ[0] * 3600
         else:
             offset_sec = 0
@@ -2029,7 +2041,7 @@ class datetime(date):
         weekday = _td_utils._day_of_week(*date[:3])
         wd_name = _td_utils.DAYNAMES[weekday]
         year, month, day, hour, minute, second, us = date
-        m_name = _MONTHNAMES[month]
+        m_name = _td_utils.MONTHNAMES[month]
         y_shim = 4 if year > -1 else 5
         return (f"{wd_name} {m_name} {day:2d} "
                 f"{hour:02d}:{minute:02d}:{second:02d} {year:0{y_shim}d}")
@@ -2364,13 +2376,13 @@ class datetime(date):
 
     def __setstate(self, bytes_str, tzinfo):
         if tzinfo is not None and not isinstance(tzinfo, _tzinfo_class):
-            raise TypeError("bad tzinfo state arg")
+            raise TypeError("Bad tzinfo state arg.")
 
         if self.is_short:
             (yhi, ylo, m, self._day, self._hour,
              self._minute, self._second, us1, us2, us3) = bytes_str
             self._year = yhi * 256 + MINYEAR + ylo
-            self.__date = (self._year,)
+            self.__date = (self.year,)
         else:
             (k, v, y, m, d, self._hour, self._minute,
              self._second, us1, us2, us3) = bytes_str
@@ -2378,7 +2390,7 @@ class datetime(date):
             self._vahid = v
             self._year = y
             self._day = d
-            self.__date = (self._kull_i_shay, v, y)
+            self.__date = (self.kull_i_shay, v, y)
 
         if m > 127:
             self._fold = 1

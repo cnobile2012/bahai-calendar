@@ -257,10 +257,13 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         """
         Test that the _local_tz_utc_offset_seconds function returns the
         timezone offset in seconds.
+
+        NOTE: The _local_tz_utc_offset_seconds cannot be tested, because
+              Any test requires knowing the exact local timezone, so any
+              test would break if not run in the same timezone.
         """
-        data = (
-            (),
-            )
+        offset, is_dst = datetime._local_tz_utc_offset_seconds()
+        self.assertEqual()
 
 
     #@unittest.skip("Temporarily skipped")
@@ -1895,7 +1898,7 @@ class TestBadiDatetime_date(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test___setstate(self):
         """
-        Test that the __setstate method sets the year properly.
+        Test that the __setstate method sets the date properly.
         """
         data = (
             ((datetime.MINYEAR, 1, 1), b'\x00\x00\x01\x01'),
@@ -3519,13 +3522,13 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
              (1, 10, 10, 9, 14, 12, 30, 30), None, 0, True),
             ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False),
+             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, False),
             ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
              (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False),
             ((1, 10, 10, 9, 14, 12, 30, 30), datetime.UTC, 0,
              (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False),
             )
-        msg = "Expected {} with date0 {} date1 {}, found {}."
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
 
         for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
             dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
@@ -3534,37 +3537,121 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date0, date1, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___le__(self):
         """
         Test that the __le__ method returns True if less than or equal and
         False if not less than or equal.
         """
-        pass
+        data = (
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 30), None, 0, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 29), None, 0, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 31), None, 0, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, True),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-    @unittest.skip("Temporarily skipped")
+        for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
+            dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
+            result = dt0 <= dt1
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test___lt__(self):
         """
         Test that the __lt__ method returns True if less than and False
         if not less than.
         """
-        pass
+        data = (
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 30), None, 0, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 29), None, 0, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 31), None, 0, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, True),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-    @unittest.skip("Temporarily skipped")
+        for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
+            dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
+            result = dt0 < dt1
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test___ge__(self):
         """
         Test that the __ge__ method returns True if greater than or equal
         and False if not greater than or equal.
         """
-        pass
+        data = (
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 30), None, 0, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 29), None, 0, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 31), None, 0, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-    @unittest.skip("Temporarily skipped")
+        for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
+            dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
+            result = dt0 >= dt1
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date0, date1, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test___gt__(self):
         """
         Test that the __gt__ method returns True if greater than and False
         if not greater than.
         """
-        pass
+        data = (
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 30), None, 0, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 29), None, 0, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
+             (181, 9, 14, None, None, 12, 30, 31), None, 0, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False),
+            )
+        msg = "Expected {} with date0 {} and date1 {}, found {}."
+
+        for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
+            dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
+            result = dt0 > dt1
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date0, date1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__cmp(self):
@@ -3731,13 +3818,24 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, date0, td, date1, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___hash__(self):
         """
         Test that the __hash__ method returns a valid hash for both short
         and long form datetimes.
         """
-        pass
+        data = (
+            (datetime.MINYEAR, 1, 1, None, None, 12, 30, 30),
+            (-5, 18, 1, 1, 1, 12, 30, 30),
+            (1, 1, 1, None, None, 12, 30, 30),
+            (1, 1, 1, 1, 1, 12, 30, 30),
+            )
+        msg = "date {}, found {}."
+
+        for date in data:
+            dt = datetime.datetime(*date)
+            result = hash(dt)
+            self.assertTrue(len(str(result)) > 15, msg.format(date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__getstate(self):
@@ -3767,19 +3865,57 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, time, tz, fold, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___setstate(self):
         """
-        Test that the __setstate method 
+        Test that the __setstate method sets the datetime properly.
         """
-        pass
+        err_msg0 = "Bad tzinfo state arg."
+        data = (
+            ((datetime.MINYEAR, 1, 1), (12, 30, 30, 500000), None,
+             b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ', False),
+            ((-5, 18, 1, 1, 1), (12, 30, 30, 500000), None,
+             b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ', False),
+            ((1, 1, 1), (0, 0, 0, 0), None,
+             b'\x073\x01\x01\x00\x00\x00\x00\x00\x00', False),
+            ((1, 1, 1, 1, 1), (0, 0, 0, 0), datetime.BADI,
+             b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00', False),
+            ((datetime.MINYEAR, 1, 1), (12, 30, 30, 500000), None,
+             b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ', True),
+            )
+        msg = "Expected {} with bytes_str {}, found {}."
+
+        for date, time, tz, bytes_str, validity in data:
+            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
+                                   second=time[2], microsecond=time[3])
+
+            if validity:
+                try:
+                    dt._datetime__setstate(bytes_str, dt)
+                except TypeError as e:
+                    self.assertEqual(err_msg0, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {date} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                dt._datetime__setstate(bytes_str, tz)
+
+                if dt.is_short:
+                    result = (dt.year, dt.month, dt.day)
+                else:
+                    result = (dt.kull_i_shay, dt.vahid, dt.year,
+                              dt.month, dt.day)
+
+                self.assertEqual(date, result, msg.format(
+                    date, bytes_str, result))
 
     @unittest.skip("Temporarily skipped")
     def test___reduce_ex__(self):
         """
         Test that the __reduce_ex__ method 
         """
-        pass
+
 
 
 class TestBadiDatetime_timezone(unittest.TestCase):

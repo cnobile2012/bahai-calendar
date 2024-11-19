@@ -607,7 +607,18 @@ class DateTests(BahaiCalendar):
         # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
         # 365.2421897
         #self.MEAN_TROPICAL_YEAR = 365.2421897
-        self._MONTHNAMES = {num: name for num, name in self.BADI_MONTH_NAMES}
+        self._MONTHNAMES = {}
+
+        for num, name in enumerate(_td_utils.MONTHNAMES, start=1):
+            if num == 19:
+                n = 0
+            elif num == 20:
+                num = 19
+            else:
+                n = num
+
+            self._MONTHNAMES[n] = name
+
         self.gc = GregorianCalendar()
 
     def analyze_date_error(self, options):
@@ -948,8 +959,7 @@ class DateTests(BahaiCalendar):
 
                 for day in range(1, dm + 1):
                     date = (year, month, day)
-                    idx = (datetime._ymd2ord(
-                        self, year, month, day) % 7 + 7) % 7
+                    idx = (_td_utils._ymd2ord(year, month, day) % 7 + 7) % 7
                     badi_weekday = _daynames[idx]
                     greg_weekday = _g_daynames[idx]
                     data.append((date, ref_day, idx,
@@ -1110,8 +1120,8 @@ class DateTests(BahaiCalendar):
         else: # Ayyam-i-Ha
             day = days % 342
 
-        month_days = [(n, 19) for n, v in self.BADI_MONTH_NAMES]
-        month_days[18] = (0, ld)
+        month_days = self.BADI_MONTH_NUM_DAYS
+        month_days[18] = (0, ld) # Fix Ayyám-i-Há days
 
         for month, ds in month_days:
             if days > ds:

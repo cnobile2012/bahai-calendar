@@ -26,13 +26,11 @@ class BahaiCalendar(BaseCalendar):
     BAHAI_LOCATION = (35.682376, 51.285817, 3.5, 'Asia/Terhan', 0)
     GMT_LOCATION = (51.477928, -0.001545, 0, 0)
     BADI_EPOCH = 2394643.262113 # 2394645.261536 using Meeus' algorithm
-    BADI_MONTH_NAMES = (
-        (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
-        (6, 'Raḥmat'), (7, 'Kalimát'), (8, 'Kamál'), (9, "Asmá'"),
-        (10, "'Izzat"), (11, 'Mashíyyat'), (12, "'Ilm"), (13, 'Qudrat'),
-        (14, 'Qawl'), (15, 'Masá’il'), (16, 'Sharaf'), (17, 'Sulṭán'),
-        (18, 'Mulk'), (0, 'Ayyám-i-Há'), (19, "'Alá'")
-        )
+    BADI_MONTH_NUM_DAYS = [
+        (1, 19), (2, 19), (3, 19), (4, 19), (5, 19), (6, 19), (7, 19),
+        (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
+        (15, 19), (16, 19), (17, 19), (18, 19), (0, 0), (19, 19)
+        ]
     KULL_I_SHAY_MIN = -5
     KULL_I_SHAY_MAX = 4
     MINYEAR = -1842
@@ -339,8 +337,8 @@ class BahaiCalendar(BaseCalendar):
         else: # Ayyam-i-Ha
             day = days % 342
 
-        month_days = [(n, 19) for n, v in self.BADI_MONTH_NAMES]
-        month_days[18] = (0, ld)
+        month_days = self.BADI_MONTH_NUM_DAYS
+        month_days[18] = (0, ld) # Fix Ayyám-i-Há days
 
         for month, ds in month_days:
             if days <= ds: break
