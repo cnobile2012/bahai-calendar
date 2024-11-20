@@ -22,6 +22,7 @@ _MAXORDINAL = 1097267 # date.max.toordinal()
 MINYEAR = BahaiCalendar.MINYEAR
 MAXYEAR = BahaiCalendar.MAXYEAR
 BADI_TZ = BahaiCalendar.BAHAI_LOCATION[2:4]
+GMT_COORD = (51.477928, -0.001545, 0)
 
 def _cmp(x, y):
     return 0 if x == y else 1 if x > y else -1
@@ -1458,7 +1459,7 @@ class time:
 
             return ret
 
-        raise TypeError(f"Must be a str, not {type(fmt).__name__}")
+        raise TypeError(f"Must be a str, not {type(fmt).__name__}.")
 
     # Timezone functions
 
@@ -1479,7 +1480,7 @@ class time:
         """
         if self.tzinfo is not None:
             offset = self.tzinfo.badioffset(None)
-            _check_offset("utcoffset", offset)
+            _check_offset("badioffset", offset)
             return offset
 
     def tzname(self):
@@ -1827,13 +1828,15 @@ class datetime(date):
         """
         Return integer POSIX timestamp.
         """
-        epoch = datetime(1970, 1, 1)
+        epoch = datetime(126, 16, 2, None, None, 7, 58, 30)
         max_fold_seconds = 24 * 3600
         t = (self - epoch) // timedelta(0, 1)
 
         def local(u):
-            y, m, d, hh, mm, ss = _time.localtime(u)[:6]
-            return (datetime(y, m, d, hh, mm, ss) - epoch) // timedelta(0, 1)
+            y, m, d, hh, mm, ss = self.posix_timestamp(0, *GMT_COORD,
+                                                       short=True)[:6]
+            return (datetime(
+                y, m, d, None, None, hh, mm, ss) - epoch) // timedelta(0, 1)
 
         # Our goal is to solve t = local(u) for u.
         a = local(t) - t
@@ -2570,4 +2573,4 @@ BADI = timezone.badi = timezone._create(timedelta(hours=3.5))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-_EPOCH = datetime(126, 16, 2, tzinfo=timezone.utc)
+_EPOCH = datetime(126, 16, 2, None, None, 7, 58, 30, tzinfo=timezone.utc)

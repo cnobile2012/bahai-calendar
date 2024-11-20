@@ -2522,7 +2522,7 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the __format__ method returns a correctly formatting string.
         """
-        err_msg0 = "Must be a str, not {}"
+        err_msg0 = "Must be a str, not {}."
         data = (
             ((1, 30, 30), '', False, '01:30:30'),
             ((1, 30, 30), '%X', False, '01:30:30'),
@@ -3054,25 +3054,40 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, time, tz, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__mktime(self):
         """
-        Test that the _mktime method 
+        Test that the _mktime method finds the POSIX time in seconds.
         """
         data = (
-            (),
+            ((126, 16, 2, None, None, 7, 58, 30), None, 0, -1),
+            ((1, 1, 1), None, 0, -7938835021),
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
-               "found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
+            result = dt._mktime()
+            self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, tz, fold, result))
 
-
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_timestamp(self):
         """
         Test that thetimestamp method 
         """
-        pass
+        data = (
+            ((126, 16, 2, None, None, 7, 58, 30), None, 0, -1.0),
+            ((1, 1, 1), None, 0, -7938835021.0),
+            ((126, 16, 2, None, None, 7, 58, 30), datetime.UTC, 0, 0),
+            )
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
+
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
+            result = dt.timestamp()
+            self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_utctimetuple(self):
@@ -3423,7 +3438,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     @unittest.skip("Temporarily skipped")
     def test_strptime(self):
         """
-        Test that the strptime classmethod 
+        Test that the strptime method 
         """
 
 
@@ -3491,10 +3506,14 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         Test that the dst method returns the daylight savings time
         associated with the datetime object.
+
+        NOTE: This method cannot be properly tested until there is a way to
+              create a tzinfo object compatible with the badidatetime package.
         """
         data = (
             ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, None),
-            ((181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 1, ''),
+            ((181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 1, None),
+            ((181, 7, 1) )
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 

@@ -608,7 +608,7 @@ class TestBadiCalendar(unittest.TestCase):
             #                      UTC 12am == (126, 16, 2, 8, 0, 0)
             (0, 51.477928, -0.001545, 0, False, True, True,
              (126, 16, 2, 7, 58, 31.4976)),
-            #                      UTC 12am == (1, 7, 12, 16, 1, 8, 0, 0)
+            #                      UTC 12am == (1, 7, 12, 16, 2, 8, 0, 0)
             (0, 51.477928, -0.001545, 0, False, False, True,
              (1, 7, 12, 16, 2, 7, 58, 31.4976)),
             # 1969-12-31T23:59:59 This is one second before the POSIX epoch
