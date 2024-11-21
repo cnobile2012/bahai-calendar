@@ -2751,11 +2751,12 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ',), (), None, 0,
              False, '-05-18-01-01-01T12:30:30.500000'),
             # Short form
-            ((b'\x073\x01\x01\x00\x00\x00\x00\x00\x00',), (),
+            ((b'\x073\x01\x01\x00\x00\x00\x00\x00\x00', datetime.BADI), (),
              datetime.timezone.badi, 0, False, '0001-01-01T00:00:00+03:30'),
             # Long form
-            ((b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00',), (),
-             datetime.timezone.badi, 0, False, '01-01-01-01-01T00:00:00+03:30'),
+            ((b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00', datetime.BADI),
+             (), datetime.timezone.badi, 0, False,
+             '01-01-01-01-01T00:00:00+03:30'),
             )
         msg = ("Expected {} with date {}, time {}, timezone {}, "
                "and fold {}, found {}.")
@@ -3856,33 +3857,70 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             result = hash(dt)
             self.assertTrue(len(str(result)) > 15, msg.format(date, result))
 
+    @unittest.skip("Temporarily skipped")
+    def test__is_pickle_data(self):
+        """
+        Test that the _is_pickle_data classmethod returns the correct results
+        depending on the incoming data.
+        """
+        err_msg0 = "Invalid string {} had length of {} for pickle."
+        err_msg1 = ("Failed to encode latin1 string when unpickling a date or "
+                    "datetime object. pickle.load(data, encoding='latin1') is "
+                    "assumed.")
+        data = (
+            ((b'\x073\x01\x01', None), False, True),
+            ((b'\x14\x01\x01\x01\x01', None), False, False),
+            ((181, 10), False, None),
+            ((b'\x073\x20\x01', None), False, None),
+            ((b'\x14\x01\x01\x14\x01', None), False, None),
+            ((b'\x14\x01\x01\x01\x01\x01', None), True, err_msg0.format(
+                b'\x14\x01\x01\x01\x01\x01', 6)),
+            (('\u2190\x01\x01\x01', None), True, err_msg1),
+            )
+        msg = "Expected {} with value {}, found {}."
+
+        for value, validity, expected_result in data:
+            if validity:
+                try:
+                    result = datetime.date._is_pickle_data(*value)
+                except (AssertionError, ValueError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {value} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = datetime.date._is_pickle_data(*value)
+                self.assertEqual(expected_result, result,
+                                 msg.format(expected_result, value, result))
+
     #@unittest.skip("Temporarily skipped")
     def test__getstate(self):
         """
         Test that the _getstate method returns the correct state for pickling.
         """
         data = (
-            ((datetime.MINYEAR, 1, 1), (12, 30, 30, 500000), None, 0,
+            ((datetime.MINYEAR, 1, 1, None, None, 12, 30, 30, 500000), None, 0,
              (b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ',)),
-            ((-5, 18, 1, 1, 1), (12, 30, 30, 500000), None, 0,
+            ((-5, 18, 1, 1, 1, 12, 30, 30, 500000), None, 0,
              (b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ',)),
-            ((1, 1, 1), (), datetime.BADI, 0,
+            ((1, 1, 1, None, None), datetime.BADI, 0,
              (b'\x073\x01\x01\x00\x00\x00\x00\x00\x00',
               datetime.timezone.badi)),
-            ((1, 1, 1, 1, 1), (), datetime.BADI, 0,
+            ((1, 1, 1, 1, 1), datetime.BADI, 0,
              (b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00',
               datetime.timezone.badi)),
+            ((181, 1, 1, None, None, 12, 30, 30, 500000), datetime.BADI, 0,
+             (b'\x07\xe7\x01\x01\x0c\x1e\x1e\x07\xa1 ',
+              datetime.timezone.badi)),
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
-               "found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            hh, mm, ss, us = self._get_time(time)
-            dt = datetime.datetime(*date, hour=hh, minute=mm, second=ss,
-                                   microsecond=us, tzinfo=tz, fold=fold)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt._getstate()
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, time, tz, fold, result))
+                expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___setstate(self):
@@ -3895,7 +3933,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ', False),
             ((-5, 18, 1, 1, 1), (12, 30, 30, 500000), None,
              b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ', False),
-            ((1, 1, 1), (0, 0, 0, 0), None,
+            ((1, 1, 1), (0, 0, 0, 0), datetime.BADI,
              b'\x073\x01\x01\x00\x00\x00\x00\x00\x00', False),
             ((1, 1, 1, 1, 1), (0, 0, 0, 0), datetime.BADI,
              b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00', False),
@@ -3929,12 +3967,40 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 self.assertEqual(date, result, msg.format(
                     date, bytes_str, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test___reduce_ex__(self):
         """
-        Test that the __reduce_ex__ method 
+        Test that the __reduce_ex__ method creates the correct pickle value
+        for protocol 3.
         """
+        data = (
+            ((181, 1, 1, None, None, 12, 30, 30, 500000), datetime.BADI, 0),
+            ((181, 1, 1, None, None, 12, 30, 30, 500000), datetime.UTC, 1),
+            )
+        msg = "Expected {}, with date {}, timezone {}, and fold {}, found {}"
 
+        for date, tz, fold in data:
+            dt0 = datetime.datetime(*date, tzinfo=tz, fold=fold)
+            obj = pickle.dumps(dt0)
+            dt1 = pickle.loads(obj)
+
+            if dt0.is_short:
+                dt0_result = (dt0.year, dt0.month, dt0.day, dt0.hour,
+                              dt0.minute, dt0.second, dt0.microsecond,
+                              dt0.tzinfo, dt0.fold)
+                dt1_result = (dt1.year, dt1.month, dt1.day, dt1.hour,
+                              dt1.minute, dt1.second, dt1.microsecond,
+                              dt1.tzinfo, dt1.fold)
+            else:
+                dt0_result = (dt0.kull_i_shay, dt0.vahid, dt0.year, dt0.month,
+                              dt0.day, dt0.hour, dt0.minute, dt0.second,
+                              dt0.microsecond, dt0.tzinfo, dt0.fold)
+                dt1_result = (dt1.kull_i_shay, dt1.vahid, dt1.year, dt1.month,
+                              dt1.day, dt1.hour, dt1.minute, dt1.second,
+                              dt1.microsecond, dt1.tzinfo, dt1.fold)
+
+            self.assertEqual(dt0_result, dt1_result, msg.format(
+                dt0_result, date, tz, fold, dt1_result))
 
 
 class TestBadiDatetime_timezone(unittest.TestCase):

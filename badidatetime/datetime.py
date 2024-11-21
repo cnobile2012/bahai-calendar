@@ -142,7 +142,7 @@ def _local_tz_utc_offset_seconds():
 
     .. note::
 
-       Current this must use the Python built in datetime, because the
+       Currently this must use the Python built in datetime, because the
        tzlocal package does not work with the badi datetime package.
     """
     dt = _dt.now(get_localzone())
@@ -1024,7 +1024,7 @@ class date(BahaiCalendar):
     # Pickle support.
 
     @classmethod
-    def _is_pickle_data(cls, a, b, p_len=(4, 5)):
+    def _is_pickle_data(cls, a, b):
         """
         Check if the incoming date is pickle data or actual date information.
 
@@ -1037,14 +1037,14 @@ class date(BahaiCalendar):
                  information.
         :rtype: bool or NoneType
         """
-        if b is None and isinstance(a, (bytes, str)):
+        if isinstance(b, NoneType) and isinstance(a, (bytes, str)):
             a_len = len(a)
-            assert a_len in p_len, (
+            assert a_len in (4, 5), (
                 f"Invalid string {a} had length of {a_len} for pickle.")
-            short = True if a_len == p_len[0] else False
+            short = True if a_len == 4 else False
 
-            if ((short and 1 <= ord(a[2:3])&0x7F <= 19)
-                or not short and 1 <= ord(a[3:4])&0x7F <= 19):
+            if ((short and 1 <= ord(a[2:3]) <= 19)
+                or not short and 1 <= ord(a[3:4]) <= 19):
                 if isinstance(a, str):
                     try:
                         a = a.encode('latin1')
@@ -1590,14 +1590,14 @@ class datetime(date):
                 hour:float=0, minute:float=0, second:float=0,
                 microsecond:int=0, tzinfo:tzinfo=None, *,
                 fold:int=0) -> object:
-        if (short := datetime._is_pickle_data(
-            a, b, p_len=(10, 11))) is not None:
+        if (short := datetime._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
             self.__short = short
-            self.__setstate(a, tzinfo)
+            self.__setstate(a, b)
         else:
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
             date_len = len(b_date)
+            #print(b_date)
             assert date_len in (3, 5), (
                 "A full short or long form Badi date must be used, found "
                 f"{date_len} fields.")
@@ -2348,6 +2348,43 @@ class datetime(date):
 
     # Pickle support.
 
+    @classmethod
+    def _is_pickle_data(cls, a, b):
+        """
+        Check if the incoming date is pickle data or actual date information.
+
+        :param a: Pickle data, the kull_i_shay, or year.
+        :type a: int, str, or bypes
+        :param b: None, vahid, or month
+        :type b: NoneType or int
+        :return: A Boolean if a short or long Badi date derived from pickle
+                 data. A None can be returned if a and b are real date
+                 information.
+        :rtype: bool or NoneType
+        """
+        if isinstance(b, (NoneType, tzinfo)) and isinstance(a, (bytes, str)):
+            a_len = len(a)
+            assert a_len in (10, 11), (
+                f"Invalid string {a} had length of {a_len} for pickle.")
+            short = True if a_len == 10 else False
+
+            if ((short and 1 <= ord(a[2:3])&0x7F <= 19)
+                or not short and 1 <= ord(a[3:4])&0x7F <= 19):
+                if isinstance(a, str):
+                    try:
+                        a = a.encode('latin1')
+                    except UnicodeEncodeError:
+                        raise ValueError(
+                            "Failed to encode latin1 string when unpickling "
+                            "a date or datetime object. "
+                            "pickle.load(data, encoding='latin1') is assumed.")
+            else:
+                short = None
+        else:
+            short = None
+
+        return short
+
     def _getstate(self, protocol=3):
         if self.is_short:
             yhi, ylo = divmod(self._year - MINYEAR, 256)
@@ -2368,7 +2405,6 @@ class datetime(date):
 
         us2, us3 = divmod(self._microsecond, 256)
         us1, us2 = divmod(us2, 256)
-
         basestate = bytes(state + (m, self._day, self._hour, self._minute,
                                    self._second, us1, us2, us3))
 
