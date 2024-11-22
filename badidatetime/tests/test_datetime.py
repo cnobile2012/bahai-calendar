@@ -3857,7 +3857,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             result = hash(dt)
             self.assertTrue(len(str(result)) > 15, msg.format(date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__is_pickle_data(self):
         """
         Test that the _is_pickle_data classmethod returns the correct results
@@ -3868,21 +3868,28 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                     "datetime object. pickle.load(data, encoding='latin1') is "
                     "assumed.")
         data = (
-            ((b'\x073\x01\x01', None), False, True),
-            ((b'\x14\x01\x01\x01\x01', None), False, False),
+            ((b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ', None), False, True),
+            ((b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ', None), False,
+             False),
             ((181, 10), False, None),
-            ((b'\x073\x20\x01', None), False, None),
-            ((b'\x14\x01\x01\x14\x01', None), False, None),
+            ((b'\x073\x01\x01\x00\x00\x00\x00\x00\x00', datetime.BADI), False,
+             True),
+            ((b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00', datetime.BADI),
+             False, False),
+            (((181, 1, 1, None, None), None), False, None),
+            (('\x00\x00\xf3\x01\x0c\x1e\x1e\x07\xa1 ', None), False, None),
+            (('\x0e\x12\x01\xf3\x01\x0c\x1e\x1e\x07\xa1 ', None), False, None),
             ((b'\x14\x01\x01\x01\x01\x01', None), True, err_msg0.format(
                 b'\x14\x01\x01\x01\x01\x01', 6)),
-            (('\u2190\x01\x01\x01', None), True, err_msg1),
+            (('\u2190\x01\x01\x011\x01\x1e\x1e\x07\xa1 ', None), True,
+             err_msg1),
             )
         msg = "Expected {} with value {}, found {}."
 
         for value, validity, expected_result in data:
             if validity:
                 try:
-                    result = datetime.date._is_pickle_data(*value)
+                    result = datetime.datetime._is_pickle_data(*value)
                 except (AssertionError, ValueError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -3890,9 +3897,9 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                     raise AssertionError(f"With {value} an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = datetime.date._is_pickle_data(*value)
-                self.assertEqual(expected_result, result,
-                                 msg.format(expected_result, value, result))
+                result = datetime.datetime._is_pickle_data(*value)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, value, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__getstate(self):
