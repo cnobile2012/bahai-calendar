@@ -13,6 +13,7 @@ import math as _math
 from datetime import datetime as _dt, tzinfo as _tzinfo
 from types import NoneType
 from tzlocal import get_localzone
+import geocoder
 
 from .badi_calendar import BahaiCalendar
 from ._structures import struct_time
@@ -21,7 +22,7 @@ from ._timedateutils import _td_utils
 _MAXORDINAL = 1097267 # date.max.toordinal()
 MINYEAR = BahaiCalendar.MINYEAR
 MAXYEAR = BahaiCalendar.MAXYEAR
-BADI_TZ = BahaiCalendar.BAHAI_LOCATION[2:4]
+BADI_TZ = BahaiCalendar.BAHAI_LOCATION[2:4] # 3.5, Asia/Terhan
 GMT_COORD = (51.477928, -0.001545, 0)
 
 def _cmp(x, y):
@@ -133,22 +134,36 @@ def _check_tzname(name):
         raise TypeError("tzinfo.tzname() must return None or string, "
                         f"not {type(name)!r}")
 
-def _local_tz_utc_offset_seconds():
+def _local_timezone_info():
     """
-    Returns the offset in seconds.
+    Returns the offset in seconds, dst, IANA timezone key.
 
-    :returns: Offset in seconds.
-    :rtype: float
+    :returns: Offset in seconds, True or False for dst, and the IANA key.
+    :rtype: tuple
 
     .. note::
 
        Currently this must use the Python built in datetime, because the
-       tzlocal package does not work with the badi datetime package.
+       tzlocal package does not work completely with the badi datetime
+       package.
     """
-    dt = _dt.now(get_localzone())
+    localzone = get_localzone()
+    dt = _dt.now(localzone)
     offset = dt.utcoffset().total_seconds()
     dst = dt.dst().total_seconds() != 0
-    return offset, dst
+    return offset, dst, localzone.key
+
+def _get_local_coordinates():
+    """
+    """
+    offset, dst, key = _local_timezone_info()
+    # Get latitude and longitude
+    g = geocoder.ip('me')
+    latitude = g.lat
+    longitude = g.lng
+    return latitude, longitude, offset / 3600
+
+LOCAL_COORD = _get_local_coordinates()
 
 def _module_name(module):
     """
@@ -582,7 +597,7 @@ class date(BahaiCalendar):
         :rtype: date
         """
         bc = BahaiCalendar()
-        date = bc.posix_timestamp(t, short=short, trim=True)
+        date = bc.posix_timestamp(t, *LOCAL_COORD, short=short, trim=True)
         del bc
         return cls(*date[:-3]) # We do not need any time values.
 
@@ -1695,13 +1710,14 @@ class datetime(date):
         # *** TODO *** Look into what should be done here, this isn't correct
         if not badi:
             # Get local UTC offset then correct for the Baha'i location.
-            offset_sec = _local_tz_utc_offset_seconds()[0]
+            offset_sec = _local_timezone_info()[0]
             offset_sec -= BADI_TZ[0] * 3600
         else:
             offset_sec = 0
 
         t += offset_sec
-        date_time = bc.posix_timestamp(t, ms=True, short=short, trim=False)
+        date_time = bc.posix_timestamp(t, *LOCAL_COORD, us=True, short=short,
+                                       trim=False)
         date, hh, mm, ss, us = cls._split_date_time(date_time, short)
         # clamp out leap seconds if the platform has them
         ss = min(ss, 59)
@@ -1719,8 +1735,9 @@ class datetime(date):
             # than the max time fold. See comments in _datetimemodule's
             # version of this method for more details.
             if t > max_fold_seconds and not sys.platform.startswith("win"):
-                date_time = bc.posix_timestamp(t - max_fold_seconds, ms=True,
-                                               short=short, trim=False)
+                date_time = bc.posix_timestamp(
+                    t - max_fold_seconds, *LOCAL_COORD, us=True, short=short,
+                    trim=False)
                 date, hh, mm, ss, um = cls._split_date_time(date_time, short)
                 probe1 = cls(*date, hour=hh, minute=mm, second=ss,
                              microsecond=us, tzinfo=tz)
@@ -1728,8 +1745,8 @@ class datetime(date):
 
                 if trans.days < 0:
                     t += trans // timedelta(0, 1)
-                    date_time = bc.posix_timestamp(t, ms=True, short=short,
-                                                   trim=False)
+                    date_time = bc.posix_timestamp(t, *LOCAL_COORD, us=True,
+                                                   short=short, trim=False)
                     probe2 = cls(*date, hour=hh, minute=mm, second=ss,
                                  microsecond=us, tzinfo=tz)
 
@@ -1833,7 +1850,7 @@ class datetime(date):
         t = (self - epoch) // timedelta(0, 1)
 
         def local(u):
-            y, m, d, hh, mm, ss = self.posix_timestamp(0, *GMT_COORD,
+            y, m, d, hh, mm, ss = self.posix_timestamp(0, *LOCAL_COORD,
                                                        short=True)[:6]
             return (datetime(
                 y, m, d, None, None, hh, mm, ss) - epoch) // timedelta(0, 1)
@@ -1966,19 +1983,33 @@ class datetime(date):
         return obj
 
     def _local_timezone(self):
+        """
+        """
         if self.tzinfo is None:
             ts = self._mktime()
         else:
             ts = (self - _EPOCH) // timedelta(seconds=1)
 
-        localtm = _time.localtime(ts)
-        local = datetime(*localtm[:6])
+        ts = self.posix_timestamp(ts, *LOCAL_COORD, short=self.is_short)
+        ts_len = len(ts)
+
+        if self.is_short:
+            need = 6 - ts_len
+            ts += (0,) * need if need > 0 else ()
+            localtm = _td_utils._build_struct_time(ts, -1, short_in=True)
+            local = datetime(*localtm[:6])
+        else:
+            need = 8 - ts_len
+            ts += (0,) * need if need > 0 else ()
+            localtm = _td_utils._build_struct_time(ts, -1, short_in=False)
+            local = datetime(*localtm[:8])
+
         # Extract TZ data
         gmtoff = localtm.tm_gmtoff
         zone = localtm.tm_zone
         return timezone(timedelta(seconds=gmtoff), zone)
 
-    def asutctimezone(self, tz=None):
+    def astimezone(self, tz=None):
         if tz is None:
             tz = self._local_timezone()
         elif not isinstance(tz, tzinfo):
@@ -2003,32 +2034,6 @@ class datetime(date):
         utc = (self - myoffset).replace(tzinfo=tz)
         # Convert from UTC to tz's local time.
         return tz.fromutc(utc)
-
-    def asbaditimezone(self, tz=None):
-        if tz is None:
-            tz = self._local_timezone()
-        elif not isinstance(tz, tzinfo):
-            raise TypeError("tz argument must be an instance of tzinfo")
-
-        mytz = self.tzinfo
-
-        if mytz is None:
-            mytz = self._local_timezone()
-            myoffset = mytz.badioffset(self)
-        else:
-            myoffset = mytz.badioffset(self)
-
-            if myoffset is None:
-                mytz = self.replace(tzinfo=None)._local_timezone()
-                myoffset = mytz.badioffset(self)
-
-        if tz is mytz:
-            return self
-
-        # Convert self to BADI, and attach the new time zone object.
-        badi = (self - myoffset).replace(tzinfo=tz)
-        # Convert from BADI to tz's local time.
-        return tz.frombadi(badi)
 
     # Ways to produce a string.
 
@@ -2602,7 +2607,7 @@ class timezone(tzinfo):
         return hash(self._offset)
 
 UTC = timezone.utc = timezone._create(timedelta(0))
-BADI = timezone.badi = timezone._create(timedelta(hours=3.5))
+BADI = timezone.badi = timezone._create(timedelta(hours=BADI_TZ[0]))
 
 # bpo-37642: These attributes are rounded to the nearest minute for backwards
 # compatibility, even though the constructor will accept a wider range of

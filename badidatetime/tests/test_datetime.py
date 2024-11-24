@@ -253,18 +253,17 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 datetime._check_tzname(name)
 
     @unittest.skip("Temporarily skipped")
-    def test__local_tz_utc_offset_seconds(self):
+    def test__local_timezone_info(self):
         """
-        Test that the _local_tz_utc_offset_seconds function returns the
-        timezone offset in seconds.
+        Test that the _local_timezone_info function returns the timezone
+        offset in seconds, dst (True or False), and the IANA key.
 
-        NOTE: The _local_tz_utc_offset_seconds cannot be tested, because
-              Any test requires knowing the exact local timezone, so any
-              test would break if not run in the same timezone.
+        NOTE: The _local_timezone_info cannot be tested, because any test
+              requires knowing the exact local timezone, and would break if
+              not run in the same timezone.
         """
-        offset, is_dst = datetime._local_tz_utc_offset_seconds()
+        offset, is_dst = datetime._local_timezone_info()
         self.assertEqual()
-
 
     #@unittest.skip("Temporarily skipped")
     def test__module_name(self):
@@ -1065,8 +1064,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         data = (
             (0, True, '0126-16-02'),
-            (1723057467.0619307, False, '01-10-10-08-09'),
-            (1723057467.0619307, True, '0181-08-09'),
+            (1723057467.0619307, False, '01-10-10-08-08'),
+            (1723057467.0619307, True, '0181-08-08'),
             )
         msg = "Expected {} with timestamp {}, found {}."
 
@@ -3290,16 +3289,9 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         pass
 
     @unittest.skip("Temporarily skipped")
-    def test_asutctimezone(self):
+    def test_astimezone(self):
         """
-        Test that the asutctimezone method 
-        """
-        pass
-
-    @unittest.skip("Temporarily skipped")
-    def test_asbaditimezone(self):
-        """
-        Test that the asbaditimezone method 
+        Test that the astimezone method 
         """
         pass
 
@@ -3439,7 +3431,9 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     @unittest.skip("Temporarily skipped")
     def test_strptime(self):
         """
-        Test that the strptime method 
+        Test that the strptime method parses a date from a string.
+
+        NOTE: This may need a rewrite of the entire _strptime package.
         """
 
 
