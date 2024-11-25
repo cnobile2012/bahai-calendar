@@ -4,8 +4,6 @@
 #
 __docformat__ = "restructuredtext en"
 
-import time
-import tzlocal
 from typing import NamedTuple
 
 from .badi_calendar import BahaiCalendar
@@ -79,7 +77,7 @@ class struct_time:
     """
     Create a structure representing a Badi date and time.
     """
-    def __new__(cls, date:tuple):
+    def __new__(cls, date:tuple, tzinfo:'timezone'=None):
         self = object.__new__(cls)
         super().__init__(self)
         short = cls.__is_short_form(date)
@@ -90,9 +88,9 @@ class struct_time:
             raise ValueError(msg)
 
         if short:
-            inst = ShortFormStruct(*date) #self.__fill_in_missing(date, short))
+            inst = ShortFormStruct(*self.__fill_in_missing(date, tzinfo, short))
         else:
-            inst = LongFormStruct(*date) #self.__fill_in_missing(date, short))
+            inst = LongFormStruct(*self.__fill_in_missing(date, tzinfo, short))
 
         return inst
 
@@ -110,26 +108,22 @@ class struct_time:
 
         return short
 
-    ## @classmethod
-    ## def __fill_in_missing(cls, date, short):
-    ##     """
-    ##     Fill in missing data.
-    ##     """
-    ##     from .datetime import datetime
-    ##     bc = BahaiCalendar()
+    @classmethod
+    def __fill_in_missing(cls, date, tzinfo, short):
+        """
+        Fill in missing data.
+        """
+        from badidatetime import datetime
 
-    ##     if short:
-    ##         b_date = date[:3]
-    ##         b_time = date[3:6]
-    ##     else:
-    ##         b_date = date[:5]
-    ##         b_time = date[5:8]
+        if short:
+            b_date = date[:3] + (None, None) + date[3:6]
+        else:
+            b_date = date[:8]
 
-    ##     date = list(date)
-    ##     dt = datetime(*b_date, hour=b_time[0], minute=b_time[1],
-    ##                   second=b_time[2])
-    ##     # tm_zone and tm_gmtoff
-    ##     offset = dt.utcoffset()
-    ##     total_seconds = offset.total_seconds() if offset else None
-    ##     date += [dt.tzname(), total_seconds]
-    ##     return tuple(date)
+        date = list(date)
+        dt = datetime.datetime(*b_date, tzinfo=tzinfo)
+        # tm_zone and tm_gmtoff
+        offset = dt.utcoffset()
+        total_seconds = offset.total_seconds() if offset else None
+        date += [dt.tzname(), total_seconds]
+        return tuple(date)

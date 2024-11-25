@@ -36,8 +36,8 @@ class PosixTests:
     BADI_US_E_TZ = datetime.timezone(datetime.timedelta(hours=-5))
 
     TEST_TS = (
-        (18000, (1970, 1, 1), UTC_US_E_TZ,
-         (126, 16, 2, None, None, 6, 57, 12.24, 0), BADI_US_E_TZ),
+        (18000, (1970, 1, 1), BADI_US_E_TZ, ()),
+        (1732424400, (2024, 11, 24), BADI_US_E_TZ, ()),
         )
 
     def __init__(self):
@@ -52,11 +52,10 @@ class PosixTests:
         """
         data = []
 
-        for t, tg_date, tg_tz, tb_date, tb_tz in self.TEST_TS:
-            g_date = dtime.datetime(*tg_date, tzinfo=tg_tz)
-            b_date = datetime.datetime(*tb_date, tzinfo=tb_tz)
-            #            UTC              BADI
-            data.append((tg_date, g_date, tb_date, b_date))
+        for t, tg_date, tb_tz, expected_result, in self.TEST_TS:
+            b_date = datetime.datetime.fromtimestamp(t, tz=tb_tz)
+            #            ts UTC      BADI
+            data.append((t, tg_date, b_date))
 
         return data
 
@@ -78,11 +77,10 @@ if __name__ == "__main__":
     if options.analyze0: # -a
         #print(pt.analize0(options))
 
-        [print(f"{str(tg_date):13} "
-               f"{str(g_date):13} "
-               f"{str(tb_date):13} "
+        [print(f"{t:10} "
+               f"{str(tg_date):13} "
                f"{str(b_date):13} "
-               ) for tg_date, g_date, tb_date, b_date in pt.analize0(options)]
+               ) for t, tg_date, b_date in pt.analize0(options)]
     else:
         parser.print_help()
 

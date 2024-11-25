@@ -13,7 +13,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from ..datetime import date as ddate
+from badidatetime import datetime
 from .._timedateutils import _td_utils
 from ..badi_calendar import BahaiCalendar
 
@@ -147,6 +147,20 @@ class TestTimeDateUtils(unittest.TestCase):
         an invalid tupple type.
         """
         bad_t, ttup_l, ttup_s, ttup_tl, ttup_ts = 0, 1, 2, 3, 4
+
+        def make_ttup(t_type):
+            if t_type == bad_t:
+                ttup = date
+            elif t_type == ttup_l:
+                ttup = _td_utils._build_struct_time(date, dstflag)
+            elif t_type == ttup_s:
+                ttup = _td_utils._build_struct_time(date, dstflag,
+                                                    short_in=True)
+            else: # ttup_tl and ttup_ts
+                ttup = date + (dstflag,)
+
+            return ttup
+
         MIN_K = _td_utils.KULL_I_SHAY_MIN
         MAX_K = _td_utils.KULL_I_SHAY_MAX
         MIN_Y = _td_utils.MINYEAR
@@ -163,7 +177,7 @@ class TestTimeDateUtils(unittest.TestCase):
         err_msg5 = ("Invalid day '{}' for month '{}', it must be in the "
                     "range of [1, {}].")
         err_msg6 = "Invalid hour '{}', it must be in the range of [0, 24]."
-        err_msg7 = "Invalid minute '{}', it must be in the range of [0, 60]."
+        err_msg7 = "Invalid minute '{}', it must be in the range of [0, 59]."
         err_msg8 = "Invalid second '{}', it must be in the range of [0, 61]."
         err_msg9 = "Invalid week day '{}', it must be inthe range of [0, 6]."
         err_msg10 = ("Invalid day '{}' in year, it must be in the range of "
@@ -265,18 +279,9 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {}, with date {}. found {}."
 
         for date, dstflag, t_type, validity, expected_result in data:
-            if t_type == bad_t:
-                ttup = date
-            elif t_type == ttup_l:
-                ttup = _td_utils._build_struct_time(date, dstflag)
-            elif t_type == ttup_s:
-                ttup = _td_utils._build_struct_time(date, dstflag,
-                                                    short_in=True)
-            else: # ttup_tl and ttup_ts
-                ttup = date + (dstflag,)
-
             if validity: # Invalid tests
                 try:
+                    ttup = make_ttup(t_type)
                     _td_utils._checktm(ttup)
                 except (AssertionError, TypeError) as e:
                     self.assertEqual(expected_result, str(e))
@@ -285,6 +290,7 @@ class TestTimeDateUtils(unittest.TestCase):
                     raise AssertionError(
                         f"With date {date} an error was not raised,")
             else: # Valid tests (Nothing to assert)
+                ttup = make_ttup(t_type)
                 _td_utils._checktm(ttup)
 
     #@unittest.skip("Temporarily skipped")
@@ -294,13 +300,13 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         ttup_l, ttup_s, ttup_tl, ttup_ts = 1, 2, 3, 4
         data = (
-            ('%a', (1, 1, 1, 1, 1, 0, 0, 0), -1, ttup_l, 'Idā'),
-            ('%A', (1, 1, 1, 0, 0, 0), -1, ttup_s, '`Idāl'),
+            ('%a', (1, 1, 1, 1, 1, 0, 0, 0), -1, ttup_l, 'Fiḍ'),
+            ('%A', (1, 1, 1, 0, 0, 0), -1, ttup_s, 'Fiḍāl'),
             ('%b', (1, 1, 1, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, 'Bah'),
             ('%B', (1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_ts, 'Bahá'),
             ('%c', (1, 1, 1, 1, 1, 3, 1, 1), -1, ttup_l,
-             'Idā Bah  1 03:01:01 1 01 01'),
-            ('%c', (1, 1, 1, 3, 1, 1), -1, ttup_s, 'Idā Bah  1 03:01:01 0001'),
+             'Fiḍ Bah  1 03:01:01 1 01 01'),
+            ('%c', (1, 1, 1, 3, 1, 1), -1, ttup_s, 'Fiḍ Bah  1 03:01:01 0001'),
             ('%C', (1, 10, 10, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '01'),
             ('%C', (181, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '01'),
             ('%d', (1, 1, 1, 1, 8, 0, 0, 0), -1, ttup_l, '08'),
@@ -332,7 +338,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%S', (1, 1, 1, 0, 0, 5), -1, ttup_s, '05'),
             ('%-S', (1, 1, 1, 1, 1, 0, 0, 5, 1, 1), -1, ttup_tl, '5'),
             ('%T', (181, 1, 1, 3, 10, 5, 1, 1), -1, ttup_ts, '03:10:05'),
-            ('%u', (1, 10, 10, 1, 1, 0, 0, 0), -1, ttup_l, '5'),
+            ('%u', (1, 10, 10, 1, 1, 0, 0, 0), -1, ttup_l, '4'),
             ('%U', (1, 1, 1, 0, 0, 0), -1, ttup_s, '00'),
             ('%U', (181, 1, 10, 0, 0, 0), -1, ttup_s, '01'),
             ('%V', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '03'),
@@ -356,7 +362,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%d/%m/%Y, %H:%M:%S', (1, 10, 10, 1, 1, 12, 30, 30), -1, ttup_l,
              '01/01/0181, 12:30:30'),
             ('%B %A %r', (181, 11, 16, 18, 40, 59), -1, ttup_s,
-             'Mashíyyat Istiqlāl 06:40:59 PM'),
+             'Mashíyyat Istijlāl 06:40:59 PM'),
             )
         msg = "Expected {}, with format {} and date {}. found {}."
 
@@ -571,10 +577,10 @@ class TestTimeDateUtils(unittest.TestCase):
         the week for a given year, month, and day.
         """
         data = (
-            ((-1842, 1, 1), 3),
-            ((-91, 9, 15), 0),
-            ((-91, 10, 8), 5),
-            ((181, 9, 9), 3),
+            ((-1842, 1, 1), 2),
+            ((-91, 9, 15), 6),
+            ((-91, 10, 8), 4),
+            ((181, 9, 9), 2),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -619,6 +625,42 @@ class TestTimeDateUtils(unittest.TestCase):
             result = _td_utils._ord2ymd(ordinal, short=short)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, ordinal, short, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__build_struct_time(self):
+        """
+        Test that the _build_struct_time correctly builds a timetuple object.
+        """
+        data = (
+            ((181, 9, 6, 8, 45, 1), -1, None, True,
+             ("structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
+              "tm_hour=8, tm_min=45, tm_sec=1, tm_wday=6, tm_yday=158, "
+              "tm_isdst=-1)", None, None)),
+            ((1, 1, 1, 0, 0, 0), -1, datetime.BADI, True,
+             ("structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=1, "
+              "tm_hour=0, tm_min=0, tm_sec=0, tm_wday=3, tm_yday=1, "
+              "tm_isdst=-1)", 'UTC+03:30', 12600.0)),
+            ((1, 10, 10, 9, 6, 8, 45, 1), -1, None, False,
+             ("structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
+              "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=8, tm_min=45, "
+              "tm_sec=1, tm_wday=6, tm_yday=158, tm_isdst=-1)", None, None)),
+            ((1, 1, 1, 0, 0, 0), -1, datetime.BADI, True,
+             ('structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=1, '
+              'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=3, tm_yday=1, '
+              'tm_isdst=-1)', 'UTC+03:30', 12600.0)),
+            )
+        msg0 = "Expected {} with dt {}, dst {}, and timezone {}, found {}."
+        msg1 = "Expected {}, found {}."
+
+        for dt, dst, tz, short_in, expected_result in data:
+            result = _td_utils._build_struct_time(dt, dst, tzinfo=tz,
+                                                  short_in=short_in)
+            self.assertEqual(expected_result[0], str(result), msg0.format(
+                expected_result, dt, dst, tz, result))
+            self.assertEqual(expected_result[1], result.tm_zone,
+                             msg1.format(expected_result[1], result.tm_zone))
+            self.assertEqual(expected_result[2], result.tm_gmtoff,
+                             msg1.format(expected_result[2], result.tm_gmtoff))
 
     #@unittest.skip("Temporarily skipped")
     def test__isoweek_to_badi(self):
@@ -926,7 +968,7 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         err_msg0 = "Invalid hour '{}', it must be in the range of [0, 24]."
         err_msg1 = "Invalid minute '{}', it must be in the range of [0, 59]."
-        err_msg2 = "Invalid second '{}', it must be in the range of [0, 59]."
+        err_msg2 = "Invalid second '{}', it must be in the range of [0, 60]."
         err_msg3 = ("Invalid microseconds '{}', it must be in the range of "
                     "[0, 999999].")
         err_msg4 = "The fold argument '{}' must be either 0 or 1."
@@ -938,7 +980,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ((0, -1, 0, 0, 0), True, err_msg1.format(-1)),
             ((0, 60, 0, 0, 0), True, err_msg1.format(60)),
             ((0, 0, -1, 0, 0), True, err_msg2.format(-1)),
-            ((0, 0, 60, 0, 0), True, err_msg2.format(60)),
+            ((0, 0, 61, 0, 0), True, err_msg2.format(61)),
             ((0, 0, 0, -1, 0), True, err_msg3.format(-1)),
             ((0, 0, 0, 1000000, 0), True, err_msg3.format(1000000)),
             ((0, 0, 0, 0, -1), True, err_msg4.format(-1)),
@@ -971,7 +1013,7 @@ class TestTimeDateUtils(unittest.TestCase):
 
         for date, fmt, obj_t, expected_result in data:
             if obj_t == d_t:
-                d = ddate(*date)
+                d = datetime.datetime(*date)
             else:
                 d = datetime(*date)
 

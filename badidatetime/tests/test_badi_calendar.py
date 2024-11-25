@@ -699,7 +699,7 @@ class TestBadiCalendar(unittest.TestCase):
                     "range of [1, {}].")
         err_msg6 = "Invalid hour '{}', it must be in the range of [0, 24]."
         err_msg7 = "Invalid minute '{}', it must be in the range of [0, 59]."
-        err_msg8 = "Invalid second '{}', it must be in the range of [0, 59]."
+        err_msg8 = "Invalid second '{}', it must be in the range of [0, 60]."
         err_msg9 = ("Invalid microseconds '{}', it must be in the range of "
                     "[0, 999999].")
         err_msg10 = ("If there is a part day then there can be no hours, "

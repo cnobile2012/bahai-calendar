@@ -1235,7 +1235,7 @@ class TestBadiDatetime_date(unittest.TestCase):
         The Gregorian Calendar was adopted and compinsated 11 days.
         """
         data = (
-            # 0001-03-20 Sunday (Fiḍāl -> Tuesday)
+            # 0001-03-20 Saturday (Fiḍāl -> Wednesday)
             ((-1842, 1, 1), 'Fiḍāl Bahá  1 00:00:00 -1842'),
             # 1582-10-04 Thursday (Jamál -> Sunday)
             ((-261, 11, 7), 'Jamál Mashíyyat  7 00:00:00 -0261'),
@@ -1253,7 +1253,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             ((-26, 13, 9), '`Idāl Qudrat  9 00:00:00 -0026'),
             # 1825-03-21 Monday
             ((-18, 1, 1), 'Kamál Bahá  1 00:00:00 -0018'),
-            # 1843-03-21 Tuesday
+            # 1843-03-21 Wednesday
             ((0, 1, 1), 'Fiḍāl Bahá  1 00:00:00 0000'),
             # 1844-03-20 Thursday
             ((1, 1, 1), '`Idāl Bahá  1 00:00:00 0001'),
@@ -1293,7 +1293,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             ((181, 19, 1), '%D', '19/01/81'),
             ((1, 10, 10, 19, 1), '%D', '19/01/81'),
             ((1, 1, 1), '%x', '01/01/0001'),
-            ((181, 11, 17), '%c', 'Jal Mas  17 00:00:00 0181'),
+            ((181, 11, 17), '%c', 'Isq Mas  17 00:00:00 0181'),
             )
         msg = "Expected {} with date {} and format {}, found {}."
 
@@ -1446,12 +1446,12 @@ class TestBadiDatetime_date(unittest.TestCase):
         data = (
             ((181, 9, 6),
              "structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
-             "tm_hour=0, tm_min=0, tm_sec=0, tm_wday=0, tm_yday=158, "
+             "tm_hour=0, tm_min=0, tm_sec=0, tm_wday=6, tm_yday=158, "
              "tm_isdst=-1)"),
             ((1, 10, 10, 9, 6),
              "structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
              "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=0, tm_min=0, tm_sec=0, "
-             "tm_wday=0, tm_yday=158, tm_isdst=-1)")
+             "tm_wday=6, tm_yday=158, tm_isdst=-1)")
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -1789,8 +1789,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the weekday method returns the correct weekday number.
         """
         data = (
-            ((181, 1, 1), 4),
-            ((181, 10, 8), 0),
+            ((181, 1, 1), 3),  # Fiḍāl
+            ((181, 10, 8), 6), # Istiqlāl
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -1806,8 +1806,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the weekday method returns the correct weekday number.
         """
         data = (
-            ((181, 1, 1), 5),
-            ((181, 10, 8), 1),
+            ((181, 1, 1), 4),  # Fiḍāl -> Tuesday
+            ((181, 10, 8), 7), # Istiqlāl -> Friday
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -3030,20 +3030,20 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             ((181, 13, 9), (12, 30, 30), None, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
-             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=2, tm_yday=237, '
+             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=1, tm_yday=237, '
              'tm_isdst=-1)'),
             ((181, 13, 9), (12, 30, 30), datetime.BADI, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
-             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=2, tm_yday=237, '
+             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=1, tm_yday=237, '
              'tm_isdst=-1)'),
             ((1, 10, 10, 13, 9), (12, 30, 30), None, 0,
              'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
              'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
-             'tm_sec=30, tm_wday=2, tm_yday=237, tm_isdst=-1)'),
+             'tm_sec=30, tm_wday=1, tm_yday=237, tm_isdst=-1)'),
             ((1, 10, 10, 13, 9), (12, 30, 30), datetime.BADI, 0,
              'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
              'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
-             'tm_sec=30, tm_wday=2, tm_yday=237, tm_isdst=-1)'),
+             'tm_sec=30, tm_wday=1, tm_yday=237, tm_isdst=-1)'),
             )
         msg = "Expected {} with date {}, time {}, and timezone {}, found {}."
 
@@ -3097,11 +3097,11 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             ((181, 1, 1), (12, 30, 30), None, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=1, tm_mday=1, '
-             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=4, tm_yday=1, '
+             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=3, tm_yday=1, '
              'tm_isdst=0)'),
             ((181, 1, 1), (12, 30, 30), datetime.UTC, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=1, tm_mday=1, '
-             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=4, tm_yday=1, '
+             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=3, tm_yday=1, '
              'tm_isdst=0)'),
             )
         msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
@@ -4019,7 +4019,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         err_msg1 = "name must be a string"
         err_msg2 = ("offset must be a timedelta strictly between "
                     "-timedelta(hours=24) and timedelta(hours=24).")
-        td = datetime.timedelta(hours=datetime.BADI_TZ[0])
+        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
         data = (
             (td, 'Asia/Terhan', False, 'Asia/Terhan'),
             (td, datetime.timezone._Omitted, False, 'UTC+03:30'),
@@ -4051,7 +4051,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         Test that the __eq__ method returns  True if equal and False if
         not equal.
         """
-        td0 = datetime.timedelta(hours=datetime.BADI_TZ[0])
+        td0 = datetime.timedelta(hours=datetime.BADI_INFO[0])
         td1 = datetime.timedelta(seconds=18000)
         data = (
             (td0, 'Asia/Terhan', td0, 'Asia/Terhan', True),
@@ -4071,7 +4071,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         """
         Test that the __repr__ method returns the correctly formatted string.
         """
-        td0 = datetime.timedelta(hours=datetime.BADI_TZ[0])
+        td0 = datetime.timedelta(hours=datetime.BADI_INFO[0])
         td1 = datetime.timedelta(0)
         td2 = datetime.timedelta()
         data = (
@@ -4104,7 +4104,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         """
         Test that the __str__ method returns the correctly formatted string.
         """
-        td0 = datetime.timedelta(hours=datetime.BADI_TZ[0])
+        td0 = datetime.timedelta(hours=datetime.BADI_INFO[0])
         td1 = datetime.timedelta(seconds=18000)
         data = (
             (td0, 'Asia/Terhan', 'Asia/Terhan'),
@@ -4123,7 +4123,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         Test that the utcoffset method returns the correct timezone offset.
         """
         err_msg0 = "utcoffset() argument must be a datetime instance or None"
-        td = datetime.timedelta(hours=datetime.BADI_TZ[0])
+        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
         data = (
             (td, 'Asia/Terhan', (181, 1, 1), datetime.UTC, False, '3:30:00'),
             (td, 'Asia/Terhan', (12, 30, 30), datetime.UTC, True, err_msg0),
@@ -4156,7 +4156,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         Test that the tzname method returns the timezone name.
         """
         err_msg0 = "tzname() argument must be a datetime instance or None"
-        td = datetime.timedelta(hours=datetime.BADI_TZ[0])
+        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
         data = (
             (td, 'Asia/Terhan', (181, 1, 1), None, False, 'Asia/Terhan'),
             (td, 'Asia/Terhan', None, None, False, 'Asia/Terhan'),
@@ -4199,7 +4199,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         Test that the dst method always returns None.
         """
         err_msg0 = "dst() argument must be a datetime instance or None"
-        td = datetime.timedelta(hours=datetime.BADI_TZ[0])
+        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
         data = (
             (td, 'Asia/Terhan', (181, 1, 1), None, False, None),
             (td, 'Asia/Terhan', None, None, False, None),
@@ -4240,7 +4240,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         """
         err_msg0 = "fromutc: dt.tzinfo is not self"
         err_msg1 = "fromutc() argument must be a datetime instance or None"
-        td = datetime.timedelta(hours=datetime.BADI_TZ[0])
+        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
         data = (
             (td, 'Asia/Terhan', (181, 1, 1), False,
              "0181-01-01T03:30:00+03:30"),
@@ -4282,7 +4282,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         UTC offset.
         """
         td0 = datetime.timedelta(0)
-        td1 = datetime.timedelta(hours=datetime.BADI_TZ[0])
+        td1 = datetime.timedelta(hours=datetime.BADI_INFO[0])
         td2 = datetime.timedelta(-1)
         td3 = datetime.timedelta(microseconds=500000)
         td4 = datetime.timedelta(seconds=50)

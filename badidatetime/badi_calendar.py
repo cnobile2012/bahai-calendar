@@ -732,7 +732,7 @@ class BahaiCalendar(BaseCalendar):
                 "If there is a part minute then there can be no seconds.")
 
     def _check_valid_badi_time(self, hour:float, minute:float, second:float,
-                               us:int) -> None:
+                               us:int, maxsec:int=60) -> None:
         """
         Check that the hour, minute, second, and microsecond values are valid.
 
@@ -753,8 +753,9 @@ class BahaiCalendar(BaseCalendar):
             f"Invalid hour '{hour}', it must be in the range of [0, 24].")
         assert 0 <= minute < 60, (
             f"Invalid minute '{minute}', it must be in the range of [0, 59].")
-        assert 0 <= second < 60, (
-            f"Invalid second '{second}', it must be in the range of [0, 59].")
+        assert 0 <= second < maxsec, (
+            f"Invalid second '{second}', it must be in the range of "
+            f"[0, {maxsec}].")
         assert 0 <= us < 1000000, (
             f"Invalid microseconds '{us}', it must be in the range of "
             "[0, 999999].")

@@ -660,7 +660,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         # Since the usual start day is Monday (Kamál) a properly aligned
         # day number to the day name we need to add 1 to the ordinal.
-        return ((self._ymd2ord(year, month, day) + 1) % 7 + 7) % 7
+        return (self._ymd2ord(year, month, day) % 7 + 7) % 7
 
     def _ymd2ord(self, year:int, month:int, day:int) -> int:
         """
@@ -713,6 +713,7 @@ class TimeDateUtils(BahaiCalendar):
                                       _chk_on=False)
 
     def _build_struct_time(self, date:tuple, dstflag:int, *,
+                           tzinfo:'timezone'=None,
                            short_in=False) -> NamedTuple:
         if short_in:
             y, m, d, hh, mm, ss = date
@@ -722,7 +723,7 @@ class TimeDateUtils(BahaiCalendar):
 
         wday = self._day_of_week(y, m, d)
         dnum = self._days_before_month(y, m) + d
-        return struct_time(date + (wday, dnum, dstflag))
+        return struct_time(date + (wday, dnum, dstflag), tzinfo=tzinfo)
 
     def _isoweek_to_badi(self, year:int, week:int, day:int, *,
                          short:bool=False) -> tuple:
@@ -1059,7 +1060,8 @@ class TimeDateUtils(BahaiCalendar):
         self._check_valid_badi_date(b_date, short_in=short_in)
 
     def _check_time_fields(self, hour, minute, second, microsecond, fold):
-        self._check_valid_badi_time(hour, minute, second, microsecond)
+        self._check_valid_badi_time(hour, minute, second, microsecond,
+                                    maxsec=60)
         assert fold in (0, 1), (
             f"The fold argument '{fold}' must be either 0 or 1.")
 

@@ -7,6 +7,7 @@ __docformat__ = "restructuredtext en"
 import unittest
 
 from .._structures import struct_time
+from badidatetime import datetime
 
 
 class TestStructures(unittest.TestCase):
@@ -23,28 +24,33 @@ class TestStructures(unittest.TestCase):
         err_msg0 = "struct_time() takes a 9 or 11-sequence ({}-sequence given)"
         err_msg1 = "Invalid isdst '{}', it must be in the range of [-1, 1]."
         data = (
-            ((181, 9, 6, 8, 45, 1, 0, 0, -1), False,
+            ((181, 9, 6, 8, 45, 1, 0, 0, -1), None, False,
              ("structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
               "tm_hour=8, tm_min=45, tm_sec=1, tm_wday=0, tm_yday=0, "
-              "tm_isdst=-1)", None, None)), #'EDT', -14400.0)),
-            ((1, 10, 10, 9, 6, 8, 45, 1, 0, 0, -1), False,
+              "tm_isdst=-1)", None, None)),
+            ((1, 10, 10, 9, 6, 8, 45, 1, 0, 0, -1), None, False,
              ("structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
               "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=8, tm_min=45, "
               "tm_sec=1, tm_wday=0, tm_yday=0, tm_isdst=-1)", None, None)),
+            ((1, 1, 1, 0, 0, 0, 0, 0, -1), datetime.BADI, False,
+             ('structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=1, '
+              'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=0, tm_yday=0, '
+              'tm_isdst=-1)', 'UTC+03:30', 12600.0)),
              #'EDT', -14400.0)),
-            ((181, 9, 6, 8, 45, 1, 0, 0, -1, 999), True, err_msg0.format(10)),
-            ((1, 1, 1, 1, 1, 1, 1, 1, -2), True, err_msg1.format(-2)),
-            ((1, 1, 1, 1, 1, 1, 1, 1, 2), True, err_msg1.format(2)),
+            ((181, 9, 6, 8, 45, 1, 0, 0, -1, 999), None, True,
+             err_msg0.format(10)),
+            ((1, 1, 1, 1, 1, 1, 1, 1, -2), None, True, err_msg1.format(-2)),
+            ((1, 1, 1, 1, 1, 1, 1, 1, 2), None, True, err_msg1.format(2)),
             )
         msg0 = "Expected {}, with dt {}, found {}."
         msg1 = "Expected {}, found {}."
 
-        for dt, validity, expected_result in data:
+        for dt, tz, validity, expected_result in data:
             short = True if len(dt) == 7 else False
 
             if validity:
                 try:
-                    result = struct_time(dt)(dt)
+                    result = struct_time(dt, tzinfo=tz)
                 except AssertionError as e:
                     self.assertEqual(expected_result, str(e))
                 except TypeError as e:
@@ -53,10 +59,10 @@ class TestStructures(unittest.TestCase):
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
-                    raise AssertionError(f"With {time} an error is not "
+                    raise AssertionError(f"With {dt} an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = struct_time(dt)
+                result = struct_time(dt, tzinfo=tz)
                 self.assertEqual(expected_result[0], str(result), msg0.format(
                     expected_result[0], dt, result))
                 self.assertEqual(expected_result[1], result.tm_zone,
