@@ -1230,51 +1230,51 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         Test that the ctime method creates a string indicating the date.
 
-        All days before 1752-09-14 in the Gregorian Calendar will be wrong
+        All days before 1752-09-14 in the Gregorian Calendar will seem wrong
         when compaired to the Badi Calendar in UK and the US. This is when
         The Gregorian Calendar was adopted and compinsated 11 days.
         """
         data = (
-            # 0001-03-20 Saturday (Fiḍāl -> Wednesday)
-            ((-1842, 1, 1), 'Fiḍāl Bahá  1 00:00:00 -1842'),
-            # 1582-10-04 Thursday (Jamál -> Sunday)
-            ((-261, 11, 7), 'Jamál Mashíyyat  7 00:00:00 -0261'),
-            # 1582-10-15 Monday (Istijlāl -> Thursday)
-            ((-261, 11, 18), 'Istijlāl Mashíyyat 18 00:00:00 -0261'),
-            # 1700-03-20 Wednesday (Jalál -> Saturday)
-            ((-143, 1, 1), 'Jalál Bahá  1 00:00:00 -0143'),
-            # 1752-09-02 Wednesday (Jalál -> Saturday)
-            ((-91, 9, 15), "Jalál Asmá' 15 00:00:00 -0091"),
+            # 0001-03-19 Saturday (Kamál -> Monday)
+            ((-1842, 1, 1), 'Kamál Bahá  1 00:00:00 -1842'),
+            # 1582-10-04 Thursday (Jalál -> Saturday)
+            ((-261, 11, 7), 'Jalál Mashíyyat  7 00:00:00 -0261'),
+            # 1582-10-15 Monday (Idāl -> Wednesday)
+            ((-261, 11, 18), '`Idāl Mashíyyat 18 00:00:00 -0261'),
+            # 1700-03-19 Tuesday (Istiqlāl -> Friday)
+            ((-143, 1, 1), 'Istiqlāl Bahá  1 00:00:00 -0143'),
+            # 1752-09-02 Wednesday (Istiqlāl -> Friday)
+            ((-91, 9, 15), "Istiqlāl Asmá' 15 00:00:00 -0091"),
             # 1752-09-14 Thursday
-            ((-91, 10, 8), "Istijlāl 'Izzat  8 00:00:00 -0091"),
-            # 1800-03-21 Friday
-            ((-43, 1, 1), 'Istiqlāl Bahá  1 00:00:00 -0043'),
+            ((-91, 10, 9), "Istijlāl 'Izzat  9 00:00:00 -0091"),
+            # 1800-03-20 Thursday
+            ((-43, 1, 1), 'Istijlāl Bahá  1 00:00:00 -0043'),
             # 1817-11-12 Wednesday Birthday of Bahá’u’lláh
-            ((-26, 13, 9), '`Idāl Qudrat  9 00:00:00 -0026'),
-            # 1825-03-21 Monday
-            ((-18, 1, 1), 'Kamál Bahá  1 00:00:00 -0018'),
-            # 1843-03-21 Wednesday
-            ((0, 1, 1), 'Fiḍāl Bahá  1 00:00:00 0000'),
-            # 1844-03-20 Thursday
-            ((1, 1, 1), '`Idāl Bahá  1 00:00:00 0001'),
-            # 1862-03-21 Friday
-            ((19, 1, 1), 'Istiqlāl Bahá  1 00:00:00 0019'),
-            # 1881-03-20 Sunday
-            ((38, 1, 1), 'Jamál Bahá  1 00:00:00 0038'),
-            # 1900-03-21 Wednesday
-            ((57, 1, 1), '`Idāl Bahá  1 00:00:00 0057'),
-            # 2014-03-21 Friday
-            ((171, 1, 1), 'Istiqlāl Bahá  1 00:00:00 0171'),
-            # 2024-03-20 Wednesday
-            ((181, 1, 1), '`Idāl Bahá  1 00:00:00 0181'),
+            ((-26, 13, 10), '`Idāl Qudrat 10 00:00:00 -0026'),
+            # 1825-03-20 Saturday
+            ((-18, 1, 1), 'Jamál Bahá  1 00:00:00 -0018'),
+            # 1843-03-20 Monday
+            ((0, 1, 1), 'Kamál Bahá  1 00:00:00 0000'),
+            # 1844-03-19 Tuesday
+            ((1, 1, 1), 'Fiḍāl Bahá  1 00:00:00 0001'),
+            # 1862-03-20 Thursday
+            ((19, 1, 1), 'Istijlāl Bahá  1 00:00:00 0019'),
+            # 1881-03-19 Saturday
+            ((38, 1, 1), 'Jalál Bahá  1 00:00:00 0038'),
+            # 1900-03-20 Tuesday
+            ((57, 1, 1), 'Fiḍāl Bahá  1 00:00:00 0057'),
+            # 2014-03-20 Thursday
+            ((171, 1, 1), 'Istijlāl Bahá  1 00:00:00 0171'),
+            # 2024-03-19 Tuesday
+            ((181, 1, 1), 'Fiḍāl Bahá  1 00:00:00 0181'),
             # 2024-08-14 Wednesday
-            ((181, 8, 15), '`Idāl Kamál 15 00:00:00 0181'),
+            ((181, 8, 16), '`Idāl Kamál 16 00:00:00 0181'),
             # 2024-08-14 Wednesday
-            ((1, 10, 10, 8, 15), '`Idāl Kamál 15 00:00:00 0181'),
+            ((1, 10, 10, 8, 16), '`Idāl Kamál 16 00:00:00 0181'),
             # 2024-08-15 Thursday
-            ((1, 10, 10, 8, 16) , 'Istijlāl Kamál 16 00:00:00 0181'),
-            # 2033-03-20 Sunday
-            ((190, 1, 1), 'Jamál Bahá  1 00:00:00 0190'),
+            ((1, 10, 10, 8, 17) , 'Istijlāl Kamál 17 00:00:00 0181'),
+            # 2033-03-19 Saturday
+            ((190, 1, 1), 'Jalál Bahá  1 00:00:00 0190'),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -3301,42 +3301,42 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the ctime method creates a string indicating the date
         and time.
 
-        All days before 1752-09-14 in the Gregorian Calendar will be wrong
+        All days before 1752-09-14 in the Gregorian Calendar will seem wrong
         when compaired to the Badi Calendar in UK and the US. This is when
         The Gregorian Calendar was adopted and compinsated 11 days.
         """
         data = (
-            # 0001-03-20 Sunday (Fiḍāl -> Tuesday)
-            ((-1842, 1, 1), 'Fiḍāl Bahá  1 00:00:00 -1842'),
+            # 0001-03-20 Saturday (Kamál -> Monday)
+            ((-1842, 1, 1), 'Kamál Bahá  1 00:00:00 -1842'),
             ((-1842, 1, 1, None, None, 12, 30, 30),
-             'Fiḍāl Bahá  1 12:30:30 -1842'),
-            # 1582-10-04 Thursday (Jamál -> Sunday)
-            ((-261, 11, 7), 'Jamál Mashíyyat  7 00:00:00 -0261'),
+             'Kamál Bahá  1 12:30:30 -1842'),
+            # 1582-10-04 Thursday (Jalál -> Saturday)
+            ((-261, 11, 7), 'Jalál Mashíyyat  7 00:00:00 -0261'),
             ((-261, 11, 7, None, None, 6, 15, 15),
-             'Jamál Mashíyyat  7 06:15:15 -0261'),
-            # 1843-03-21 Tuesday
-            ((0, 1, 1), 'Fiḍāl Bahá  1 00:00:00 0000'),
-            ((0, 1, 1, None, None, 12, 30, 30), 'Fiḍāl Bahá  1 12:30:30 0000'),
-            # 1844-03-20 Thursday
-            ((1, 1, 1), '`Idāl Bahá  1 00:00:00 0001'),
-            ((1, 1, 1, None, None, 12, 30, 30), '`Idāl Bahá  1 12:30:30 0001'),
-            # 2024-03-20 Wednesday
-            ((181, 1, 1), '`Idāl Bahá  1 00:00:00 0181'),
+             'Jalál Mashíyyat  7 06:15:15 -0261'),
+            # 1843-03-20 Monday
+            ((0, 1, 1), 'Kamál Bahá  1 00:00:00 0000'),
+            ((0, 1, 1, None, None, 12, 30, 30), 'Kamál Bahá  1 12:30:30 0000'),
+            # 1844-03-19 Tuesday
+            ((1, 1, 1), 'Fiḍāl Bahá  1 00:00:00 0001'),
+            ((1, 1, 1, None, None, 12, 30, 30), 'Fiḍāl Bahá  1 12:30:30 0001'),
+            # 2024-03-19 Tuesday
+            ((181, 1, 1), 'Fiḍāl Bahá  1 00:00:00 0181'),
             ((181, 1, 1, None, None, 12, 30, 30),
-             '`Idāl Bahá  1 12:30:30 0181'),
+             'Fiḍāl Bahá  1 12:30:30 0181'),
             # 2024-08-14 Wednesday
-            ((181, 8, 15, None, None, 12, 30, 30),
-             '`Idāl Kamál 15 12:30:30 0181'),
-            ((181, 8, 15), '`Idāl Kamál 15 00:00:00 0181'),
-            ((181, 8, 15, None, None, 12, 30, 30),
-             '`Idāl Kamál 15 12:30:30 0181'),
+            ((181, 8, 16, None, None, 12, 30, 30),
+             '`Idāl Kamál 16 12:30:30 0181'),
+            ((181, 8, 16), '`Idāl Kamál 16 00:00:00 0181'),
+            ((181, 8, 16, None, None, 12, 30, 30),
+             '`Idāl Kamál 16 12:30:30 0181'),
             # 2024-08-14 Wednesday
-            ((1, 10, 10, 8, 15), '`Idāl Kamál 15 00:00:00 0181'),
-            ((1, 10, 10, 8, 15, 12, 30, 30), '`Idāl Kamál 15 12:30:30 0181'),
+            ((1, 10, 10, 8, 16), '`Idāl Kamál 16 00:00:00 0181'),
+            ((1, 10, 10, 8, 16, 12, 30, 30), '`Idāl Kamál 16 12:30:30 0181'),
             # 2024-08-15 Thursday
-            ((1, 10, 10, 8, 16) , 'Istijlāl Kamál 16 00:00:00 0181'),
-            ((1, 10, 10, 8, 16, 12, 30, 30) ,
-             'Istijlāl Kamál 16 12:30:30 0181'),
+            ((1, 10, 10, 8, 17) , 'Istijlāl Kamál 17 00:00:00 0181'),
+            ((1, 10, 10, 8, 17, 12, 30, 30) ,
+             'Istijlāl Kamál 17 12:30:30 0181'),
             )
         msg = "Expected {} with date {}, found {}."
 

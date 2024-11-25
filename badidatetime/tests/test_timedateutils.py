@@ -574,13 +574,18 @@ class TestTimeDateUtils(unittest.TestCase):
     def test__day_of_week(self):
         """
         Test that the _day_of_week function returns the correct day of
-        the week for a given year, month, and day.
+        the week (0 - 6) for a given year, month, and day.
+
+        All days before 1752-09-14 in the Gregorian Calendar will seem wrong
+        when compaired to the Badi Calendar in UK and the US. This is when
+        The Gregorian Calendar was adopted and compinsated 11 days.
         """
         data = (
-            ((-1842, 1, 1), 2),
-            ((-91, 9, 15), 6),
-            ((-91, 10, 8), 4),
-            ((181, 9, 9), 2),
+            ((-1842, 1, 1), 2), # 0001-03-19 (Saturday -> Kamál)
+            ((-91, 9, 15), 6),  # 1752-09-02 (Tuesday -> Istiqlāl)
+            ((-91, 10, 8), 4),  # 1752-09-14 (Thursday -> `Idāl)
+            ((1, 1, 1), 3),     # 1844-03-19 (Tuesday -> Fiḍāl)
+            ((181, 9, 9), 2),   # 2024-08-26 (Saturday -> Jalál)
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -922,8 +927,6 @@ class TestTimeDateUtils(unittest.TestCase):
         err_msg2 = "Invalid month '{}', it must be in the range of [0, 19]."
         err_msg3 = ("Invalid day '{}' for month '{}', it must be in the "
                     "range of [1, {}].")
-        err_msg4 = "Invalid hour '{}' it must be 0 <= {} < 24"
-        err_msg5 = "Invalid minute '{}' should be 0 <= {} < 60."
         data = (
             # Valid short form Badi dates
             ((_td_utils.MINYEAR, 1, 1), False, ''),
@@ -968,7 +971,7 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         err_msg0 = "Invalid hour '{}', it must be in the range of [0, 24]."
         err_msg1 = "Invalid minute '{}', it must be in the range of [0, 59]."
-        err_msg2 = "Invalid second '{}', it must be in the range of [0, 60]."
+        err_msg2 = "Invalid second '{}', it must be in the range of [0, 61]."
         err_msg3 = ("Invalid microseconds '{}', it must be in the range of "
                     "[0, 999999].")
         err_msg4 = "The fold argument '{}' must be either 0 or 1."

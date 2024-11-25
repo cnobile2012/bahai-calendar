@@ -1061,7 +1061,7 @@ class TimeDateUtils(BahaiCalendar):
 
     def _check_time_fields(self, hour, minute, second, microsecond, fold):
         self._check_valid_badi_time(hour, minute, second, microsecond,
-                                    maxsec=60)
+                                    maxsec=61)
         assert fold in (0, 1), (
             f"The fold argument '{fold}' must be either 0 or 1.")
 

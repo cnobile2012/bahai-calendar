@@ -729,9 +729,8 @@ class date(BahaiCalendar):
         Return ctime() style string in the short form Badi date.
         """
         date = self._short_from_long_form()
-        # _day_of_week() counts from 0 - 6, so we need to add 1 to the weekday.
-        weekday = _td_utils._day_of_week(*date[:3]) + 1
-        wd_name = _td_utils.DAYNAMES[weekday if weekday < 7 else 0]
+        weekday = _td_utils._day_of_week(*date[:3])
+        wd_name = _td_utils.DAYNAMES[weekday]
         year, month, day = date[:3]
         m_name = _td_utils.MONTHNAMES[month]
         y_shim = 4 if year > -1 else 5
@@ -2048,9 +2047,8 @@ class datetime(date):
         else:
             date = self._short_from_long_form(time=self.b_time)
 
-        # _day_of_week() counts from 0 - 6, so we need to add 1 to the weekday.
-        weekday = _td_utils._day_of_week(*date[:3]) + 1
-        wd_name = _td_utils.DAYNAMES[weekday if weekday < 7 else 0]
+        weekday = _td_utils._day_of_week(*date[:3])
+        wd_name = _td_utils.DAYNAMES[weekday]
         year, month, day, hour, minute, second, us = date
         m_name = _td_utils.MONTHNAMES[month]
         y_shim = 4 if year > -1 else 5
