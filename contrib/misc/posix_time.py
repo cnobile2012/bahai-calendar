@@ -30,14 +30,17 @@ class PosixTests:
     GMT_COORD = datetime.GMT_COORD
     BADI_COORD = BahaiCalendar.BAHAI_LOCATION[:3]
     # Force standard time in US/Eastern (America/New_York)
+    # so test works all year.
     LOCAL_COORD = datetime.LOCAL_COORD[:2] + (-5,)
 
     UTC_US_E_TZ = dtime.timezone(dtime.timedelta(hours=-5))
     BADI_US_E_TZ = datetime.timezone(datetime.timedelta(hours=-5))
 
     TEST_TS = (
-        (18000, (1970, 1, 1), BADI_US_E_TZ, ()),
-        (1732424400, (2024, 11, 24), BADI_US_E_TZ, ()),
+        ((1970, 1, 1), (126, 16, 2, None, None, 7, 58, 31.4976), BADI_US_E_TZ,
+         18000),
+        ((1970, 1, 1), (126, 16, 2, None, None, 7, 58, 31.4976), None, 18000),
+        #((2024, 11, 24), (), BADI_US_E_TZ, 0),
         )
 
     def __init__(self):
@@ -52,10 +55,13 @@ class PosixTests:
         """
         data = []
 
-        for t, tg_date, tb_tz, expected_result, in self.TEST_TS:
-            b_date = datetime.datetime.fromtimestamp(t, tz=tb_tz)
-            #            ts UTC      BADI
-            data.append((t, tg_date, b_date))
+        for g_date, b_date, tb_tz, expected_result, in self.TEST_TS:
+            gdt = dtime.datetime(*g_date)
+            gt = gdt.timestamp()
+            bdt = datetime.datetime(*b_date, tzinfo=tb_tz)
+            bt = bdt.timestamp()
+            #            Greg    Greg TS  Badi    Badi TS
+            data.append((g_date, gt,      b_date, bt))
 
         return data
 
@@ -77,10 +83,11 @@ if __name__ == "__main__":
     if options.analyze0: # -a
         #print(pt.analize0(options))
 
-        [print(f"{t:10} "
-               f"{str(tg_date):13} "
+        [print(f"{str(g_date):13} "
+               f"{gt:10} "
                f"{str(b_date):13} "
-               ) for t, tg_date, b_date in pt.analize0(options)]
+               f"{bt:10} "
+               ) for g_date, gt, b_date, bt in pt.analize0(options)]
     else:
         parser.print_help()
 

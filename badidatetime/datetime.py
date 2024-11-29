@@ -1846,17 +1846,12 @@ class datetime(date):
         """
         Return integer POSIX timestamp of local time.
         """
-        l_date = self.badi_date_from_gregorian_date(
-            (1970, 1, 1), *LOCAL_COORD, trim=True, short=self.is_short)
-
         if self.is_short:
-            l_date = (*l_date[:3], None, None, *l_date[3:])
+            l_date = (126, 16, 2, None, None, 7, 58, 31)
+        else:
+            l_date = (1, 7, 12, 16, 2, 7, 58, 31)
 
-        l_date = l_date[:-1] + (_math.floor(l_date[-1]),)
         epoch = datetime(*l_date)
-
-        #epoch = datetime(126, 16, 2)
-        max_fold_seconds = 24 * 3600
         t = (self - epoch) // timedelta(0, 1)
 
         def local(u):
@@ -1878,6 +1873,7 @@ class datetime(date):
             # We found one solution, but it may not be the one we need.
             # Look for an earlier solution (if `fold` is 0), or a
             # later one (if `fold` is 1).
+            max_fold_seconds = 24 * 3600
             u2 = u1 + (-max_fold_seconds, max_fold_seconds)[self.fold]
             b = local(u2) - u2
 
@@ -1889,7 +1885,7 @@ class datetime(date):
 
         u2 = t - b
         t2 = local(u2)
-        #print(t, a, b, u1, u2, t1, t2, epoch)
+        print(t, t1, t2, a, b, u1, u2, l_date)
 
         if t2 == t:
             return u2
