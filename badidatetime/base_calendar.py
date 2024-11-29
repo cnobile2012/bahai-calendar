@@ -415,9 +415,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :type lon: float
         :param zone: The time zone, defaults to the zero zone in Greenwich UK.
         :type zone: float
-        :param exact_tz: The political time zones or the exact time zone
-                         derived from the longitude (15 degrees = 360 / 24).
-                         Default is False or the political time zone.
+        :param exact_tz: The political time zones (default) or the exact
+                         time zone. The exact time zone is derived from the
+                         longitude (15 degrees = 360 / 24).
         :type exact_tz: bool
         :param offset: A constant “standard” altitude, i.e., the geometric
                        altitude of the center of the body at the time of

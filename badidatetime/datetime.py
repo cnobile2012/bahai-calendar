@@ -1844,17 +1844,30 @@ class datetime(date):
 
     def _mktime(self):
         """
-        Return integer POSIX timestamp.
+        Return integer POSIX timestamp of local time.
         """
-        epoch = datetime(126, 16, 2, None, None, 7, 58, 30)
+        l_date = self.badi_date_from_gregorian_date(
+            (1970, 1, 1), *LOCAL_COORD, trim=True, short=self.is_short)
+
+        if self.is_short:
+            l_date = (*l_date[:3], None, None, *l_date[3:])
+
+        l_date = l_date[:-1] + (_math.floor(l_date[-1]),)
+        epoch = datetime(*l_date)
+
+        #epoch = datetime(126, 16, 2)
         max_fold_seconds = 24 * 3600
         t = (self - epoch) // timedelta(0, 1)
 
         def local(u):
-            y, m, d, hh, mm, ss = self.posix_timestamp(0, *LOCAL_COORD,
-                                                       short=True)[:6]
-            return (datetime(
-                y, m, d, None, None, hh, mm, ss) - epoch) // timedelta(0, 1)
+            date = self.posix_timestamp(0, *LOCAL_COORD, trim=True,
+                                        short=self.is_short)
+
+            if self.is_short:
+                date = (*date[:3], None, None, *date[3:])
+
+            date = date[:-1] + (_math.floor(date[-1]),)
+            return (datetime(*date) - epoch) // timedelta(0, 1)
 
         # Our goal is to solve t = local(u) for u.
         a = local(t) - t
@@ -1876,6 +1889,7 @@ class datetime(date):
 
         u2 = t - b
         t2 = local(u2)
+        #print(t, a, b, u1, u2, t1, t2, epoch)
 
         if t2 == t:
             return u2
@@ -1889,7 +1903,7 @@ class datetime(date):
 
     def timestamp(self):
         """
-        Return POSIX timestamp as float
+        Return POSIX timestamp as float for the current datetime instance.
         """
         if self.tzinfo is None:
             s = self._mktime()
@@ -2616,4 +2630,16 @@ LOCAL = timezone.local = timezone._create(timedelta(hours=LOCAL_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-_EPOCH = datetime(126, 16, 2, None, None, 7, 58, 30, tzinfo=timezone.utc)
+_EPOCH = datetime(126, 16, 2, None, None, 7, 58,  31.4976, tzinfo=timezone.utc)
+# bc.badi_date_from_gregorian_date((1970, 1, 1), *datetime.GMT_COORD,
+#                                  short=True)
+# (126, 16, 2, 7, 58, 31.4976, 0)
+#
+# bc.gregorian_date_from_badi_date((126, 16, 2, 7, 57, 27.7),
+#                                  *datetime.GMT_COORD)
+# (1970, 1, 1.0)
+# jd = gc.jd_from_gregorian_date((1969, 12, 31))
+# gc._sun_setting(jd, *datetime.GMT_COORD)
+# 2440587.166985
+# gc.ymdhms_from_date(gc.gregorian_date_from_jd(2440587.166985))
+# (1969, 12, 31, 16, 0, 27.504)

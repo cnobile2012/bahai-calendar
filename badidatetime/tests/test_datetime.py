@@ -3057,11 +3057,13 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test__mktime(self):
         """
-        Test that the _mktime method finds the POSIX time in seconds.
+        Test that the _mktime method finds the POSIX time in seconds for
+        local time.
         """
         data = (
-            ((126, 16, 2, None, None, 7, 58, 30), None, 0, -1),
-            ((1, 1, 1), None, 0, -7938835021),
+            # Date and time with America/New_York
+            ((126, 16, 2, None, None, 6, 46, 33.1392), None, 0, 18000),
+            ((1, 1, 1), None, 0, -7938830703),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
@@ -3074,12 +3076,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_timestamp(self):
         """
-        Test that thetimestamp method 
+        Test that thetimestamp method either the POSIX time for local or
+        for the timezone provided.
+
+        https://www.unixtimestamp.com/
+        https://www.epochconverter.com
         """
         data = (
-            ((126, 16, 2, None, None, 7, 58, 30), None, 0, -1.0),
-            ((1, 1, 1), None, 0, -7938835021.0),
-            ((126, 16, 2, None, None, 7, 58, 30), datetime.UTC, 0, 0),
+            ((126, 16, 2, None, None, 7, 58, 31.4976), datetime.UTC, 0, 0.0),
+            ((126, 16, 2, None, None, 6, 46, 33.1392), None, 0, 18000),
+            ((1, 1, 1), None, 0, -7938830703.0),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 

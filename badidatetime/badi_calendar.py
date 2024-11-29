@@ -580,8 +580,9 @@ class BahaiCalendar(BaseCalendar):
         jd = self.jd_from_badi_date(b_date, lat, lon, zone, _chk_on=_chk_on)
         return self._gc.gregorian_date_from_jd(jd, exact=_exact)
 
-    def posix_timestamp(self, t:float, lat=None, lon=None, zone=None, *,
-                        us:bool=False, short=False, trim:bool=False) -> tuple:
+    def posix_timestamp(self, t:float, lat:float=None, lon:float=None,
+                        zone:float=None, *, us:bool=False, short=False,
+                        trim:bool=False) -> tuple:
         """
         Get the Badi date from a POSIX timestamp.
 
