@@ -60,14 +60,13 @@ class PosixTests:
             gt = gdt.timestamp()
             bdt = datetime.datetime(*b_date, tzinfo=tb_tz)
             bt = bdt.timestamp()
-            #            Greg    Greg TS  Badi    Badi TS
-            data.append((g_date, gt,      b_date, bt))
+            #            Greg    Greg TS Badi    Badi TZ  Badi TS
+            data.append((g_date, gt,     b_date, tb_tz,   bt))
 
         return data
 
 
 if __name__ == "__main__":
-    #import datetime
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -82,12 +81,12 @@ if __name__ == "__main__":
 
     if options.analyze0: # -a
         #print(pt.analize0(options))
-
         [print(f"{str(g_date):13} "
                f"{gt:10} "
                f"{str(b_date):13} "
-               f"{bt:10} "
-               ) for g_date, gt, b_date, bt in pt.analize0(options)]
+               f"{str(tb_tz):9} "
+               f"{bt:10}"
+               ) for g_date, gt, b_date, tb_tz, bt in pt.analize0(options)]
     else:
         parser.print_help()
 

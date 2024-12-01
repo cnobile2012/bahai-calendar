@@ -1119,6 +1119,7 @@ date.max = date(MAXYEAR, 19, 19)
 date.resolution = timedelta(days=1)
 
 
+# *** TODO *** May not need this class.
 class tzinfo(_tzinfo):
     """
     Abstract base class for time zone info classes.
@@ -1135,35 +1136,35 @@ class tzinfo(_tzinfo):
         #return self.utcoffset(dt) + badi_offset
         raise NotImplementedError("tzinfo subclass must override badioffset()")
 
-    def frombadi(self, dt):
-        """
-        datetime in Badi TZ -> datetime in local time.
-        """
-        if not isinstance(dt, datetime):
-            raise TypeError("frombadi() requires a datetime argument, "
-                            f"found '{type(dt)}'.")
+    ## def frombadi(self, dt):
+    ##     """
+    ##     datetime in Badi TZ -> datetime in local time.
+    ##     """
+    ##     if not isinstance(dt, datetime):
+    ##         raise TypeError("frombadi() requires a datetime argument, "
+    ##                         f"found '{type(dt)}'.")
 
-        if dt.tzinfo is not self:
-            raise ValueError("dt.tzinfo is not self")
+    ##     if dt.tzinfo is not self:
+    ##         raise ValueError("dt.tzinfo is not self")
 
-        dtoff = dt.badioffset()
+    ##     dtoff = dt.badioffset()
 
-        if dtoff is None:
-            raise ValueError("frombadi() requires a non-None utcoffset() "
-                             "result")
+    ##     if dtoff is None:
+    ##         raise ValueError("frombadi() requires a non-None utcoffset() "
+    ##                          "result")
 
-        if (dtdst := dt.dst()) is None:
-            raise ValueError("frombadi() requires a non-None dst() result")
+    ##     if (dtdst := dt.dst()) is None:
+    ##         raise ValueError("frombadi() requires a non-None dst() result")
 
-        if (delta := dtoff - dtdst):
-            dt += delta
-            dtdst = dt.dst()
+    ##     if (delta := dtoff - dtdst):
+    ##         dt += delta
+    ##         dtdst = dt.dst()
 
-            if dtdst is None:
-                raise ValueError("frombadi(): dt.dst gave inconsistent "
-                                 "results; cannot convert")
+    ##         if dtdst is None:
+    ##             raise ValueError("frombadi(): dt.dst gave inconsistent "
+    ##                              "results; cannot convert")
 
-        return dt + dtdst
+    ##     return dt + dtdst
 
 _tzinfo_class = tzinfo
 
@@ -1700,7 +1701,7 @@ class datetime(date):
         return date, time[0], time[1], time[2], time[3]
 
     @classmethod
-    def _fromtimestamp(cls, t, badi, tz, *, short=False):
+    def _fromtimestamp(cls, t, utc, tz, *, short=False):
         """
         Construct a datetime from a POSIX timestamp (like time.time()).
 
@@ -1708,8 +1709,7 @@ class datetime(date):
         """
         bc = BahaiCalendar()
 
-        # *** TODO *** Look into what should be done here, this isn't correct
-        if not badi:
+        if not utc: # *** TODO *** Disambiguate a UTC and BADI tzinfo
             # Get local UTC offset then correct for the Baha'i location.
             offset_sec = _local_timezone_info()[0]
             offset_sec -= BADI_INFO[0] * 3600
@@ -1725,7 +1725,7 @@ class datetime(date):
         result = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
                      tzinfo=tz)
 
-        if tz is None and not badi:
+        if tz is None and not utc:
             # As of version 2015f max fold in IANA database is
             # 23 hours at 1969-09-30 13:00:00 in Kwajalein.
             # Let's probe 24 hours in the past to detect a transition:
@@ -1735,46 +1735,52 @@ class datetime(date):
             # thus we can't perform fold detection for values of time less
             # than the max time fold. See comments in _datetimemodule's
             # version of this method for more details.
-            if t > max_fold_seconds and not sys.platform.startswith("win"):
-                date_time = bc.posix_timestamp(
-                    t - max_fold_seconds, *LOCAL_COORD, us=True, short=short,
-                    trim=False)
-                date, hh, mm, ss, um = cls._split_date_time(date_time, short)
-                probe1 = cls(*date, hour=hh, minute=mm, second=ss,
+            if t < max_fold_seconds and sys.platform.startswith("win"):
+                return result
+
+            date_time = bc.posix_timestamp(t - max_fold_seconds, *LOCAL_COORD,
+                                           us=True, short=short, trim=False)
+            date, hh, mm, ss, um = cls._split_date_time(date_time, short)
+            probe1 = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
+                         tzinfo=tz)
+            trans = result - probe1 - timedelta(0, max_fold_seconds)
+
+            if trans.days < 0:
+                t += trans // timedelta(0, 1)
+                date_time = bc.posix_timestamp(t, *LOCAL_COORD, us=True,
+                                               short=short, trim=False)
+                probe2 = cls(*date, hour=hh, minute=mm, second=ss,
                              microsecond=us, tzinfo=tz)
-                trans = result - probe1 - timedelta(0, max_fold_seconds)
 
-                if trans.days < 0:
-                    t += trans // timedelta(0, 1)
-                    date_time = bc.posix_timestamp(t, *LOCAL_COORD, us=True,
-                                                   short=short, trim=False)
-                    probe2 = cls(*date, hour=hh, minute=mm, second=ss,
-                                 microsecond=us, tzinfo=tz)
-
-                    if probe2 == result:
-                        result._fold = 1
+                if probe2 == result:
+                    result._fold = 1
         elif tz is not None:
-            result = tz.frombadi(result)
+            result = tz.fromutc(result)
 
         return result
 
     @classmethod
-    def fromtimestamp(cls, t, tz=None):
-        """Construct a datetime from a POSIX timestamp (like time.time()).
+    def fromtimestamp(cls, t:float, tz:tzinfo=None, *, short:bool=False):
+        """
+        Construct a datetime from a POSIX timestamp (like time.time()).
 
         A timezone info object may be passed in as well.
         """
         _check_tzinfo_arg(tz)
-        return cls._fromtimestamp(t, tz is not None, tz)
+        return cls._fromtimestamp(t, tz is not None, tz, short=short)
 
     @classmethod
     def utcfromtimestamp(cls, t):
-        """Construct a naive UTC datetime from a POSIX timestamp."""
+        """
+        Construct a naive UTC datetime from a POSIX timestamp.
+        """
         return cls._fromtimestamp(t, True, None)
 
     @classmethod
     def now(cls, tz=None):
-        "Construct a datetime from time.time() and optional time zone info."
+        """
+        Construct a datetime from time.time() and optional time zone info.
+        """
         t = _time.time()
         return cls.fromtimestamp(t, tz)
 
@@ -1862,7 +1868,11 @@ class datetime(date):
                 date = (*date[:3], None, None, *date[3:])
 
             date = date[:-1] + (_math.floor(date[-1]),)
-            return (datetime(*date) - epoch) // timedelta(0, 1)
+            dt = datetime(*date)
+
+            #print(dt, epoch)
+
+            return (dt - epoch) // timedelta(0, 1)
 
         # Our goal is to solve t = local(u) for u.
         a = local(t) - t
@@ -1885,7 +1895,7 @@ class datetime(date):
 
         u2 = t - b
         t2 = local(u2)
-        print(t, t1, t2, a, b, u1, u2, l_date)
+        #print(t, t1, t2, a, b, u1, u2, l_date)
 
         if t2 == t:
             return u2
@@ -2634,8 +2644,9 @@ _EPOCH = datetime(126, 16, 2, None, None, 7, 58,  31.4976, tzinfo=timezone.utc)
 # bc.gregorian_date_from_badi_date((126, 16, 2, 7, 57, 27.7),
 #                                  *datetime.GMT_COORD)
 # (1970, 1, 1.0)
+#
 # jd = gc.jd_from_gregorian_date((1969, 12, 31))
-# gc._sun_setting(jd, *datetime.GMT_COORD)
-# 2440587.166985
-# gc.ymdhms_from_date(gc.gregorian_date_from_jd(2440587.166985))
+# ss =  gc._sun_setting(jd, *datetime.GMT_COORD)
+# (ss == 2440587.166985)
+# gc.ymdhms_from_date(gc.gregorian_date_from_jd(ss))
 # (1969, 12, 31, 16, 0, 27.504)
