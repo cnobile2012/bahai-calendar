@@ -23,7 +23,7 @@ class BahaiCalendar(BaseCalendar):
     # https://gml.noaa.gov/grad/solcalc/ Sunset data
     # Near Mehrabad International Airport
     #                 lattude    longitude  zone IANA name      elevation
-    BAHAI_LOCATION = (35.682376, 51.285817, 3.5, 'Asia/Terhan', 0)
+    BAHAI_LOCATION = (35.682376, 51.285817, 3.5, 'Asia/Tehran', 0)
     GMT_LOCATION = (51.477928, -0.001545, 0, 0)
     BADI_EPOCH = 2394643.262113 # 2394645.261536 using Meeus' algorithm
     BADI_MONTH_NUM_DAYS = [

@@ -10,8 +10,9 @@ __all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
 import sys
 import time as _time
 import math as _math
-from datetime import datetime as _dt, tzinfo as _tzinfo
+from datetime import datetime as dtime, timedelta, tzinfo
 from types import NoneType
+from zoneinfo import ZoneInfo
 from tzlocal import get_localzone
 import geocoder
 
@@ -52,7 +53,7 @@ def _check_offset(name, offset):
     If offset isn't None or timedelta, raises TypeError.
     If offset is None, returns None.
     Else offset is checked for being in range.
-    If it is, its integer value is returned. Else ValueError is raised.
+    If it is, its integer value is returned else ValueError is raised.
     """
     assert name in ('utcoffset', 'badioffset', 'dst'), (
         f"Invalid name argument '{name}' must be one of "
@@ -134,6 +135,60 @@ def _check_tzname(name):
         raise TypeError("tzinfo.tzname() must return None or string, "
                         f"not {type(name)!r}")
 
+def fromutc(this, dt):
+    """
+    datetime in UTC -> datetime in local time.
+    The method fromutc() in tzinfo will not accept the Badi datetime object,
+    so this method needs to fill the role.
+
+    :param this: The tzinfo object.
+    :type this: tzinfo
+    :param dt: A datetime object.
+    :type dt: datetime.datetime
+    :returns: The adjusted datetime from the provided UTC datetime.
+    :rtype: datetime.datetime
+
+    .. note::
+
+       This function needs to be implimented outside the tzinfo class so
+       that the tzinfo class can be used with the zoneinfo class. Normally
+       the tzinfo class would just be overridden with this function added.
+    """
+
+    if not isinstance(dt, datetime):
+        raise TypeError("fromutc() requires a datetime argument.")
+
+    if dt.tzinfo is not this:
+        raise ValueError("dt.tzinfo is not self")
+
+    dtoff = dt.utcoffset()
+
+    if dtoff is None:
+        raise ValueError("fromutc() requires a non-None utcoffset() "
+                         "result.")
+
+    # See the long comment block at the end of this file for an
+    # explanation of this algorithm.
+    dtdst = dt.tzinfo.dst(dt)
+
+    #print(dtdst, type(dtdst))
+
+    if dtdst is None:
+        raise ValueError("fromutc() requires a non-None dst() result.")
+
+    delta = dtoff - dtdst
+    #print(dt, delta)
+
+    if delta:
+        dt += delta
+        dtdst = dt.dst()
+
+        if dtdst is None:
+            raise ValueError("fromutc(): dt.dst gave inconsistent "
+                             "results; cannot convert.")
+
+    return dt + dtdst
+
 def _local_timezone_info():
     """
     Returns the offset in seconds, dst, IANA timezone key.
@@ -148,7 +203,7 @@ def _local_timezone_info():
        package.
     """
     localzone = get_localzone()
-    dt = _dt.now(localzone)
+    dt = dtime.now(localzone)
     offset = dt.utcoffset().total_seconds()
     dst = dt.dst().total_seconds() != 0
     return offset, dst, localzone.key
@@ -165,6 +220,7 @@ def _get_local_coordinates():
     return latitude, longitude, offset / 3600
 
 LOCAL_COORD = _get_local_coordinates()
+#LOCAL = ZoneInfo(_local_timezone_info()[2])
 
 def _module_name(module):
     """
@@ -173,346 +229,6 @@ def _module_name(module):
     idx = module.find('.')
     dt_true = True if module[:idx] == 'datetime' else False
     return module[idx + 1:] if idx != -1 and not dt_true else module
-
-
-class timedelta:
-    """
-    Represent the difference between two datetime objects.
-
-    Supported operators:
-
-    - add, subtract timedelta
-    - unary plus, minus, abs
-    - compare to timedelta
-    - multiply, divide by int
-
-    In addition, datetime supports subtraction of two datetime objects
-    returning a timedelta, and addition or subtraction of a datetime
-    and a timedelta giving a datetime.
-
-    Representation: (days, seconds, microseconds).  Why?  Because I
-    felt like it.
-    """
-    __slots__ = '_days', '_seconds', '_microseconds', '_hashcode'
-
-    def __new__(cls, days=0, seconds=0, microseconds=0,
-                milliseconds=0, minutes=0, hours=0, weeks=0) -> object:
-        # Doing this efficiently and accurately in C is going to be difficult
-        # and error-prone, due to ubiquitous overflow possibilities, and that
-        # C double doesn't have enough bits of precision to represent
-        # microseconds over 10K years faithfully.  The code here tries to make
-        # explicit where go-fast assumptions can be relied on, in order to
-        # guide the C implementation; it's way more convoluted than speed-
-        # ignoring auto-overflow-to-long idiomatic Python could be.
-
-        # XXX Check that all inputs are ints or floats.
-
-        # Final values, all integer.
-        # s and us fit in 32-bit signed ints; d isn't bounded.
-        d = s = us = 0
-
-        # Normalize everything to days, seconds, microseconds.
-        days += weeks*7
-        seconds += minutes*60 + hours*3600
-        microseconds += milliseconds*1000
-
-        # Get rid of all fractions, and normalize s and us.
-        # Take a deep breath <wink>.
-        if isinstance(days, float):
-            dayfrac, days = _math.modf(days)
-            daysecondsfrac, daysecondswhole = _math.modf(dayfrac * (24.*3600.))
-            assert daysecondswhole == int(daysecondswhole)  # can't overflow
-            s = int(daysecondswhole)
-            assert days == int(days)
-            d = int(days)
-        else:
-            daysecondsfrac = 0.0
-            d = days
-
-        assert isinstance(daysecondsfrac, float)
-        assert abs(daysecondsfrac) <= 1.0
-        assert isinstance(d, int)
-        assert abs(s) <= 24 * 3600
-        # days aren't referenced again before redefinition
-
-        if isinstance(seconds, float):
-            secondsfrac, seconds = _math.modf(seconds)
-            assert seconds == int(seconds)
-            seconds = int(seconds)
-            secondsfrac += daysecondsfrac
-            assert abs(secondsfrac) <= 2.0
-        else:
-            secondsfrac = daysecondsfrac
-
-        # daysecondsfrac isn't referenced again
-        assert isinstance(secondsfrac, float)
-        assert abs(secondsfrac) <= 2.0
-
-        assert isinstance(seconds, int)
-        days, seconds = divmod(seconds, 24*3600)
-        d += days
-        s += int(seconds)    # can't overflow
-        assert isinstance(s, int)
-        assert abs(s) <= 2 * 24 * 3600
-        # seconds isn't referenced again before redefinition
-
-        usdouble = secondsfrac * 1e6
-        assert abs(usdouble) < 2.1e6    # exact value not critical
-        # secondsfrac isn't referenced again
-
-        if isinstance(microseconds, float):
-            microseconds = round(microseconds + usdouble)
-            seconds, microseconds = divmod(microseconds, 1000000)
-            days, seconds = divmod(seconds, 24*3600)
-            d += days
-            s += seconds
-        else:
-            microseconds = int(microseconds)
-            seconds, microseconds = divmod(microseconds, 1000000)
-            days, seconds = divmod(seconds, 24*3600)
-            d += days
-            s += seconds
-            microseconds = round(microseconds + usdouble)
-
-        assert isinstance(s, int)
-        assert isinstance(microseconds, int)
-        assert abs(s) <= 3 * 24 * 3600
-        assert abs(microseconds) < 3.1e6
-
-        # Just a little bit of carrying possible for microseconds and seconds.
-        seconds, us = divmod(microseconds, 1000000)
-        s += seconds
-        days, s = divmod(s, 24*3600)
-        d += days
-
-        assert isinstance(d, int)
-        assert isinstance(s, int) and 0 <= s < 24*3600
-        assert isinstance(us, int) and 0 <= us < 1000000
-
-        if abs(d) > 999999999:
-            raise OverflowError(f"timedelta # of days is too large: {d}")
-
-        self = object.__new__(cls)
-        self._days = d
-        self._seconds = s
-        self._microseconds = us
-        self._hashcode = -1
-        return self
-
-    def __repr__(self):
-        args = []
-
-        if self._days:
-            args.append(f"days={self._days}")
-
-        if self._seconds:
-            args.append(f"seconds={self._seconds}")
-
-        if self._microseconds:
-            args.append(f"microseconds={self._microseconds}")
-
-        if not args:
-            args.append('0')
-
-        return (f"{_module_name(self.__class__.__module__)}."
-                f"{self.__class__.__qualname__}({', '.join(args)})")
-
-    def __str__(self):
-        mm, ss = divmod(self._seconds, 60)
-        hh, mm = divmod(mm, 60)
-        s = f'{hh:d}:{mm:02d}:{ss:02d}'
-
-        if self._days:
-            def plural(n):
-                return n, abs(n) != 1 and "s" or ""
-
-            day, p = plural(self._days)
-            s = f'{day:d} day{p:s}, ' + s
-
-        if self._microseconds:
-            s = s + f'.{self._microseconds:06d}'
-
-        return s
-
-    def total_seconds(self):
-        """Total seconds in the duration."""
-        return ((self.days * 86400 + self.seconds) * 10**6 +
-                self.microseconds) / 10**6
-
-    # Read-only field accessors
-    @property
-    def days(self):
-        """days"""
-        return self._days
-
-    @property
-    def seconds(self):
-        """seconds"""
-        return self._seconds
-
-    @property
-    def microseconds(self):
-        """microseconds"""
-        return self._microseconds
-
-    def __add__(self, other):
-        if isinstance(other, timedelta):
-            # for CPython compatibility, we cannot use
-            # our __class__ here, but need a real timedelta
-            ret = timedelta(self._days + other._days,
-                            self._seconds + other._seconds,
-                            self._microseconds + other._microseconds)
-        else:
-            ret = NotImplemented
-
-        return ret
-
-    __radd__ = __add__
-
-    def __sub__(self, other):
-        if isinstance(other, timedelta):
-            # for CPython compatibility, we cannot use
-            # our __class__ here, but need a real timedelta
-            ret = timedelta(self._days - other._days,
-                            self._seconds - other._seconds,
-                            self._microseconds - other._microseconds)
-        else:
-            ret = NotImplemented
-
-        return ret
-
-    def __rsub__(self, other):
-        return -self+other if isinstance(other, timedelta) else NotImplemented
-
-    def __neg__(self):
-        # for CPython compatibility, we cannot use
-        # our __class__ here, but need a real timedelta
-        return timedelta(-self._days, -self._seconds, -self._microseconds)
-
-    def __pos__(self):
-        return self
-
-    def __abs__(self):
-        return -self if self._days < 0 else self
-
-    def __mul__(self, other):
-        if isinstance(other, int):
-            # for CPython compatibility, we cannot use
-            # our __class__ here, but need a real timedelta
-            ret = timedelta(self._days * other,
-                             self._seconds * other,
-                             self._microseconds * other)
-        elif isinstance(other, float):
-            usec = self._to_microseconds()
-            a, b = other.as_integer_ratio()
-            ret = timedelta(0, 0, _divide_and_round(usec * a, b))
-        else:
-            ret = NotImplemented
-
-        return ret
-
-    __rmul__ = __mul__
-
-    def _to_microseconds(self):
-        return ((self._days * (24*3600) + self._seconds) * 1000000 +
-                self._microseconds)
-
-    def __floordiv__(self, other):
-        if isinstance(other, (int, timedelta)):
-            usec = self._to_microseconds()
-
-            if isinstance(other, timedelta):
-                ret = usec // other._to_microseconds()
-            else: # isinstance(other, int):
-                ret = timedelta(0, 0, usec // other)
-        else:
-            ret = NotImplemented
-
-        return ret
-
-    def __truediv__(self, other):
-        if isinstance(other, (int, float, timedelta)):
-            usec = self._to_microseconds()
-
-            if isinstance(other, timedelta):
-                ret = usec / other._to_microseconds()
-            elif isinstance(other, int):
-                ret = timedelta(0, 0, _divide_and_round(usec, other))
-            else: # isinstance(other, float):
-                a, b = other.as_integer_ratio()
-                ret = timedelta(0, 0, _divide_and_round(b * usec, a))
-        else:
-            ret = NotImplemented
-
-        return ret
-
-    def __mod__(self, other):
-        if isinstance(other, timedelta):
-            r = self._to_microseconds() % other._to_microseconds()
-            ret = timedelta(0, 0, r)
-        else:
-            ret = NotImplemented
-
-        return ret
-
-    def __divmod__(self, other):
-        if isinstance(other, timedelta):
-            q, r = divmod(self._to_microseconds(), other._to_microseconds())
-            ret = q, timedelta(0, 0, r)
-        else:
-            ret = NotImplemented
-
-        return ret
-
-    # Comparisons of timedelta objects with other.
-
-    def __eq__(self, other):
-        return (self._cmp(other) == 0 if isinstance(other, timedelta)
-                else NotImplemented)
-
-    def __le__(self, other):
-        return (self._cmp(other) <= 0 if isinstance(other, timedelta)
-                else NotImplemented)
-
-    def __lt__(self, other):
-        return (self._cmp(other) < 0 if isinstance(other, timedelta)
-                else NotImplemented)
-
-    def __ge__(self, other):
-        return (self._cmp(other) >= 0 if isinstance(other, timedelta)
-                else NotImplemented)
-
-    def __gt__(self, other):
-        return (self._cmp(other) > 0 if isinstance(other, timedelta)
-                else NotImplemented)
-
-    def _cmp(self, other):
-        assert isinstance(other, timedelta)
-        return _cmp(self._getstate(), other._getstate())
-
-    def __hash__(self):
-        if self._hashcode == -1:
-            self._hashcode = hash(self._getstate())
-
-        return self._hashcode
-
-    def __bool__(self):
-        return (self._days != 0 or
-                self._seconds != 0 or
-                self._microseconds != 0)
-
-    # Pickle support.
-
-    def _getstate(self):
-        return (self._days, self._seconds, self._microseconds)
-
-    def __reduce__(self):
-        return (self.__class__, self._getstate())
-
-timedelta.min = timedelta(-999999999)
-timedelta.max = timedelta(days=999999999, hours=23, minutes=59, seconds=59,
-                          microseconds=999999)
-timedelta.resolution = timedelta(microseconds=1)
 
 
 class date(BahaiCalendar):
@@ -1119,53 +835,6 @@ date.max = date(MAXYEAR, 19, 19)
 date.resolution = timedelta(days=1)
 
 
-# *** TODO *** May not need this class.
-class tzinfo(_tzinfo):
-    """
-    Abstract base class for time zone info classes.
-
-    Subclasses must override the tzname(), utcoffset() and dst() methods.
-    """
-
-    def badioffset(self, dt):
-        """
-        datetime -> timedelta, positive for east of BADI, negative
-        for west of BADI.
-        """
-        #badi_offset = timedelta(hours=BADI_INFO[0])
-        #return self.utcoffset(dt) + badi_offset
-        raise NotImplementedError("tzinfo subclass must override badioffset()")
-
-    ## def frombadi(self, dt):
-    ##     """
-    ##     datetime in Badi TZ -> datetime in local time.
-    ##     """
-    ##     if not isinstance(dt, datetime):
-    ##         raise TypeError("frombadi() requires a datetime argument, "
-    ##                         f"found '{type(dt)}'.")
-
-    ##     if dt.tzinfo is not self:
-    ##         raise ValueError("dt.tzinfo is not self")
-
-    ##     dtoff = dt.badioffset()
-
-    ##     if dtoff is None:
-    ##         raise ValueError("frombadi() requires a non-None utcoffset() "
-    ##                          "result")
-
-    ##     if (dtdst := dt.dst()) is None:
-    ##         raise ValueError("frombadi() requires a non-None dst() result")
-
-    ##     if (delta := dtoff - dtdst):
-    ##         dt += delta
-    ##         dtdst = dt.dst()
-
-    ##         if dtdst is None:
-    ##             raise ValueError("frombadi(): dt.dst gave inconsistent "
-    ##                              "results; cannot convert")
-
-    ##     return dt + dtdst
-
 _tzinfo_class = tzinfo
 
 
@@ -1487,6 +1156,9 @@ class time:
         """
         if self.tzinfo is not None:
             offset = self.tzinfo.utcoffset(None)
+
+            #print('POOP', offset)
+
             _check_offset("utcoffset", offset)
             return offset
 
@@ -1494,10 +1166,11 @@ class time:
         """
         Return the timezone offset as timedelta, positive east of UTC
         (negative west of UTC).
+
+        *** TODO *** Should just need to call utcoffset then add 3.5 hours.
         """
         if self.tzinfo is not None:
-            offset = self.tzinfo.badioffset(None)
-            _check_offset("badioffset", offset)
+            offset = self.utcoffset() + 3.5 * 3600
             return offset
 
     def tzname(self):
@@ -1695,35 +1368,33 @@ class datetime(date):
         return self.__short
 
     @classmethod
-    def _split_date_time(cls, date_time, short):
-        date = date_time[:3] if short else date_time[:5]
-        time = date_time[3:] if short else date_time[5:]
-        return date, time[0], time[1], time[2], time[3]
-
-    @classmethod
     def _fromtimestamp(cls, t, utc, tz, *, short=False):
         """
         Construct a datetime from a POSIX timestamp (like time.time()).
 
-        A timezone info object may be passed in as well.
+        :param t: POSIX timestamp.
+        :type t: float
+        :param utc: If True then the result is relative to UTC time else
+                    if False it is relative to local time.
+        :type utc: bool
+        :param tz: A tzinfo object.
+        :type tz: tzinfo
+        :param short: If False (default) the result is in the long Badi form,
+                      else if True it is in the short form.
+        :returns: A datetime object set to the date derived from the
+                  POSIX timestamp.
+        :rtype: datetime.datetime
         """
+        def _fix_short_date(date, short):
+            return date[:3] + (None, None) + date[3:] if short else date
+
         bc = BahaiCalendar()
-
-        if not utc: # *** TODO *** Disambiguate a UTC and BADI tzinfo
-            # Get local UTC offset then correct for the Baha'i location.
-            offset_sec = _local_timezone_info()[0]
-            offset_sec -= BADI_INFO[0] * 3600
-        else:
-            offset_sec = 0
-
-        t += offset_sec
-        date_time = bc.posix_timestamp(t, *LOCAL_COORD, us=True, short=short,
-                                       trim=False)
-        date, hh, mm, ss, us = cls._split_date_time(date_time, short)
-        # clamp out leap seconds if the platform has them
-        ss = min(ss, 59)
-        result = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
-                     tzinfo=tz)
+        coord = GMT_COORD if utc else LOCAL_COORD
+        dt = bc.posix_timestamp(t, *coord, us=True, short=short, trim=False)
+        date = _fix_short_date(dt, short)
+        # Clamp out leap seconds if the platform has them.
+        date = date[:7] + (min(date[7], 59),) + date[8:]
+        result = cls(*date, tzinfo=tz)
 
         if tz is None and not utc:
             # As of version 2015f max fold in IANA database is
@@ -1735,62 +1406,51 @@ class datetime(date):
             # thus we can't perform fold detection for values of time less
             # than the max time fold. See comments in _datetimemodule's
             # version of this method for more details.
-            if t < max_fold_seconds and sys.platform.startswith("win"):
+            if t < max_fold_seconds and sys.platform.startswith('win'):
+                del bc
                 return result
 
-            date_time = bc.posix_timestamp(t - max_fold_seconds, *LOCAL_COORD,
-                                           us=True, short=short, trim=False)
-            date, hh, mm, ss, um = cls._split_date_time(date_time, short)
-            probe1 = cls(*date, hour=hh, minute=mm, second=ss, microsecond=us,
-                         tzinfo=tz)
+            dt = bc.posix_timestamp(t - max_fold_seconds, *LOCAL_COORD,
+                                    us=True, short=short, trim=False)
+            date = _fix_short_date(dt, short)
+            probe1 = cls(*date, tzinfo=tz)
             trans = result - probe1 - timedelta(0, max_fold_seconds)
 
             if trans.days < 0:
                 t += trans // timedelta(0, 1)
-                date_time = bc.posix_timestamp(t, *LOCAL_COORD, us=True,
-                                               short=short, trim=False)
-                probe2 = cls(*date, hour=hh, minute=mm, second=ss,
-                             microsecond=us, tzinfo=tz)
+                dt = bc.posix_timestamp(t, *LOCAL_COORD, us=True, short=short,
+                                        trim=False)
+                date = _fix_short_date(dt, short)
+                probe2 = cls(*date, tzinfo=tz)
 
                 if probe2 == result:
                     result._fold = 1
-        elif tz is not None:
-            result = tz.fromutc(result)
 
+        elif tz is not None:
+            result = fromutc(tz, result)
+
+        del bc
         return result
 
     @classmethod
     def fromtimestamp(cls, t:float, tz:tzinfo=None, *, short:bool=False):
         """
-        Construct a datetime from a POSIX timestamp (like time.time()).
-
-        A timezone info object may be passed in as well.
+        Construct a datetime from a POSIX timestamp representing local time
+        (like time.time()).
         """
         _check_tzinfo_arg(tz)
         return cls._fromtimestamp(t, tz is not None, tz, short=short)
 
-    @classmethod
-    def utcfromtimestamp(cls, t):
-        """
-        Construct a naive UTC datetime from a POSIX timestamp.
-        """
-        return cls._fromtimestamp(t, True, None)
+    # Both the ustfromtimestamp() and utcnow() methods have been depricated.
+    # https://blog.ganssle.io/articles/2019/11/utcnow.html
+    # https://blog.miguelgrinberg.com/post/it-s-time-for-a-change-datetime-utcnow-is-now-deprecated
 
     @classmethod
     def now(cls, tz=None):
         """
         Construct a datetime from time.time() and optional time zone info.
         """
-        t = _time.time()
-        return cls.fromtimestamp(t, tz)
-
-    @classmethod
-    def utcnow(cls):
-        """
-        Construct a UTC datetime from time.time().
-        """
-        t = _time.time()
-        return cls.utcfromtimestamp(t)
+        return cls.fromtimestamp(_time.time(), tz)
 
     @classmethod
     def combine(cls, date:date, time:time, tzinfo:time.tzinfo=True):
@@ -2533,7 +2193,7 @@ class timezone(tzinfo):
             return 'datetime.timezone.utc'
 
         if self is self.badi:
-            return 'datetime.timezone.badi'
+            return 'datetime.BADI'
 
         module = self.__class__.__module__
         offset_name = f"{self._offset!r}"
