@@ -2287,7 +2287,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             (0, True, tz1, True, '0126-16-02T07:58:31.497600+00:00'),
             # Assume local time as starting point.
             (-18000, False, tz0, True, '0126-16-02T05:16:33.168000+03:30'),
-            # Assume BADI (Tehran) as starting point.
+            # Assume UTC as starting point.
             (0, True, tz0, True, '0126-16-02T11:28:31.497600+03:30'),
             # Assume local time as starting point.
             (-18000, False, tz2, True, '0126-16-01T20:46:33.168000-05:00'),
@@ -2300,23 +2300,31 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                 expected_result, t, utc, tz, short, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_fromtimestamp(self):
         """
         Test that the fromtimestamp classmethod creates an instance
         of datetime.
         """
+        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz1 = ZoneInfo('UTC')
+        tz2 = ZoneInfo('US/Eastern')
         data = (
-            ## (0, None, True, '0126-16-01T22:16:33.110400'),
-            ## (0, datetime.UTC, True, '0126-16-02T06:46:33.139200+00:00'),
-            ## (0, datetime.BADI, True, '0126-16-02T10:16:33.139200+03:30'),
-            # UTC time (2024, 11, 30, 20, 24, 13, 327577) ->
-            # (181, 14, 10, 8, 21, 41.328, 0)
-            # *** TODO *** The below aware datetime is correct and the naive
-            #              datetime is wrong, both should be the same.
+            # Assume local time as starting point.
+            # 1970-01-01 -> Badi date and time relative to naive local time.
+            (0, None, True, '0126-16-02T06:46:33.139200'),
+            # Assume UTC as starting point.
+            # 1970-01-01 -> Badi date and time relative to UTC
+            (0, tz1, True, '0126-16-02T07:58:31.497600+00:00'),
+            # Assume UTC as starting point.
+            # 1970-01-01 -> Badi date and time relative to +03:30
+            (0, tz0, True, '0126-16-02T11:28:31.497600+03:30'),
+            # Local time (2024, 11, 30, 20, 24, 13, 327577) ->
+            # (181, 14, 10, 3, 21, 41.2704, 0)
+            # *** TODO *** There is a problem with the results below, both
+            #              should be the same. 0181-14-10T03:21:41.2704)
             (1733016253.327577, None, True, '0181-14-10T08:21:41.328000'),
-            (1733016253.327577, datetime.LOCAL, True,
-             '0181-14-10T08:21:41.328000-05:00'),
+            (1733016253.327577, tz2, True, '0181-14-10T04:30:30.988800-05:00'),
             )
         msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
                "found {}.")

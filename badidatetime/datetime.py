@@ -12,7 +12,6 @@ import time as _time
 import math as _math
 from datetime import datetime as dtime, timedelta, tzinfo
 from types import NoneType
-from zoneinfo import ZoneInfo
 from tzlocal import get_localzone
 import geocoder
 
@@ -220,7 +219,6 @@ def _get_local_coordinates():
     return latitude, longitude, offset / 3600
 
 LOCAL_COORD = _get_local_coordinates()
-#LOCAL = ZoneInfo(_local_timezone_info()[2])
 
 def _module_name(module):
     """
@@ -1442,8 +1440,7 @@ class datetime(date):
         return cls._fromtimestamp(t, tz is not None, tz, short=short)
 
     # Both the ustfromtimestamp() and utcnow() methods have been depricated.
-    # https://blog.ganssle.io/articles/2019/11/utcnow.html
-    # https://blog.miguelgrinberg.com/post/it-s-time-for-a-change-datetime-utcnow-is-now-deprecated
+    # https://docs.python.org/3/deprecations/index.html
 
     @classmethod
     def now(cls, tz=None):

@@ -203,6 +203,8 @@ class TestGregorianCalendar(unittest.TestCase):
         """
         Test that the ymdhms_from_posix_time method returns the year, month,
         day, hours, minutes, and seconds for a POSIX timestamp.
+
+        *** TODO *** This method is giving wrong results.
         """
         data = (
             # POSIX epoch -> 1970-01-01T00:00:00
@@ -230,6 +232,8 @@ class TestGregorianCalendar(unittest.TestCase):
             (1724371535.5798125, -4, (2024, 8, 22, 20, 5, 35.579813)),
             # Parts of Australia Friday, August 23 2024 8:50 (UTC+8:45)
             (1724371535.5798125, 8.75, (2024, 8, 23, 8, 50, 35.579813)),
+            # (2024, 11, 30, 20, 24, 13, 327577)
+            (1733016253.327577, -5, (2024, 11, 30, 20, 24, 13.327577)),
             )
         msg = "Expected {} with t {}, and zone {}, found {}"
 

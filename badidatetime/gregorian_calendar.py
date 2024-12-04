@@ -253,7 +253,9 @@ class GregorianCalendar(BaseCalendar):
         #    day -= 1
 
         seconds = round(seconds % 60, self.ROUNDING_PLACES)
-        return year, month, day, hours, minutes, seconds
+        date = (year, month, day, hours, minutes, seconds)
+        self._check_valid_gregorian_month_day(date, historical=True)
+        return date
 
     def gregorian_year_from_jd(self, jd:float) -> int:
         """
