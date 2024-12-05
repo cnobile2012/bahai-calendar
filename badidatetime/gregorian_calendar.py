@@ -17,7 +17,7 @@ class GregorianCalendar(BaseCalendar):
     # Julian date for the Gregorian epoch
     # https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/calendar_calculations.htm
     GREGORIAN_EPOCH = 1721423.5
-    MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    MONTHS = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
     GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
@@ -77,7 +77,7 @@ class GregorianCalendar(BaseCalendar):
             td = self._days_in_years(year-1, alt=alt)
             days = td + (self.GREGORIAN_EPOCH - 1)
             month_days = list(self.MONTHS)
-            month_days[1] = 29 if GLY(year) else 28
+            month_days[1] += GLY(year)
             days += sum(month_days[:month-1]) + day
             jd = round(days, self.ROUNDING_PLACES)
         else: # Meeus historically correct algorithm
@@ -145,7 +145,7 @@ class GregorianCalendar(BaseCalendar):
                 year += 1
 
             month_days = list(self.MONTHS)
-            month_days[1] = 29 if GLY(year) else 28
+            month_days[1] += GLY(year)
             d = day = 0
 
             for month, ds in enumerate(month_days, start=1):
@@ -196,10 +196,11 @@ class GregorianCalendar(BaseCalendar):
 
         return date
 
-    def ymdhms_from_posix_time(self, t:float, *, zone:float=0) -> tuple:
+    def ymdhms_from_posix_time(self, t:float, *, zone:float=0,
+                               us:bool=False) -> tuple:
         """
         Find the year, month, day, hours, minutes, and seconds from a
-        POSIX timestamp updated for timezone.
+        POSIX timestamp updated for provided time zone.
 
         *** TODO *** Fix for years before 1070
 
@@ -207,53 +208,67 @@ class GregorianCalendar(BaseCalendar):
         :type t: float
         :param zone: Timezone
         :type zone: float
+        :param us: If True the seconds are split to seconds amd microseconds
+                   else if False the seconds has a partial day as a decimal.
+        :type us: bool
         :return: The time of the day corrected for the timezone.
         :rtype: tuple
         """
+        t += zone * 3600
         days = math.floor(t / 86400)
         year = 1970
         leap = False
         neg = days < 0
-        days = abs(days)
 
+        if neg:
+            pass
+
+        else:
+            days = abs(days) + 1
+
+        # Find the year and remaining number of days.
         while True:
             leap = self.GREGORIAN_LEAP_YEAR(year)
-            diy = 366 if leap else 365
+            diy = 365 + leap
             #days = diy - days if neg else days
             if days < diy: break
             days -= diy
             year += -1 if neg else 1
 
         month_days = list(self.MONTHS)
-        month_days[1] -= 0 if leap else 1
-        days_in_month = 0
+        month_days[1] += leap
+        days_before_month = 0
 
-        for month, ds in enumerate(month_days, start=1):
-            days_in_month += ds
-            if days > days_in_month: continue
-            day = math.ceil(days - (days_in_month - ds)) + 1
+        for month, days_in_month in enumerate(month_days, start=1):
+            days_before_month += days_in_month
+            if days > days_before_month: continue
+            day = days - (days_before_month - days_in_month)
+
+            if day > days_in_month:
+                month += 1
+                day = day - days_in_month
+
             break
 
         seconds = t % 86400
-        hours = math.floor(seconds / 3600 + zone)
-        tzp = zone % 1
-        seconds = seconds % 3600
         minutes = math.floor(seconds / 60)
-        minutes += tzp * 60
+        minute = minutes % 60
+        hour = math.floor(minutes / 60)
+        second = round(seconds % 60, 6)
+        microsecond = 0
 
-        if hours < 0:
-            day -= 1
-            hours += 24
-        elif hours >= 24:
-            day += 1
-            hours -= 24
-            minutes -= 60 if minutes >= 60 else 0
+        if us:
+            second = math.floor(second)
+            microsecond += math.floor(round(seconds % 1, 6) * 1e6)
+
+        #print(f"{t:18.6f} {zone:>+2.2f} {year:02} {month:02} {day:02} "
+        #      f"{hour:02} {int(minute):02} {second:02} {microsecond}")
 
         #if neg and 1970 > (year + 1):
         #    day -= 1
 
-        seconds = round(seconds % 60, self.ROUNDING_PLACES)
-        date = (year, month, day, hours, minutes, seconds)
+        date = (year, month, day, hour, minute, second
+                ) + ((microsecond,) if us else ())
         self._check_valid_gregorian_month_day(date, historical=True)
         return date
 
@@ -344,7 +359,7 @@ class GregorianCalendar(BaseCalendar):
         days = self.MONTHS[month - 1]
 
         if month == 2: # Subtract 0 or 1 from February if leap year.
-            days -= 0 if LY(year) else 1
+            days += LY(year)
 
         assert 1 <= math.floor(day) <= days, (
             f"Invalid day '{day}' for month '{month}' and year '{year}' "
