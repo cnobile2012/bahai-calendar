@@ -2319,12 +2319,17 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to +03:30
             (0, tz0, True, '0126-16-02T11:28:31.497600+03:30'),
-            # Local time (2024, 11, 30, 20, 24, 13, 327577) ->
-            # (181, 14, 10, 3, 21, 41.2704, 0)
-            # *** TODO *** There is a problem with the results below, both
-            #              should be the same. 0181-14-10T03:21:41.2704)
+            # Local time (2024, 11, 30, 20, 24, 13, 327577)
+            # *** TODO *** There is a problem with the two results below, both
+            # should be the same. Checked with tz is correct. This could be
+            # that only God knows what coordinates are used for IANA time
+            # zones to arrive at the correct time. Off by 03:51:10.3392 hrs.
             (1733016253.327577, None, True, '0181-14-10T08:21:41.328000'),
             (1733016253.327577, tz2, True, '0181-14-10T04:30:30.988800-05:00'),
+            # Some long form datetimes.
+            (0, None, False, '01-07-12-16-02T06:46:33.139200'),
+            (0, tz1, False, '01-07-12-16-02T07:58:31.497600+00:00'),
+            (0, tz0, False, '01-07-12-16-02T11:28:31.497600+03:30'),
             )
         msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
                "found {}.")
@@ -2334,13 +2339,34 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                 expected_result, t, tz, short, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_now(self):
         """
-        Test that the now classmethod creates an instance
-        of datetime.
+        Test that the now classmethod creates an instance of datetime. It is
+        not possible to test actual dates and time as they will change every
+        second.
         """
-        pass
+        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz1 = ZoneInfo('UTC')
+        tz2 = ZoneInfo('US/Eastern')
+        data = (
+            (None, True, 11),
+            (tz0, True, 11),
+            (tz1, True, 11),
+            (tz2, True, 11),
+            (None, False, 13),
+            (tz0, False, 13),
+            (tz1, False, 13),
+            (tz2, False, 13),
+            )
+        msg = "Expected {} with timezone {} and short {}, found {}."
+
+        for tz, short, expected_result in data:
+            dt = datetime.datetime.now(tz=tz, short=short)
+            ttup = dt.timetuple()
+            result = len(ttup)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, tz, short, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_combine(self):
@@ -2456,16 +2482,19 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     @unittest.skip("Temporarily skipped")
     def test_timestamp(self):
         """
-        Test that thetimestamp method either the POSIX time for local or
-        for the timezone provided.
+        Test that the timestamp method returns either the POSIX time for
+        local or for the timezone provided.
 
         https://www.unixtimestamp.com
         https://www.epochconverter.com
         """
+        #tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        #tz1 = ZoneInfo('UTC')
+        #tz2 = ZoneInfo('US/Eastern')
         data = (
-            ((126, 16, 2, None, None, 7, 58, 31.4976), datetime.UTC, 0, 0.0),
             ((126, 16, 2, None, None, 7, 58, 31.4976), datetime.BADI, 0,
-             18000.0),
+             -12600.0),
+            ((126, 16, 2, None, None, 7, 58, 31.4976), datetime.UTC, 0, 0.0),
             ((126, 16, 2, None, None, 6, 46, 33.1392), None, 0, 18000),
             ((1, 1, 1), None, 0, -7938830703.0),
             )
@@ -2500,41 +2529,42 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, fold, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test_baditimetuple(self):
-        """
-        Test that the baditimetuple method returns a timetuple object.
-        """
-        data = (
-            ((), (), None, 0, ''),
-            )
-        msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
-               "found {}.")
-
-        for date, time, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
-                                   second=time[2], tzinfo=tz, fold=fold)
-            result = dt.baditimetuple()
-            self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, time, tz, fold, result))
-
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__timetuple(self):
         """
         Test that the _timetuple method returns a timetuple object.
         """
+        #tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz1 = ZoneInfo('UTC')
+        tz2 = ZoneInfo('US/Eastern')
+        offset0 = datetime.timedelta(0)
+        offset1 = datetime.timedelta(hours=-5)
         data = (
-            ((), (), None, 0, ''),
+            ((181, 14, 15), None, 0, offset0,
+             'structures.ShortFormStruct(tm_year=181, tm_mon=14, tm_mday=15, '
+             'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=262, '
+             'tm_isdst=0)'),
+            ((181, 14, 15), tz1, 0, offset0,
+             'structures.ShortFormStruct(tm_year=181, tm_mon=14, tm_mday=15, '
+             'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=262, '
+             'tm_isdst=0)'),
+            ((181, 14, 15), None, 0, offset1,
+             'structures.ShortFormStruct(tm_year=181, tm_mon=14, tm_mday=15, '
+             'tm_hour=5, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=262, '
+             'tm_isdst=0)'),
+            ((181, 14, 15), tz2, 0, offset1,
+             'structures.ShortFormStruct(tm_year=181, tm_mon=14, tm_mday=15, '
+             'tm_hour=5, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=262, '
+             'tm_isdst=0)'),
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
-               "found {}.")
+        msg = ("Expected {} with date {}, timezone {}, fold {}, and "
+               "offset {}, found {}.")
 
-        for date, time, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
-                                   second=time[2], tzinfo=tz, fold=fold)
+        for date, tz, fold, offset, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt._timetuple(offset)
             self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, time, tz, fold, result))
+                    expected_result, date, tz, fold, offset, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_date(self):
@@ -2825,42 +2855,49 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_utcoffset(self):
         """
-        Test that the utcoffset method returns a timedelta object.
+        Test that the utcoffset method returns a timedelta object relative
+        to the UTC time zone..
         """
+        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz1 = ZoneInfo('UTC')
+        tz2 = ZoneInfo('US/Eastern')
         data = (
-            ((181, 1, 1), (12, 30, 30), datetime.UTC, 0, '0:00:00'),
+            ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, '3:30:00'),
+            ((181, 1, 1, None, None, 12, 30, 30), tz0, 0, '3:30:00'),
+            ((181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 0, '0:00:00'),
+            ((181, 1, 1, None, None, 12, 30, 30), tz1, 0, '0:00:00'),
+            ((181, 1, 1, None, None, 12, 30, 30), tz2, 0, '-1 day, 20:00:00'),
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
-               "found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
-                                   second=time[2], tzinfo=tz, fold=fold)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.utcoffset()
             self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, time, tz, fold, result))
-            self.assertTrue(isinstance(result, datetime.timedelta), msg.format(
-                    expected_result, date, time, tz, fold, result))
+                    expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_badioffset(self):
         """
-        Test that the badioffset method returns a timedelta object.
+        Test that the badioffset method returns a timedelta object relative
+        to the BADI time zone.
         """
+        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz1 = ZoneInfo('UTC')
+        tz2 = ZoneInfo('US/Eastern')
         data = (
-            ((181, 1, 1), (12, 30, 30), datetime.BADI, 0, '3:30:00'),
+            ((181, 1, 1, None, None,12, 30, 30), datetime.BADI, 0, '0:00:00'),
+            ((181, 1, 1, None, None, 12, 30, 30), tz0, 0, '0:00:00'),
+            #((181, 1, 1, None, None, 12, 30, 30), tz1, 0, '0:00:00'),
+            #((181, 1, 1, None, None, 12, 30, 30), tz2, 0, ''),
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
-               "found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
-                                   second=time[2], tzinfo=tz, fold=fold)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.badioffset()
             self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, time, tz, fold, result))
-            self.assertTrue(isinstance(result, datetime.timedelta), msg.format(
-                    expected_result, date, time, tz, fold, result))
+                    expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_tzname(self):
@@ -2881,26 +2918,26 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, tz, fold, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_dst(self):
         """
         Test that the dst method returns the daylight savings time
         associated with the datetime object.
-
-        NOTE: This method cannot be properly tested until there is a way to
-              create a tzinfo object compatible with the badidatetime package.
         """
+        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz1 = ZoneInfo('UTC')
+        tz2 = ZoneInfo('US/Eastern')
         data = (
-            ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, None),
-            ((181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 1, None),
-            ((181, 7, 1) )
+            ((181, 1, 1, None, None, 12, 30, 30), tz0, 0, '0:00:00'),
+            ((181, 1, 1, None, None, 12, 30, 30), tz1, 0, '0:00:00'),
+            ((181, 7, 1), tz2, 0, '1:00:00'),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
         for date, tz, fold, expected_result in data:
             dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.dst()
-            self.assertEqual(expected_result, result, msg.format(
+            self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")

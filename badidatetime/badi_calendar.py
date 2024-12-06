@@ -308,7 +308,7 @@ class BahaiCalendar(BaseCalendar):
         """
         def get_leap_year_info(year, _chk_on):
             leap = self._is_leap_year(year, _chk_on=_chk_on)
-            yds = 366 if leap else 365
+            yds = 365 + leap
             ld = 4 + leap
             return leap, yds, ld
 

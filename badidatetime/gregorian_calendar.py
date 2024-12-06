@@ -218,22 +218,15 @@ class GregorianCalendar(BaseCalendar):
         days = math.floor(t / 86400)
         year = 1970
         leap = False
-        neg = days < 0
-
-        if neg:
-            pass
-
-        else:
-            days = abs(days) + 1
+        days = abs(days) + 1
 
         # Find the year and remaining number of days.
         while True:
             leap = self.GREGORIAN_LEAP_YEAR(year)
             diy = 365 + leap
-            #days = diy - days if neg else days
             if days < diy: break
             days -= diy
-            year += -1 if neg else 1
+            year += 1
 
         month_days = list(self.MONTHS)
         month_days[1] += leap
@@ -263,9 +256,6 @@ class GregorianCalendar(BaseCalendar):
 
         #print(f"{t:18.6f} {zone:>+2.2f} {year:02} {month:02} {day:02} "
         #      f"{hour:02} {int(minute):02} {second:02} {microsecond}")
-
-        #if neg and 1970 > (year + 1):
-        #    day -= 1
 
         date = (year, month, day, hour, minute, second
                 ) + ((microsecond,) if us else ())
