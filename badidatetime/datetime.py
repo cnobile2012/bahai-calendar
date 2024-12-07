@@ -1320,8 +1320,8 @@ class datetime(date):
     def _create_time(self, hour, minute, second, microsecond):
         def fractionals(value, items):
             if value % 1 and any(items):
-                raise ValueError(
-                    "More than one fractional value is not allowed.")
+                raise ValueError("A fractional value cannot be followed by "
+                                 "a less significant value.")
 
         fractionals(hour, (minute, second, microsecond))
         fractionals(minute, (second, microsecond))

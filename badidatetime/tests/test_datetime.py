@@ -1310,55 +1310,6 @@ class TestBadiDatetime_date(unittest.TestCase):
                 b_date0, date, b_date1))
 
 
-## class TestBadiDatetime_tzinfo(unittest.TestCase):
-
-##     def __init__(self, name):
-##         super().__init__(name)
-
-##     #@unittest.skip("Temporarily skipped")
-##     def test_frombadi(self):
-##         """
-##         Test that the frombadi method converts BADI time to local time.
-##         """
-##         err_msg0 = "frombadi() requires a datetime argument, found '{}'."
-##         err_msg1 = "dt.tzinfo is not self"
-##         err_msg2 = "frombadi() requires a non-None utcoffset() result"
-##         err_msg3 = "frombadi() requires a non-None dst() result"
-##         err_msg4 = ("frombadi(): dt.dst gave inconsistent results; "
-##                     "cannot convert")
-##         data = (
-##             #((181, 1, 1), datetime.BADI, False, ''),
-
-##             (None, None, True, err_msg0.format("<class 'NoneType'>")),
-##             ((181, 1, 1), datetime.BADI, True, err_msg1),
-##             #((181, 1, 1), None, True, err_msg2),
-##             #((181, 1, 1), None, True, err_msg3),
-##             )
-##         msg = "Expected {}, with date {}, found {}"
-
-##         for date, tz, validity, expected_result in data:
-##             tzinfo = datetime.tzinfo()
-
-##             if date is None:
-##                 dt = date
-##             else:
-##                 dt = datetime.datetime(*date)
-
-##             if validity:
-##                 try:
-##                     result = tzinfo.frombadi(dt)
-##                 except (TypeError, ValueError) as e:
-##                     self.assertEqual(expected_result, str(e))
-##                 else:
-##                     result = result if result else None
-##                     raise AssertionError(f"With {value} an error is not "
-##                                          f"raised, with result {result}.")
-##             else:
-##                 result = tzinfo.frombadi(dt)
-##                 self.assertEqual(expected_result, result, msg.format(
-##                     expected_result, value, result))
-
-
 class TestBadiDatetime__IsoCalendarDate(unittest.TestCase):
 
     def __init__(self, name):
@@ -2098,7 +2049,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         err_msg0 = ("A full short or long form Badi date must be used, found "
                     "{} fields.")
-        err_msg1 = "More than one fractional value is not allowed."
+        err_msg1 = ("A fractional value cannot be followed by a less "
+                    "significant value.")
         data = (
             ((1, 1, 1, None, None, 12, 30, 30), None, 0, False,
              '0001-01-01T12:30:30'),
