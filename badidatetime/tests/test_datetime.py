@@ -2098,46 +2098,54 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         err_msg0 = ("A full short or long form Badi date must be used, found "
                     "{} fields.")
+        err_msg1 = "More than one fractional value is not allowed."
         data = (
-            ((1, 1, 1), (12, 30, 30), None, 0, False, '0001-01-01T12:30:30'),
-            ((1, 1, 1), (12, 30, 30, 500000), None, 0, False,
+            ((1, 1, 1, None, None, 12, 30, 30), None, 0, False,
+             '0001-01-01T12:30:30'),
+            ((1, 1, 1, None, None, 12, 30, 30, 500000), None, 0, False,
              '0001-01-01T12:30:30.500000'),
-            ((1, 1, 1, 1, 1), (), None, 0, False, '01-01-01-01-01T00:00:00'),
+            ((1, 1, 1, 1, 1), None, 0, False, '01-01-01-01-01T00:00:00'),
+            # Test _create_time
+            ((181, 1, 1, None, None, 12.123456789), None, 0, False,
+             '0181-01-01T12:07:24.444420'),
+            ((181, 1, 1, None, None, 12, 30.123456789), None, 0, False,
+             '0181-01-01T12:30:07.407407'),
+            ((181, 1, 1, None, None, 12, 30, 30.123456789), None, 0, False,
+             '0181-01-01T12:30:30.123457'),
+            # Test pickling
             # Short form
-            ((b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ',), (), None, 0,
-             False, '-1842-01-01T12:30:30.500000'),
+            ((b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ',), None, 0, False,
+             '-1842-01-01T12:30:30.500000'),
             # Long form
-            ((b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ',), (), None, 0,
-             False, '-05-18-01-01-01T12:30:30.500000'),
+            ((b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ',), None, 0, False,
+             '-05-18-01-01-01T12:30:30.500000'),
             # Short form
-            ((b'\x073\x01\x01\x00\x00\x00\x00\x00\x00', datetime.BADI), (),
+            ((b'\x073\x01\x01\x00\x00\x00\x00\x00\x00', datetime.BADI),
              datetime.timezone.badi, 0, False, '0001-01-01T00:00:00+03:30'),
             # Long form
             ((b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00', datetime.BADI),
-             (), datetime.timezone.badi, 0, False,
+             datetime.timezone.badi, 0, False,
              '01-01-01-01-01T00:00:00+03:30'),
+            ((181, 1, 1, None, None, 12.123, 30.5), None, 0, True, err_msg1),
+            ((181, 1, 1, None, None, 12.123, 0, 0.5), None, 0, True, err_msg1),
+            ((181, 1, 1, None, None, 12, 30.5, 30.5), None, 0, True, err_msg1),
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, "
-               "and fold {}, found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, validity, expected_result in data:
-            hh, mm, ss, us = self._get_time(time)
-
+        for date, tz, fold, validity, expected_result in data:
             if validity:
                 try:
-                    result = datetime.datetime(*date)
-                except AssertionError as e:
+                    result = datetime.datetime(*date, tzinfo=tz, fold=fold)
+                except (AssertionError, ValueError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
                     raise AssertionError(f"With {date} an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = datetime.datetime(*date, hour=hh, minute=mm,
-                                           second=ss, microsecond=us,
-                                           tzinfo=tz, fold=fold)
+                result = datetime.datetime(*date, tzinfo=tz, fold=fold)
                 self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, time, tz, fold, result))
+                    expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_hour(self):
@@ -2412,7 +2420,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         of datetime.
         """
         data =(
-            ('0181-01-01T12:30:30.500000', '0181-01-01T12:30:30.5'),
+            ('0181-01-01T12:30:30.500000', '0181-01-01T12:30:30.500000'),
             ('0001-01-01T00:00:00.0+03:30', '0001-01-01T00:00:00+03:30'),
             ('-1842-01-01T00:00:00+03:30', '-1842-01-01T00:00:00+03:30'),
             ('1161-19-19T+03:30', '1161-19-19T00:00:00+03:30'),
@@ -2479,7 +2487,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, tz, fold, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_timestamp(self):
         """
         Test that the timestamp method returns either the POSIX time for
@@ -2488,15 +2496,19 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         https://www.unixtimestamp.com
         https://www.epochconverter.com
         """
-        #tz0 = ZoneInfo(datetime.BADI_INFO[1])
-        #tz1 = ZoneInfo('UTC')
-        #tz2 = ZoneInfo('US/Eastern')
+        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz1 = ZoneInfo('UTC')
+        tz2 = ZoneInfo('US/Eastern')
         data = (
-            ((126, 16, 2, None, None, 7, 58, 31.4976), datetime.BADI, 0,
-             -12600.0),
-            ((126, 16, 2, None, None, 7, 58, 31.4976), datetime.UTC, 0, 0.0),
-            ((126, 16, 2, None, None, 6, 46, 33.1392), None, 0, 18000),
-            ((1, 1, 1), None, 0, -7938830703.0),
+            # 2024-03-20T07:30:00+03:30 -> 1710907200
+            ((181, 1, 1, None, None, 6, 16, 8.9472), tz0, 0, 1710874057.4496),
+            # 2024-03-20T04:00:00+00:00 -> 1710907200
+            ((181, 1, 1, None, None, 9, 46, 8.9472), tz1, 0, 1710899257.4496),
+
+            #((126, 16, 2, None, None, 7, 58, 31.4976), tz0, 0, -12600.0),
+            #((126, 16, 2, None, None, 7, 58, 31.4976), datetime.UTC, 0, 0.0),
+            #((126, 16, 2, None, None, 6, 46, 33.1392), None, 0, -18000),
+            #((1, 1, 1), None, 0, -7938830703.0),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
@@ -2873,29 +2885,6 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         for date, tz, fold, expected_result in data:
             dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.utcoffset()
-            self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, tz, fold, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_badioffset(self):
-        """
-        Test that the badioffset method returns a timedelta object relative
-        to the BADI time zone.
-        """
-        tz0 = ZoneInfo(datetime.BADI_INFO[1])
-        tz1 = ZoneInfo('UTC')
-        tz2 = ZoneInfo('US/Eastern')
-        data = (
-            ((181, 1, 1, None, None,12, 30, 30), datetime.BADI, 0, '0:00:00'),
-            ((181, 1, 1, None, None, 12, 30, 30), tz0, 0, '0:00:00'),
-            #((181, 1, 1, None, None, 12, 30, 30), tz1, 0, '0:00:00'),
-            #((181, 1, 1, None, None, 12, 30, 30), tz2, 0, ''),
-            )
-        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
-
-        for date, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
-            result = dt.badioffset()
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, fold, result))
 
@@ -3723,11 +3712,33 @@ class TestBadiDatetime_timezone(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                 expected_result, offset, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test____getinitargs__(self):
+    #@unittest.skip("Temporarily skipped")
+    def test___getinitargs__(self):
         """
-        Test that the __getinitargs__ method 
+        Test that the __getinitargs__ method returns the arguments that the
+        timezone class was instantiated with.
         """
+        data = (
+            (-5, None, '(datetime.timedelta(days=-1, seconds=68400),)'),
+            (*datetime.BADI_INFO, "(datetime.timedelta(seconds=12600),"
+             " 'Asia/Tehran')"),
+            )
+        msg0 = "Expected {} with offset {} and name {}, found {}."
+        msg1 = "Expected {}, found {}."
+
+        for os, name, expected_result in data:
+            offset = datetime.timedelta(hours=os)
+            args = (offset, name) if name else (offset,)
+            tz = datetime.timezone(*args)
+            result = tz.__getinitargs__()
+            self.assertEqual(expected_result, str(result), msg0.format(
+                expected_result, os, name, result))
+            p_obj = pickle.dumps(tz)
+            up_obj = pickle.loads(p_obj)
+            self.assertEqual(up_obj._offset, tz._offset, msg1.format(
+                up_obj._offset, tz._offset))
+            self.assertEqual(up_obj._name, tz._name, msg1.format(
+                up_obj._name, tz._name))
 
     #@unittest.skip("Temporarily skipped")
     def test___hash__(self):

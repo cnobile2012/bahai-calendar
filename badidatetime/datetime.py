@@ -1280,16 +1280,17 @@ class datetime(date):
                 fold:int=0) -> object:
         if (short := datetime._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
+            super().__init__(self)
             self.__short = short
             self.__setstate(a, b)
         else:
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
             date_len = len(b_date)
-            #print(b_date)
             assert date_len in (3, 5), (
                 "A full short or long form Badi date must be used, found "
                 f"{date_len} fields.")
             self = object.__new__(cls)
+            super().__init__(self)
 
             if date_len == 5:
                 self._kull_i_shay = a
@@ -1306,20 +1307,52 @@ class datetime(date):
                 self.__date = b_date
                 self.__short = True
 
-            self._hour = hour
-            self._minute = minute
-            self._second = second
-            self._microsecond = microsecond
-            self.__time = (self._hour, self._minute,
-                           self._second, self._microsecond)
             self._tzinfo = tzinfo
             self._fold = fold
+            self._create_time(hour, minute, second, microsecond)
 
         _td_utils._check_date_fields(*self.__date, short_in=self.__short)
-        _td_utils._check_time_fields(*self.__time, fold)
+        _td_utils._check_time_fields(hour, minute, second, microsecond, fold)
         _check_tzinfo_arg(tzinfo)
         self._hashcode = -1
         return self
+
+    def _create_time(self, hour, minute, second, microsecond):
+        def fractionals(value, items):
+            if value % 1 and any(items):
+                raise ValueError(
+                    "More than one fractional value is not allowed.")
+
+        fractionals(hour, (minute, second, microsecond))
+        fractionals(minute, (second, microsecond))
+        fractionals(second, (microsecond,))
+
+        if hour % 1:
+            mm = self.PARTIAL_HOUR_TO_MINUTE(hour)
+            ss = self.PARTIAL_MINUTE_TO_SECOND(mm)
+            self._hour = _math.floor(hour)
+            self._minute = _math.floor(mm)
+            self._second = _math.floor(ss)
+            self._microsecond = self.PARTIAL_SECOND_TO_MICROSECOND(ss)
+        elif minute % 1:
+            self._hour = hour
+            ss = self.PARTIAL_MINUTE_TO_SECOND(minute)
+            self._minute = _math.floor(minute)
+            self._second = _math.floor(ss)
+            self._microsecond = self.PARTIAL_SECOND_TO_MICROSECOND(ss)
+        elif second % 1:
+            self._hour = hour
+            self._minute = minute
+            self._second = _math.floor(second)
+            self._microsecond = self.PARTIAL_SECOND_TO_MICROSECOND(second)
+        else:
+            self._hour = hour
+            self._minute = minute
+            self._second = second
+            self._microsecond = round(microsecond, 6)
+
+        self.__time = (self._hour, self._minute,
+                       self._second, self._microsecond)
 
     # Read-only field accessors
     @property
@@ -1823,17 +1856,6 @@ class datetime(date):
             _check_offset("utcoffset", offset)
             return offset
 
-    def badioffset(self):
-        """
-        Return the timezone offset as timedelta positive east of the BADI
-        (negative west of the BADI).
-        """
-        if self.tzinfo is not None:
-            offset = self.tzinfo.utcoffset(self)
-            offset -= timedelta(hours=BADI_INFO[0])
-            _check_offset("badioffset", offset)
-            return offset
-
     def tzname(self):
         """
         Return the timezone name.
@@ -2139,6 +2161,17 @@ class timezone(tzinfo):
     _Omitted = object()
 
     def __new__(cls, offset:timedelta, name:str=_Omitted) -> object:
+        """
+        Construct the constructor.
+
+        :param offset: A timedelta object representing the difference
+                       between the local time and UTC.
+        :type offset: timedelta
+        :param name: A string that will be used as the value returned by
+                     the datetime.tzname() method.
+        :returns: An instance of timezone.
+        :rtype: timezone
+        """
         if not isinstance(offset, timedelta):
             raise TypeError("offset must be a timedelta")
 
@@ -2270,10 +2303,7 @@ class timezone(tzinfo):
     # pickle support
 
     def __getinitargs__(self):
-        if self._name is None:
-            return (self._offset,)
-
-        return (self._offset, self._name)
+        return (self._offset,) + ((self._name,) if self._name else ())
 
     def __hash__(self):
         return hash(self._offset)

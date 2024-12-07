@@ -24,64 +24,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     Transformations between Time Systems:
    https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems
     """
-    #(defun hr (x)
-    #  ;; TYPE real -> duration
-    #  ;; x hours.
-    #  (/ x 24))
     HR = lambda self, x: x / 24
-
-    #(defun mn (x)
-    #  ;; TYPE real -> duration
-    #  ;; x minutes.
-    #  (/ x 24 60))
     MN = lambda self, x: x / 24 / 60
-
-    #(defun sec (x)
-    #  ;; TYPE real -> duration
-    #  ;; x seconds.
-    #  (/ x 24 60 60))
     SEC = lambda self, x: x / 24 / 60 / 60
-
-    #(defun mins (x)
-    #  ;; TYPE real -> angle
-    #  ;; x arcminutes
-    #  (/ x 60))
     MINS = lambda self, x: x / 60
-
-    #(defun secs (x)
-    #  ;; TYPE real -> angle
-    #  ;; x arcseconds
-    #  (/ x 3600))
     SECS = lambda self, x: x / 3600
-
     # Convert microseconds to a partial second.
     US = lambda self, x: x / 1000000
-
-    #(defun angle (d m s)
-    #  ;; TYPE (integer integer real) -> angle
-    #  ;; d degrees, m arcminutes, s arcseconds.
-    #  (+ d (/ (+ m (/ s 60)) 60)))
     ANGLE = lambda self, d, m, s: d + (m + s / 60) / 60 # 0 - 360
-
-    #(defun amod (x y)
-    #  ;; TYPE (integer nonzero-integer) -> integer
-    #  ;; The value of ($x$ mod $y$) with $y$ instead of 0.
-    #  (+ y (mod x (- y))))
     AMOD = lambda self, x, y: y + x % -y
-
-    #(defun mod3 (x a b)
-    #  ;; TYPE (real real real) -> real
-    #  ;; The value of x shifted into the range [a..b). Returns x if a=b.
-    #  (if (= a b)
-    #      x
-    #    (+ a (mod (- x a) (- b a)))))
     MOD3 = lambda self, x, a, b : x if a == b else (
         a + math.fmod((x - a), (b - a)))
-
-    # (defun quotient (m n)
-    #   ;; TYPE (real nonzero-real) -> integer
-    #   ;; Whole part of m/n.
-    #   (floor m n))
     QUOTIENT = lambda self, m, n: math.floor(m / n)
 
     # The inline functions below will assume that 0 is midnight, if
@@ -92,8 +45,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     PARTIAL_HOUR_TO_MINUTE = lambda self, x: round(
         (x % 1) * 60, self.ROUNDING_PLACES)
     PARTIAL_MINUTE_TO_SECOND = PARTIAL_HOUR_TO_MINUTE
-    PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(round(
-        (x % 1) * 1000000, self.ROUNDING_PLACES))
+    PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(
+        round(x % 1, self.ROUNDING_PLACES) * 1000000)
 
     MEAN_TROPICAL_YEAR = 365.2421897
     #MEAN_SIDEREAL_YEAR = 365.256363004
