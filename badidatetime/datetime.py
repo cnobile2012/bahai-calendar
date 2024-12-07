@@ -1542,9 +1542,9 @@ class datetime(date):
         Return integer POSIX timestamp of local time.
         """
         if self.is_short:
-            l_date = (126, 16, 2, None, None, 7, 58, 31)
+            l_date = (126, 16, 2, None, None, 5, 46, 8.9472)
         else:
-            l_date = (1, 7, 12, 16, 2, 7, 58, 31)
+            l_date = (1, 7, 12, 16, 2, 5, 46, 8.9472)
 
         epoch = datetime(*l_date)
         t = (self - epoch) // timedelta(0, 1)
@@ -2317,17 +2317,4 @@ LOCAL = timezone.local = timezone._create(timedelta(hours=LOCAL_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-_EPOCH = datetime(126, 16, 2, None, None, 7, 58,  31.4976, tzinfo=timezone.utc)
-# bc.badi_date_from_gregorian_date((1970, 1, 1), *datetime.GMT_COORD,
-#                                  short=True)
-# (126, 16, 2, 7, 58, 31.4976, 0)
-#
-# bc.gregorian_date_from_badi_date((126, 16, 2, 7, 57, 27.7),
-#                                  *datetime.GMT_COORD)
-# (1970, 1, 1.0)
-#
-# jd = gc.jd_from_gregorian_date((1969, 12, 31))
-# ss =  gc._sun_setting(jd, *datetime.GMT_COORD)
-# (ss == 2440587.166985)
-# gc.ymdhms_from_date(gc.gregorian_date_from_jd(ss))
-# (1969, 12, 31, 16, 0, 27.504)
+_EPOCH = datetime(126, 16, 2, None, None, 5, 46, 8.9472, tzinfo=timezone.utc)

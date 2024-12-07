@@ -2242,15 +2242,15 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         tz2 = ZoneInfo('US/Eastern')
         data = (
             # 1969-12-31T19:00:00+00:00 -> 0126-16-02T01:46:33.168000+00:00
-            (-18000, False, tz1, True, '0126-16-02T01:46:33.168000+00:00'),
+            (-18000, False, tz1, True, '0126-16-02T01:47:06+00:00'),
             # Assume UTC as starting point.
             (0, True, tz1, True, '0126-16-02T07:58:31.497600+00:00'),
             # Assume local time as starting point.
-            (-18000, False, tz0, True, '0126-16-02T05:16:33.168000+03:30'),
+            (-18000, False, tz0, True, '0126-16-02T05:17:06+03:30'),
             # Assume UTC as starting point.
             (0, True, tz0, True, '0126-16-02T11:28:31.497600+03:30'),
             # Assume local time as starting point.
-            (-18000, False, tz2, True, '0126-16-01T20:46:33.168000-05:00'),
+            (-18000, False, tz2, True, '0126-16-01T20:47:06-05:00'),
             )
         msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
                "and short {}, found {}.")
@@ -2272,7 +2272,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             # Assume local time as starting point.
             # 1970-01-01 -> Badi date and time relative to naive local time.
-            (0, None, True, '0126-16-02T06:46:33.139200'),
+            (0, None, True, '0126-16-02T06:47:05.971200'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to UTC
             (0, tz1, True, '0126-16-02T07:58:31.497600+00:00'),
@@ -2284,10 +2284,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # should be the same. Checked with tz is correct. This could be
             # that only God knows what coordinates are used for IANA time
             # zones to arrive at the correct time. Off by 03:51:10.3392 hrs.
-            (1733016253.327577, None, True, '0181-14-10T08:21:41.328000'),
+            (1733016253.327577, None, True, '0181-14-10T08:22:12.518400'),
             (1733016253.327577, tz2, True, '0181-14-10T04:30:30.988800-05:00'),
             # Some long form datetimes.
-            (0, None, False, '01-07-12-16-02T06:46:33.139200'),
+            (0, None, False, '01-07-12-16-02T06:47:05.971200'),
             (0, tz1, False, '01-07-12-16-02T07:58:31.497600+00:00'),
             (0, tz0, False, '01-07-12-16-02T11:28:31.497600+03:30'),
             )
@@ -2428,16 +2428,18 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         data = (
             # Date and time with America/New_York
-            ((126, 16, 2, None, None, 6, 46, 33.1392), None, 0, 18000),
-            ((1, 1, 1), None, 0, -7938830703),
+            #((126, 16, 2, None, None, 5, 46, 8.9472), 0, 18000),
+            # Badi epoch 1984-03-19T18:16:36.7104 -> -3969391641.2896 BADI
+            #                                        -3969409403 UTC
+            ((1, 1, 1), 0, -3969391641.2896),
             )
-        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
+        msg = "Expected {} with date {}, and fold {}, found {}."
 
-        for date, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
+        for date, fold, expected_result in data:
+            dt = datetime.datetime(*date, fold=fold)
             result = dt._mktime()
             self.assertEqual(expected_result, result, msg.format(
-                    expected_result, date, tz, fold, result))
+                    expected_result, date, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_timestamp(self):
@@ -2453,13 +2455,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         tz2 = ZoneInfo('US/Eastern')
         data = (
             # 2024-03-20T07:30:00+03:30 -> 1710907200
-            ((181, 1, 1, None, None, 6, 16, 8.9472), tz0, 0, 1710874057.4496),
+            ((181, 1, 1, None, None, 13, 16, 8.9472), tz0, 0, 1710907200),
             # 2024-03-20T04:00:00+00:00 -> 1710907200
-            ((181, 1, 1, None, None, 9, 46, 8.9472), tz1, 0, 1710899257.4496),
-
-            #((126, 16, 2, None, None, 7, 58, 31.4976), tz0, 0, -12600.0),
-            #((126, 16, 2, None, None, 7, 58, 31.4976), datetime.UTC, 0, 0.0),
-            #((126, 16, 2, None, None, 6, 46, 33.1392), None, 0, -18000),
+            ((181, 1, 1, None, None, 9, 46, 8.9472), tz1, 0, 1710907200),
+            # 2024-03-20T00:00:00-05:00 -> 1710907200
+            ((181, 1, 1, None, None, 5, 46, 8.9472), tz2, 0, 1710907200),
+            # POSIX epoch
+            ((126, 16, 2, None, None, 5, 46, 8.9472), tz0, 0, -12600),
+            ((126, 16, 2, None, None, 5, 46, 8.9472), datetime.UTC, 0, 0),
+            ((126, 16, 2, None, None, 5, 46, 8.9472), tz2, 0, 18000),
+            #((126, 16, 2, None, None, 5, 46, 8.9472), None, 0, 18000),
             #((1, 1, 1), None, 0, -7938830703.0),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
