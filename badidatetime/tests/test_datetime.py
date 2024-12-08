@@ -2106,21 +2106,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the hour property returns the correct value.
         """
         data = (
-            ((1, 1, 1), (12, 30, 30), None, 0, 12),
-            ((1, 1, 1, 1, 1), (12, 30, 30), None, 0, 12)
+            ((1, 1, 1, None, None, 12, 30, 30), None, 0, 12),
+            ((1, 1, 1, 1, 1, 12, 30, 30), None, 0, 12)
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, "
-               "and fold {}, found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            kwargs = {self._time_fields[i] : time[i]
-                      for i, v in enumerate(time)}
-            kwargs['tzinfo'] = tz
-            kwargs['fold'] = fold
-            dt = datetime.datetime(*date, **kwargs)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.hour
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, time, tz, fold, str(result)))
+                expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_minute(self):
@@ -2128,21 +2123,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the minute returns the correct value.
         """
         data = (
-            ((1, 1, 1), (12, 30, 30), None, 0, 30),
-            ((1, 1, 1, 1, 1), (12, 30, 30), None, 0, 30)
+            ((1, 1, 1, None, None, 12, 30, 30), None, 0, 30),
+            ((1, 1, 1, 1, 1, 12, 30, 30), None, 0, 30)
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, "
-               "and fold {}, found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            kwargs = {self._time_fields[i] : time[i]
-                      for i, v in enumerate(time)}
-            kwargs['tzinfo'] = tz
-            kwargs['fold'] = fold
-            dt = datetime.datetime(*date, **kwargs)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.minute
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, time, tz, fold, str(result)))
+                expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_second(self):
@@ -2150,21 +2140,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the second returns the correct value.
         """
         data = (
-            ((1, 1, 1), (12, 30, 30), None, 0, 30),
-            ((1, 1, 1, 1, 1), (12, 30, 30), None, 0, 30)
+            ((1, 1, 1, None, None, 12, 30, 30), None, 0, 30),
+            ((1, 1, 1, 1, 1, 12, 30, 30), None, 0, 30)
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, "
-               "and fold {}, found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            kwargs = {self._time_fields[i] : time[i]
-                      for i, v in enumerate(time)}
-            kwargs['tzinfo'] = tz
-            kwargs['fold'] = fold
-            dt = datetime.datetime(*date, **kwargs)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.second
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, time, tz, fold, str(result)))
+                expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_microsecond(self):
@@ -2172,21 +2157,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the microsecond returns the correct value.
         """
         data = (
-            ((1, 1, 1), (12, 30, 30, 500000), None, 0, 500000),
-            ((1, 1, 1, 1, 1), (12, 30, 30, 999999), None, 0, 999999)
+            ((1, 1, 1, None, None, 12, 30, 30, 500000), None, 0, 500000),
+            ((1, 1, 1, 1, 1, 12, 30, 30, 999999), None, 0, 999999)
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, "
-               "and fold {}, found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            kwargs = {self._time_fields[i] : time[i]
-                      for i, v in enumerate(time)}
-            kwargs['tzinfo'] = tz
-            kwargs['fold'] = fold
-            dt = datetime.datetime(*date, **kwargs)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.microsecond
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, time, tz, fold, str(result)))
+                expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_tzinfo(self):
@@ -2194,21 +2174,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the tzinfo returns the correct value.
         """
         data = (
-            ((1, 1, 1), (12, 30, 30), None, 0, None),
-            ((1, 1, 1, 1, 1), (12, 30, 30), datetime.BADI, 0, datetime.BADI)
+            ((1, 1, 1, None, None, 12, 30, 30), None, 0, None),
+            ((1, 1, 1, 1, 1, 12, 30, 30), datetime.BADI, 0, datetime.BADI)
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, "
-               "and fold {}, found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            kwargs = {self._time_fields[i] : time[i]
-                      for i, v in enumerate(time)}
-            kwargs['tzinfo'] = tz
-            kwargs['fold'] = fold
-            dt = datetime.datetime(*date, **kwargs)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.tzinfo
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, time, tz, fold, result))
+                expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_fold(self):
@@ -2216,21 +2191,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the fold returns the correct value.
         """
         data = (
-            ((1, 1, 1), (12, 30, 30), None, 0, 0),
-            ((1, 1, 1, 1, 1), (12, 30, 30), None, 1, 1)
+            ((1, 1, 1, None, None, 12, 30, 30), None, 0, 0),
+            ((1, 1, 1, 1, 1, 12, 30, 30), None, 1, 1)
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, "
-               "and fold {}, found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            kwargs = {self._time_fields[i] : time[i]
-                      for i, v in enumerate(time)}
-            kwargs['tzinfo'] = tz
-            kwargs['fold'] = fold
-            dt = datetime.datetime(*date, **kwargs)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.fold
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, time, tz, fold, str(result)))
+                expected_result, date, tz, fold, str(result)))
 
     #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
@@ -2409,31 +2379,30 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         # *** TODO *** Update the two test below that have timezone objects.
         data = (
-            ((181, 13, 9), (12, 30, 30), None, 0,
+            ((181, 13, 9, None, None, 12, 30, 30), None, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
              'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=1, tm_yday=237, '
              'tm_isdst=-1)'),
-            ((181, 13, 9), (12, 30, 30), datetime.BADI, 0,
+            ((181, 13, 9, None, None, 12, 30, 30), datetime.BADI, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
              'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=1, tm_yday=237, '
              'tm_isdst=-1)'),
-            ((1, 10, 10, 13, 9), (12, 30, 30), None, 0,
+            ((1, 10, 10, 13, 9, 12, 30, 30), None, 0,
              'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
              'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
              'tm_sec=30, tm_wday=1, tm_yday=237, tm_isdst=-1)'),
-            ((1, 10, 10, 13, 9), (12, 30, 30), datetime.BADI, 0,
+            ((1, 10, 10, 13, 9, 12, 30, 30), datetime.BADI, 0,
              'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
              'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
              'tm_sec=30, tm_wday=1, tm_yday=237, tm_isdst=-1)'),
             )
-        msg = "Expected {} with date {}, time {}, and timezone {}, found {}."
+        msg = "Expected {} with date {}, and timezone {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
-                                   second=time[2])
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date)
             result = dt.timetuple()
             self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, time, tz, result))
+                    expected_result, date, tz, result))
 
     @unittest.skip("Temporarily skipped")
     def test__mktime(self):
