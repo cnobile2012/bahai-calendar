@@ -11,6 +11,7 @@ import locale
 import time
 import pickle
 import unittest
+from unittest.mock import patch
 
 from zoneinfo import ZoneInfo
 
@@ -2232,25 +2233,32 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 expected_result, date, time, tz, fold, str(result)))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test__fromtimestamp(self):
         """
         Test that the _fromtimestamp classmethod creates an instance
         of datetime.
+
+        Note: The tests marked 'Latitude and Longitude dependent' will break
+              if datetime.LOCAL_COORD is not patched.
         """
         tz0 = ZoneInfo(datetime.BADI_INFO[1])
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
+            # Latitude and Longitude dependent
             # 1969-12-31T19:00:00+00:00 -> 0126-16-02T01:46:33.168000+00:00
-            (-18000, False, tz1, True, '0126-16-02T01:47:06+00:00'),
+            (-18000, False, tz1, True, '0126-16-02T01:47:11.788800+00:00'),
             # Assume UTC as starting point.
             (0, True, tz1, True, '0126-16-02T07:58:31.497600+00:00'),
+            # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz0, True, '0126-16-02T05:17:06+03:30'),
+            (-18000, False, tz0, True, '0126-16-02T05:17:11.788800+03:30'),
             # Assume UTC as starting point.
             (0, True, tz0, True, '0126-16-02T11:28:31.497600+03:30'),
+            # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz2, True, '0126-16-01T20:47:06-05:00'),
+            (-18000, False, tz2, True, '0126-16-01T20:47:11.788800-05:00'),
             )
         msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
                "and short {}, found {}.")
@@ -2261,18 +2269,23 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 expected_result, t, utc, tz, short, result))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_fromtimestamp(self):
         """
         Test that the fromtimestamp classmethod creates an instance
         of datetime.
+
+        Note: The tests marked 'Latitude and Longitude dependent' will break
+              if datetime.LOCAL_COORD is not patched.
         """
         tz0 = ZoneInfo(datetime.BADI_INFO[1])
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
+            # Latitude and Longitude dependent
             # Assume local time as starting point.
             # 1970-01-01 -> Badi date and time relative to naive local time.
-            (0, None, True, '0126-16-02T06:47:05.971200'),
+            (0, None, True, '0126-16-02T06:47:11.760000'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to UTC
             (0, tz1, True, '0126-16-02T07:58:31.497600+00:00'),
@@ -2284,10 +2297,12 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # should be the same. Checked with tz is correct. This could be
             # that only God knows what coordinates are used for IANA time
             # zones to arrive at the correct time. Off by 03:51:10.3392 hrs.
-            (1733016253.327577, None, True, '0181-14-10T08:22:12.518400'),
+            # Latitude and Longitude dependent
+            (1733016253.327577, None, True, '0181-14-10T08:22:18.307200'),
             (1733016253.327577, tz2, True, '0181-14-10T04:30:30.988800-05:00'),
             # Some long form datetimes.
-            (0, None, False, '01-07-12-16-02T06:47:05.971200'),
+            # Latitude and Longitude dependent
+            (0, None, False, '01-07-12-16-02T06:47:11.760000'),
             (0, tz1, False, '01-07-12-16-02T07:58:31.497600+00:00'),
             (0, tz0, False, '01-07-12-16-02T11:28:31.497600+03:30'),
             )
