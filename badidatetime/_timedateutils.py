@@ -29,7 +29,7 @@ class TimeDateUtils(BahaiCalendar):
                       11: 'Mas', 12: 'Ilm', 13: 'Qud', 14: 'Qaw', 15: 'Mas',
                       16: 'Sha', 17: 'Sul', 18: 'Mul', 0: 'Ayy', 19: 'Alá'}
     # This keeps the Badi day count in par with the Gregorian day count.
-    DAYS_BEFORE_1ST_YEAR = 78 # This keeps us insync with Gregorian dates.
+    DAYS_BEFORE_1ST_YEAR = 77 # This keeps us insync with Gregorian dates.
 
     def __init__(self):
         """
@@ -647,7 +647,7 @@ class TimeDateUtils(BahaiCalendar):
     def _day_of_week(self, year:int, month:int, day:int) -> int:
         """
         Find the day of the week where 0 == Jalál (Saturday) and
-        6 == Istiqlāl (Friday). For ISO compatability add 1 to the result.
+        6 == Istiqlāl (Friday).
 
         :param year: Badi year
         :type year: int
@@ -660,7 +660,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         # Since the usual start day is Monday (Kamál) a properly aligned
         # day number to the day name we need to add 1 to the ordinal.
-        return (self._ymd2ord(year, month, day) % 7 + 7) % 7
+        return ((self._ymd2ord(year, month, day) + 1) % 7 + 7) % 7
 
     def _ymd2ord(self, year:int, month:int, day:int) -> int:
         """
@@ -682,7 +682,7 @@ class TimeDateUtils(BahaiCalendar):
         dim = self._days_in_month(year, month)
         assert 1 <= day <= dim, (
             f"Day '{day}' for month {month} must be in range of 1..{dim}")
-        # We add 78 days to the total so that the ordinal number can be
+        # We add 77 days to the total so that the ordinal number can be
         # compared to the ordinals in the standard datetime package.
         return (self.DAYS_BEFORE_1ST_YEAR + self._days_before_year(year) +
                 self._days_before_month(year, month) + day)
@@ -705,7 +705,7 @@ class TimeDateUtils(BahaiCalendar):
         :return: The Badi date.
         :rtype: tuple
         """
-        # We subtract 78 days from the total so that the Badi date will
+        # We subtract 77 days from the total so that the Badi date will
         # be the same as the date value passed into _ymd2ord.
         jd = (self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False) -
               self.DAYS_BEFORE_1ST_YEAR + n)

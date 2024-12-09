@@ -468,10 +468,10 @@ class TestBadiDatetime_date(unittest.TestCase):
         from a date ordinal number.
         """
         data = (
-            (79, False, '-05-18-01-01-01'),
-            (79, True, '-1842-01-01'),
-            (445, True, '-1841-01-01'),
-            (738965, True, '0181-01-01'),
+            (78, False, '-05-18-01-01-01'),
+            (78, True, '-1842-01-01'),
+            (444, True, '-1841-01-01'),
+            (738964, True, '0181-01-01'),
             )
         msg = "Expected {} with ordinal {}, found {}."
 
@@ -532,9 +532,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg = "Invalid weekday: {} (range is 1..7)"
         data = (
             # year, week, day in week
-            ((181,   1,    1), False, False, '01-10-10-01-04'),
-            ((181,   1,    1), True,  False, '0181-01-04'),
-            ((181,  24,    7), True,  False, '0181-09-19'),
+            ((181,   1,    1), False, False, '01-10-09-19-17'),
+            ((181,   1,    1), True,  False, '0180-19-17'),
+            ((181,  24,    7), True,  False, '0181-09-13'),
             ((181,   1,   10), False, True, err_msg.format(10)),
             )
         msg = "Expected {} with iso {} and short {}, found {}."
@@ -828,11 +828,11 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the toordinal method returns a proleptic Badi ordinal.
         """
         data = (
-            ((-1842, 1, 1), 79),
-            ((1, 1, 1), 673221),
-            ((181, 1, 1), 738965),
-            ((181, 8, 15), 739112),
-            ((1, 10, 10, 8, 15), 739112),
+            ((-1842, 1, 1), 78),
+            ((1, 1, 1), 673220),
+            ((181, 1, 1), 738964),
+            ((181, 8, 15), 739111),
+            ((1, 10, 10, 8, 15), 739111),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -1184,12 +1184,12 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the isocalendar method the correct ISO Calendar tuple.
         """
         data = (
-            ((181, 1, 1), (180, 0, 5)),       # Short form
-            ((1, 10, 10, 1, 1), (180, 0, 5)), # Long form
-            ((181, 0, 1), (181, 49, 4)),      # 0 < week < 53
-            ((181, 19, 19), (181, 52, 5)),    # 0 < week < 53
-            ((182, 1, 1), (181, 0, 6)),    # Week < 0 starts in previous year
-            ((183, 19, 19), (184, 1, 1)),  # Week >= 52 starts in previous year
+            ((181, 1, 1), (181, 1, 4)),       # Short form
+            ((1, 10, 10, 1, 1), (181, 1, 4)), # Long form
+            ((181, 0, 1), (181, 50, 3)),      # 0 < week < 53
+            ((181, 19, 19), (181, 53, 4)),    # 0 < week < 53
+            ((182, 1, 1), (181, 0, 5)),    # Week < 0 starts in previous year
+            ((183, 19, 19), (183, 52, 7)), # Week >= 52 starts in previous year
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -2377,13 +2377,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the timetuple method returns either a short or long form
         timetuple.
         """
-        # *** TODO *** Update the two test below that have timezone objects.
         data = (
             ((181, 13, 9, None, None, 12, 30, 30), None, 0,
-             'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
-             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=1, tm_yday=237, '
-             'tm_isdst=-1)'),
-            ((181, 13, 9, None, None, 12, 30, 30), datetime.BADI, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
              'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=1, tm_yday=237, '
              'tm_isdst=-1)'),
@@ -2391,6 +2386,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
              'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
              'tm_sec=30, tm_wday=1, tm_yday=237, tm_isdst=-1)'),
+            ((181, 13, 9, None, None, 12, 30, 30), datetime.BADI, 0,
+             'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
+             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=1, tm_yday=237, '
+             'tm_isdst=-1)'),
             ((1, 10, 10, 13, 9, 12, 30, 30), datetime.BADI, 0,
              'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
              'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
@@ -2405,6 +2404,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                     expected_result, date, tz, result))
 
     @unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test__mktime(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
@@ -2526,17 +2526,15 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         the originating datetime object.
         """
         data = (
-            ((181, 1, 1), (12, 30, 30), None, 0, '0181-01-01'),
+            ((181, 1, 1, None, None, 12, 30, 30), None, 0, '0181-01-01'),
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
-               "found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
-                                   second=time[2], tzinfo=tz, fold=fold)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.date()
             self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, time, tz, fold, result))
+                    expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_time(self):
@@ -2545,17 +2543,15 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         the originating datetime object.
         """
         data = (
-            ((181, 1, 1), (12, 30, 30), None, 0, '12:30:30'),
+            ((181, 1, 1, None, None, 12, 30, 30), None, 0, '12:30:30'),
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
-               "found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
-                                   second=time[2], tzinfo=tz, fold=fold)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.time()
             self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, time, tz, fold, result))
+                    expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_timetz(self):
@@ -2564,17 +2560,16 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         tzinfo as the originating datetime object.
         """
         data = (
-            ((181, 1, 1), (12, 30, 30), datetime.BADI, 0, '12:30:30+03:30'),
+            ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0,
+             '12:30:30+03:30'),
             )
-        msg = ("Expected {} with date {}, time {}, timezone {}, and fold {}, "
-               "found {}.")
+        msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
-        for date, time, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
-                                   second=time[2], tzinfo=tz, fold=fold)
+        for date, tz, fold, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = dt.timetz()
             self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, time, tz, fold, result))
+                    expected_result, date, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_replace(self):
@@ -3282,22 +3277,21 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         err_msg0 = "Bad tzinfo state arg."
         data = (
-            ((datetime.MINYEAR, 1, 1), (12, 30, 30, 500000), None,
+            ((datetime.MINYEAR, 1, 1, None, None, 12, 30, 30, 500000), None,
              b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ', False),
-            ((-5, 18, 1, 1, 1), (12, 30, 30, 500000), None,
+            ((-5, 18, 1, 1, 1, 12, 30, 30, 500000), None,
              b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ', False),
-            ((1, 1, 1), (0, 0, 0, 0), datetime.BADI,
+            ((1, 1, 1, None, None, 0, 0, 0, 0), datetime.BADI,
              b'\x073\x01\x01\x00\x00\x00\x00\x00\x00', False),
-            ((1, 1, 1, 1, 1), (0, 0, 0, 0), datetime.BADI,
+            ((1, 1, 1, 1, 1, 0, 0, 0, 0), datetime.BADI,
              b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00', False),
-            ((datetime.MINYEAR, 1, 1), (12, 30, 30, 500000), None,
+            ((datetime.MINYEAR, 1, 1, None, None, 12, 30, 30, 500000), None,
              b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ', True),
             )
         msg = "Expected {} with bytes_str {}, found {}."
 
-        for date, time, tz, bytes_str, validity in data:
-            dt = datetime.datetime(*date, hour=time[0], minute=time[1],
-                                   second=time[2], microsecond=time[3])
+        for date, tz, bytes_str, validity in data:
+            dt = datetime.datetime(*date, tzinfo=tz)
 
             if validity:
                 try:
@@ -3312,10 +3306,12 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 dt._datetime__setstate(bytes_str, tz)
 
                 if dt.is_short:
-                    result = (dt.year, dt.month, dt.day)
+                    result = (dt.year, dt.month, dt.day, None, None, dt.hour,
+                              dt.minute, dt.second, dt.microsecond)
                 else:
-                    result = (dt.kull_i_shay, dt.vahid, dt.year,
-                              dt.month, dt.day)
+                    result = (dt.kull_i_shay, dt.vahid, dt.year, dt.month,
+                              dt.day, dt.hour, dt.minute, dt.second,
+                              dt.microsecond)
 
                 self.assertEqual(date, result, msg.format(
                     date, bytes_str, result))

@@ -339,12 +339,12 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%-S', (1, 1, 1, 1, 1, 0, 0, 5, 1, 1), -1, ttup_tl, '5'),
             ('%T', (181, 1, 1, 3, 10, 5, 1, 1), -1, ttup_ts, '03:10:05'),
             ('%u', (1, 10, 10, 1, 1, 0, 0, 0), -1, ttup_l, '4'),
-            ('%U', (1, 1, 1, 0, 0, 0), -1, ttup_s, '00'),
-            ('%U', (181, 1, 10, 0, 0, 0), -1, ttup_s, '01'),
-            ('%V', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '03'),
+            ('%U', (1, 1, 1, 0, 0, 0), -1, ttup_s, '01'),
+            ('%U', (181, 1, 10, 0, 0, 0), -1, ttup_s, '02'),
+            ('%V', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '04'),
             ('%:V', (1, 10, 10, 1, 1, 0, 0, 0, 1, 1), -1, ttup_tl, '10'),
             ('%:V', (181, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '10'),
-            ('%W', (1, 10, 10, 1, 1, 0, 0, 0), -1, ttup_l, '00'),
+            ('%W', (1, 10, 10, 1, 1, 0, 0, 0), -1, ttup_l, '01'),
             ('%x', (181, 1, 1, 0, 0, 0), -1, ttup_s, '01/01/0181'),
             ('%X', (1, 1, 1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, '01:01:01'),
             ('%y', (1, 10, 10, 1, 1, 0, 0, 0, 1, 1), -1, ttup_ts, '81'),
@@ -467,9 +467,9 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         data = (
             # year, mon, day -> year, week, day of week
-            ((181, 11, 17),    (181, 30, 1)),
-            ((182, 1, 1),      (181, 52, 6)),
-            ((183, 19, 19),    (184, 1, 1)),
+            ((181, 11, 17),    (181, 30, 7)),
+            ((182, 1, 1),      (181, 53, 5)),
+            ((183, 19, 19),    (183, 52, 7)),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -576,16 +576,17 @@ class TestTimeDateUtils(unittest.TestCase):
         Test that the _day_of_week function returns the correct day of
         the week (0 - 6) for a given year, month, and day.
 
-        All days before 1752-09-14 in the Gregorian Calendar will seem wrong
-        when compaired to the Badi Calendar in UK and the US. This is when
-        The Gregorian Calendar was adopted and compinsated 11 days.
+        All days before 1752-09-14 (-91, 10, 8, 5, 46, 17.1264) in the
+        Gregorian Calendar will seem wrong when compared to the Badi
+        Calendar in UK and the US. This is when the Gregorian Calendar was
+        adopted and compensated 11 days.
         """
         data = (
-            ((-1842, 1, 1), 2), # 0001-03-19 (Saturday -> Kamál)
-            ((-91, 9, 15), 6),  # 1752-09-02 (Tuesday -> Istiqlāl)
-            ((-91, 10, 8), 4),  # 1752-09-14 (Thursday -> `Idāl)
+            ((-1842, 1, 1), 2), # 0001-03-19 (Saturday -> Jamál)
+            ((-91, 9, 15), 6),  # 1752-09-02 (Wednesday -> `Idāl)
+            ((-91, 10, 8), 4),  # 1752-09-14 (Thursday -> Istijlāl)
             ((1, 1, 1), 3),     # 1844-03-19 (Tuesday -> Fiḍāl)
-            ((181, 9, 9), 2),   # 2024-08-26 (Saturday -> Jalál)
+            ((181, 9, 9), 2),   # 2024-08-26 (Monday -> Kamál)
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -601,9 +602,9 @@ class TestTimeDateUtils(unittest.TestCase):
         since Badi year -1842 including the current day.
         """
         data = (
-            ((-1842, 1, 1), 79),
-            ((-1841, 1, 1), 445),
-            ((181, 1, 1), 738965),
+            ((-1842, 1, 1), 78),
+            ((-1841, 1, 1), 444),
+            ((181, 1, 1), 738964),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -619,10 +620,10 @@ class TestTimeDateUtils(unittest.TestCase):
         from the Badi year -1842.
         """
         data = (
-            (79, False, (-5, 18, 1, 1, 1)),
-            (79, True, (-1842, 1, 1)),
-            (445, True, (-1841, 1, 1)),
-            (738965, True, (181, 1, 1)),
+            (78, False, (-5, 18, 1, 1, 1)),
+            (78, True, (-1842, 1, 1)),
+            (444, True, (-1841, 1, 1)),
+            (738964, True, (181, 1, 1)),
             )
         msg = "Expected {} with ordinal {} and short {}, found {}."
 
@@ -670,22 +671,22 @@ class TestTimeDateUtils(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test__isoweek_to_badi(self):
         """
-        Test that the _isoweek_to_badi function returns the ordinal for the
-        year, month, and day using the year week number and day in the week.
+        Test that the _isoweek_to_badi function returns the year, month,
+        and day for the beginning of the week either before or after
+        depending on what day in the week the day falls.
         """
         err_msg_0 = "Invalid week: {}"
         err_msg_1 = "Invalid weekday: {} (range is 1..7)"
         data = (
             # year  week day
-            ((-1842,  1,  1), False, False, (-5, 17, 19, 19, 17)),
-            ((-1842,  1,  1), True,  False, (-1843, 19, 17)),
-            # jd = 2394647.2603 should be 2394647.264084 to be exactly day 4.
-            ((  181,  1,  1), True,  False, (181, 1, 4)),
-            ((  182,  1,  1), True,  False, (182, 1, 3)),
-            ((  183,  1,  1), True,  False, (183, 1, 1)),
-            ((  181,  1,  7), True,  False, (181, 1, 10)),
-            ((  181, 20,  7), True,  False, (181, 8, 10)),
-            ((  182, 53,  1), True,  False, (183, 1, 1)),
+            ((-1842,  1,  1), False, False, (-5, 17, 19, 19, 18)),
+            ((-1842,  1,  1), True,  False, (-1843, 19, 18)),
+            ((  181,  1,  1), True,  False, (180, 19, 17)),
+            ((  182,  1,  1), True,  False, (182, 1, 4)),
+            ((  183,  1,  1), True,  False, (183, 1, 2)),
+            ((  181,  1,  7), True,  False, (181, 1, 4)),
+            ((  181, 20,  7), True,  False, (181, 8, 4)),
+            ((  182, 53,  1), True,  False, (183, 1, 2)),
             ((  181, 53,  1), False, True, err_msg_0.format(53)),
             ((  181, 54,  1), False, True, err_msg_0.format(54)),
             ((  181, 20, 10), False, True, err_msg_1.format(10)),
@@ -707,12 +708,12 @@ class TestTimeDateUtils(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test__isoweek1jalal(self):
         """
-        Test that the _isoweek1jalal function returns the day number of
-        the first week with more than 3 days in it.
+        Test that the _isoweek1jalal function returns the ordinal day number
+        of the first week with more than 3 days in it.
         """
         data = (
-            (  1, 673224), # 1844-03-23 The 4th day in Baha
-            (181, 738968), # 2024-03-23
+            (  1, 673217), # 1844-03-16 
+            (181, 738961), # 2024-03-16
             (182, 739332), # 2025-03-22
             (183, 739696), # 2026-03-21
             )
@@ -734,8 +735,8 @@ class TestTimeDateUtils(unittest.TestCase):
             ('-1842-01-01T12:00:00', (-1842, 1, 1, 12, 0, 0), 'None'),
             ('11610101T120000', (1161, 1, 1, 12, 0, 0), 'None'),
             ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0), 'None'),
-            ('0181-W20T12:00:00', (181, 8, 4, 12, 0, 0), 'None'),
-            ('0181-W20-5T12:00:00', (181, 8, 8, 12, 0, 0), 'None'),
+            ('0181-W20T12:00:00', (181, 7, 17, 12, 0, 0), 'None'),
+            ('0181-W20-5T12:00:00', (181, 8, 2, 12, 0, 0), 'None'),
             ('0001-01-01B', (1, 1, 1), 'UTC+03:30'),
             ('0001-01-01T00:00:00.0+03:30', (1, 1, 1, 0, 0, 0), 'UTC+03:30'),
             ('-0126-16-02T07:58:31.4976Z', (-126, 16, 2, 7, 58, 31.4976),
@@ -771,11 +772,11 @@ class TestTimeDateUtils(unittest.TestCase):
             ('0181-01', False, (181, 1, 1)),
             ('01810101', False, (181, 1, 1)),
             ('0181-01-01', False, (181, 1, 1)),
-            ('0181W01', False, (181, 1, 4)),
-            ('0181-W01', False, (181, 1, 4)),
-            ('0181W017', False, (181, 1, 10)),
-            ('0181-W01-7', False, (181, 1, 10)),
-            ('0181W207', False, (181, 8, 10)),
+            ('0181W01', False, (180, 19, 17)),
+            ('0181-W01', False, (180, 19, 17)),
+            ('0181W017', False, (181, 1, 4)),
+            ('0181-W01-7', False, (181, 1, 4)),
+            ('0181W207', False, (181, 8, 4)),
             ('0181001', False, (181, 1, 1)),
             ('0181019', False, (181, 1, 19)),
             ('0181324', False, (181, 18, 1)),

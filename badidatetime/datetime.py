@@ -392,7 +392,7 @@ class date(BahaiCalendar):
         """
         Construct a date from the ISO year, week number and weekday.
 
-        This is the inverse of the date.isocalendar() function
+        This is the inverse of the date.isocalendar() function.
 
         :param year: The Badi year.
         :type year: int
@@ -1584,7 +1584,7 @@ class datetime(date):
 
         u2 = t - b
         t2 = local(u2)
-        #print(t, t1, t2, a, b, u1, u2, l_date)
+        print(t, t1, t2, a, b, u1, u2, l_date, self.fold)
 
         if t2 == t:
             return u2
