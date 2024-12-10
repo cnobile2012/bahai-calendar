@@ -46,7 +46,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         (x % 1) * 60, self.ROUNDING_PLACES)
     PARTIAL_MINUTE_TO_SECOND = PARTIAL_HOUR_TO_MINUTE
     PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(
-        round(x % 1, self.ROUNDING_PLACES) * 1000000)
+        round(x % 1, self.ROUNDING_PLACES) * 1e6)
 
     MEAN_TROPICAL_YEAR = 365.2421897
     #MEAN_SIDEREAL_YEAR = 365.256363004

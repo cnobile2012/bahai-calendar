@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+W#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # contrib/misc/badi_jd_tests.py
@@ -976,8 +976,9 @@ class DateTests(BahaiCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        # The diff value converts my jd to the Meeus algorithm for
-        # determining the sunset jd.
+        # The diff value converts the more exact jd to the Meeus algorithm
+        # for determining the sunset jd. The fractional on the day is not
+        # affected.
         diff = self._meeus_from_exact(jd)
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
         #print(f"{str(b_date):<15} {day:<9} {jd:<14} {ss_a:<20}",
@@ -992,7 +993,7 @@ class DateTests(BahaiCalendar):
 
             if a and func(y, onoff0): # Whatever is passed in onoff0.
                 coff = a
-            elif b and func(y, onoff1): # Whatever is passed in onoff0.
+            elif b and func(y, onoff1): # Whatever is passed in onoff1.
                 coff = b
 
             return coff

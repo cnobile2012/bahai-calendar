@@ -251,8 +251,8 @@ class GregorianCalendar(BaseCalendar):
         microsecond = 0
 
         if us:
+            microsecond = self.PARTIAL_SECOND_TO_MICROSECOND(second)
             second = math.floor(second)
-            microsecond += math.floor(round(seconds % 1, 6) * 1e6)
 
         #print(f"{t:18.6f} {zone:>+2.2f} {year:02} {month:02} {day:02} "
         #      f"{hour:02} {int(minute):02} {second:02} {microsecond}")
@@ -319,7 +319,7 @@ class GregorianCalendar(BaseCalendar):
         second = date[5] if date_len > 5 else 0
         microsec = date[6] if date_len > 6 else 0
         total_seconds = ((hour * 3600) + (minute * 60) + second +
-                         (microsec / 1000000))
+                         (microsec / 1e6))
         day += total_seconds / 86400
         hhmmssus = self.hms_from_decimal_day(day, us=us)
         return (year, month, math.floor(day)) + hhmmssus

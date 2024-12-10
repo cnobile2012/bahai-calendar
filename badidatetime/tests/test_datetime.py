@@ -2403,19 +2403,22 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, result))
 
-    @unittest.skip("Temporarily skipped")
-    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
+    #@unittest.skip("Temporarily skipped")
     def test__mktime(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
         local time.
         """
+        # All results below indicate local time.
         data = (
-            # Date and time with America/New_York
-            #((126, 16, 2, None, None, 5, 46, 8.9472), 0, 18000),
-            # Badi epoch 1984-03-19T18:16:36.7104 -> -3969391641.2896 BADI
-            #                                        -3969409403 UTC
-            ((1, 1, 1), 0, -3969391641.2896),
+            # Badi epoch (1, 1, 1) (POSIX timestamp)
+            # 1844-03-19T18:16:36.7104 -3969391641 Iran/Tehran
+            # 1844-03-19T14:46:37 -3969404241 UTC
+            # 1844-03-19T09:46:37 -3969422241 America/New_York
+            ((1, 1, 1), 0, -3969391592),
+            # POSIX epoch 1970-01-01T00:00:00+00:00
+            ((126, 16, 2, None, None, 5, 46, 8.9472), 0, 95621),
+
             )
         msg = "Expected {} with date {}, and fold {}, found {}."
 
@@ -2426,6 +2429,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                     expected_result, date, fold, result))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_timestamp(self):
         """
         Test that the timestamp method returns either the POSIX time for
@@ -2448,6 +2452,13 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((126, 16, 2, None, None, 5, 46, 8.9472), tz0, 0, -12600),
             ((126, 16, 2, None, None, 5, 46, 8.9472), datetime.UTC, 0, 0),
             ((126, 16, 2, None, None, 5, 46, 8.9472), tz2, 0, 18000),
+            # Local dates and times
+            # 2024-03-20T00:00:00 -> 1710907200
+            # 0.95098318518518518519 (22, 49, 24.9456) too higt
+            #((181, 1, 1, None, None, 5, 46, 8.9472), None, 0, 1710907200),
+            # 2024-12-10T12:40:00 -> 1733852400
+            #((181, 15, 1), None, 0, 1733867535),
+
             #((126, 16, 2, None, None, 5, 46, 8.9472), None, 0, 18000),
             #((1, 1, 1), None, 0, -7938830703.0),
             )

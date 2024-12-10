@@ -10,7 +10,7 @@ __all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
 import sys
 import time as _time
 import math as _math
-from datetime import datetime as dtime, timedelta, tzinfo
+from datetime import datetime as _dtime, timedelta, tzinfo
 from types import NoneType
 from tzlocal import get_localzone
 import geocoder
@@ -202,7 +202,7 @@ def _local_timezone_info():
        package.
     """
     localzone = get_localzone()
-    dt = dtime.now(localzone)
+    dt = _dtime.now(localzone)
     offset = dt.utcoffset().total_seconds()
     dst = dt.dst().total_seconds() != 0
     return offset, dst, localzone.key
@@ -314,7 +314,8 @@ class date(BahaiCalendar):
         bc = BahaiCalendar()
         date = bc.posix_timestamp(t, *LOCAL_COORD, short=short, trim=True)
         del bc
-        return cls(*date[:-3]) # We do not need any time values.
+        date = date[:3] if short else date[:5]
+        return cls(*date) # We do not need any time values.
 
     @classmethod
     def today(cls, *, short:bool=False) -> object:
@@ -1539,40 +1540,26 @@ class datetime(date):
 
     def _mktime(self):
         """
-        Return integer POSIX timestamp of local time.
+        Return integer POSIX timestamp.
         """
-        if self.is_short:
-            l_date = (126, 16, 2, None, None, 5, 46, 8.9472)
-        else:
-            l_date = (1, 7, 12, 16, 2, 5, 46, 8.9472)
-
-        epoch = datetime(*l_date)
-        t = (self - epoch) // timedelta(0, 1)
-
         def local(u):
-            date = self.posix_timestamp(0, *LOCAL_COORD, trim=True,
-                                        short=self.is_short)
+            y, m, d, hh, mm, ss = _time.localtime(u)[:6]
+            return (_dtime(y, m, d, hh, mm, ss) - epoch) // timedelta(0, 1)
 
-            if self.is_short:
-                date = (*date[:3], None, None, *date[3:])
-
-            date = date[:-1] + (_math.floor(date[-1]),)
-            dt = datetime(*date)
-
-            #print(dt, epoch)
-
-            return (dt - epoch) // timedelta(0, 1)
-
+        epoch = _dtime(1970, 1, 1)
+        date = self.gregorian_date_from_badi_date(
+            self._short_from_long_form(time=self.b_time))
+        t = (_dtime(*date) - epoch) // timedelta(0, 1)
         # Our goal is to solve t = local(u) for u.
         a = local(t) - t
         u1 = t - a
         t1 = local(u1)
+        max_fold_seconds = 24 * 3600
 
         if t1 == t:
             # We found one solution, but it may not be the one we need.
             # Look for an earlier solution (if `fold` is 0), or a
             # later one (if `fold` is 1).
-            max_fold_seconds = 24 * 3600
             u2 = u1 + (-max_fold_seconds, max_fold_seconds)[self.fold]
             b = local(u2) - u2
 
@@ -1584,7 +1571,6 @@ class datetime(date):
 
         u2 = t - b
         t2 = local(u2)
-        print(t, t1, t2, a, b, u1, u2, l_date, self.fold)
 
         if t2 == t:
             return u2

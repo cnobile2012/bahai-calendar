@@ -299,8 +299,8 @@ class TestBadiCalendar(unittest.TestCase):
 
         for date, expected_result in data:
             result = self._bc.jd_from_badi_date(date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, date, result))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_badi_date_from_jd(self):
@@ -568,28 +568,30 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
         data = (
             # 1844-03-19T18:16:36.710400
-            ((1, 1, 1), lat, lon, zone, True, (1844, 3, 19, 18, 17, 26.5632)),
-            ((126, 16, 1), lat, lon, zone, True, (1969, 12, 30, 17, 2, 1.4496)),
+            ((1, 1, 1), lat, lon, zone, True,
+             (1844, 3, 19, 18, 17, 26, 563200)),
+            ((126, 16, 1), lat, lon, zone, True,
+             (1969, 12, 30, 17, 2, 1, 449600)),
             ((181, 3, 18, 20), lat, lon, zone, True,
-             (2024, 5, 14, 15, 4, 4.08)),
+             (2024, 5, 14, 15, 4, 4, 80000)),
             ((181, 3, 19, 20), lat, lon, zone, True,
-             (2024, 5, 15, 15, 4, 51.4272)),
+             (2024, 5, 15, 15, 4, 51, 427200)),
             ((181, 4, 1, 17), lat, lon, zone, True,
-             (2024, 5, 16, 12, 5, 38.3424)),
+             (2024, 5, 16, 12, 5, 38, 342400)),
             ((181, 4, 1, 20), lat, lon, zone, True,
-             (2024, 5, 16, 15, 5, 38.3424)),
+             (2024, 5, 16, 15, 5, 38, 342400)),
             # The next tests show the wrong day if exact=False is used.
             # The exact=False condition is generally used in testing.
-            ((1, 1, 1), lat, lon, zone, False, (1844, 3, 17, 18, 17, 26.5632)),
+            ((1, 1, 1), lat, lon, zone, False,
+             (1844, 3, 17, 18, 17, 26, 563200)),
             ((181, 3, 18, 20), lat, lon, zone, False,
-             (2024, 5, 12, 15, 4, 4.08)),
+             (2024, 5, 12, 15, 4, 4, 80000)),
             )
         msg = "Expected {} for date {} and exact {}, found {}"
 
         for date, lat, lon, zone, exact, expected_result in data:
-            g_date = self._bc.gregorian_date_from_badi_date(
+            result = self._bc.gregorian_date_from_badi_date(
                 date, lat=lat, lon=lon, zone=zone, _exact=exact)
-            result = self._gc.ymdhms_from_date(g_date)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, exact, result))
 

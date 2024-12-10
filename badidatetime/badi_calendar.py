@@ -177,21 +177,30 @@ class BahaiCalendar(BaseCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        # The diff value converts my jd to the Meeus algorithm for
-        # determining the sunset jd.
+        # The diff value converts the more exact jd to the Meeus algorithm
+        # for determining the sunset jd. The fractional on the day is not
+        # affected.
         diff = self._meeus_from_exact(jd)
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_coff(year), self.ROUNDING_PLACES)
 
 
     def _get_coff(self, year):
+        """
+        General ranges are determined with:
+        ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year Where -S
+        is the 1st year and -E is the nth year + 1 that needs to be process.
+        Use the following command to test the results of each segment.
+        ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
+        Full range is -1842 to 1161.
+        """
         def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
             func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
             coff = 0
 
-            if a and func(y, onoff0): # Whatever is passed in onoff0.
+            if a and func(y, onoff0):   # Whatever is passed in onoff0.
                 coff = a
-            elif b and func(y, onoff1): # Whatever is passed in onoff0.
+            elif b and func(y, onoff1): # Whatever is passed in onoff1.
                 coff = b
 
             return coff
@@ -201,7 +210,7 @@ class BahaiCalendar(BaseCalendar):
 
             for start, end in pn:
                 if year in range(start, end):
-                    # start to end (range -S start -E end)
+                    # Start to end (range -S start -E end)
                     coff0 = process_segment(end - year, a=a, onoff0=onoff0)
                     coff1 = process_segment(end - year, b=b, onoff1=onoff1)
                     coff = coff0 if coff0 != 0 else coff1
@@ -241,12 +250,6 @@ class BahaiCalendar(BaseCalendar):
                  (577, 601), (841, 873), (973, 1001))
         coff = 0
 
-        # General ranges are determined with:
-        # ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
-        # Where -S is the 1st year and -E is the nth year + 1 that needs to
-        # be process. Use the following command to test the results of each
-        # segment. ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
-        # Full range is -1842 to 1161
         if not coff:
             coff = process_segments(year, p1, -1, (0, 1, 2, 3))
 
@@ -427,7 +430,8 @@ class BahaiCalendar(BaseCalendar):
                            _chk_on:bool=True) -> tuple:
         """
         Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second,
-        us) into a (Kull-i-Shay, Váḥid, year, month, day.partial) date.
+        us) into a (Kull-i-Shay, Váḥid, year, month, day.fraction) or
+        (year, month, day.fraction) date.
 
         :param b_date: The Badi date in long form.
         :type b_date: tuple
@@ -456,7 +460,7 @@ class BahaiCalendar(BaseCalendar):
                              short:bool=False, trim:bool=False,
                              _chk_on:bool=True) -> tuple:
         """
-        Convert (Kull-i-Shay, Váḥid, year, month, day.partial) into
+        Convert (Kull-i-Shay, Váḥid, year, month, day.fraction) into
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second) or if
         short is True (year, month, day, hour, minute, second). If us is
         True the seconds are split to second and microsecond.
@@ -578,7 +582,8 @@ class BahaiCalendar(BaseCalendar):
         :rtype: tuple
         """
         jd = self.jd_from_badi_date(b_date, lat, lon, zone, _chk_on=_chk_on)
-        return self._gc.gregorian_date_from_jd(jd, exact=_exact)
+        return self._gc.ymdhms_from_date(self._gc.gregorian_date_from_jd(
+            jd, exact=_exact), us=True)
 
     def posix_timestamp(self, t:float, lat:float=None, lon:float=None,
                         zone:float=None, *, us:bool=False, short=False,
