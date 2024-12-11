@@ -1,4 +1,4 @@
-W#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # contrib/misc/badi_jd_tests.py
@@ -1230,10 +1230,11 @@ class DateTests(BahaiCalendar):
             data.append(((k, v, y, m, d), (year, m, d)))
 
     def _day_of_week(self, year, month, day):
+        # weekday starts at 0 and ends at 6. We need to add one below.
         weekday = _td_utils._day_of_week(year, month, day)
         wd_name = _td_utils.DAYNAMES[weekday]
         m_name = _td_utils.MONTHNAMES[month]
-        return weekday, wd_name, m_name
+        return weekday+1, wd_name, m_name
 
 
 if __name__ == "__main__":
@@ -1403,13 +1404,13 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
-            print("Badi           Gregorian             Week Day      Month"
-                  "      Leap  Days Day in")
-            print("Date           Date                  Day  Name     Name "
-                  "      Year  Year Year")
-            print('-'*79)
+            print("Badi           Gregorian                          "
+                  "Week Day      Month      Leap  Days Day in")
+            print("Date           Date                               Day  "
+                  "Name     Name       Year  Year Year")
+            print('-'*92)
             [print(f"{str(date):<14} "
-                   f"{str(g_date):<21} "
+                   f"{str(g_date):<34} "
                    f"{weekday}    "
                    f"{wd_name:<8} "
                    f"{m_name:<10} "
