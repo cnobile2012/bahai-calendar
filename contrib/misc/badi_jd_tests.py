@@ -672,8 +672,7 @@ class DateTests(BahaiCalendar):
                     jd += self._meeus_from_exact(jd)
                     ssjd = self._sun_setting(jd, *locate)
                     essjd = self._exact_from_meeus(ssjd)
-                    hms = self._adjust_day_for_24_hours(essjd, *locate,
-                                                        hms=True)
+                    hms = self._day_Length(essjd, *locate)
 
                     if short_day == () or long_day == ():
                         short_day = long_day = date

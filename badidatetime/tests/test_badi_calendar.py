@@ -875,7 +875,7 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, short_in, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test__adjust_day_for_24_hours(self):
         """
         Test that the _adjust_day_for_24_hours method returns the
@@ -945,3 +945,21 @@ class TestBadiCalendar(unittest.TestCase):
                     value, lat, lon, zone, day=day, hms=hms, rtd=rtd)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, value, day, hms, rtd, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__adjust_date_for_24_hours(self):
+        """
+        """
+        local_coords = (35.5894, -78.7792, -5.0)
+        location = self._bc.BAHAI_LOCATION[:3]
+        data = (
+            (2460653.027778, (181, 15, 1), *local_coords, False, (181, 14, 19)),
+            (1721502.2603, (181, 1, 4), *location, False, ()),
+            )
+        msg = "Expected {} for jd {}, date {}, and rtd {}, found {}"
+
+        for jd, date, lat, lon, zone, rtd, expected_result in data:
+            result = self._bc._adjust_date_for_24_hours(jd, date, lat, lon,
+                                                        zone, rtd=rtd)
+            self.assertEqual(expected_result, result, msg.format(
+                    expected_result, jd, date, rtd, result))

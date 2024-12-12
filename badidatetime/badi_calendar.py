@@ -891,26 +891,43 @@ class BahaiCalendar(BaseCalendar):
 
         return value
 
-    def _adjust_date_for_24_hours(self, jd:float, lat:float, lon:float,
-                                  zone:float, ymd:tuple) -> tuple:
+    def _adjust_date_for_24_hours(self, jd:float, ymd:tuple, lat:float,
+                                  lon:float, zone:float, rtd=False) -> tuple:
         """
         The adjusted year, month, and day based on when the sunset of the
         day or the day before..
         """
         jd1 = math.floor(jd)
-        mjd1 = jd1 + self._meeus_from_exact(jd1) # This day
-        ss1 = self._sun_setting(mjd1, lat, lon, zone) # This day sunset
+        mjd1 = jd1 + self._meeus_from_exact(jd1) # Current day
+        ss1 = self._sun_setting(mjd1, lat, lon, zone) # Current day sunset
         jd_frac = jd % 1
+        ss_frac = ss1 % 1
         jd0 = jd1 - 1
-
-        if jd_frac < ss1 % 1:
-            mjd0 = jd0 + self._meeus_from_exact(jd0) # Day before
-            ss0 = self._sun_setting(mjd0, lat, lon, zone) # Day before sunset
-
         year, month, day = ymd
 
+        if jd_frac < ss_frac: # Are we on the previous day?
+            mjd0 = jd0 + self._meeus_from_exact(jd0) # Previous day
+            ss0 = self._sun_setting(mjd0, lat, lon, zone) # Previous day sunset
+            hour = 0.5 - ss0 % 1 + jd_frac
+
+            if month == 19 and day == 1:
+                day = 4 + self._is_leap_year(year)
+                month = 0
+            elif month == 0 and day == 1:
+                day = 19
+                month = 18
+            elif month == 1 and day == 1:
+                day = 19
+                month = 19
+                year -= 1
+            elif day == 1:
+                day = 19
+                month -= 1
+        else:
+            hour = jd_frac - ss_frac
 
 
+        return year, month, day
 
     def _day_Length(self, jd:float, lat:float, lon:float, zone:float) -> tuple:
         """
@@ -919,10 +936,6 @@ class BahaiCalendar(BaseCalendar):
         """
         jd0 = math.floor(jd)
         jd1 = jd0 + 1
-        # The return value from _meeus_from_exact() is used to convert the
-        # more exact jd to the Meeus algorithm jd so that the sunset can be
-        # determined properly. The fractional day of either algorithm would
-        # be the same.
         mjd1 = jd1 + self._meeus_from_exact(jd1)
         ss1 = self._sun_setting(mjd1, lat, lon, zone)
         mjd0 = jd0 + self._meeus_from_exact(jd0)
