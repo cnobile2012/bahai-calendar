@@ -163,7 +163,7 @@ class GregorianCalendar(BaseCalendar):
                 year -= 1 if month == 12 else 0
 
             date = (year, month, round(day, self.ROUNDING_PLACES))
-        else:
+        else: # Meeus algorithm
             j_day = jd + 0.5
             z = math.floor(j_day)
             f = j_day % 1

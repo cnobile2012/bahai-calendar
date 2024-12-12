@@ -63,7 +63,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     ROUNDING_PLACES = 6
     POSIX_EPOCH = 2440585.5 # This is using the more exact algorithm.
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self._time = None
         self._nutation = {'lon': (0, 0, False), 'obl': (0, 0, False)}
         self._sun_tss = {'trn': (), 'rsn': (), 'stn': ()}
