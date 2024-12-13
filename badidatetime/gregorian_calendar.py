@@ -45,7 +45,7 @@ class GregorianCalendar(BaseCalendar):
         """
         Convert Gregorian dates to Julian day count with the 1582 10, 15
         correction.
-
+ 
         :param g_date: A Gregorian date in the (year, month, day) format.
         :type g_date: tuple
         :param exact: Julian days as if the Gregorian calendar started on

@@ -396,7 +396,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                         sr_ss:str='RISE') -> float:
         """
         Find the jd difference for sunrise or sunset of the given jd.
-
+ 
         :param jd: Julian day in UT.
         :type jd: float
         :param lat: Geographic latitude positive north negative south.

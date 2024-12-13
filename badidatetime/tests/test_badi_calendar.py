@@ -947,19 +947,49 @@ class TestBadiCalendar(unittest.TestCase):
                     expected_result, value, day, hms, rtd, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__adjust_date_for_24_hours(self):
+    def test__adjust_date(self):
         """
+        Test that the _adjust_date method returns the corrected date based
+        on the JD and the original date.
         """
         local_coords = (35.5894, -78.7792, -5.0)
-        location = self._bc.BAHAI_LOCATION[:3]
         data = (
-            (2460653.027778, (181, 15, 1), *local_coords, False, (181, 14, 19)),
-            (1721502.2603, (181, 1, 4), *location, False, ()),
+            # Test where the JD is for the day before the given date.
+            # Non-leap year month 19 ('Alá')
+            (2460733.2, (181, 19, 1), *local_coords, False,
+             (181, 0, 4, 10, 39, 9.6768)),
+            # Leap year month 19 ('Alá')
+            (2461100.2, (182, 19, 1), *local_coords, False,
+             (182, 0, 5, 10, 37, 33.0816)),
+            # Month 0 (Ayyám-i-Há)
+            (2460730.2, (181, 0, 1), *local_coords, False,
+             (181, 18, 19, 10, 41, 56.7744)),
+            # Month 1 (Bahá)
+            (2460387.2, (181, 1, 1), *local_coords, False,
+             (180, 19, 19, 10, 22, 19.4016)),
+            # Day 1 for months 2 - 18
+            (2460406.2, (181, 2, 1), *local_coords, False,
+             (181, 1, 19, 10, 6, 38.5056)),
+            (2460653.027778, (181, 15, 1), *local_coords, False,
+             (181, 14, 19, 7, 37, 58.9152)),
+            (2460710.2, (181, 18, 1), *local_coords, False,
+             (181, 17, 19, 11, 1, 43.5648)),
+            # Any day that is not the 1st or 19th.
+            (2460711.2, (181, 18, 2), *local_coords, False,
+             (181, 18, 1, 11, 0, 41.7888)),
+            # Test where the JD is for the day after the given date.
+            # Month 19 and day 19
+            #(2460752.2, (181, 19, 19), *local_coords, False, (182, 1, 1, )),
+            # Month 0 and last day
+            #(2460734.2, (181, 0, 4), *local_coords, False, ()),
+            # Month 1 - 18 day 19
+            #(2460673.2, (181, 15, 19), *local_coords, False, ()),
+            # Any day that is not the 1st or 19th.
+            #(2460661.2, (181, 15, 7), *local_coords, False, ()),
             )
         msg = "Expected {} for jd {}, date {}, and rtd {}, found {}"
 
         for jd, date, lat, lon, zone, rtd, expected_result in data:
-            result = self._bc._adjust_date_for_24_hours(jd, date, lat, lon,
-                                                        zone, rtd=rtd)
+            result = self._bc._adjust_date(jd, date, lat, lon, zone, rtd=rtd)
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, jd, date, rtd, result))

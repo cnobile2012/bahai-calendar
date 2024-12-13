@@ -891,21 +891,23 @@ class BahaiCalendar(BaseCalendar):
 
         return value
 
-    def _adjust_date_for_24_hours(self, jd:float, ymd:tuple, lat:float,
-                                  lon:float, zone:float, rtd=False) -> tuple:
+    def _adjust_date(self, jd:float, ymd:tuple, lat:float, lon:float,
+                     zone:float, rtd=False) -> tuple:
         """
         The adjusted year, month, and day based on when the sunset of the
         day or the day before..
         """
         jd1 = math.floor(jd)
         mjd1 = jd1 + self._meeus_from_exact(jd1) # Current day
-        ss1 = self._sun_setting(mjd1, lat, lon, zone) # Current day sunset
         jd_frac = jd % 1
-        ss_frac = ss1 % 1
+        # Current day sunset
+        ss1 = self._sun_setting(mjd1, lat, lon, zone)
+        ss1 -= self._exact_from_meeus(ss1)
+        ss1_frac = ss1 % 1
         jd0 = jd1 - 1
         year, month, day = ymd
 
-        if jd_frac < ss_frac: # Are we on the previous day?
+        if jd < ss1: # Are we on the previous day?
             mjd0 = jd0 + self._meeus_from_exact(jd0) # Previous day
             ss0 = self._sun_setting(mjd0, lat, lon, zone) # Previous day sunset
             hour = 0.5 - ss0 % 1 + jd_frac
@@ -920,14 +922,38 @@ class BahaiCalendar(BaseCalendar):
                 day = 19
                 month = 19
                 year -= 1
-            elif day == 1:
+            elif day == 1: # *** TODO *** Fix for an already correct month.
                 day = 19
                 month -= 1
+            else: # *** TODO *** Fix for an already correct day.
+                day -= 1
         else:
-            hour = jd_frac - ss_frac
+            jd2 = jd1 + 1
+            mjd2 = jd2 + self._meeus_from_exact(jd2) # Following day
+            ss2 = self._sun_setting(mjd2, lat, lon, zone)
+            ss2 -= self._exact_from_meeus(ss2)
+            print(jd, ss2)
 
+            if jd >= ss2:
+                hour = jd_frac - ss2_frac
 
-        return year, month, day
+                if month == 19 and day == 19:
+                    day = 1
+                    month = 1
+                    year += 1
+                elif month == 0 and day == (4 + self._is_leap_year(year)):
+                    day = 1
+                    month = 19
+                elif day == 19:
+                    day = 1
+                    month += 1
+                else:
+                    day += 1
+            else:
+                hour = jd_frac - ss_frac
+
+        hh, mm, ss = self.hms_from_decimal_day(hour)
+        return year, month, day, hh, mm, round(ss, self.ROUNDING_PLACES)
 
     def _day_Length(self, jd:float, lat:float, lon:float, zone:float) -> tuple:
         """
