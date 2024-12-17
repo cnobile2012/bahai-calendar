@@ -606,7 +606,6 @@ class DateTests(BahaiCalendar):
         # https://www.someweekendreading.blog/leap-year-revised/
         # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
         # 365.2421897
-        #self.MEAN_TROPICAL_YEAR = 365.2421897
         self.gc = GregorianCalendar()
 
     def analyze_date_error(self, options):
@@ -1151,7 +1150,7 @@ class DateTests(BahaiCalendar):
                 # equinox and sunset. So don't use exact=options.exact here.
                 jd = self.gc.jd_from_gregorian_date(g_date) # Julian Period day
                 ve_jd = self.find_moment_of_equinoxes_or_solstices(
-                    jd, zone=3.5)
+                    jd, zone=self.BAHAI_LOCATION[2])
 
             ss_jd = self._sun_setting(ve_jd, *self.BAHAI_LOCATION[:3])
 
@@ -1179,7 +1178,7 @@ class DateTests(BahaiCalendar):
                 jd_ss)) # Sunset before VE
             bjd = self._jd_from_badi_date(b_date, coeffon=options.coff)
             e_jd_ss = jd_ss - self._exact_from_meeus(jd_ss)
-            # This must be round to 5 (Badi year 128)
+            # This must be round to 5 (See Badi year 128)
             diff = round(bjd - e_jd_ss, 5)
             offby = math.floor(diff)
             data.append((b_date, bjd, g_date, e_jd_ss, diff, offby))
@@ -1196,7 +1195,7 @@ class DateTests(BahaiCalendar):
             assert year == (last_year + 1), (
                 f"last_year: {last_year}, current year {year}")
             jd = self.gc.jd_from_gregorian_date(date)
-            jd += 0.14583333333333333333 # 3.5 hours for Tehran time
+            jd += self.BAHAI_LOCATION[2] / 24 # 3.5 hours for Tehran time
             data[year] = jd
             last_year = year
 
@@ -1344,7 +1343,8 @@ if __name__ == "__main__":
         else:
             data = dt.analyze_date_error(options)
             print("Badi Date     Badi JD        Gregorian Date (Sunset)       "
-                  " Gregorian JD   Diff      Off By")
+                  " Gregorian JD    Diff      Off By")
+            print('-'*92)
 
             for b_date, bjd, g_date, gjd, diff, offby in data:
                 dn = '-' if diff < 0 else ' '

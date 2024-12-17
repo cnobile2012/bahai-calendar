@@ -730,7 +730,8 @@ class TimeDateUtils(BahaiCalendar):
         """
         The week counts from Jalal (Saturday) as the first day and Istiqlal
         (Friday) the last day of the week. This is different from the usual
-        way ISO weeks are counted which is Monday to Sunday.
+        way ISO weeks are counted in the Gregorian Calendar which is Monday
+        to Sunday.
 
         :param year: Badi year.
         :type year: int
@@ -760,7 +761,7 @@ class TimeDateUtils(BahaiCalendar):
 
             assert not out_of_range, f"Invalid week: {week}"
 
-        assert 0 < day < 8, f"Invalid weekday: {day} (range is 1..7)"
+        assert 0 < day < 8, f"Invalid weekday: {day} (range is [1, 7])"
         # Now compute the offset from (Y, 1, 1) in days:
         day_offset = (week - 1) * 7 + (day - 1)
         # Calculate the ordinal day for Jalal, week 1

@@ -51,7 +51,7 @@ class BahaiCalendar(BaseCalendar):
                                  lon:float=None, zone:float=None, *,
                                  short=False, trim:bool=False) -> None:
         """
-        Parse a Gregorian date to a long form Badi date.
+        Parse a Gregorian date to a long or short form Badi date.
         """
         self._gc.parse_datetime(dt)
         jd = self._gc.jd_from_gregorian_date(self._gc.date_representation,
@@ -280,32 +280,23 @@ class BahaiCalendar(BaseCalendar):
         """
         Convert a Julian Period day to a Badi date.
 
-        :param jd: Julian Period day.
-        :type jd: float
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The standard time zone.
-        :type zone: float
-        :param us: If True the seconds are split to seconds amd microseconds
-                   else if False the seconds has a partial day as a decimal.
-        :type us: bool
-        :param short: If True then parse for a short date else if False
-                      (default) parse for a long date.
-        :type short: bool
-        :param fraction: This will return a short date with a possible
-                         fraction on the day.
-        :type fraction: bool
-        :param trim: Trim the us, ss, mm, and hh in that order.
-        :type trim: bool
-        :param rtd: Round to day.
-        :type rtd: bool
-        :param _chk_on: If True (default) all date checks are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
+        :param float jd: Julian Period day.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The standard time zone.
+        :param bool us: If True the seconds are split to seconds amd
+                        microseconds else if False the seconds has a partial
+                        day as a decimal.
+        :param bool short: If True then parse for a short date else if False
+                           (default) parse for a long date.
+        :param bool fraction: This will return a short date with a possible
+                              fraction on the day.
+        :param bool trim: Trim the us, ss, mm, and hh in that order.
+        :param bool rtd: Round to day.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :return: The Badi date from a Julian Period day.
         :rtype: tuple
         """
@@ -350,15 +341,15 @@ class BahaiCalendar(BaseCalendar):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self.BAHAI_LOCATION[:3]
 
-        day = self._adjust_day_for_24_hours(
-            jd, lat, lon, zone, day=day, rtd=rtd)
+        date = self._adjust_date(jd, (year, month, day), lat, lon, zone,
+                                 fraction=fraction, rtd=rtd)
 
         if fraction:
-            b_date = (year, month, day)
+            b_date = date
         else:
-            date = self.long_date_from_short_date((year, month, day),
-                                                  trim=True, _chk_on=_chk_on)
-            b_date = self.kvymdhms_from_b_date(date, us=us, short=short,
+            l_date = self.long_date_from_short_date(date, trim=True,
+                                                    _chk_on=_chk_on)
+            b_date = self.kvymdhms_from_b_date(l_date, us=us, short=short,
                                                trim=trim, _chk_on=_chk_on)
 
         return b_date
@@ -808,12 +799,11 @@ class BahaiCalendar(BaseCalendar):
         Parse the hours, minutes, seconds, and microseconds, if they exist
         for either the short or long form Badi date.
 
-        :param date: A long or short form Badi date.
-        :type date: tuple
-        :param short_in: If True then parse for a short date else if False
-                         parse for a long date. This is for incoming dates
-                         not outgoing dates as in most other uses of 'short'.
-        :type short_in: bool
+        :param tuple date: A long or short form Badi date.
+        :param bool short_in: If True then parse for a short date else if False
+                              parse for a long date. This is for incoming dates
+                              not outgoing dates as in most other uses of
+                              'short'.
         :return: The relevant hours, minutes, and seconds.
         :rtype: tuple
         """
@@ -825,135 +815,96 @@ class BahaiCalendar(BaseCalendar):
         us = date[s+3] if t_len > s+3 and date[s+3] is not None else 0
         return hour, minute, second, us
 
-    def _adjust_day_for_24_hours(self, jd:float, lat:float, lon:float,
-                                 zone:float, *, day:float=None,
-                                 rtd=False, hms:bool=False) -> float|tuple:
-        """
-        We have to deal with days that are either more or less than 24 hours.
-        This method does two things. It corrects the Badi time which starts
-        at sunset when given a Julian Period day which starts at noon. It
-        also corrects the day and the fraction of the day when the Badi day
-        is more or less than 24 hours.
-
-        :param jd: Exact Julian Period day possibly with a fraction.
-        :type jd: float
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The standard time zone.
-        :type zone: float
-        :param day: The day that gets modified. This parameter is optional.
-        :type day: float
-        :param rtd: Round to closest day only when the day is used. Has no
-                    effect if hms is True.
-        :type rtd: bool
-        :param hms: If True the returned value is a tuple in the form of
-                    (hh, mm, ss) indicating the length of the day else if
-                    False one of the other two values are returned.
-        :type hms: bool
-        :return: See the note below.
-        :rtype: float | tuple
-
-        .. note::
-
-           1. There are two different outputs that can be returned.
-              a. The adjusted day based on when the day ends.
-              b. The hour, minute, and seconds of the days offset either
-                 less than or more than 24 hours.
-        """
-        if day is not None and hms:
-            raise ValueError(
-                "Cannot use the day and hms arguments at the same time.")
-
-        if day is None and not hms:
-            raise ValueError("Must provide a day or hms must be True.")
-
-        jd0 = math.floor(jd)
-        jd1 = jd0 + 1
-        # The return value from _meeus_from_exact() is used to convert the
-        # more exact jd to the Meeus algorithm jd so that the sunset can be
-        # determined properly. The fractional day of either algorithm would
-        # be the same.
-        mjd1 = jd1 + self._meeus_from_exact(jd1)
-        ss1 = self._sun_setting(mjd1, lat, lon, zone)
-
-        if hms:
-            mjd0 = jd0 + self._meeus_from_exact(jd0)
-            ss0 = self._sun_setting(mjd0, lat, lon, zone)
-            value = list(self.hms_from_decimal_day(ss1 - ss0))
-            value[0] = 24 if value[0] == 0 else value[0]
-            value = tuple(value)
-        else:
-            fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES)
-            v = 1 if (day + fraction) < 1 else day + fraction
-            value = round(v) if rtd else v
-
-        return value
-
     def _adjust_date(self, jd:float, ymd:tuple, lat:float, lon:float,
-                     zone:float, rtd=False) -> tuple:
+                     zone:float, *, fraction:bool=False,
+                     us:bool=False, rtd:bool=False) -> tuple:
         """
-        The adjusted year, month, and day based on when the sunset of the
-        day or the day before..
+        The adjusted year, month, and day based on when the JD false before
+        or after sunset.
+
+        :param float jd: Exact Julian Period day possibly with a fraction.
+        :param tuple ymd: The year mont, and day.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The standard time zone.
+        :param bool fraction: If True output the day with a fractional day as
+                              a decimal. If False (default) output hour,
+                              minute, and second.
+        :param bool us: If True convert a fractional second to microseconds. If
+                        False (default) output second with a fraction.
+        :param bool rtd: Round to day.
+        :return: Returns the year, month, day, and depending on other
+                 arguments, the hour, minute, and second, and microsecond.
+        :rtype: tuple
         """
-        jd1 = math.floor(jd)
-        mjd1 = jd1 + self._meeus_from_exact(jd1) # Current day
+        assert self._xor_boolean((fraction, us, rtd)), (
+            "Cannot set more than one of fraction, us, and rtd to True.")
+        jd0 = math.floor(jd) # So we always get the sunset on the current day.
+        mjd0 = jd0 + self._meeus_from_exact(jd0) # Current day
         jd_frac = jd % 1
         # Current day sunset
-        ss1 = self._sun_setting(mjd1, lat, lon, zone)
-        ss1 -= self._exact_from_meeus(ss1)
-        ss1_frac = ss1 % 1
-        jd0 = jd1 - 1
+        ss0 = self._sun_setting(mjd0, lat, lon, zone)
+        ss0 -= self._exact_from_meeus(ss0)
         year, month, day = ymd
 
-        if jd < ss1: # Are we on the previous day?
-            mjd0 = jd0 + self._meeus_from_exact(jd0) # Previous day
-            ss0 = self._sun_setting(mjd0, lat, lon, zone) # Previous day sunset
-            hour = 0.5 - ss0 % 1 + jd_frac
+        # Old formula for hours
+        # jd0 = math.floor(jd)                                     # same
+        # jd1 = jd0 + 1                                            # diff
+        # mjd1 = jd1 + self._meeus_from_exact(jd1)                 # diff
+        # ss1 = self._sun_setting(mjd1, lat, lon, zone)            # diff
+        # fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES) # diff
+        # v = 1 if (day + fraction) < 1 else day + fraction
+        # value = round(v) if rtd else v
+
+        if jd < ss0: # Are we on the previous day?
+            jd1 = jd0 - 1
+            mjd1 = jd1 + self._meeus_from_exact(jd1) # Previous day
+            ss1 = self._sun_setting(mjd1, lat, lon, zone) # Previous day sunset
+            frac = 0.5 - ss1 % 1 + jd_frac
 
             if month == 19 and day == 1:
                 day = 4 + self._is_leap_year(year)
                 month = 0
+                #print('POOP0', jd, ss0, day, month, frac)
             elif month == 0 and day == 1:
                 day = 19
                 month = 18
+                #print('POOP1', jd, ss0, day, month, frac)
             elif month == 1 and day == 1:
                 day = 19
                 month = 19
                 year -= 1
-            elif day == 1: # *** TODO *** Fix for an already correct month.
+                #print('POOP2', jd, ss0, day, month, year, frac)
+            elif day == 1:
                 day = 19
                 month -= 1
-            else: # *** TODO *** Fix for an already correct day.
-                day -= 1
-        else:
-            jd2 = jd1 + 1
-            mjd2 = jd2 + self._meeus_from_exact(jd2) # Following day
-            ss2 = self._sun_setting(mjd2, lat, lon, zone)
-            ss2 -= self._exact_from_meeus(ss2)
-            print(jd, ss2)
-
-            if jd >= ss2:
-                hour = jd_frac - ss2_frac
-
-                if month == 19 and day == 19:
-                    day = 1
-                    month = 1
-                    year += 1
-                elif month == 0 and day == (4 + self._is_leap_year(year)):
-                    day = 1
-                    month = 19
-                elif day == 19:
-                    day = 1
-                    month += 1
-                else:
-                    day += 1
+                #print('POOP3', jd, ss0, day, month, frac)
             else:
-                hour = jd_frac - ss_frac
+                day -= 1
+                #print('POOP4', jd, ss0, day, frac)
+        else:
+            frac = jd_frac - ss0 % 1
 
-        hh, mm, ss = self.hms_from_decimal_day(hour)
-        return year, month, day, hh, mm, round(ss, self.ROUNDING_PLACES)
+        if fraction:
+            day = round(day + frac, self.ROUNDING_PLACES)
+            hms = ()
+        elif rtd:
+            day = round(day)
+            hms = ()
+        else:
+            hh, mm, ss = self.hms_from_decimal_day(frac)
+
+            if us:
+                microsecond = self.PARTIAL_SECOND_TO_MICROSECOND(ss)
+                ss = math.floor(ss)
+                msec = (microsecond,)
+            else:
+                ss = round(ss, self.ROUNDING_PLACES)
+                msec = ()
+
+            hms = (hh, mm, ss) + msec
+
+        return (year, month, day) + hms
 
     def _day_Length(self, jd:float, lat:float, lon:float, zone:float) -> tuple:
         """

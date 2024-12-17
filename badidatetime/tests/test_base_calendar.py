@@ -212,7 +212,8 @@ class TestBaseCalendar(unittest.TestCase):
         """
         now = datetime.datetime.now()
         self.bc.parse_datetime(now)
-        expected_dt = (now.hour, now.minute, now.second)
+        ms = now.microsecond / 1e6
+        expected_dt = (now.hour, now.minute, now.second + ms)
         msg = f"Expected {expected_dt}, found {self.bc._time}"
         self.assertTrue(
             all([i == j for i, j in zip(expected_dt,
@@ -1538,9 +1539,83 @@ class TestBaseCalendar(unittest.TestCase):
             ((1.0123456789, 12), 1.0123456789 ),
             ((1.123, 20), 1.123),
             )
-        msg = "Expected {} with {}, found {}."
+        msg = "Expected {} with args {}, found {}."
 
         for args, expected_result in data:
             result = self.bc._truncate_decimal(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__xor_boolean(self):
+        """
+        Test that the _xor_boolean tests that any number of booleans can
+        all be False or only one True.
+        """
+        data = (
+            ((False, False, False), True),
+            ((True, False, False), True),
+            ((False, True, False), True),
+            ((False, False, True), True),
+            ((True,), True),
+            ((False,), True),
+            ((True, True), False),
+            ((True, False, True), False),
+            )
+        msg = "Expected {} with booleans {}, found {}."
+
+        for booleans, expected_result in data:
+            result = self.bc._xor_boolean(booleans)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, booleans, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__ordinal_from_jd(self):
+        """
+        Test that the _ordinal_from_jd converts a Julian Period day to an
+        ordinal starting at (1, 1, 1) Gregorian.
+        """
+        data = (
+            (1721423.5, True, 1),       # Astronomically correct
+            (1721500.5, True, 78),      # Astronomically correct
+            (1721500.5, False, 78),     # Historically correct
+            (1757641.5, True, 36219),   # Astronomically correct
+            (1757641.5, False, 36219),  # Historically correct
+            (1757642.5, True, 36220),   # Astronomically correct
+            (1757642.5, False, 36219),  # Historically correct
+            (2299159.5, True, 577737),  # Astronomically correct
+            (2299159.5, False, 577725), # Historically correct
+            (2299160.5, True, 577738),  # Astronomically correct
+            (2299160.5, False, 577736), # Historically correct
+            )
+        msg = "Expected {} with jd {} and exact {}, found {}."
+
+        for jd, exact, expected_result in data:
+            result = self.bc._ordinal_from_jd(jd, _exact=exact)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, jd, exact, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__jd_from_ordinal(self):
+        """
+        Test that the _jd_from_ordinal
+        """
+        data = (
+            (1, True, 1721423.5),       # Astronomically correct
+            (78, True, 1721500.5),      # Astronomically correct
+            (78, False, 1721500.5),     # Historically correct
+            (36219, True, 1757641.5),   # Astronomically correct
+            (36219, False, 1757642.5),  # Historically correct
+            (36220, True, 1757642.5),   # Astronomically correct
+            (36219, False, 1757642.5),  # Historically correct
+            (577737, True, 2299159.5),  # Astronomically correct
+            (577725, False, 2299159.5), # Historically correct
+            (577738, True, 2299160.5),  # Astronomically correct
+            (577736, False, 2299160.5), # Historically correct
+            )
+        msg = "Expected {} with ordinal {} and exact {}, found {}."
+
+        for ordinal, exact, expected_result in data:
+            result = self.bc._jd_from_ordinal(ordinal, exact=exact)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, ordinal, exact, result))

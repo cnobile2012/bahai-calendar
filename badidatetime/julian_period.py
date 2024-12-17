@@ -4,8 +4,6 @@
 #
 __docformat__ = "restructuredtext en"
 
-import math
-
 
 class JulianPeriod:
     """

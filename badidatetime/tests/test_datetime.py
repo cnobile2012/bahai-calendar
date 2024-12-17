@@ -466,12 +466,25 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         Test that the fromordinal class method creates a date instance
         from a date ordinal number.
+
+        local coords (35.5894, -78.7792, -5.0)
         """
         data = (
             (78, False, '-05-18-01-01-01'),
             (78, True, '-1842-01-01'),
             (444, True, '-1841-01-01'),
-            (738964, True, '0181-01-01'),
+            #(577725, True, '-261-11-08'), # 1582-10-04 -> -261-11-09
+            #(577726, True, '-261-11-19'), # 1582-10-05 -> -261-11-09
+            #(577735, True, '-261-11-17'), # 1582-10-14 -> -261-11-18
+            #(577736, True, '-261-11-18'), # 1582-10-15 -> -261-12-01
+            #(639785, True, '-091-09-15'), # 1752-09-02 -> -091-09-15
+            (639786, True, '-091-09-16'), # 1752-09-03 -> -091-09-16
+            #(639796, True, '-091-10-07'), # 1752-09-13 -> -091-10-08
+            #(639797, True, '-091-10-08'), # 1752-09-14 -> -091-10-09
+
+
+
+            (738964, True, '0181-01-01'), # 0180-19-19
             )
         msg = "Expected {} with ordinal {}, found {}."
 
@@ -529,12 +542,12 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the fromisocalendar class method creates a date instance
         from an ISO calendar date.
         """
-        err_msg = "Invalid weekday: {} (range is 1..7)"
+        err_msg = "Invalid weekday: {} (range is [1, 7])"
         data = (
             # year, week, day in week
             ((181,   1,    1), False, False, '01-10-09-19-17'),
             ((181,   1,    1), True,  False, '0180-19-17'),
-            ((181,  24,    7), True,  False, '0181-09-13'),
+            ((181,  24,    7), True,  False, '0181-09-12'),
             ((181,   1,   10), False, True, err_msg.format(10)),
             )
         msg = "Expected {} with iso {} and short {}, found {}."
