@@ -106,15 +106,14 @@ class GregorianCalendar(BaseCalendar):
         """
         Convert Julian day to Gregorian date.
 
-        :param jd: A Julian period day.
-        :type jd: float
-        :param exact: Julian days as if the Gregorian calendar started on
-                      year 1. This is astronomically correct but not
-                      historically correct.
-        :type exact: bool
-        :param alt: If True use the 4/128 algorithm for leap years else
-                    use the 4/100/400 algorithm. The default is False.
-        :type alt: bool
+        :param float jd: A Julian period day. This value should be an
+                         historical JD if exact is False and an astronomical
+                         JD if exact is True.
+        :param bool exact: Julian days as if the Gregorian calendar started on
+                           year 1. This is astronomically correct but not
+                           historically correct.
+        :param bool alt: If True use the 4/128 algorithm for leap years else
+                         use the 4/100/400 algorithm. The default is False.
         :return: A Gregorian date in the (year, month, day) format.
         :rtype: tuple
 

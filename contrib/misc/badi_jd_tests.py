@@ -884,7 +884,7 @@ class DateTests(BahaiCalendar):
             total = 0
 
             for month in self.MONTHS:
-                dm = 19 if month != 0 else 4 + self._is_leap_year(year)
+                dm = 19 if month != 0 else 4 + is_leap
 
                 for day in range(1, dm + 1):
                     date = (year, month, day)
@@ -1070,71 +1070,9 @@ class DateTests(BahaiCalendar):
 
         return coff
 
-    def _badi_date_from_jd_alt(self, jd:float, lat:float=None, lon:float=None,
-                               zone:float=None) -> tuple:
-        """
-        Convert a Julian period day to a Badi date.
-        """
-        def get_leap_year_info(y):
-            leap = self._is_leap_year(year)
-            yds = 366 if leap else 365
-            ld = 4 + leap
-            return leap, yds, ld
-
-        def check_and_fix_day(cjd, y, lat=None, lon=None, zone=None):
-            fjdy = self.jd_from_badi_date((y, 1, 1), lat, lon, zone)
-            return y-1 if (fjdy - cjd) > 0 else y
-
-        md = jd - (self.BADI_EPOCH - 1)
-        year = math.floor(md / self.MEAN_TROPICAL_YEAR) + 1
-        #year = math.floor(abs(md / self.MEAN_TROPICAL_YEAR))
-        #year *= -1 if md < (self.BADI_EPOCH - 1) else 1
-
-        leap, yds, ld = get_leap_year_info(year)
-
-        if (y := check_and_fix_day(jd, year, lat, lon, zone)):
-            year = y
-            leap, yds, ld = get_leap_year_info(year)
-
-        fjdy = self.jd_from_badi_date((year, 1, 1), lat, lon, zone)
-        days = math.floor(jd) - math.floor(fjdy) + 1
-
-        if days <= 342: # Month 1 - 18
-            m_days = days % 19
-            day = 19 if m_days == 0 else m_days
-        elif (342 + ld) < days <= yds: # Month 19
-            day = days - (342 + ld)
-        else: # Ayyam-i-Ha
-            day = days % 342
-
-        month_days = self.BADI_MONTH_NUM_DAYS
-        month_days[18] = (0, ld) # Fix Ayyám-i-Há days
-
-        for month, ds in month_days:
-            if days > ds:
-                days -= ds
-            else:
-                break
-
-        if any([True if l is None else False for l in (lat, lon, zone)]):
-            lat, lon, zone = self.BAHAI_LOCATION[:3]
-
-        #diff = jd % 1 - self._sun_setting(jd, lat, lon, zone) % 1
-        #day += jd % 1 + 0.5
-
-        ## print('jd:', jd, 'md:', md, #'td', td,
-        ##       'days:', days,
-        ##       'fjdy', fjdy,
-        ##       #'d', d,
-        ##       #'diff', diff,
-        ##       'ld', ld, 'date:', (year, month, day),
-        ##       file=sys.stderr)
-
-        return year, month, day
-
     def _date_range(self, options):
         data = []
-        ve_jd_0001_1582 = self.pre_process_vernal_equinoxs()
+        ve_jd_0001_1582 = self._pre_process_vernal_equinoxs()
         inject = [(b_date[0], (b_date, g_date))
                   for b_date, g_date in self.INJECT]
 
@@ -1186,7 +1124,7 @@ class DateTests(BahaiCalendar):
             msg = f"Badi date {b_date} and Gregorian date {g_date}, {e}"
             print(msg, file=sys.stderr)
 
-    def pre_process_vernal_equinoxs(self):
+    def _pre_process_vernal_equinoxs(self):
         data = {}
         last_year = 0
 
