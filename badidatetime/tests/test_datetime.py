@@ -425,8 +425,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         data = (
             (0, True, '0126-16-02'),
-            (1723057467.0619307, False, '01-10-10-08-08'),
-            (1723057467.0619307, True, '0181-08-08'),
+            (1723057467.0619307, False, '01-10-10-08-09'),
+            (1723057467.0619307, True, '0181-08-09'),
             )
         msg = "Expected {} with timestamp {}, found {}."
 
@@ -473,17 +473,14 @@ class TestBadiDatetime_date(unittest.TestCase):
             (78, False, '-05-18-01-01-01'),
             (78, True, '-1842-01-01'),
             (444, True, '-1841-01-01'),
-            #(577725, True, '-261-11-08'), # 1582-10-04 -> -261-11-09
-            #(577726, True, '-261-11-19'), # 1582-10-05 -> -261-11-09
-            #(577735, True, '-261-11-17'), # 1582-10-14 -> -261-11-18
-            #(577736, True, '-261-11-18'), # 1582-10-15 -> -261-12-01
-            #(639785, True, '-091-09-15'), # 1752-09-02 -> -091-09-15
-            (639786, True, '-091-09-16'), # 1752-09-03 -> -091-09-16
-            #(639796, True, '-091-10-07'), # 1752-09-13 -> -091-10-08
-            #(639797, True, '-091-10-08'), # 1752-09-14 -> -091-10-09
-
-
-
+            (577725, True, '-261-11-09'),
+            (577726, True, '-261-11-10'),
+            (577735, True, '-261-11-19'),
+            (577736, True, '-261-12-01'),
+            (639785, True, '-091-09-16'),
+            (639786, True, '-091-09-17'),
+            (639796, True, '-091-10-08'),
+            (639797, True, '-091-10-09'),
             (738964, True, '0181-01-01'), # 0180-19-19
             )
         msg = "Expected {} with ordinal {}, found {}."
@@ -547,7 +544,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             # year, week, day in week
             ((181,   1,    1), False, False, '01-10-09-19-17'),
             ((181,   1,    1), True,  False, '0180-19-17'),
-            ((181,  24,    7), True,  False, '0181-09-12'),
+            ((181,  24,    7), True,  False, '0181-09-13'),
             ((181,   1,   10), False, True, err_msg.format(10)),
             )
         msg = "Expected {} with iso {} and short {}, found {}."
@@ -2231,17 +2228,17 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             # Latitude and Longitude dependent
             # 1969-12-31T19:00:00+00:00 -> 0126-16-02T01:46:33.168000+00:00
-            (-18000, False, tz1, True, '0126-16-02T01:47:11.788800+00:00'),
+            (-18000, False, tz1, True, '0126-16-02T01:47:57.120000+00:00'),
             # Assume UTC as starting point.
-            (0, True, tz1, True, '0126-16-02T07:58:31.497600+00:00'),
+            (0, True, tz1, True, '0126-16-02T07:59:32.496000+00:00'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz0, True, '0126-16-02T05:17:11.788800+03:30'),
+            (-18000, False, tz0, True, '0126-16-02T05:17:57.120000+03:30'),
             # Assume UTC as starting point.
-            (0, True, tz0, True, '0126-16-02T11:28:31.497600+03:30'),
+            (0, True, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz2, True, '0126-16-01T20:47:11.788800-05:00'),
+            (-18000, False, tz2, True, '0126-16-01T20:47:57.120000-05:00'),
             )
         msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
                "and short {}, found {}.")
@@ -2268,26 +2265,26 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Latitude and Longitude dependent
             # Assume local time as starting point.
             # 1970-01-01 -> Badi date and time relative to naive local time.
-            (0, None, True, '0126-16-02T06:47:11.760000'),
+            (0, None, True, '0126-16-02T06:47:57.120000'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to UTC
-            (0, tz1, True, '0126-16-02T07:58:31.497600+00:00'),
+            (0, tz1, True, '0126-16-02T07:59:32.496000+00:00'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to +03:30
-            (0, tz0, True, '0126-16-02T11:28:31.497600+03:30'),
+            (0, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
             # Local time (2024, 11, 30, 20, 24, 13, 327577)
             # *** TODO *** There is a problem with the two results below, both
             # should be the same. Checked with tz is correct. This could be
             # that only God knows what coordinates are used for IANA time
             # zones to arrive at the correct time. Off by 03:51:10.3392 hrs.
             # Latitude and Longitude dependent
-            (1733016253.327577, None, True, '0181-14-10T08:22:18.307200'),
-            (1733016253.327577, tz2, True, '0181-14-10T04:30:30.988800-05:00'),
+            (1733016253.327577, None, True, '0181-14-10T08:22:10.063200'),
+            (1733016253.327577, tz2, True, '0181-14-10T04:29:56.306400-05:00'),
             # Some long form datetimes.
             # Latitude and Longitude dependent
-            (0, None, False, '01-07-12-16-02T06:47:11.760000'),
-            (0, tz1, False, '01-07-12-16-02T07:58:31.497600+00:00'),
-            (0, tz0, False, '01-07-12-16-02T11:28:31.497600+03:30'),
+            (0, None, False, '01-07-12-16-02T06:47:57.120000'),
+            (0, tz1, False, '01-07-12-16-02T07:59:32.496000+00:00'),
+            (0, tz0, False, '01-07-12-16-02T11:29:32.496000+03:30'),
             )
         msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
                "found {}.")

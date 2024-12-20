@@ -1109,8 +1109,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         s = (deg / 15 - h - m / 60) * 3600
         return h, m, s
 
-    def seconds_from_dhms(self, days:int, hours:int, minutes:int, seconds:float,
-                          zone:float=0) -> float:
+    def seconds_from_dhms(self, days:int, hours:int, minutes:int,
+                          seconds:float, zone:float=0) -> float:
         """
         Convert days, hours, minutes, and seconds to seconds.
         """
@@ -1120,7 +1120,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def dhms_from_seconds(self, seconds:float, zone:float=0) -> tuple:
         """
         Convert seconds into days, hours, minutes, and seconds. Depending
-        on the timezonw it the there could be an additional day added.
+        on the timezone there could be an additional day added.
 
         See: https://www.timeanddate.com/time/map/
         Timezones can be from -11 to +14 based on the political timeszones

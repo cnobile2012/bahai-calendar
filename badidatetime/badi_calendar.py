@@ -72,14 +72,10 @@ class BahaiCalendar(BaseCalendar):
         """
         Return the time of sunset in UTC time for the given Badi Day.
 
-        :param date: A Badi date.
-        :type date: tuple
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The time zone.
-        :type zone: float
+        :param tuple date: A Badi date.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
         :return: The hour, minute, and second of sunset based on the
                  provided coordinates.
         :rtype: tuple
@@ -92,18 +88,14 @@ class BahaiCalendar(BaseCalendar):
         """
         Return the Badi date for Naw-Ruz from the given Badi year.
 
-        :param year: A Badi year.
-        :type year: int
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The time zone.
-        :type zone: float
-        :param hms: If True the output returns the hours, minutes, and seconds
-                    as seperate fields. If False the day has a decimal value
-                    indicating the hours, minutes, and seconds.
-        :type hms: bool
+        :param int year: A Badi year.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
+        :param bool hms: If True the output returns the hours, minutes, and
+                         seconds as seperate fields. If False the day has a
+                         decimal value indicating the hours, minutes, and
+                         seconds.
         :return: A Gregorian date.
         :rtype: tuple
         """
@@ -120,18 +112,14 @@ class BahaiCalendar(BaseCalendar):
         If the latitude, longitude, and time zone are not given Riḍván time
         of day is determined for the city of Nur in Iran.
 
-        :param year: A Badi year.
-        :type year: int
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The time zone.
-        :type zone: float
-        :param hms: If True the output returns the hours, minutes, and second
-                    as seperate fields. If False the day has a decimal value
-                    indicating the hours, minutes, and seconds.
-        :type hms: bool
+        :param int year: A Badi year.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
+        :param bool hms: If True the output returns the hours, minutes, and
+                         second as seperate fields. If False the day has a
+                         decimal value indicating the hours, minutes, and
+                         seconds.
         :return: A Gregorian date.
         :rtype: tuple
         """
@@ -144,19 +132,14 @@ class BahaiCalendar(BaseCalendar):
         """
         Convert a Badi short form date to Julian period day.
 
-        :param b_date: A short form Badi date.
-        :type b_date: tuple
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The time zone.
-        :type zone: float
-        :param _chk_on: If True (default) all date checks are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
+        :param tuple b_date: A short form Badi date.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :return: The Julian Period day.
         :rtype: float
         """
@@ -312,7 +295,9 @@ class BahaiCalendar(BaseCalendar):
             return y-1 if (math.floor(fjdy) - math.floor(cjd)) > 0 else y
 
         md = jd - (self.BADI_EPOCH - 1)
-        year = math.floor(md / self.MEAN_TROPICAL_YEAR) + 1
+        # This is only needed for the last two days of Badi year 1161.
+        y = 1 if md < 424046 else 0
+        year = math.floor(md / self.MEAN_TROPICAL_YEAR) + y
         leap, yds, ld = get_leap_year_info(year, _chk_on)
 
         if (y := check_and_fix_day(jd, year, lat, lon, zone, _chk_on)):
@@ -360,15 +345,12 @@ class BahaiCalendar(BaseCalendar):
         Convert a long date (kvymdhms) to a short date (ymdhms). In either
         case microseconds could also be provided.
 
-        :param b_date: A long form date with or without microseconds.
-        :type b_date: tuple
-        :param trim: Trim the us, ss, mm, and hh in that order.
-        :type trim: bool
-        :param _chk_on: If True (default) all date checks are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
+        :param tuple b_date: A long form date with or without microseconds.
+        :param bool trim: Trim the us, ss, mm, and hh in that order.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :return: The short form Badi date.
         :rtype: tuple
         """
@@ -385,15 +367,12 @@ class BahaiCalendar(BaseCalendar):
         """
         Convert a date to a short date (ymdhms) to a long date (kvymdhms).
 
-        :param b_date: A short form date with or without microseconds.
-        :type b_date: tuple
-        :param trim: Trim the us, ss, mm, and hh in that order.
-        :type trim: bool
-        :param _chk_on: If True (default) all date check are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
+        :param tuple b_date: A short form date with or without microseconds.
+        :param bool trim: Trim the us, ss, mm, and hh in that order.
+        :param bool _chk_on: If True (default) all date check are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :return: The long form Badi date.
         :rtype: tuple
         """
@@ -424,16 +403,13 @@ class BahaiCalendar(BaseCalendar):
         us) into a (Kull-i-Shay, Váḥid, year, month, day.fraction) or
         (year, month, day.fraction) date.
 
-        :param b_date: The Badi date in long form.
-        :type b_date: tuple
-        :param short: If True then parse for a short date else if False
-                      (default) parse for a long date.
-        :type short: bool
-        :param _chk_on: If True (default) all date checks are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
+        :param tuple b_date: The Badi date in long form.
+        :param bool short: If True then parse for a short date else if False
+                           (default) parse for a long date.
+        :param bools _chk_on: If True (default) all date checks are enforced
+                              else if False they are turned off. This is only
+                              used internally. Do not use unless you know what
+                              you are doing.
         :return: The long or short form Badi date with hours, minutes,
                  seconds, and microseconds if set.
         :rtype: tuple
@@ -456,21 +432,17 @@ class BahaiCalendar(BaseCalendar):
         short is True (year, month, day, hour, minute, second). If us is
         True the seconds are split to second and microsecond.
 
-        :param b_date: The Badi date in long form.
-        :type b_date: tuple
-        :param us: If True the seconds are split to seconds amd microseconds
-                   else if False the seconds has a partial day as a decimal.
-        :type us: bool
-        :param short: If True then parse for a short date else if False
-                      (default) parse for a long date.
-        :type short: bool
-        :param trim: Trim the us, ss, mm, and hh in that order.
-        :type trim: bool
-        :param _chk_on: If True (default) all date checks are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
+        :param tuple b_date: The Badi date in long form.
+        :param bool us: If True the seconds are split to seconds amd
+                        microseconds else if False the seconds has a partial
+                        day as a decimal.
+        :param bool short: If True then parse for a short date else if False
+                           (default) parse for a long date.
+        :param bool trim: Trim the us, ss, mm, and hh in that order.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :return: The long or short form Badi date with hours, minutes,
                  seconds, and microseconds if set.
         :rtype: tuple
@@ -518,26 +490,18 @@ class BahaiCalendar(BaseCalendar):
         """
         Get the Badi date from the Gregorian date.
 
-        :param g_date: A Gregorian date.
-        :type g_date: tuple
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The standard time zone.
-        :type zone: float
-        :param short: If True then parse for a short date else if False
-                      (default) parse for a long date.
-        :type short: bool
-        :param trim: Trim the us, ss, mm, and hh in that order.
-        :type trim: bool
-        :param rtd: Round to day.
-        :type rtd: bool
-        :param _exact: Use the more exact Julian Period algorithm. Default
-                       is True. This should generally be set to True, a
-                       False value will give inaccurate results and is used
-                       for testing only.
-        :type _exact: bool
+        :param tuple g_date: A Gregorian date.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The standard time zone.
+        :param bool short: If True then parse for a short date else if False
+                           (default) parse for a long date.
+        :param bool trim: Trim the us, ss, mm, and hh in that order.
+        :param bool rtd: Round to day.
+        :param bool _exact: Use the more exact Julian Period algorithm.
+                            Default is True. This should generally be set to
+                            True, a False value will give inaccurate results
+                            and is used for testing only.
         :return: A Badi date long or short form.
         :rtype: tuple
         """
@@ -551,24 +515,18 @@ class BahaiCalendar(BaseCalendar):
         """
         Get the Gregorian date from the Badi date.
 
-        :param b_date: A Badi date short form.
-        :type b_date: tuple
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The standard time zone.
-        :type zone: float
-        :param _exact: Use the more exact Julian Period algorithm. Default
-                       is True. This should generally be set to True, a
-                       False value, in this method will give inaccurate
-                       results and is used for testing only.
-        :type _exact: bool
-        :param _chk_on: If True (default) all date checks are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
+        :param tuple b_date: A Badi date short form.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The standard time zone.
+        :param bool _exact: Use the more exact Julian Period algorithm.
+                            Default is True. This should generally be set to
+                            True, a False value, in this method will give
+                            inaccurate results and is used for testing only.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :return: The Gregorian date.
         :rtype: tuple
         """
@@ -582,22 +540,16 @@ class BahaiCalendar(BaseCalendar):
         """
         Get the Badi date from a POSIX timestamp.
 
-        :param t: Timestamp
-        :type t: float
-        :param lat: The latitude.
-        :type lat: float
-        :param lon: The longitude.
-        :type lon: float
-        :param zone: The time zone.
-        :type zone: float
-        :param us: If True the seconds are split to seconds amd microseconds
-                   else if False the seconds has a partial day as a decimal.
-        :type us: bool
-        :param short: If True then parse for a short date else if False
-                      (default) parse for a long date.
-        :type short: bool
-        :param trim: Trim the us, ss, mm, and hh in that order.
-        :type trim: bool
+        :param float t: Timestamp
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
+        :param bool us: If True the seconds are split to seconds amd
+                        microseconds else if False the seconds has a partial
+                        day as a decimal.
+        :param bool short: If True then parse for a short date else if False
+                           (default) parse for a long date.
+        :param bool trim: Trim the us, ss, mm, and hh in that order.
         :return: A Badi date long or short form.
         :rtype: tuple
         """
@@ -611,16 +563,13 @@ class BahaiCalendar(BaseCalendar):
         """
         Find the midday time in hours with fraction.
 
-        :param date: Badi date short or long.
-        :type date: tuple
-        :param hms: If True return the hours, minutes, and seconds else
-                    if False return the decimal value.
-        :type hms: bool
-        :param _chk_on: If True (default) all date checks are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
+        :param tuple date: Badi date short or long.
+        :param bool hms: If True return the hours, minutes, and seconds else
+                         if False return the decimal value.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :return: Midday in hours, minutes, and seconds.
         :rtype: tuple
         """
@@ -646,8 +595,7 @@ class BahaiCalendar(BaseCalendar):
                   (12, 0, 6, 0) The zero microseconds would be trimmed but
                                 the zero minutes would not be trimmed.
 
-        :param hms: An hour, minute, and second object.
-        :type hms: tuple
+        :param tuple hms: An hour, minute, and second object.
         :return: An object with the lower order parts stripped off if
                  they have a zero value.
         :rtype: tuple
@@ -669,12 +617,11 @@ class BahaiCalendar(BaseCalendar):
         Check that the Kull-i-Shay, Váḥids, year, month, day, hour, minute,
         second, and microsecond values are valid.
 
-        :param b_date: A long form Badi date.
-        :type b_date: tuple
-        :param short_in: If True then parse for a short date else if False
-                         parse for a long date. This is for incoming dates
-                         not outgoing dates as in most other uses of 'short'.
-        :type short_in: bool
+        :param tuple b_date: A long form Badi date.
+        :param bool short_in: If True then parse for a short date else if
+                              False parse for a long date. This is for
+                              incoming dates not outgoing dates as in most
+                              other uses of 'short'.
         :return: Nothing
         :rtype: None
         :raises AssertionError: When a date Váḥid, year, month, day, hour,
@@ -733,14 +680,10 @@ class BahaiCalendar(BaseCalendar):
         """
         Check that the hour, minute, second, and microsecond values are valid.
 
-        :param hour: Hours
-        :type hour: float
-        :param minute: Minutes
-        :type minute: float
-        :param second: Seconds
-        :type second: float
-        :param us: Microseconds
-        :type us: int
+        :param float hour: Hours
+        :param float minute: Minutes
+        :param float second: Seconds
+        :param float us: Microseconds
         :return: Nothing
         :rtype: None
         :raises AssertionError: When an hour, minute, second, or microsecond
@@ -761,14 +704,12 @@ class BahaiCalendar(BaseCalendar):
         """
         Return a Boolean True if a Badi leap year, False if not.
 
-        :param date: This value must be a Badi short form year.
-        :type year: int
-        :param _chk_on: If True (default) all date checks are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
-         :return: A Boolean indicating if a leap year or not.
+        :param int year: This value must be a Badi short form year.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
+        :return: A Boolean indicating if a leap year or not.
         :rtype: bool
         """
         return self._days_in_year(year, _chk_on=_chk_on) == 366
@@ -777,19 +718,17 @@ class BahaiCalendar(BaseCalendar):
         """
         Determine the number of days in the provided Badi year.
 
-        :param year: The Badi year to process.
-        :type year: int
-        :param _chk_on: If True (default) all date checks are enforced else
-                        if False they are turned off. This is only used
-                        internally. Do not use unless you know what you are
-                        doing.
-        :type _chk_on: bool
+        :param int year: The Badi year to process.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :return: The number of days.
         :rtype: int
         """
         jd_n0 = self.jd_from_badi_date((year, 1, 1), _chk_on=_chk_on)
         # For year 1162 we need to turn off the date check so we can get
-        # the leap year for 1661.
+        # the leap year for 1161.
         on = False if (year + 1) == 1162 else True
         jd_n1 = self.jd_from_badi_date((year + 1, 1, 1), _chk_on=on)
         return int(math.floor(jd_n1) - math.floor(jd_n0))
@@ -819,11 +758,11 @@ class BahaiCalendar(BaseCalendar):
                      zone:float, *, fraction:bool=False,
                      us:bool=False, rtd:bool=False) -> tuple:
         """
-        The adjusted year, month, and day based on when the JD false before
+        The adjusted year, month, and day based on if the JD falls before
         or after sunset.
 
-        :param float jd: Exact Julian Period day possibly with a fraction.
-        :param tuple ymd: The year mont, and day.
+        :param float jd: Exact Julian Period day.
+        :param tuple ymd: The year month, and day.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.
@@ -846,44 +785,7 @@ class BahaiCalendar(BaseCalendar):
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
         ss0 -= self._exact_from_meeus(ss0)
         year, month, day = ymd
-
-        # Old formula for hours
-        # jd0 = math.floor(jd)                                     # same
-        # jd1 = jd0 + 1                                            # diff
-        # mjd1 = jd1 + self._meeus_from_exact(jd1)                 # diff
-        # ss1 = self._sun_setting(mjd1, lat, lon, zone)            # diff
-        # fraction = round(jd % 1 - ss1 % 1, self.ROUNDING_PLACES) # diff
-        # v = 1 if (day + fraction) < 1 else day + fraction
-        # value = round(v) if rtd else v
-
-        if jd < ss0: # Are we on the previous day?
-            jd1 = jd0 - 1
-            mjd1 = jd1 + self._meeus_from_exact(jd1) # Previous day
-            ss1 = self._sun_setting(mjd1, lat, lon, zone) # Previous day sunset
-            frac = 0.5 - ss1 % 1 + jd_frac
-
-            if month == 19 and day == 1:
-                day = 4 + self._is_leap_year(year)
-                month = 0
-                #print('POOP0', jd, ss0, day, month, frac)
-            elif month == 0 and day == 1:
-                day = 19
-                month = 18
-                #print('POOP1', jd, ss0, day, month, frac)
-            elif month == 1 and day == 1:
-                day = 19
-                month = 19
-                year -= 1
-                #print('POOP2', jd, ss0, day, month, year, frac)
-            elif day == 1:
-                day = 19
-                month -= 1
-                #print('POOP3', jd, ss0, day, month, frac)
-            else:
-                day -= 1
-                #print('POOP4', jd, ss0, day, frac)
-        else:
-            frac = jd_frac - ss0 % 1
+        frac = jd_frac - ss0 % 1
 
         if fraction:
             day = round(day + frac, self.ROUNDING_PLACES)
