@@ -1174,7 +1174,7 @@ class DateTests(BahaiCalendar):
 
 
 if __name__ == "__main__":
-    import datetime
+    import time
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -1332,9 +1332,18 @@ if __name__ == "__main__":
         if options.end is None:
             options.end = 1162    # Gregorian Calendar year 3005
 
-        print(datetime.datetime.now())
-        print(dt.find_longest_and_shortest_days(options))
-        print(datetime.datetime.now())
+        start_time = time.time()
+        (short_day, short_hms,
+         long_day, long_hms) = dt.find_longest_and_shortest_days(options)
+        print("Shortest Day  Length              Longest Day   Length")
+        print('-'*67)
+        print(f"{str(short_day):13} {str(short_hms):19} "
+              f"{str(long_day):13} {str(long_hms):19}")
+        end_time = time.time()
+        days, hours, minutes, seconds = dt.dhms_from_seconds(
+            end_time - start_time)
+        print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+              f"{round(seconds, 6):02.6} seconds.")
     elif options.leap_years: # -e
         if options.start is None or options.end is None:
             print("If option -e is used, -S and -E must also be used.",

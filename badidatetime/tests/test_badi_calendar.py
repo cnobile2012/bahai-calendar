@@ -378,20 +378,19 @@ class TestBadiCalendar(unittest.TestCase):
              (181, 3, 17, 0, 3, 11, 376000)),
             # Badi long form -> 2024-05-14T19:02:00 -> 2460443.293056
             (2460443.293056, *epoch_coords, False, False, True, False,
-             (1, 10, 10, 3, 19, 23, 58, 43.6224)),
+             (1, 10, 10, 3, 19, 0, 1, 16.3776)),
             (2460443.293056, *epoch_coords, True, False, True, False,
-             (1, 10, 10, 3, 19, 23, 58, 43, 622400)),
+             (1, 10, 10, 3, 19, 0, 1, 16, 377600)),
             # 2024-07-17T19:19:00
             (2460507.304861, *epoch_coords, False, True, True, False,
-             (181, 7, 7, 23, 59, 44.1888)),
+             (181, 7, 7, 0, 0, 15.8112)),
             # 2024-07-17T19:19:00 Test fractional day. -> 2460507.304861
             (2460507.304861, *epoch_coords, False, True, True, True,
-             (181, 7, 6.999817)),
-            # Test errors found in contrib/misc/datetime_tests.py
-            (1721501.261143, *epoch_coords, False, True, True, False,
-             (-1842, 1, 1, 0, 1, 30.2016)),
-
-
+             (181, 7, 7.000183)),
+            # Error with hours
+            # (2024, 3, 19, 18, 15, 57.312) -> (181, 1, 1)
+            (2460387.26108, *epoch_coords, False, True, True, False,
+             (181, 1, 1, 0, 0, 50.3712)),
             )
         msg = "Expected {} for jd {} for lat {}, lon {}, and zone {}, found {}"
 
@@ -545,6 +544,9 @@ class TestBadiCalendar(unittest.TestCase):
         """
         Test that the badi_date_from_gregorian_date method returns the
         correct Badi date.
+
+        *** TODO *** In some cases Badi dates are off by almost a day.
+        (2024, 3, 19, 18, 15, 57.312) -> (181, 1, 1, 23, 59, 9.6288, 0)
         """
         data = (
             ((1844, 3, 19, 18, 16, 36.7104), False, True, True,
@@ -554,11 +556,13 @@ class TestBadiCalendar(unittest.TestCase):
              (1, 10, 10, 3, 19, 0, 56, 43.5552)),
             ((2024, 5, 14, 20), True, True, True,
              (181, 3, 19, 0, 56, 43.5552)),
+            ((2024, 3, 19, 18, 15, 57.312), True, True, True,
+             (181, 1, 1, 0, 0, 50.3712)),
             # The next tests may show the wrong month and day if
             # _exact=False is used.
             # The _exact=False condition is generally used in testing.
             ((1844, 3, 19, 18, 16, 36.7104), True, True, False,
-             (1, 1, 3, 23, 59, 10.1472)),
+             (1, 1, 3, 0, 0, 49.8528)),
             ((2024, 5, 14, 20), True, True, False, (181, 4, 2, 0, 55, 8.5152)),
             )
         msg = "Expected {} for date {}, short {} and exact {}, found {}"
@@ -614,6 +618,8 @@ class TestBadiCalendar(unittest.TestCase):
         The lat and lon at GMT is:
         https://www.latlong.net/place/prime-meridian-greenwich-30835.html#:~:text=Prime%20Meridian%20(Greenwich)%20Lat%20Long,%C2%B0%200'%205.5620''%20W.
         """
+        local_coords = (35.5894, -78.7792, -5.0)
+        epoch_coords = self._bc.BAHAI_LOCATION[:3]
         data = (
             # 1970-01-01T00:00:00 -> UNIX Epoch at UTC
             # sunset the day before 16:01 lat=51.4769, lon=0, zone=0
@@ -628,13 +634,13 @@ class TestBadiCalendar(unittest.TestCase):
              (126, 16, 2, 7, 59, 31.4952)),
             (-1, 51.477928, -0.001545, 0, True, True, True,
              (126, 16, 2, 7, 59, 31, 495200)),
-            # 2024-08-24T14:33:46.24610090255737 -- Raleigh, NC USA
+            # 2024-08-21T14:33:46.246101 -- Locality in NC USA
             # The h, m, & s are counted from the beginning of the Badi day
             # which would be the previous Gregorian day.
-            (1724265226.246101, 35.7796, -78.6382, -4, False, True, True,
-             (181, 9, 4, 22, 37, 46.9848)),
-            # Test with zone 3.5 (Tehran Iran) 2024-08-28T01:00:00+3:30
-            (1724794198.5490103, None, None, None, False, True, True,
+            (1724265226.246101, *local_coords, False, True, True,
+             (181, 9, 4, 0, 22, 31.7352)),
+            # Test with zone 3.5 (Tehran Iran) 2024-08-28T00:59:58.549010+3:30
+            (1724794198.5490103, *epoch_coords, False, True, True,
              (181, 9, 10, 2, 52, 36.2964)),
             )
         msg = "Expected {} for timestamp {}, found {}"
@@ -902,7 +908,7 @@ class TestBadiCalendar(unittest.TestCase):
              (181, 1, 1, 0, 45, 29.1168)),
             # Test fraction
             (2460733.2, (181, 19, 1), *local_coords, True, False, False,
-              (181, 19, 0.943225)),
+              (181, 19, 1.056775)),
             # Test 1st day of the year for a few years
             # 1845-03-20T18:16:24.4416 -> 2395009.261394
             (2395009.261972, (2, 1, 1), *epoch_coords, False, False, False,
@@ -916,6 +922,13 @@ class TestBadiCalendar(unittest.TestCase):
             # 2024-03-19T18:15:57.312 -> 2460387.26108
             (2460387.262245, (181, 1, 1), *epoch_coords, False, False, False,
              (181, 1, 1, 0, 0, 50.2848)),
+            # Test with microseconds
+            # JD from jd_from_badi_date()
+            (2460387.262245, (181, 1, 1), *epoch_coords, False, True, False,
+             (181, 1, 1, 0, 0, 50, 284800)),
+            # JD from jd_from_gregorian_date()
+            (2460387.26108, (181, 1, 1), *epoch_coords, False, True, False,
+             (181, 1, 1, 0, 0, 50, 371200)),
             # Error conditions
             (2460733.2, (181, 19, 1), *local_coords, True, True, True,
              err_msg0),
@@ -940,3 +953,56 @@ class TestBadiCalendar(unittest.TestCase):
                                                fraction=fraction, us=us)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, jd, date, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__day_Length(self):
+        """
+        Test that the _day_Length method returns the hours, minutes, and
+        seconds of a day.
+        """
+        local_coords = (35.5894, -78.7792, -5.0)
+        epoch_coords = self._bc.BAHAI_LOCATION[:3]
+        utc_coords = (51.477928, -0.001545, 0) # Greenwich
+        data = (
+            # BADI epoch location
+            ((-1842, 1, 1), epoch_coords, (24, 0, 45.1872)),
+            ((-1842, 19, 19), epoch_coords, (24, 0, 45.1872)),
+            ((181, 1, 1), epoch_coords, (24, 0, 0.0)),
+            ((181, 19, 19), epoch_coords, (24, 0, 50.4576)),
+            # Arbitrary location
+            ((-1842, 1, 1), local_coords, (24, 0, 45.1008)),
+            ((-1842, 19, 19), local_coords, (24, 0, 45.1008)),
+            # Earth seasons for Gregorian year 2024 zone -05:00.
+            # Perihelion (2024, 1, 2, 19, 38)
+            ((180, 16, 4, 2, 34, 36.336), local_coords, (24, 0, 47.6928)),
+            # Vernal Equinox (2024, 3, 19, 22, 6)
+            ((181, 1, 1, 3, 49, 12.288), local_coords, (24, 0, 50.112)),
+            # Summer Solstice (2024, 6, 20, 15, 51)
+            ((181, 5, 18, 20, 26, 54.0096), local_coords, (24, 0, 10.5408)),
+            # Aphelion (2024, 7, 5, 0, 6)
+            ((181, 6, 13, 4, 41, 49.1712), local_coords, (23, 59, 48.8544)),
+            # Fall Equinox (2024, 9, 22, 7, 44)
+            ((181, 10, 16, 13, 42, 37.3824), local_coords, (23, 58, 32.0448)),
+            # Winter Solstice (2024, 12, 21, 4, 20)
+            ((181, 15, 11, 11, 24, 40.6944), local_coords, (24, 0, 29.8944)),
+            # Earth seasons for Gregorian year 2024 zone -00:00.
+            # Perihelion (2024, 1, 3, 0, 38)
+            ((180, 16, 4, 7, 34, 36.3072), utc_coords, (24, 1, 6.096)),
+            # Vernal Equinox (2024, 3, 20, 3, 6)
+            ((181, 1, 1, 8, 49, 12.3456), utc_coords, (24, 1, 41.6064)),
+            # Summer Solstice (2024, 6, 20, 20, 51)
+            ((181, 5, 18, 1, 26, 53.9808), utc_coords, (24, 0, 11.5776)),
+            # Aphelion (2024, 7, 5, 5, 6)
+            ((181, 6, 13, 9, 41, 49.1424), utc_coords, (23, 59, 28.2048)),
+            # Fall Equinox (2024, 9, 22, 12, 44)
+            ((181, 10, 17, 18, 44, 5.4816), utc_coords, (23, 57, 42.0192)),
+            # Winter Solstice (2024, 12, 21, 9, 20)
+            ((181, 15, 11, 16, 24, 40.6656), utc_coords, (24, 0, 32.4)),
+            )
+        msg = "Expected {} for date {}, and location {}, found {}"
+
+        for (date, location, expected_result) in data:
+            jd = self._bc.jd_from_badi_date(date, *location)
+            result = self._bc._day_Length(jd, *location)
+            self.assertEqual(expected_result, result, msg.format(
+                    expected_result, jd, location, result))

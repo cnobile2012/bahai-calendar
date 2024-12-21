@@ -579,6 +579,9 @@ class TimeDateUtils(BahaiCalendar):
 
     def _year_week_day(self, year:int, month:int, day:int,
                        week0:bool=False) -> tuple:
+        """
+        Return the year, week, and day of the week.
+        """
         week1jalal = self._isoweek1jalal(year)
         today = self._ymd2ord(year, month, day)
         # Internally, week and day have origin 0

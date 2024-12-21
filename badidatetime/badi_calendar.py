@@ -785,7 +785,7 @@ class BahaiCalendar(BaseCalendar):
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
         ss0 -= self._exact_from_meeus(ss0)
         year, month, day = ymd
-        frac = jd_frac - ss0 % 1
+        frac = abs(jd_frac - ss0 % 1)
 
         if fraction:
             day = round(day + frac, self.ROUNDING_PLACES)
@@ -812,13 +812,24 @@ class BahaiCalendar(BaseCalendar):
         """
         The hour, minute, and seconds of the days offset either less than
         or more than 24 hours.
+
+        :param float jd: The astronomically exact Julian Period day.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The standard time zone.
+        :return: The hour, minute, and second.
+        :rtype: tuple
         """
         jd0 = math.floor(jd)
         jd1 = jd0 + 1
+        # The next day
         mjd1 = jd1 + self._meeus_from_exact(jd1)
         ss1 = self._sun_setting(mjd1, lat, lon, zone)
+        # The first day
         mjd0 = jd0 + self._meeus_from_exact(jd0)
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
+        # Subtract the first day from the next day gived the total
+        # hours, minutes, and seconds between them.
         value = list(self.hms_from_decimal_day(ss1 - ss0))
         value[0] = 24 if value[0] == 0 else value[0]
         return tuple(value)
