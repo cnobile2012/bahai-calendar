@@ -580,7 +580,14 @@ class TimeDateUtils(BahaiCalendar):
     def _year_week_day(self, year:int, month:int, day:int,
                        week0:bool=False) -> tuple:
         """
-        Return the year, week, and day of the week.
+        Return the year, week, and day of the week from a short form
+        Badi date.
+
+        :param int, year: The year.
+        :param int month: The month.
+        :param int day: The day.
+        :return: The year, week, and day of the week.
+        :rtype: tuple
         """
         week1jalal = self._isoweek1jalal(year)
         today = self._ymd2ord(year, month, day)
@@ -592,9 +599,10 @@ class TimeDateUtils(BahaiCalendar):
                 year -= 1
                 week1jalal = self._isoweek1jalal(year)
                 week, day = divmod(today - week1jalal, 7)
-            elif week >= 52 and today >= self._isoweek1jalal(year+1):
-                year += 1
-                week = 0
+            elif week >= 52:
+                if today >= self._isoweek1jalal(year+1):
+                    year += 1
+                    week = 0
 
         return year, week+1, day+1
 
@@ -602,8 +610,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         Get the number of days before the 1st of Baha of the year.
 
-        :param year: Badi year
-        :type year: int
+        :param int year: Badi year
         :return: The number of days since (-1841, 19, 19) of the Badi calendar.
         :rtype: int
         """
@@ -615,10 +622,8 @@ class TimeDateUtils(BahaiCalendar):
         """
         The number of days in that month in that year.
 
-        :param year: Badi year
-        :type year: int
-        :param month: Badi month (0..19)
-        :type month: int
+        :param int year: Badi year
+        :param int month: Badi month (0..19)
         :return: The number of in the current month.
         :rtype: int
         """
@@ -628,10 +633,8 @@ class TimeDateUtils(BahaiCalendar):
         """
         The number of days in the year preceding the first day of month.
 
-        :param year: Badi year
-        :type year: int
-        :param month: Badi month (0..19)
-        :type month: int
+        :param int year: Badi year
+        :param int month: Badi month (0..19)
         :return: The number in the year preceding the first day of month.
         :rtype: int
         """
@@ -652,12 +655,9 @@ class TimeDateUtils(BahaiCalendar):
         Find the day of the week where 0 == Jalál (Saturday) and
         6 == Istiqlāl (Friday).
 
-        :param year: Badi year
-        :type year: int
-        :param month: Badi month (0..19)
-        :type month: int
-        :param day: Badi day
-        :type day: int
+        :param int year: Badi year
+        :param int month: Badi month (0..19)
+        :param int day: Badi day
         :return: The numerical day of the week.
         :rtype: int
         """
@@ -672,12 +672,9 @@ class TimeDateUtils(BahaiCalendar):
 
         year, month, day -> ordinal, considering -1842-01-01 as day 1.
 
-        :param year: Badi year
-        :type year: int
-        :param month: Badi month (0..19)
-        :type month: int
-        :param day: Badi day
-        :type day: int
+        :param int year: Badi year
+        :param int month: Badi month (0..19)
+        :param int day: Badi day
         :return: The number of days since Badi year -1842 including the
                  current day.
         :rtype: int
@@ -700,11 +697,9 @@ class TimeDateUtils(BahaiCalendar):
         between the Winter Solstice and the Summer Solstice. We just use the
         BadiCalendar API.
 
-        :param n: The ordinal number of days from the MINYEAR.
-        :type n: int
-        :param short: If True then parse for a short date else if False
-                      parse for a long date.
-        :type short: bool
+        :param int n: The ordinal number of days from the MINYEAR.
+        :param bool short: If True then parse for a short date else if False
+                           parse for a long date.
         :return: The Badi date.
         :rtype: tuple
         """
@@ -736,15 +731,11 @@ class TimeDateUtils(BahaiCalendar):
         way ISO weeks are counted in the Gregorian Calendar which is Monday
         to Sunday.
 
-        :param year: Badi year.
-        :type year: int
-        :param month: Badi month (0..19)
-        :type month: int
-        :param day: Badi day in week.
-        :type day: int
-        :param short: If True then parse for a short date else if False
-                      parse for a long date.
-        :type short: bool
+        :param int year: Badi year.
+        :param int month: Badi month (0..19)
+        :param int day: Badi day in week.
+        :param bool short: If True then parse for a short date else if False
+                           parse for a long date.
         :return: A Badi date.
         :rtype: tuple
         :raises AssertionError: If the week or weekday is out of range.
@@ -777,8 +768,7 @@ class TimeDateUtils(BahaiCalendar):
         Calculate the day number of Jalal (Saturday) starting week 1. It
         would be the first week with 4 or more days in the year in question.
 
-        :param year: Badi year
-        :type year: int
+        :param int year: Badi year
         :return: The number of the first Jalal in the Badi year.
         :rtype: int
         """
@@ -796,8 +786,7 @@ class TimeDateUtils(BahaiCalendar):
         Parse both the date and time represented in an ISO string into a
         date and time tuple.
 
-        :param dtstr: A ISO compliant time string.
-        :type dtstr: str
+        :param str dtstr: A ISO compliant time string.
         :return: The date, time, and timezone.
         :rtype: tuple, tuple, timezone
         """
@@ -830,8 +819,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         Parse a date ISO formatted string.
 
-        :param dtstr: A ISO compliant time string.
-        :type dtstr: str
+        :param str dtstr: A ISO compliant time string.
         :return: The year, month, and day parsed from a ISO string.
         :rtype: tuple
         :raises AssertionError: Raised when the year is out of range or when too
@@ -896,8 +884,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         Parse a time ISO formatted string.
 
-        :param tmstr: A ISO compliant time string.
-        :type tmstr: str
+        :param str tmstr: A ISO compliant time string.
         :return: The hour, minute, and second parsed from an ISO string.
         :rtype: tuple
         :raises AssertionError: Raised when there are invalid time designators,
@@ -982,8 +969,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         Parse a timezone ISO formatted string.
 
-        :param tzstr: A ISO compliant time string.
-        :type tzstr: str
+        :param str tzstr: A ISO compliant time string.
         :return: A timezone object indicating the offset from UTC.
         :rtype: timezone
         :raises AssertionError: Raised when there are invalid timezone
@@ -1039,19 +1025,15 @@ class TimeDateUtils(BahaiCalendar):
         """
         Check the validity of the date.
 
-        :param a: The long form Kull-i-Shay or short form year.
-        :type a: int
-        :param b: The long form Váḥid or short form month.
-        :type b: int
-        :param c: The long form year or short form day.
-        :type c: int
-        :param d: The long form month.
-        :type d: int
-        :param e: The long form day.
-        :param short_in: If True then parse for a short date else if False
-                         parse for a long date. This is for incoming dates
-                         not outgoing dates as in most other uses of 'short'.
-        :type short_in: bool
+        :param int a: The long form Kull-i-Shay or short form year.
+        :param int b: The long form Váḥid or short form month.
+        :param int c: The long form year or short form day.
+        :param int d: The long form month.
+        :param int e: The long form day.
+        :param bool short_in: If True then parse for a short date else if False
+                              parse for a long date. This is for incoming dates
+                              not outgoing dates as in most other uses of
+                              'short'.
         :return: Nothing
         :rtype: None
         :raises AssertionError: If any of the date values are out of range.

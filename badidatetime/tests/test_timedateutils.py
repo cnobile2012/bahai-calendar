@@ -485,14 +485,16 @@ class TestTimeDateUtils(unittest.TestCase):
             ((12, 19, 19),     (12, 53, 4)),
             # Year where the first day of the year starts on Kamál and
             # is a leap year.
-            ((17, 19, 19),     (17, 53, 4)),
+            ((174, 19, 17),    (175, 1, 1)),
+            ((174, 19, 18),    (175, 1, 2)),
+            ((174, 19, 19),    (175, 1, 3)),
             )
         msg = "Expected {} with date {}, found {}."
 
         for date, expected_result in data:
             result = _td_utils._year_week_day(*date)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, data, result))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__days_before_year(self):

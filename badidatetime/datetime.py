@@ -134,16 +134,14 @@ def _check_tzname(name):
         raise TypeError("tzinfo.tzname() must return None or string, "
                         f"not {type(name)!r}")
 
-def fromutc(this, dt):
+def _fromutc(this, dt):
     """
     datetime in UTC -> datetime in local time.
     The method fromutc() in tzinfo will not accept the Badi datetime object,
     so this method needs to fill the role.
 
-    :param this: The tzinfo object.
-    :type this: tzinfo
-    :param dt: A datetime object.
-    :type dt: datetime.datetime
+    :param tzinfo this: The tzinfo object.
+    :param datetime.datetime dt: A datetime object.
     :returns: The adjusted datetime from the provided UTC datetime.
     :rtype: datetime.datetime
 
@@ -155,35 +153,29 @@ def fromutc(this, dt):
     """
 
     if not isinstance(dt, datetime):
-        raise TypeError("fromutc() requires a datetime argument.")
+        raise TypeError("_fromutc() requires a datetime argument.")
 
     if dt.tzinfo is not this:
-        raise ValueError("dt.tzinfo is not self")
+        raise ValueError("_fromutc() dt.tzinfo is not self")
 
     dtoff = dt.utcoffset()
 
     if dtoff is None:
-        raise ValueError("fromutc() requires a non-None utcoffset() "
-                         "result.")
+        raise ValueError("_fromutc() requires a non-None utcoffset() result.")
 
-    # See the long comment block at the end of this file for an
-    # explanation of this algorithm.
     dtdst = dt.tzinfo.dst(dt)
 
-    #print(dtdst, type(dtdst))
-
     if dtdst is None:
-        raise ValueError("fromutc() requires a non-None dst() result.")
+        raise ValueError("_fromutc() requires a non-None dst() result.")
 
     delta = dtoff - dtdst
-    #print(dt, delta)
 
     if delta:
         dt += delta
         dtdst = dt.dst()
 
         if dtdst is None:
-            raise ValueError("fromutc(): dt.dst gave inconsistent "
+            raise ValueError("_fromutc(): dt.dst gave inconsistent "
                              "results; cannot convert.")
 
     return dt + dtdst
@@ -736,21 +728,9 @@ class date(BahaiCalendar):
         http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
         modified for the Badi Calendar.
         """
-        year, month, day = self._short_from_long_form()[:3]
-        week1jalal = _td_utils._isoweek1jalal(year)
-        today = _td_utils._ymd2ord(year, month, day)
-        # Internally, week and day have origin 0
-        week, day = divmod(today - week1jalal, 7)
-
-        if week < 0:
-            year -= 1
-            week1jalel = _td_utils._isoweek1jalal(year)
-            week, day = divmod(today - week1jalal, 7)
-        elif week >= 52 and today >= _td_utils._isoweek1jalal(year+1):
-            year += 1
-            week = 0
-
-        return _IsoCalendarDate(year, week+1, day+1)
+        y, m, d = self._short_from_long_form()[:3]
+        year, week, day = _td_utils._year_week_day(y, m, d)
+        return _IsoCalendarDate(year, week, day)
 
     # Pickle support.
 
@@ -996,6 +976,17 @@ class time:
                 else NotImplemented)
 
     def _cmp(self, other, allow_mixed=False):
+        """
+        A low level time compare method.
+
+        :param time other: Another time object.
+        :param bool allow_mixed: True if a naive and aware time objects are
+                                 allowed else if False they are not allowed.
+                                 Only the __eq__ method sets this to True.
+        :return: 0 if self and other are equal, 1 if self > other, and -1
+                 self < other.
+        :rtype: int
+        """
         assert isinstance(other, time), f"Invalid time module, found {other}."
         mytz = self.tzinfo
         ottz = other.tzinfo
@@ -1018,7 +1009,7 @@ class time:
             if allow_mixed:
                 return 2 # arbitrary non-zero value
             else:
-                raise TypeError("cannot compare naive and aware times")
+                raise TypeError("Cannot compare naive and aware times.")
 
         myhhmm = self._hour * 60 + self._minute - myoff//timedelta(minutes=1)
         othhmm = other._hour * 60 + other._minute - otoff//timedelta(minutes=1)
@@ -1458,7 +1449,7 @@ class datetime(date):
                 if probe2 == result:
                     result._fold = 1
         elif tz is not None:
-            result = fromutc(tz, result)
+            result = _fromutc(tz, result)
 
         del bc
         return result

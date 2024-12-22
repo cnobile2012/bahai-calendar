@@ -256,15 +256,15 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 datetime._check_tzname(name)
 
     #@unittest.skip("Temporarily skipped")
-    def test_fromutc(self):
+    def test__fromutc(self):
         """
-        Test that the fromutc function returns an updated datetime object.
+        Test that the _fromutc function returns an updated datetime object.
         """
-        err_msg0 = "fromutc() requires a datetime argument."
-        err_msg1 = "dt.tzinfo is not self"
-        err_msg2 = "fromutc() requires a non-None utcoffset() result."
-        err_msg3 = "fromutc() requires a non-None dst() result."
-        err_msg4 = ("fromutc(): dt.dst gave inconsistent results; cannot "
+        err_msg0 = "_fromutc() requires a datetime argument."
+        err_msg1 = "_fromutc() dt.tzinfo is not self"
+        err_msg2 = "_fromutc() requires a non-None utcoffset() result."
+        err_msg3 = "_fromutc() requires a non-None dst() result."
+        err_msg4 = ("_fromutc(): dt.dst gave inconsistent results; cannot "
                     "convert.")
         tz0 = ZoneInfo(datetime.BADI_INFO[1])
         tz1 = ZoneInfo('UTC')
@@ -294,7 +294,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                     this = dt.tzinfo
 
                 try:
-                    result = datetime.fromutc(this, dt)
+                    result = datetime._fromutc(this, dt)
                 except (TypeError, ValueError) as e:
                     self.assertEqual(expected_result, str(e), f"Error: {date}")
                 else:
@@ -302,7 +302,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                                           f"raised, with result {result}.")
             else:
                 dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
-                result = datetime.fromutc(dt.tzinfo, dt)
+                result = datetime._fromutc(dt.tzinfo, dt)
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, result))
 
@@ -1198,7 +1198,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             ((1, 10, 10, 1, 1), (181, 1, 4)), # Long form
             ((181, 0, 1), (181, 50, 3)),      # 0 < week < 53
             ((181, 19, 19), (181, 53, 4)),    # 0 < week < 53
-            ((182, 1, 1), (181, 0, 5)),    # Week < 0 starts in previous year
+            ((182, 1, 1), (181, 53, 5)),   # Week >= 52 starts in previous year
             ((183, 19, 19), (183, 52, 7)), # Week >= 52 starts in previous year
             )
         msg = "Expected {} with date {}, found {}."
@@ -1432,14 +1432,17 @@ class TestBadiDatetime_time(unittest.TestCase):
         Test that the __new__ method creates an instance from both a pickle
         object and a normal instantiation.
         """
+        err_msg0 = ("Failed to encode latin1 string when unpickling a time "
+                    "object. pickle.load(data, encoding='latin1') is assumed.")
         data = (
             ((12, 30), None, 0, False, '12:30:00'),
             ((12, 30, 30), None, 0, False, '12:30:30'),
             ((12, 30, 30, 10), None, 0, False, '12:30:30.000010'),
             ((12, 30, 30, 50000), datetime.BADI, 0, False,
              '12:30:30.050000+03:30'),
-            ((12, 30, 30, 50000), None, 1, False, '12:30:30.050000'),
+            ((12, 30, 30, 50000), None, 0, False, '12:30:30.050000'),
             # Test errors when picking
+            (('\u2190\x0c\x1e\x1e\x07\xa1', None), None, 0, True, err_msg0),
             )
         msg = "Expected {} with value {}, found {}."
 
@@ -1667,18 +1670,53 @@ class TestBadiDatetime_time(unittest.TestCase):
         if the current time is greater than the test time, and -1 if the
         inverse.
         """
+        err_msg0 = "Invalid time module, found {}."
+        err_msg1 = "Cannot compare naive and aware times."
         data = (
-            ((12, 30, 30, 10000), (12, 30, 30, 10000), 0),
-            ((12, 30, 30), (12, 30, 29), 1),
-            ((12, 30, 30), (12, 30, 31), -1),
+            ((12, 30, 30, 10000), None, 0, True,
+             (12, 30, 30, 10000), None, 0, False, 0),
+            ((12, 30, 30), None, 0, False, (12, 30, 29), None, 0, False, 1),
+            ((12, 30, 30), None, 0, False, (12, 30, 31), None, 0, False, -1),
+            ((12, 30, 30, 10000), datetime.BADI, 0, True,
+             (12, 30, 30, 10000), datetime.BADI, 0, False, 0),
+            # Timezone infos are different
+            ((12, 30, 30, 10000), datetime.BADI, 0, False,
+             (12, 30, 30, 10000), datetime.UTC, 0, False, -1),
+            ((12, 30, 30, 10000), datetime.UTC, 0, False,
+             (12, 30, 30, 10000), datetime.BADI, 0, False, 1),
+            # If allow_mixed is True and timezones are different.
+            ((12, 30, 30, 10000), datetime.BADI, 0, True,
+             (12, 30, 30, 10000), None, 0, False, 2),
+            # Errors
+            ((12, 30, 30, 10000), None, 0, False,
+             (), None, 0, True, err_msg0.format(None)),
+            ((12, 30, 30, 10000), datetime.BADI, 0, False,
+             (12, 30, 30, 10000), None, 0, True, err_msg1),
             )
         msg = "Expected {} with time0 {} and time1 {}, found {}."
 
-        for time0, time1, expected_result in data:
-            t0 = datetime.time(*time0)
-            t1 = datetime.time(*time1)
-            result = t0._cmp(t1)
-            self.assertEqual(expected_result, result, msg.format(
+        for (time0, tz0, fold0, am, time1, tz1, fold1,
+             validity, expected_result) in data:
+            t0 = datetime.time(*time0, tzinfo=tz0, fold=fold0)
+
+            if validity:
+                try:
+                    if time1 == ():
+                        t1 = None
+                    else:
+                        t1 = datetime.time(*time1, tzinfo=tz1, fold=fold1)
+
+                    result = t0._cmp(t1, allow_mixed=am)
+                except (AssertionError, TypeError) as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {time0} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                t1 = datetime.time(*time1, tzinfo=tz1, fold=fold1)
+                result = t0._cmp(t1, allow_mixed=am)
+                self.assertEqual(expected_result, result, msg.format(
                 expected_result, time0, time1, result))
 
     #@unittest.skip("Temporarily skipped")
