@@ -1724,12 +1724,14 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the __hash__ method returns the proper hash of the class.
         """
+        err_msg0 = "Must be a whole minute."
         data = (
             ((1, 30, 30), None, 0),
             ((1, 30, 30), None, 1),
             ((1, 30, 30, 500000), None, 0),
-            ((1, 30, 30), datetime.BADI, 0),
-            # *** TODO *** Test utcoffset not zero or None
+            ((3, 30), datetime.BADI, 0),
+            # Test for negative hours.
+            ((0, 30), datetime.BADI, 0),
             )
         msg = "time {}, timezone {}, and fold {}, found {}."
 
@@ -1913,17 +1915,38 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the utcoffset method returns the correct timezone offset.
         """
+        tz0 = ZoneInfo('US/Eastern')
         data = (
-            ((1, 30, 30, 500000), None, 0, None),
-            #((1, 30, 30, 500000), datetime.BADI, 0, ''),
-            # *** TODO *** Needs to be tested with a timezone.
+            ((1, 30, 30, 500000), None, 0, 'None'),
+            ((1, 30, 30, 500000), datetime.BADI, 0, '3:30:00'),
+            ((1, 30, 30, 500000), tz0, 0, 'None'),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
         for time, tz, fold, expected_result in data:
             t = datetime.time(*time, tzinfo=tz, fold=fold)
             result = t.utcoffset()
-            self.assertEqual(expected_result, result, msg.format(
+            self.assertEqual(expected_result, str(result), msg.format(
+                expected_result, time, tz, fold, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_badioffset(self):
+        """
+        Test that the badioffset
+        """
+        tz0 = ZoneInfo('US/Eastern')
+        data = (
+            ((1, 30, 30, 500000), None, 0, 'None'),
+            ((1, 30, 30, 500000), datetime.BADI, 0, '0:00:00'),
+            ((1, 30, 30, 500000), tz0, 0, 'None'),
+            ((1, 30, 30, 500000), datetime.UTC, 0, '-1 day, 20:30:00'),
+            )
+        msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
+
+        for time, tz, fold, expected_result in data:
+            t = datetime.time(*time, tzinfo=tz, fold=fold)
+            result = t.badioffset()
+            self.assertEqual(expected_result, str(result), msg.format(
                 expected_result, time, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
@@ -1931,9 +1954,12 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the tzname method returns the timezone name.
         """
+        tz0 = ZoneInfo('US/Eastern')
         data = (
             ((12, 30, 30), None, 0, None),
-            # *** TODO *** Needs to be tested with a timezone.
+            ((1, 30, 30, 500000), datetime.BADI, 0, 'UTC+03:30'),
+            ((1, 30, 30, 500000), tz0, 0, None),
+            ((1, 30, 30, 500000), datetime.UTC, 0, 'UTC'),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
@@ -1948,9 +1974,12 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the dst method returns either 0 or 1 if DST is in effect.
         """
+        tz0 = ZoneInfo('US/Eastern')
         data = (
             ((12, 30, 30), None, 0, None),
-            # *** TODO *** Needs to be tested with a timezone.
+            ((1, 30, 30, 500000), datetime.BADI, 0, None),
+            ((1, 30, 30, 500000), tz0, 0, None),
+            ((1, 30, 30, 500000), datetime.UTC, 0, None),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
@@ -2367,8 +2396,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the combine classmethod creates an instance of datetime
         from an instance of a date and time object.
         """
-        err_msg0 = "date argument must be a date instance, found {}."
-        err_msg1 = "time argument must be a time instance, found {}."
+        err_msg0 = "The date argument must be a date instance, found {}."
+        err_msg1 = "The time argument must be a time instance, found {}."
         data = (
             ((181, 1, 1), (12, 30, 30), True, False, '0181-01-01T12:30:30'),
             ((1, 10, 10, 1, 1), (12, 30, 30), True, False,
@@ -2377,24 +2406,33 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              '0181-13-03T12:30:30.500000'),
             ((181, 1, 1), (12, 30, 30), datetime.BADI, False,
              '0181-01-01T12:30:30+03:30'),
+            ((), (12, 30, 30), True, True, err_msg0.format('None')),
+            ((181, 1, 1), (), True, True, err_msg1.format('None')),
             )
         msg = "Expected {} with date {}, time {}, and timezone {}, found {}."
 
         for date, time, tz, validity, expected_result in data:
-            d = datetime.date(*date)
-            t = datetime.time(*time, tzinfo=tz if tz is not True else None)
-
             if validity:
+                if date == ():
+                    d = None
+                    t = datetime.time(*time,
+                                      tzinfo=tz if tz is not True else None)
+                elif time == ():
+                    d = datetime.date(*date)
+                    t = None
+
                 try:
-                    result = datetime.datetime.combine(d, t, tzinfo=t.tzinfo)
+                    result = datetime.datetime.combine(d, t, tzinfo=tz)
                 except TypeError as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
-                    raise AssertionError(f"With {time} an error is not "
-                                         f"raised, with result {result}.")
+                    raise AssertionError(f"With {date} and {time} an error is "
+                                         f"not raised, with result {result}.")
             else:
-                result = datetime.datetime.combine(d, t, tzinfo=t.tzinfo)
+                d = datetime.date(*date)
+                t = datetime.time(*time, tzinfo=tz if tz is not True else None)
+                result = datetime.datetime.combine(d, t, tzinfo=tz)
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, time, tz, result))
 
@@ -2425,6 +2463,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the timetuple method returns either a short or long form
         timetuple.
         """
+        tz0 = ZoneInfo('US/Eastern')
         data = (
             ((181, 13, 9, None, None, 12, 30, 30), None, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
@@ -2442,6 +2481,9 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
              'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
              'tm_sec=30, tm_wday=1, tm_yday=237, tm_isdst=-1)'),
+            ((181, 2, 1), tz0, 0, 'structures.ShortFormStruct(tm_year=181, '
+             'tm_mon=2, tm_mday=1, tm_hour=0, tm_min=0, tm_sec=0, tm_wday=1, '
+             'tm_yday=20, tm_isdst=-1)'),
             )
         msg = "Expected {} with date {}, and timezone {}, found {}."
 

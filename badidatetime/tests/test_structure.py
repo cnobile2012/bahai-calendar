@@ -8,6 +8,7 @@ import unittest
 
 from .._structures import struct_time
 from badidatetime import datetime
+from zoneinfo import ZoneInfo
 
 
 class TestStructures(unittest.TestCase):
@@ -23,6 +24,7 @@ class TestStructures(unittest.TestCase):
         """
         err_msg0 = "struct_time() takes a 9 or 11-sequence ({}-sequence given)"
         err_msg1 = "Invalid isdst '{}', it must be in the range of [-1, 1]."
+        tz0 = ZoneInfo('US/Eastern')
         data = (
             ((181, 9, 6, 8, 45, 1, 0, 0, -1), None, False,
              ("structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
@@ -36,7 +38,15 @@ class TestStructures(unittest.TestCase):
              ('structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=1, '
               'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=0, tm_yday=0, '
               'tm_isdst=-1)', 'UTC+03:30', 12600.0)),
-             #'EDT', -14400.0)),
+            ((181, 9, 6, 8, 45, 1, 0, 0, -1), tz0, False,
+             ('structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, '
+              'tm_hour=8, tm_min=45, tm_sec=1, tm_wday=0, tm_yday=0, '
+              'tm_isdst=1)', 'US/Eastern', -14400)),
+            ((181, 15, 13, 0, 0, 0, 0, 0, -1), tz0, False,
+             ('structures.ShortFormStruct(tm_year=181, tm_mon=15, tm_mday=13, '
+              'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=0, tm_yday=0, '
+              'tm_isdst=0)', 'US/Eastern', -18000)),
+            # Errors
             ((181, 9, 6, 8, 45, 1, 0, 0, -1, 999), None, True,
              err_msg0.format(10)),
             ((1, 1, 1, 1, 1, 1, 1, 1, -2), None, True, err_msg1.format(-2)),
@@ -51,11 +61,7 @@ class TestStructures(unittest.TestCase):
             if validity:
                 try:
                     result = struct_time(dt, tzinfo=tz)
-                except AssertionError as e:
-                    self.assertEqual(expected_result, str(e))
-                except TypeError as e:
-                    self.assertEqual(expected_result, str(e))
-                except ValueError as e:
+                except (AssertionError, TypeError, ValueError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None

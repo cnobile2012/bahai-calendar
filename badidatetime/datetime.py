@@ -1033,10 +1033,10 @@ class time:
             if not tzoff: # zero or None
                 self._hashcode = hash(t._getstate()[0])
             else:
-                h, m = divmod(timedelta(hours=self.hour,
-                                        minutes=self.minute) - tzoff,
+                h, m = divmod(timedelta(
+                    hours=self.hour, minutes=self.minute) - tzoff,
                               timedelta(hours=1))
-                assert not m % timedelta(minutes=1), "whole minute"
+                assert not m % timedelta(minutes=1), "Must be a whole minute."
                 m //= timedelta(minutes=1)
 
                 if 0 <= h < 24:
@@ -1146,21 +1146,20 @@ class time:
         """
         if self.tzinfo is not None:
             offset = self.tzinfo.utcoffset(None)
-
-            #print('POOP', offset)
-
             _check_offset("utcoffset", offset)
             return offset
 
     def badioffset(self):
         """
-        Return the timezone offset as timedelta, positive east of UTC
+        Return the timezone offset as timedelta, positive east of Asia/Tehran
         (negative west of UTC).
-
-        *** TODO *** Should just need to call utcoffset then add 3.5 hours.
         """
         if self.tzinfo is not None:
-            offset = self.utcoffset() + 3.5 * 3600
+            offset = self.utcoffset()
+
+            if offset is not None:
+                offset -= timedelta(hours=3, minutes=30)
+
             return offset
 
     def tzname(self):
@@ -1430,8 +1429,8 @@ class datetime(date):
             # than the max time fold. See comments in _datetimemodule's
             # version of this method for more details.
             if t < max_fold_seconds and sys.platform.startswith('win'):
-                del bc
-                return result
+                del bc # pragma: no cover
+                return result # pragma: no cover
 
             dt = bc.posix_timestamp(t - max_fold_seconds, *LOCAL_COORD,
                                     us=True, short=short, trim=False)
@@ -1446,7 +1445,7 @@ class datetime(date):
                 date = _fix_short_date(dt, short)
                 probe2 = cls(*date, tzinfo=tz)
 
-                if probe2 == result:
+                if probe2 == result: # pragma: no cover
                     result._fold = 1
         elif tz is not None:
             result = _fromutc(tz, result)
@@ -1479,11 +1478,11 @@ class datetime(date):
         Construct a datetime from a given date and a given time.
         """
         if not isinstance(date, _date_class):
-            raise TypeError("date argument must be a date instance, "
+            raise TypeError("The date argument must be a date instance, "
                             f"found {date!r}.")
 
         if not isinstance(time, _time_class):
-            raise TypeError("time argument must be a time instance, "
+            raise TypeError("The time argument must be a time instance, "
                             f"found {time!r}.")
 
         if tzinfo is True:

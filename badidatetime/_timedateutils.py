@@ -713,6 +713,9 @@ class TimeDateUtils(BahaiCalendar):
     def _build_struct_time(self, date:tuple, dstflag:int, *,
                            tzinfo:'timezone'=None,
                            short_in=False) -> NamedTuple:
+        """
+        Build either the ShortFormStruct or LongFormStruct NamedTuple.
+        """
         if short_in:
             y, m, d, hh, mm, ss = date
         else:

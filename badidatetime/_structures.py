@@ -122,8 +122,26 @@ class struct_time:
 
         date = list(date)
         dt = datetime.datetime(*b_date, tzinfo=tzinfo)
-        # tm_zone and tm_gmtoff
+        # Build out the tm_isdst, tm_zone and tm_gmtoff.
+
+        if tzinfo:
+            dst = tzinfo.dst(dt)
+
+            if hasattr(dst, 'total_seconds'):
+                ts = dst.total_seconds()
+
+                if ts:
+                    date[-1] = 1
+                elif ts == 0:
+                    date[-1] = 0
+
         offset = dt.utcoffset()
         total_seconds = offset.total_seconds() if offset else None
-        date += [dt.tzname(), total_seconds]
+
+        if tzinfo and hasattr(tzinfo, 'key'):
+            tm_zone = tzinfo.key
+        else:
+            tm_zone = dt.tzname()
+
+        date += [tm_zone, total_seconds]
         return tuple(date)
