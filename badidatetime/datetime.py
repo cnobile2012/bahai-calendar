@@ -1515,18 +1515,9 @@ class datetime(date):
         """
         Return local time tuple compatible with time.localtime().
         """
-        dst = self.dst()
-
-        if dst is None:
-            dst = -1
-        elif dst:
-            dst = 1
-        else:
-            dst = 0
-
-        return _td_utils._build_struct_time(
-            self.b_date + (self.hour, self.minute, self.second),
-            dst, short_in=self.is_short)
+        date = self.b_date + self.b_time[:3]
+        return _td_utils._build_struct_time(date, -1, tzinfo=self.tzinfo,
+                                            short_in=self.is_short)
 
     def _mktime(self):
         """
@@ -1639,7 +1630,7 @@ class datetime(date):
         if tzinfo is True:
             tzinfo = self.tzinfo
 
-        if fold is None:
+        if fold is None: # pragma: no cover
             fold = self.fold
 
         if self.is_short and (kull_i_shay or vahid):
@@ -1670,18 +1661,22 @@ class datetime(date):
         else:
             ts = (self - _EPOCH) // timedelta(seconds=1)
 
-        ts = self.posix_timestamp(ts, *LOCAL_COORD, short=self.is_short)
+        ts = self.posix_timestamp(ts, *LOCAL_COORD, short=self.is_short,
+                                  trim=True)
         ts_len = len(ts)
 
         if self.is_short:
             need = 6 - ts_len
             ts += (0,) * need if need > 0 else ()
-            localtm = _td_utils._build_struct_time(ts, -1, short_in=True)
-            local = datetime(*localtm[:6])
+            localtm = _td_utils._build_struct_time(ts, -1, tzinfo=LOCAL,
+                                                   short_in=True)
+            date = localtm[:3] + (None, None) + localtm[3:6]
+            local = datetime(*date)
         else:
             need = 8 - ts_len
             ts += (0,) * need if need > 0 else ()
-            localtm = _td_utils._build_struct_time(ts, -1, short_in=False)
+            localtm = _td_utils._build_struct_time(ts, -1, tzinfo=LOCAL,
+                                                   short_in=False)
             local = datetime(*localtm[:8])
 
         # Extract TZ data
@@ -1689,11 +1684,19 @@ class datetime(date):
         zone = localtm.tm_zone
         return timezone(timedelta(seconds=gmtoff), zone)
 
-    def astimezone(self, tz=None):
+    def astimezone(self, tz:tzinfo=None):
+        """
+        Returns a datetime object with the provided tzinfo object attached.
+
+        :param tzinfo tz: A timezone object.
+        :return: A date time object with a tzinfo object attached.
+        :rtype: datetime.datetime
+        """
         if tz is None:
             tz = self._local_timezone()
         elif not isinstance(tz, tzinfo):
-            raise TypeError("tz argument must be an instance of tzinfo")
+            raise TypeError("tz argument must be an instance of tzinfo, "
+                            f"found {type(tz)}.")
 
         mytz = self.tzinfo
 

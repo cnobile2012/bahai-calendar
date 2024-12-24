@@ -122,8 +122,8 @@ class struct_time:
 
         date = list(date)
         dt = datetime.datetime(*b_date, tzinfo=tzinfo)
-        # Build out the tm_isdst, tm_zone and tm_gmtoff.
 
+        # Build out the tm_isdst, tm_zone and tm_gmtoff.
         if tzinfo:
             dst = tzinfo.dst(dt)
 

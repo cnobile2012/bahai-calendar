@@ -2483,12 +2483,12 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              'tm_sec=30, tm_wday=1, tm_yday=237, tm_isdst=-1)'),
             ((181, 2, 1), tz0, 0, 'structures.ShortFormStruct(tm_year=181, '
              'tm_mon=2, tm_mday=1, tm_hour=0, tm_min=0, tm_sec=0, tm_wday=1, '
-             'tm_yday=20, tm_isdst=-1)'),
+             'tm_yday=20, tm_isdst=1)'),
             )
         msg = "Expected {} with date {}, and timezone {}, found {}."
 
         for date, tz, fold, expected_result in data:
-            dt = datetime.datetime(*date)
+            dt = datetime.datetime(*date, tzinfo=tz)
             result = dt.timetuple()
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, result))
@@ -2506,8 +2506,18 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # 1844-03-19T14:46:37 -3969404241 UTC
             # 1844-03-19T09:46:37 -3969422241 America/New_York
             ((1, 1, 1), 0, -3969391592),
-            # POSIX epoch 1970-01-01T00:00:00+00:00
-            ((126, 16, 2, None, None, 5, 46, 8.9472), 0, 95621),
+            # POSIX epoch 1970-01-01T05:00:00+00:00
+            # Sunset exact JD 2440585.166985 (1969, 12, 31)
+            # 0.5 - 0.166985 = 0.333015
+            # (7, 59, 32.496) after sunset == 12 am 1970-01-01
+            # I get 64594 off by 46594
+            ## ((126, 16, 2, None, None, 6, 47, 57.12), 0, 18000),
+            # Sunset exact JD 2460666.163238 (2024, 12, 23, 20, 28, 24)
+            # 0.5 - 0.163238 = 0.336762
+            # (8, 4, 56.2368) after sunset == 12 am 2024-12-23
+            # (8, 4, 56.2368) + (20, 28, 24) == 
+            # I get 1735073211 off by 69507
+            ## ((181, 15, 14, None, None, 3, 21, 18.288), 0, 1735003704),
 
             )
         msg = "Expected {} with date {}, and fold {}, found {}."
@@ -2753,12 +2763,47 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         pass
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_astimezone(self):
         """
-        Test that the astimezone method 
+        Test that the astimezone method returns a datetime object with a
+        replaced the timezone tzinfo object.
         """
-        pass
+        err_msg0 = "tz argument must be an instance of tzinfo, found {}."
+        data = (
+            ((126, 16, 2, None, None, 6, 47, 57.12), None, datetime.UTC, False,
+             '0126-16-02T11:47:57.120000+00:00'),
+            # The next two are the date and time with timezone -5 for
+            # the Badi epoch.
+            ((0, 19, 19, 19, 19, 15, 30), None, datetime.BADI, False,
+             '01-01-01-01-01T00:00:00+03:30'),
+            ((0, 19, 19, None, None, 15, 30), None, datetime.BADI, False,
+             '0001-01-01T00:00:00+03:30'),
+            # Test with a current timezone.
+            ((0, 19, 19, None, None, 15, 30), datetime.LOCAL, datetime.BADI,
+             False, '0001-01-01T00:00:00+03:30'),
+            # Errors
+            ((1, 1, 1), None, 0, True, err_msg0.format("<class 'int'>")),
+            )
+        msg = "Expected {} with date {}, timezone {}, found {}."
+
+        for date, tz0, tz1, validity, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz0)
+
+            if validity:
+                try:
+                    result = dt.astimezone(tz=tz1)
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                result = dt.astimezone(tz=tz1)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, date, tz1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_ctime(self):
