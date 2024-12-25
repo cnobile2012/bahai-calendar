@@ -2756,12 +2756,23 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 self.assertEqual(fold1, result.fold,
                                  f"Expected fold {fold1}, found {result.fold}")
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__local_timezone(self):
         """
-        Test that the _local_timezone method 
+        Test that the _local_timezone method returns the local time offset.
         """
-        pass
+        data = (
+            ((181, 1, 1), None, 'UTC-05:00'),
+            ((1, 1, 1), datetime.BADI, 'UTC-05:00'),
+            ((1, 1, 1, 1, 1), datetime.BADI, 'UTC-05:00'),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, tz, expected_result in data:
+            dt = datetime.datetime(*date, tzinfo=tz)
+            result = dt._local_timezone()
+            self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
@@ -2783,6 +2794,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Test with a current timezone.
             ((0, 19, 19, None, None, 15, 30), datetime.LOCAL, datetime.BADI,
              False, '0001-01-01T00:00:00+03:30'),
+            # Test with timezone as None.
+            ((181, 1, 1), None, None, False, '0181-01-01T00:00:00-05:00'),
             # Errors
             ((1, 1, 1), None, 0, True, err_msg0.format("<class 'int'>")),
             )
@@ -2904,6 +2917,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 1,
              'datetime.datetime(181, 1, 1, 12, 30, 30, '
              'tzinfo=datetime.BADI, fold=1)'),
+            ((1, 10, 10, 15, 14), None, 0,
+             'datetime.datetime(1, 10, 10, 15, 14, 0, 0)'),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
@@ -3018,28 +3033,37 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         not equal.
         """
         data = (
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 30), None, 0, True),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 29), None, 0, False),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 31), None, 0, False),
-            ((181, 9, 14, None, None, 12, 30, 30), datetime.UTC, 0,
-             (181, 9, 14, None, None, 12, 30, 30), None, 0, False),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, True),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, False),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False),
-            ((1, 10, 10, 9, 14, 12, 30, 30), datetime.UTC, 0,
-             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 30), None, False, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 29), None, False, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 31), None, False, False),
+            ((181, 9, 14, None, None, 12, 30, 30), datetime.UTC,
+             (181, 9, 14, None, None, 12, 30, 30), None, False, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, False, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, False, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, False, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), datetime.UTC,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, False, False),
+            ((181, 9, 14), None, (181, 9, 14), None, True, False),
+            ((181, 9, 14), None, 1.5, None, False, False),
             )
         msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-        for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
-            dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
-            dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
+        for date0, tz0, date1, tz1, is_date, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz0)
+
+            if type(date1) == float:
+                dt1 = date1
+            elif is_date:
+                dt1 = datetime.date(*date1)
+            else:
+                dt1 = datetime.datetime(*date1, tzinfo=tz1)
+
             result = dt0 == dt1
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date0, date1, result))
@@ -3050,28 +3074,53 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the __le__ method returns True if less than or equal and
         False if not less than or equal.
         """
+        err_msg0 = "Cannot compare 'datetime' to '{}'"
+        err_msg1 = "'<=' not supported between instances of 'datetime' and '{}'"
         data = (
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 30), None, 0, True),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 29), None, 0, False),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 31), None, 0, True),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, True),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, False),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 30), None, False, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 29), None, False, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 31), None, False, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, False, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, False, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, False, True),
+            ((181, 9, 14), None, (181, 9, 14), None, True,
+             err_msg0.format('date')),
+            ((181, 9, 14), None, 1.5, None, True, err_msg1.format('float')),
             )
         msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-        for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
-            dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
-            dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
-            result = dt0 <= dt1
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date0, date1, result))
+        for date0, tz0, date1, tz1, validity, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz0)
+
+            if validity:
+                if type(date1) == float:
+                    dt1 = date1
+                else:
+                    dt1 = datetime.date(*date1)
+
+                try:
+                    result = dt0 <= dt1
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date0}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                if type(date1) == float:
+                    dt1 = date1
+                else:
+                    dt1 = datetime.datetime(*date1, tzinfo=tz1)
+
+                result = dt0 <= dt1
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date0, date1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___lt__(self):
@@ -3079,28 +3128,49 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the __lt__ method returns True if less than and False
         if not less than.
         """
+        err_msg0 = "Cannot compare 'datetime' to '{}'"
+        err_msg1 = "'<' not supported between instances of 'datetime' and '{}'"
         data = (
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 30), None, 0, False),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 29), None, 0, False),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 31), None, 0, True),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, False),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, False),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 30), None, False, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 29), None, False, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 31), None, False, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, False, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, False, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, False, True),
+            ((181, 9, 14), None, (181, 9, 14), None, True,
+             err_msg0.format('date')),
+            ((181, 9, 14), None, 1.5, None, True, err_msg1.format('float')),
             )
         msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-        for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
-            dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
-            dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
-            result = dt0 < dt1
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date0, date1, result))
+        for date0, tz0, date1, tz1, validity, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz0)
+
+            if validity:
+                if type(date1) == float:
+                    dt1 = date1
+                else:
+                    dt1 = datetime.date(*date1)
+
+                try:
+                    result = dt0 < dt1
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date0}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                dt1 = datetime.datetime(*date1, tzinfo=tz1)
+                result = dt0 < dt1
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date0, date1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___ge__(self):
@@ -3108,28 +3178,49 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the __ge__ method returns True if greater than or equal
         and False if not greater than or equal.
         """
+        err_msg0 = "Cannot compare 'datetime' to '{}'"
+        err_msg1 = "'>=' not supported between instances of 'datetime' and '{}'"
         data = (
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 30), None, 0, True),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 29), None, 0, True),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 31), None, 0, False),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, True),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, True),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 30), None, False, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 29), None, False, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 31), None, False, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, False, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, False, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, False, False),
+            ((181, 9, 14), None, (181, 9, 14), None, True,
+             err_msg0.format('date')),
+            ((181, 9, 14), None, 1.5, None, True, err_msg1.format('float')),
             )
         msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-        for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
-            dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
-            dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
-            result = dt0 >= dt1
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date0, date1, result))
+        for date0, tz0, date1, tz1, validity, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz0)
+
+            if validity:
+                if type(date1) == float:
+                    dt1 = date1
+                else:
+                    dt1 = datetime.date(*date1)
+
+                try:
+                    result = dt0 >= dt1
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date0}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                dt1 = datetime.datetime(*date1, tzinfo=tz1)
+                result = dt0 >= dt1
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date0, date1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___gt__(self):
@@ -3137,30 +3228,52 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the __gt__ method returns True if greater than and False
         if not greater than.
         """
+        err_msg0 = "Cannot compare 'datetime' to '{}'"
+        err_msg1 = "'>' not supported between instances of 'datetime' and '{}'"
         data = (
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 30), None, 0, False),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 29), None, 0, True),
-            ((181, 9, 14, None, None, 12, 30, 30), None, 0,
-             (181, 9, 14, None, None, 12, 30, 31), None, 0, False),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 30), None, 0, False),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 29), None, 0, True),
-            ((1, 10, 10, 9, 14, 12, 30, 30), None, 0,
-             (1, 10, 10, 9, 14, 12, 30, 31), None, 0, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 30), None, False, False),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 29), None, False, True),
+            ((181, 9, 14, None, None, 12, 30, 30), None,
+             (181, 9, 14, None, None, 12, 30, 31), None, False, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 30), None, False, False),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 29), None, False, True),
+            ((1, 10, 10, 9, 14, 12, 30, 30), None,
+             (1, 10, 10, 9, 14, 12, 30, 31), None, False, False),
+            ((181, 9, 14), None, (181, 9, 14), None, True,
+             err_msg0.format('date')),
+            ((181, 9, 14), None, 1.5, None, True, err_msg1.format('float')),
             )
         msg = "Expected {} with date0 {} and date1 {}, found {}."
 
-        for date0, tz0, fold0, date1, tz1, fold1, expected_result in data:
-            dt0 = datetime.datetime(*date0, tzinfo=tz0, fold=fold0)
-            dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
-            result = dt0 > dt1
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, date0, date1, result))
+        for date0, tz0, date1, tz1, validity, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz0)
+
+            if validity:
+                if type(date1) == float:
+                    dt1 = date1
+                else:
+                    dt1 = datetime.date(*date1)
+
+                try:
+                    result = dt0 > dt1
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With '{date0}' an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                dt1 = datetime.datetime(*date1, tzinfo=tz1)
+                result = dt0 > dt1
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date0, date1, result))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test__cmp(self):
         """
         Test that the _cmp method returns 1 if the two dates are equal, +1
@@ -3169,6 +3282,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         err_msg0 = "The other must be a datetime object, found '{}'."
         err_msg1 = "Cannot compare naive and aware datetimes."
+        tz0 = ZoneInfo('US/Pacific')
         data = (
             ((181, 9, 14, None, None, 12, 30, 30), None, 0,
              (181, 9, 14, None, None, 12, 30, 30), None, 0, False, False, 0),
@@ -3188,9 +3302,15 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              (181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, True,
              False, 2),
             ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0,
-             (181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 1, True,
+             (181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 0, True,
+             False, -1),
+            ((181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 0,
+             (181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, True,
+             False, 1),
+            # Fold on 2024-11-03T02:00:00 -> 0181-10-01T08:41:37.2768
+            ((181, 10, 1, None, None, 8, 41, 37.2768), datetime.LOCAL, 0,
+             (181, 10, 1, None, None, 8, 41, 37.2768), None, 0, True,
              False, 2),
-
             ((181, 1, 1, None, None, 12, 30, 30), None, 0, None, None, 0,
              False, True, err_msg0.format("<class 'NoneType'>")),
             ((181, 1, 1, None, None, 12, 30, 30), None, 0,
@@ -3201,7 +3321,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
 
         for (date0, tz0, fold0, date1, tz1, fold1, mixed,
              validity, expected_result) in data:
-            dt0 = datetime.datetime(*date0)
+            dt0 = datetime.datetime(*date0, tzinfo=tz0)
 
             if date1 is not None:
                 dt1 = datetime.datetime(*date1, tzinfo=tz1, fold=fold1)
@@ -3229,6 +3349,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         a timedelta.
         """
         err_msg0 = "Result out of range."
+        err_msg1 = "unsupported operand type(s) for +: 'datetime' and '{}'"
         data = (
             ((1, 1, 1), (1,), False, (1, 1, 2)),
             ((1, 1, 1), (366,), False, (2, 1, 1)),             # Leap year
@@ -3236,6 +3357,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((1, 1, 1, 1, 1), (366,), False, (1, 1, 2, 1, 1)), # Leap year
             ((-1842, 1, 1), (-1,), True, err_msg0),
             ((1161, 19, 19), (1,), True, err_msg0),
+            ((181, 1, 1), 1.5, True, err_msg1.format('float'))
             )
         msg = "Expected {} with date {} and timedelta {}, found {}"
 
@@ -3250,7 +3372,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
 
                 try:
                     result = dt0 + td0
-                except OverflowError as e:
+                except (OverflowError, TypeError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
@@ -3270,26 +3392,35 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                     expected_result, date, td, result))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test___sub__(self):
         """
         Test that the __sub__ method returns the correct results of a
         timedelta object subtracted from a datetime object.
         """
         err_msg0 = "Result out of range."
+        err_msg1 = "unsupported operand type(s) for -: 'datetime' and '{}'"
+        err_msg2 = "Cannot mix naive and timezone-aware time."
         data = (
-            ((1, 1, 1), (1,), (), False, (0, 19, 19)),
-            ((1, 1, 1), (366,), (), False, (-1, 19, 19)),  # Leap year
-            ((181, 1, 1), (365,), (), False, (180, 1, 1)), # Non leap year
+            ((1, 1, 1), None, (1,), (), False, (0, 19, 19)),
+            ((1, 1, 1), None, (366,), (), False, (-1, 19, 19)),  # Leap year
+            ((181, 1, 1), None, (365,), (), False, (180, 1, 1)), # Non leap year
             # Leap year
-            ((1, 1, 1, 1, 1), (366,), (), False, (0, 19, 18, 19, 19)),
-            ((181, 1, 2), (), (181, 1, 1), False, (1, 0, 0, 86400.0)),
-            ((-1842, 1, 1), (1,), (), True, err_msg0),
-            ((1161, 19, 19), (-1,), (), True, err_msg0),
+            ((1, 1, 1, 1, 1), None, (366,), (), False, (0, 19, 18, 19, 19)),
+            ((181, 1, 2), None, (), (181, 1, 1), False, (1, 0, 0, 86400.0)),
+            #((181, 1, 2), None, (), (181, 1, 1), False, (180, 1, 1)),
+
+
+
+            ((-1842, 1, 1), None, (1,), (), True, err_msg0),
+            ((1161, 19, 19), None, (-1,), (), True, err_msg0),
+            ((181, 1, 1), None, 1.5, (), True, err_msg1.format('float')),
+            #((181, 1, 2),  datetime.LOCAL, (), (181, 1, 1), True, err_msg2),
             )
         msg = "Expected {} with date0 {}, timedelta {}, and date1 {}, found {}"
 
-        for date0, td, date1, validity, expected_result in data:
-            dt0 = datetime.datetime(*date0)
+        for date0, tz, td, date1, validity, expected_result in data:
+            dt0 = datetime.datetime(*date0, tzinfo=tz)
 
             if validity:
                 if isinstance(td, tuple):

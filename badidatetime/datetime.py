@@ -1655,6 +1655,7 @@ class datetime(date):
 
     def _local_timezone(self):
         """
+        Always return the local time offset in a timezone object.
         """
         if self.tzinfo is None:
             ts = self._mktime()
@@ -1710,13 +1711,15 @@ class datetime(date):
                 mytz = self.replace(tzinfo=None)._local_timezone()
                 myoffset = mytz.utcoffset(self)
 
-        if tz is mytz:
-            return self
+        if tz is not mytz:
+            # Convert self to UTC, and attach the new time zone object.
+            utc = (self - myoffset).replace(tzinfo=tz)
+            # Convert from UTC to tz's local time.
+            ret = tz.fromutc(utc)
+        else:
+            ret = self
 
-        # Convert self to UTC, and attach the new time zone object.
-        utc = (self - myoffset).replace(tzinfo=tz)
-        # Convert from UTC to tz's local time.
-        return tz.fromutc(utc)
+        return ret
 
     # Ways to produce a string.
 
@@ -1921,10 +1924,10 @@ class datetime(date):
             # Assume that allow_mixed means that we are called from __eq__
             if allow_mixed:
                 if myoff != self.replace(fold=not self.fold).utcoffset():
-                    return 2
+                    return 2 # arbitrary non-zero value
 
                 if otoff != other.replace(fold=not other.fold).utcoffset():
-                    return 2
+                    return 2 # arbitrary non-zero value
 
             base_compare = myoff == otoff
 
@@ -1941,7 +1944,7 @@ class datetime(date):
                 raise TypeError("Cannot compare naive and aware datetimes.")
 
         # XXX What follows could be done more efficiently...
-        diff = self - other     # this will take offsets into account
+        diff = self - other # this will take offsets into account
 
         if diff.days < 0:
             return -1
@@ -2002,7 +2005,7 @@ class datetime(date):
             return base
 
         if myoff is None or otoff is None:
-            raise TypeError("cannot mix naive and timezone-aware time")
+            raise TypeError("Cannot mix naive and timezone-aware time.")
 
         return base + otoff - myoff
 
