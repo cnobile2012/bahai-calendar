@@ -195,8 +195,8 @@ class GregorianCalendar(BaseCalendar):
 
         return date
 
-    def ymdhms_from_posix_time(self, t:float, *, zone:float=0,
-                               us:bool=False) -> tuple:
+    def posix_timestamp(self, t:float, *, zone:float=0,
+                        us:bool=False) -> tuple:
         """
         Find the year, month, day, hours, minutes, and seconds from a
         POSIX timestamp updated for provided time zone.

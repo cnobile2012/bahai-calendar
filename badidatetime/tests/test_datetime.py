@@ -3408,14 +3408,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Leap year
             ((1, 1, 1, 1, 1), None, (366,), (), False, (0, 19, 18, 19, 19)),
             ((181, 1, 2), None, (), (181, 1, 1), False, (1, 0, 0, 86400.0)),
-            #((181, 1, 2), None, (), (181, 1, 1), False, (180, 1, 1)),
-
-
-
             ((-1842, 1, 1), None, (1,), (), True, err_msg0),
             ((1161, 19, 19), None, (-1,), (), True, err_msg0),
             ((181, 1, 1), None, 1.5, (), True, err_msg1.format('float')),
-            #((181, 1, 2),  datetime.LOCAL, (), (181, 1, 1), True, err_msg2),
+            #((181, 1, 2), datetime.LOCAL, (), (181, 1, 1), True, err_msg2),
             )
         msg = "Expected {} with date0 {}, timedelta {}, and date1 {}, found {}"
 
@@ -3424,12 +3420,14 @@ class TestBadiDatetime_datetime(unittest.TestCase):
 
             if validity:
                 if isinstance(td, tuple):
-                    td0 = datetime.timedelta(*td)
+                    obj = datetime.timedelta(*td)
+                elif isinstance(date1, tuple) and len(date1) > 0:
+                    obj = datetime.datetime(*date1)
                 else:
-                    td0 = td
+                    obj = td
 
                 try:
-                    result = dt0 - td0
+                    result = dt0 - obj
                 except (TypeError, OverflowError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:

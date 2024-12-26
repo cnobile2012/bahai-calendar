@@ -23,6 +23,7 @@ _MAXORDINAL = 1097267 # date.max.toordinal()
 MINYEAR = BahaiCalendar.MINYEAR
 MAXYEAR = BahaiCalendar.MAXYEAR
 BADI_INFO = BahaiCalendar.BAHAI_LOCATION[2:4] # 3.5, Asia/Terhan
+BADI_COORD = BahaiCalendar.BAHAI_LOCATION[:3]
 GMT_COORD = (51.477928, -0.001545, 0)
 
 def _cmp(x, y):

@@ -199,48 +199,49 @@ class TestGregorianCalendar(unittest.TestCase):
                                         alt, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_ymdhms_from_posix_time(self):
+    def test_posix_timestamp(self):
         """
-        Test that the ymdhms_from_posix_time method returns the year, month,
-        day, hours, minutes, and seconds for a POSIX timestamp.
+        Test that the posix_timestamp method returns the year, month, day,
+        hours, minutes, and seconds for a POSIX timestamp.
 
         *** TODO *** This method is giving wrong results.
         """
         data = (
             # POSIX epoch -> 1970-01-01T00:00:00
-            (0, 0, (1970, 1, 1, 0, 0, 0)),
-            (1, 0, (1970, 1, 1, 0, 0, 1)),
-            (31536000, 0, (1971, 1, 1, 0, 0, 0)),
-            (63072000, 0, (1972, 1, 1, 0, 0, 0)),
+            (0, 0, False, (1970, 1, 1, 0, 0, 0)),
+            (1, 0, False, (1970, 1, 1, 0, 0, 1)),
+            (31536000, 0, False, (1971, 1, 1, 0, 0, 0)),
+            (63072000, 0, False, (1972, 1, 1, 0, 0, 0)),
             # One second before epoch.
-            #(-1, 0, (1969, 12, 31, 23, 59, 59)),
+            #(-1, 0, False, (1969, 12, 31, 23, 59, 59)),
             # One year before epoch
-            #(-31536000, 0, (1969, 1, 1, 0, 0, 0)),
+            #(-31536000, 0, False, (1969, 1, 1, 0, 0, 0)),
             # One year and a day before epoch
-            #(-31622400, 0, (1968, 12, 31, 0, 0, 0)),
+            #(-31622400, 0, False, (1968, 12, 31, 0, 0, 0)),
             # Two years before epoch
-            #(-63158400, 0, (1968, 1, 1, 0, 0, 0)),
+            #(-63158400, 0, False, (1968, 1, 1, 0, 0, 0)),
             # Ten years before epoch
-            #(-315619200, 0, (1960, 1, 1, 0, 0, 0)),
+            #(-315619200, 0, False, (1960, 1, 1, 0, 0, 0)),
             # Tehran Iran Friday, August 23, 2024 (GMT+3:30)
-            (1724362982.984497, 3.5, (2024, 8, 23, 1, 13, 2.984497)),
+            (1724362982.984497, 3.5, False, (2024, 8, 23, 1, 13, 2.984497)),
             # Tehran Iran Friday, August 23, 2024 3:35 (UTC+3:30)
-            (1724371535.5798125, 3.5, (2024, 8, 23, 3, 35, 35.579813)),
+            (1724371535.5798125, 3.5, False, (2024, 8, 23, 3, 35, 35.579813)),
             # Greenwich UK Friday, August 23, 2024 0:05 (UTC+0:00)
-            (1724371535.5798125, 0, (2024, 8, 23, 0, 5, 35.579813)),
+            (1724371535.5798125, 0, False, (2024, 8, 23, 0, 5, 35.579813)),
             # Raleigh NC Thursday, August 22, 2024 20:05 (UTC-4:00)
-            (1724371535.5798125, -4, (2024, 8, 22, 20, 5, 35.579813)),
+            (1724371535.5798125, -4, False, (2024, 8, 22, 20, 5, 35.579813)),
             # Parts of Australia Friday, August 23 2024 8:50 (UTC+8:45)
-            (1724371535.5798125, 8.75, (2024, 8, 23, 8, 50, 35.579813)),
+            (1724371535.5798125, 8.75, False, (2024, 8, 23, 8, 50, 35.579813)),
             # (2024, 11, 30, 20, 24, 13, 327577)
-            (1733016253.327577, -5, (2024, 11, 30, 20, 24, 13.327577)),
-            (1733016253.327577, 0, (2024, 12, 1, 1, 24, 13.327577)),
-            (1730433600, 0, (2024, 11, 1, 4, 0, 0)),
+            (1733016253.327577, -5, False, (2024, 11, 30, 20, 24, 13.327577)),
+            (1733016253.327577, 0, False, (2024, 12, 1, 1, 24, 13.327577)),
+            (1733016253.327577, 0, True, (2024, 12, 1, 1, 24, 13, 327577)),
+            (1730433600, 0, False, (2024, 11, 1, 4, 0, 0)),
             )
         msg = "Expected {} with t {}, and zone {}, found {}"
 
-        for t, zone, expected_result in data:
-            result = self._gc.ymdhms_from_posix_time(t, zone=zone)
+        for t, zone, us, expected_result in data:
+            result = self._gc.posix_timestamp(t, zone=zone, us=us)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, t, zone, result))
 
@@ -252,8 +253,8 @@ class TestGregorianCalendar(unittest.TestCase):
         """
         data = (
             (2394646.5, 1844),
-            (2451544.5, 2000), # Middle of day 12 midnight
-            (2451545.0, 2000), # Start of day 12 noon
+            (2451544.5, 2000), # Middle of Julian Period day 12 midnight
+            (2451545.0, 2000), # Start of Julian Period day 12 noon
             )
         msg = "Expected {} for Julian day {}, found {}"
 
