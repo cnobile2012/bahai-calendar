@@ -266,7 +266,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         err_msg3 = "_fromutc() requires a non-None dst() result."
         err_msg4 = ("_fromutc(): dt.dst gave inconsistent results; cannot "
                     "convert.")
-        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
@@ -2289,7 +2289,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Note: The tests marked 'Latitude and Longitude dependent' will break
               if datetime.LOCAL_COORD is not patched.
         """
-        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
@@ -2325,7 +2325,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Note: The tests marked 'Latitude and Longitude dependent' will break
               if datetime.LOCAL_COORD is not patched.
         """
-        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
@@ -2368,7 +2368,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         not possible to test actual dates and time as they will change every
         second.
         """
-        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
@@ -2538,7 +2538,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         https://www.unixtimestamp.com
         https://www.epochconverter.com
         """
-        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
@@ -2598,7 +2598,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         Test that the _timetuple method returns a timetuple object.
         """
-        #tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        #tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         offset0 = datetime.timedelta(0)
@@ -2967,7 +2967,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the utcoffset method returns a timedelta object relative
         to the UTC time zone..
         """
-        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
@@ -3010,7 +3010,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the dst method returns the daylight savings time
         associated with the datetime object.
         """
-        tz0 = ZoneInfo(datetime.BADI_INFO[1])
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
@@ -3461,15 +3461,17 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         and long form datetimes.
         """
         data = (
-            (datetime.MINYEAR, 1, 1, None, None, 12, 30, 30),
-            (-5, 18, 1, 1, 1, 12, 30, 30),
-            (1, 1, 1, None, None, 12, 30, 30),
-            (1, 1, 1, 1, 1, 12, 30, 30),
+            ((datetime.MINYEAR, 1, 1, None, None, 12, 30, 30), None, 0),
+            ((-5, 18, 1, 1, 1, 12, 30, 30), None, 0),
+            ((1, 1, 1, None, None, 12, 30, 30), None, 0),
+            ((1, 1, 1, 1, 1, 12, 30, 30), None, 0),
+            ((1, 1, 1), datetime.BADI, 0),
+            ((1, 1, 1), datetime.BADI, 1),
             )
         msg = "date {}, found {}."
 
-        for date in data:
-            dt = datetime.datetime(*date)
+        for date, tz, fold in data:
+            dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
             result = hash(dt)
             self.assertTrue(len(str(result)) > 15, msg.format(date, result))
 
@@ -3642,12 +3644,13 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         err_msg1 = "name must be a string"
         err_msg2 = ("offset must be a timedelta strictly between "
                     "-timedelta(hours=24) and timedelta(hours=24).")
-        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
+        td = datetime.timedelta(hours=datetime.BADI_COORD[2])
+        IANA = datetime.BADI_IANA
         data = (
-            (td, 'Asia/Terhan', False, 'Asia/Terhan'),
+            (td, IANA, False, IANA),
             (td, datetime.timezone._Omitted, False, 'UTC+03:30'),
             (td, '', False, ''),
-            (object, 'Asia/Terhan', True, err_msg0),
+            (object, IANA, True, err_msg0),
             (td, object, True, err_msg1),
             (datetime.timedelta(hours=25), '', True, err_msg2),
             )
@@ -3674,11 +3677,12 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         Test that the __eq__ method returns  True if equal and False if
         not equal.
         """
-        td0 = datetime.timedelta(hours=datetime.BADI_INFO[0])
+        td0 = datetime.timedelta(hours=datetime.BADI_COORD[2])
         td1 = datetime.timedelta(seconds=18000)
+        IANA = datetime.BADI_IANA
         data = (
-            (td0, 'Asia/Terhan', td0, 'Asia/Terhan', True),
-            (td0, 'Asia/Terhan', td1, 'US/Eastern', False),
+            (td0, IANA, td0, IANA, True),
+            (td0, IANA, td1, 'US/Eastern', False),
             )
         msg = "Expected {} with td0 {} and td1 {}, found {}."
 
@@ -3694,17 +3698,18 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         """
         Test that the __repr__ method returns the correctly formatted string.
         """
-        td0 = datetime.timedelta(hours=datetime.BADI_INFO[0])
+        td0 = datetime.timedelta(hours=datetime.BADI_COORD[2])
         td1 = datetime.timedelta(0)
         td2 = datetime.timedelta()
+        IANA = datetime.BADI_IANA
         data = (
-            (td0, 'Asia/Terhan', "datetime.timezone("
-             "datetime.timedelta(seconds=12600), 'Asia/Terhan')"),
+            (td0, IANA, "datetime.timezone("
+             "datetime.timedelta(seconds=12600), 'Asia/Tehran')"),
             (td1, 'UTC', "datetime.timezone(datetime.timedelta(0), 'UTC')"),
             (td2, '', "datetime.timezone(datetime.timedelta(0), '')"),
             (td2, None, "datetime.timezone(datetime.timedelta(0))"),
             ('UTC', 'UTC', 'datetime.timezone.utc'),
-            ('BADI', 'Asia/Terhan', 'datetime.BADI'),
+            ('BADI', IANA, 'datetime.BADI'),
             )
         msg = "Expected {} with offset {} and name {}, found {}."
 
@@ -3727,10 +3732,11 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         """
         Test that the __str__ method returns the correctly formatted string.
         """
-        td0 = datetime.timedelta(hours=datetime.BADI_INFO[0])
+        td0 = datetime.timedelta(hours=datetime.BADI_COORD[2])
         td1 = datetime.timedelta(seconds=18000)
+        IANA = datetime.BADI_IANA
         data = (
-            (td0, 'Asia/Terhan', 'Asia/Terhan'),
+            (td0, IANA, IANA),
             (td1, 'US/Eastern', 'US/Eastern'),
             )
         msg = "Expected {} with offset {}, found {}."
@@ -3741,26 +3747,30 @@ class TestBadiDatetime_timezone(unittest.TestCase):
                 expected_result, offset, str(result)))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_utcoffset(self):
         """
-        Test that the utcoffset method returns the correct timezone offset.
+        Test that the utcoffset method returns the correct timezone offset
+        for the UTC coordinates.
         """
         err_msg0 = "utcoffset() argument must be a datetime instance or None"
-        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
+        td0 = datetime.timedelta(hours=datetime.BADI_COORD[2])
+        td1 = datetime.timedelta(hours=datetime.LOCAL_COORD[2])
         data = (
-            (td, 'Asia/Terhan', (181, 1, 1), datetime.UTC, False, '3:30:00'),
-            (td, 'Asia/Terhan', (12, 30, 30), datetime.UTC, True, err_msg0),
+            (td0, (181, 1, 1), False, '3:30:00'),
+            (td1, (181, 1, 1), False, '-1 day, 19:00:00'),
+            (td1, None, False, '-1 day, 19:00:00'),
+            (td0, (12, 30, 30), True, err_msg0),
             )
-        msg = ("Expected {} with offset {}, name {}, date {}, and "
-               "timezone {}, found {}.")
+        msg = "Expected {} with offset {}, date {}, and timezone {}, found {}."
 
-        for offset, name, date, tz0, validity, expected_result in data:
-            tz1 = datetime.timezone(offset, name)
+        for offset, date, validity, expected_result in data:
+            tz0 = datetime.timezone(offset)
 
             if validity:
                 try:
                     t = datetime.time(*date)
-                    result = tz1.utcoffset(t)
+                    result = tz0.utcoffset(t)
                 except TypeError as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -3768,10 +3778,55 @@ class TestBadiDatetime_timezone(unittest.TestCase):
                     raise AssertionError(f"With {tz1} an error is not "
                                          f"raised, with result {result}.")
             else:
-                dt = datetime.datetime(*date, tzinfo=tz0)
-                result = tz1.utcoffset(dt)
+                if isinstance(date, tuple):
+                    dt = datetime.datetime(*date)
+                else:
+                    dt = date
+
+                result = tz0.utcoffset(dt)
                 self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, offset, name, date, tz1, result))
+                    expected_result, offset, date, tz0, result))
+
+    #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
+    def test_badioffset(self):
+        """
+        Test that the badioffset returns the correct timezone offset for the
+        Badi coordinates.
+        """
+        err_msg0 = "badioffset() argument must be a datetime instance or None"
+        td0 = datetime.timedelta(hours=datetime.BADI_COORD[2])
+        td1 = datetime.timedelta(hours=datetime.LOCAL_COORD[2])
+        data = (
+            (td0, (181, 1, 1), False, '0:00:00'),
+            (td1, (181, 1, 1), False, '-1 day, 15:30:00'),
+            (td1, None, False, '-1 day, 15:30:00'),
+            (td0, (12, 30, 30), True, err_msg0),
+            )
+        msg = "Expected {} with offset {}, date {}, and timezone {}, found {}."
+
+        for offset, date, validity, expected_result in data:
+            tz0 = datetime.timezone(offset)
+
+            if validity:
+                try:
+                    t = datetime.time(*date)
+                    result = tz0.badioffset(t)
+                except TypeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    result = result if result else None
+                    raise AssertionError(f"With {tz1} an error is not "
+                                         f"raised, with result {result}.")
+            else:
+                if isinstance(date, tuple):
+                    dt = datetime.datetime(*date)
+                else:
+                    dt = date
+
+                result = tz0.badioffset(dt)
+                self.assertEqual(expected_result, str(result), msg.format(
+                    expected_result, offset, date, tz0, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_tzname(self):
@@ -3779,21 +3834,21 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         Test that the tzname method returns the timezone name.
         """
         err_msg0 = "tzname() argument must be a datetime instance or None"
-        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
+        td = datetime.timedelta(hours=datetime.BADI_COORD[2])
+        IANA = datetime.BADI_IANA
         data = (
-            (td, 'Asia/Terhan', (181, 1, 1), None, False, 'Asia/Terhan'),
-            (td, 'Asia/Terhan', None, None, False, 'Asia/Terhan'),
-            (td, None, None, None, False, 'UTC+03:30'),
-            (td, 'Asia/Terhan', False, None, True, err_msg0),
+            (td, IANA, (181, 1, 1), False, IANA),
+            (td, IANA, None, False, IANA),
+            (td, None, None, False, 'UTC+03:30'),
+            (td, IANA, False, True, err_msg0),
             )
-        msg = ("Expected {} with offset {}, name {}, date {}, and "
-               "timezone {}, found {}.")
+        msg = "Expected {} with offset {}, name {}, date {}, and , found {}."
 
-        for offset, name, date, tz0, validity, expected_result in data:
+        for offset, name, date, validity, expected_result in data:
             if name is None:
-                tz1 = datetime.timezone._create(offset, name)
+                tz0 = datetime.timezone._create(offset, name)
             else:
-                tz1 = datetime.timezone(offset, name)
+                tz0 = datetime.timezone(offset, name)
 
             if date:
                 dt = datetime.datetime(*date)
@@ -3804,17 +3859,17 @@ class TestBadiDatetime_timezone(unittest.TestCase):
 
             if validity:
                 try:
-                    result = tz1.tzname(dt)
+                    result = tz0.tzname(dt)
                 except TypeError as e:
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
-                    raise AssertionError(f"With {tz1} an error is not "
+                    raise AssertionError(f"With {tz0} an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = tz1.tzname(dt)
+                result = tz0.tzname(dt)
                 self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, offset, name, date, tz1, result))
+                    expected_result, offset, name, date, tz0, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_dst(self):
@@ -3822,11 +3877,12 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         Test that the dst method always returns None.
         """
         err_msg0 = "dst() argument must be a datetime instance or None"
-        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
+        td = datetime.timedelta(hours=datetime.BADI_COORD[2])
+        IANA = datetime.BADI_IANA
         data = (
-            (td, 'Asia/Terhan', (181, 1, 1), None, False, None),
-            (td, 'Asia/Terhan', None, None, False, None),
-            (td, 'Asia/Terhan', False, None, True, err_msg0),
+            (td, IANA, (181, 1, 1), None, False, None),
+            (td, IANA, None, None, False, None),
+            (td, IANA, False, None, True, err_msg0),
             )
         msg = ("Expected {} with offset {}, name {}, date {}, and "
                "timezone {}, found {}.")
@@ -3863,12 +3919,13 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         """
         err_msg0 = "fromutc: dt.tzinfo is not self"
         err_msg1 = "fromutc() argument must be a datetime instance or None"
-        td = datetime.timedelta(hours=datetime.BADI_INFO[0])
+        td = datetime.timedelta(hours=datetime.BADI_COORD[2])
+        IANA = datetime.BADI_IANA
         data = (
-            (td, 'Asia/Terhan', (181, 1, 1), False,
+            (td, IANA, (181, 1, 1), False,
              "0181-01-01T03:30:00+03:30"),
-            (td, 'Asia/Terhan', (181, 1, 1), True, err_msg0),
-            (td, 'Asia/Terhan', None, True, err_msg1),
+            (td, IANA, (181, 1, 1), True, err_msg0),
+            (td, IANA, None, True, err_msg1),
             )
         msg = "Expected {} with offset {}, name {}, and date {} found {}."
 
@@ -3905,7 +3962,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         UTC offset.
         """
         td0 = datetime.timedelta(0)
-        td1 = datetime.timedelta(hours=datetime.BADI_INFO[0])
+        td1 = datetime.timedelta(hours=datetime.BADI_COORD[2])
         td2 = datetime.timedelta(-1)
         td3 = datetime.timedelta(microseconds=500000)
         td4 = datetime.timedelta(seconds=50)
@@ -3930,9 +3987,10 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         Test that the __getinitargs__ method returns the arguments that the
         timezone class was instantiated with.
         """
+        BADI_INFO = (datetime.BADI_COORD[2], datetime.BADI_IANA)
         data = (
             (-5, None, '(datetime.timedelta(days=-1, seconds=68400),)'),
-            (*datetime.BADI_INFO, "(datetime.timedelta(seconds=12600),"
+            (*BADI_INFO, "(datetime.timedelta(seconds=12600),"
              " 'Asia/Tehran')"),
             )
         msg0 = "Expected {} with offset {} and name {}, found {}."

@@ -17,6 +17,8 @@ RM_CMD		= find $(PREFIX) -regextype posix-egrep -regex $(RM_REGEX) \
 COVERAGE_FILE	= $(PREFIX)/.coveragerc
 PIP_ARGS	= # Pass variables for pip install.
 TEST_PATH	= # The path to run tests on.
+DEBUG		= True
+export DEBUG
 
 #----------------------------------------------------------------------
 .PHONY	: all

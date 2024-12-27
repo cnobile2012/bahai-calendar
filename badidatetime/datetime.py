@@ -5,7 +5,8 @@
 __docformat__ = "restructuredtext en"
 
 __all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
-           "MINYEAR", "MAXYEAR", "UTC", "BADI", "BADI_TZ")
+           "MINYEAR", "MAXYEAR", 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
+           "UTC", "BADI", 'LOCAL')
 
 import sys
 import time as _time
@@ -22,7 +23,7 @@ from ._timedateutils import _td_utils
 _MAXORDINAL = 1097267 # date.max.toordinal()
 MINYEAR = BahaiCalendar.MINYEAR
 MAXYEAR = BahaiCalendar.MAXYEAR
-BADI_INFO = BahaiCalendar.BAHAI_LOCATION[2:4] # 3.5, Asia/Terhan
+BADI_IANA = BahaiCalendar.BAHAI_LOCATION[3] # Asia/Terhan
 BADI_COORD = BahaiCalendar.BAHAI_LOCATION[:3]
 GMT_COORD = (51.477928, -0.001545, 0)
 
@@ -811,7 +812,6 @@ _date_class = date  # so functions w/ args named "date" can get at the class
 # This also needs to be done for long form date. *** TODO ***
 date.min = date(MINYEAR, 1, 1)
 date.max = date(MAXYEAR, 19, 19)
-
 date.resolution = timedelta(days=1)
 
 
@@ -1159,7 +1159,7 @@ class time:
             offset = self.utcoffset()
 
             if offset is not None:
-                offset -= timedelta(hours=3, minutes=30)
+                offset -= timedelta(hours=BADI_COORD[2])
 
             return offset
 
@@ -2022,7 +2022,7 @@ class datetime(date):
             if tzoff is None:
                 self._hashcode = hash(t._getstate()[0])
             else:
-                days = _ymd2ord(self.year, self.month, self.day)
+                days = _td_utils._ymd2ord(self.year, self.month, self.day)
                 seconds = self.hour * 3600 + self.minute * 60 + self.second
                 self._hashcode = hash(timedelta(days, seconds,
                                                 self.microsecond) - tzoff)
@@ -2224,7 +2224,7 @@ class timezone(tzinfo):
 
     def badioffset(self, dt:datetime):
         if isinstance(dt, datetime) or dt is None:
-            return self._offset
+            return self._offset - timedelta(hours=BADI_COORD[2])
 
         raise TypeError("badioffset() argument must be a datetime instance "
                         "or None")
@@ -2292,7 +2292,7 @@ class timezone(tzinfo):
         return hash(self._offset)
 
 UTC = timezone.utc = timezone._create(timedelta(0))
-BADI = timezone.badi = timezone._create(timedelta(hours=BADI_INFO[0]))
+BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
 LOCAL = timezone.local = timezone._create(timedelta(hours=LOCAL_COORD[2]))
 
 # bpo-37642: These attributes are rounded to the nearest minute for backwards

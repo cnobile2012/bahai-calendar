@@ -4,8 +4,17 @@
 #
 __docformat__ = "restructuredtext en"
 
+import os
 from badidatetime.badi_calendar import BahaiCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
-from badidatetime import datetime
 
-__all__ = ('datetime', 'BahaiCalendar', 'GregorianCalendar',)
+DEBUG = os.getenv('DEBUG', False)
+
+if os.getenv('DEBUG', False):
+    from badidatetime import datetime
+else:
+    from badidatetime.datetime import *
+
+    __all__ = ('date', 'datetime', 'time', 'timedelta', 'timezone', 'tzinfo',
+               'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
+               'UTC', 'BADI', 'LOCAL', 'BahaiCalendar', 'GregorianCalendar',)

@@ -11,7 +11,7 @@ from functools import reduce
 from operator import mul
 
 from badidatetime.julian_period import JulianPeriod
-from badidatetime.astronomical_terms import AstronomicalTerms
+from badidatetime._astronomical_terms import AstronomicalTerms
 
 
 class BaseCalendar(AstronomicalTerms, JulianPeriod):
@@ -548,7 +548,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         lon_sum = 0
         obl_sum = 0
 
-        for LM, LS, F, D, OM, day, psi_sin, sin, eps_cos, cos in self.NUT:
+        for LM, LS, F, D, OM, day, psi_sin, sin, eps_cos, cos in self._NUT:
             w = LM*lm + LS*ls + F*ff + D*dd + OM*om
             lon_sum += (psi_sin + sin * tc) * self._sin_deg(w)
             obl_sum += (eps_cos + cos * tc) * self._cos_deg(w)
@@ -791,12 +791,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Referenced by L
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
-        l0 = self._sigma((self.L0_A, self.L0_B, self.L0_C), func)
-        l1 = self._sigma((self.L1_A, self.L1_B, self.L1_C), func)
-        l2 = self._sigma((self.L2_A, self.L2_B, self.L2_C), func)
-        l3 = self._sigma((self.L3_A, self.L3_B, self.L3_C), func)
-        l4 = self._sigma((self.L4_A, self.L4_B, self.L4_C), func)
-        l5 = self._sigma((self.L5_A, self.L5_B, self.L5_C), func)
+        l0 = self._sigma((self._L0_A, self._L0_B, self._L0_C), func)
+        l1 = self._sigma((self._L1_A, self._L1_B, self._L1_C), func)
+        l2 = self._sigma((self._L2_A, self._L2_B, self._L2_C), func)
+        l3 = self._sigma((self._L3_A, self._L3_B, self._L3_C), func)
+        l4 = self._sigma((self._L4_A, self._L4_B, self._L4_C), func)
+        l5 = self._sigma((self._L5_A, self._L5_B, self._L5_C), func)
         l = self._poly(tm, (l0, l1, l2, l3, l4, l5)) / 10**8
         return round(self._coterminal_angle(math.degrees(l)) if degrees else l,
                      self.ROUNDING_PLACES)
@@ -820,8 +820,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Referenced by B
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
-        b0 = self._sigma((self.B0_A, self.B0_B, self.B0_C), func)
-        b1 = self._sigma((self.B1_A, self.B1_B, self.B1_C), func)
+        b0 = self._sigma((self._B0_A, self._B0_B, self._B0_C), func)
+        b1 = self._sigma((self._B1_A, self._B1_B, self._B1_C), func)
         b = self._poly(tm, (b0, b1)) / 10**8
         return round(self._coterminal_angle(math.degrees(b)) if degrees else b,
                      self.ROUNDING_PLACES)
@@ -844,11 +844,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Referenced by R
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
-        r0 = self._sigma((self.R0_A, self.R0_B, self.R0_C), func)
-        r1 = self._sigma((self.R1_A, self.R1_B, self.R1_C), func)
-        r2 = self._sigma((self.R2_A, self.R2_B, self.R2_C), func)
-        r3 = self._sigma((self.R3_A, self.R3_B, self.R3_C), func)
-        r4 = self._sigma((self.R4_A, self.R4_B, self.R4_C), func)
+        r0 = self._sigma((self._R0_A, self._R0_B, self._R0_C), func)
+        r1 = self._sigma((self._R1_A, self._R1_B, self._R1_C), func)
+        r2 = self._sigma((self._R2_A, self._R2_B, self._R2_C), func)
+        r3 = self._sigma((self._R3_A, self._R3_B, self._R3_C), func)
+        r4 = self._sigma((self._R4_A, self._R4_B, self._R4_C), func)
         r = self._poly(tm, (r0, r1, r2, r3, r4)) / 10**8
         return round(self._coterminal_angle(math.degrees(r)) if degrees else r,
                      self.ROUNDING_PLACES)
@@ -919,13 +919,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         else:
             aberration = 3548.33
 
-        for a, b, c in self.ABER_A:
+        for a, b, c in self._ABER_A:
             aberration += math.radians(a) * self._sin_deg(b + c * tm)
 
-        for a, b, c in self.ABER_B:
+        for a, b, c in self._ABER_B:
             aberration += math.radians(a) * tm * self._sin_deg(b + c * tm)
 
-        for a, b, c in self.ABER_C:
+        for a, b, c in self._ABER_C:
             aberration += math.radians(a) * tm**2 * self._sin_deg(b + c * tm)
 
         r = self._radius_vector(tm, degrees=False)
@@ -1001,7 +1001,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         tc = self.julian_centuries(jde)
         w = 35999.373 * tc - 2.47
         dl = 1 + 0.0334 * self._cos_deg(w + 0.0007) * self._cos_deg(2*w)
-        s = self._sigma((self.EQ_SO_A, self.EQ_SO_B, self.EQ_SO_C),
+        s = self._sigma((self._EQ_SO_A, self._EQ_SO_B, self._EQ_SO_C),
                         lambda a, b, c: a * self._cos_deg(b + c * tc))
         jde += (0.00001 * s) / dl + self.HR(zone)
         return round(jde, self.ROUNDING_PLACES)

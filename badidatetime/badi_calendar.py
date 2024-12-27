@@ -10,6 +10,8 @@ import datetime
 from badidatetime.base_calendar import BaseCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
 
+__all__ = ('BahaiCalendar',)
+
 
 class BahaiCalendar(BaseCalendar):
     """
