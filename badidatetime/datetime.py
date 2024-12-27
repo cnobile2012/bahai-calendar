@@ -23,8 +23,8 @@ from ._timedateutils import _td_utils
 _MAXORDINAL = 1097267 # date.max.toordinal()
 MINYEAR = BahaiCalendar.MINYEAR
 MAXYEAR = BahaiCalendar.MAXYEAR
-BADI_IANA = BahaiCalendar.BAHAI_LOCATION[3] # Asia/Terhan
-BADI_COORD = BahaiCalendar.BAHAI_LOCATION[:3]
+BADI_IANA = BahaiCalendar._BAHAI_LOCATION[3] # Asia/Terhan
+BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
 GMT_COORD = (51.477928, -0.001545, 0)
 
 def _cmp(x, y):
@@ -1320,23 +1320,23 @@ class datetime(date):
         fractionals(second, (microsecond,))
 
         if hour % 1:
-            mm = self.PARTIAL_HOUR_TO_MINUTE(hour)
-            ss = self.PARTIAL_MINUTE_TO_SECOND(mm)
+            mm = self._PARTIAL_HOUR_TO_MINUTE(hour)
+            ss = self._PARTIAL_MINUTE_TO_SECOND(mm)
             self._hour = _math.floor(hour)
             self._minute = _math.floor(mm)
             self._second = _math.floor(ss)
-            self._microsecond = self.PARTIAL_SECOND_TO_MICROSECOND(ss)
+            self._microsecond = self._PARTIAL_SECOND_TO_MICROSECOND(ss)
         elif minute % 1:
             self._hour = hour
-            ss = self.PARTIAL_MINUTE_TO_SECOND(minute)
+            ss = self._PARTIAL_MINUTE_TO_SECOND(minute)
             self._minute = _math.floor(minute)
             self._second = _math.floor(ss)
-            self._microsecond = self.PARTIAL_SECOND_TO_MICROSECOND(ss)
+            self._microsecond = self._PARTIAL_SECOND_TO_MICROSECOND(ss)
         elif second % 1:
             self._hour = hour
             self._minute = minute
             self._second = _math.floor(second)
-            self._microsecond = self.PARTIAL_SECOND_TO_MICROSECOND(second)
+            self._microsecond = self._PARTIAL_SECOND_TO_MICROSECOND(second)
         else:
             self._hour = hour
             self._minute = minute

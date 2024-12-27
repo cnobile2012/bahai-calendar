@@ -659,7 +659,7 @@ class DateTests(BahaiCalendar):
         long_day = ()
         short_hms = ()
         long_hms = ()
-        locate = self.BAHAI_LOCATION[:3]
+        locate = self._BAHAI_LOCATION[:3]
 
         for year in range(start, end):
             for month in self.MONTHS:
@@ -732,7 +732,7 @@ class DateTests(BahaiCalendar):
         for item in self._date_range(options):
             b_date, bjd, g_date, gjd, diff, offby = item
             g_date = self._gregorian_date_from_badi_date(
-                b_date, options, *self.BAHAI_LOCATION[:3])
+                b_date, options, *self._BAHAI_LOCATION[:3])
             gjd = self.gc.jd_from_gregorian_date(
                 g_date, exact=options.exact, alt=options.alt_leap)
             diff = round(bjd - gjd, 6)
@@ -876,7 +876,7 @@ class DateTests(BahaiCalendar):
             f"Start '{start}' must be from -1842 to 1161.")
         assert -1842 < end < 1163, (
             f"End '{end}' must be from -1841 to 1162")
-        lat, lon, zone = self.BAHAI_LOCATION[:3]
+        lat, lon, zone = self._BAHAI_LOCATION[:3]
 
         for year in range(start, end):
             is_leap = self._is_leap_year(year)
@@ -972,7 +972,7 @@ class DateTests(BahaiCalendar):
         jd = td + math.floor(self.BADI_EPOCH+1) + m + day
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
-            lat, lon, zone = self.BAHAI_LOCATION[:3]
+            lat, lon, zone = self._BAHAI_LOCATION[:3]
 
         # The diff value converts the more exact jd to the Meeus algorithm
         # for determining the sunset jd. The fractional on the day is not
@@ -1088,9 +1088,9 @@ class DateTests(BahaiCalendar):
                 # equinox and sunset. So don't use exact=options.exact here.
                 jd = self.gc.jd_from_gregorian_date(g_date) # Julian Period day
                 ve_jd = self.find_moment_of_equinoxes_or_solstices(
-                    jd, zone=self.BAHAI_LOCATION[2])
+                    jd, zone=self._BAHAI_LOCATION[2])
 
-            ss_jd = self._sun_setting(ve_jd, *self.BAHAI_LOCATION[:3])
+            ss_jd = self._sun_setting(ve_jd, *self._BAHAI_LOCATION[:3])
 
             # It is allowed to have a Vernal Equinox to be up to one minute
             # before sunset and still use that sunset as the beginning of
@@ -1098,7 +1098,7 @@ class DateTests(BahaiCalendar):
             if ve_jd >= (ss_jd - 0.0006944444444444444):
                 jd_ss = ss_jd
             else:
-                jd_ss = self._sun_setting(ve_jd-1, *self.BAHAI_LOCATION[:3])
+                jd_ss = self._sun_setting(ve_jd-1, *self._BAHAI_LOCATION[:3])
 
             # Make the Badi date for the beginning of the year.
             b_date = (g_year - self.TRAN_COFF, 1, 1)
@@ -1133,7 +1133,7 @@ class DateTests(BahaiCalendar):
             assert year == (last_year + 1), (
                 f"last_year: {last_year}, current year {year}")
             jd = self.gc.jd_from_gregorian_date(date)
-            jd += self.BAHAI_LOCATION[2] / 24 # 3.5 hours for Tehran time
+            jd += self._BAHAI_LOCATION[2] / 24 # 3.5 hours for Tehran time
             data[year] = jd
             last_year = year
 

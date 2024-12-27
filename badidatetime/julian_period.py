@@ -24,21 +24,21 @@ class JulianPeriod:
     # January 1, 2000, 11:59:27.816 TAI (International Atomic Time)
     # January 1, 2000, 11:58:55.816 UTC (Coordinated Universal Time)
     # See: https://aa.usno.navy.mil/faq/sun_approx
-    JULIAN_EPOCH = 0 # This is the actual Julian Epoch
-    J2000 = 2451545.0 # TDT
+    _JULIAN_EPOCH = 0 # This is the actual Julian Epoch
+    _J2000 = 2451545.0 # TDT
     # 28 (solar cycle) × 19 (lunar cycle) × 15 (indiction cycle) = 7980 years
     #JULIAN_PERIOD = 7980
-    JULIAN_YEAR = 365.25
-    JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
+    _JULIAN_YEAR = 365.25
+    _JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
 
     def julian_centuries(self, jde):
         """
         Calculate the Julian centuries from the Julian day.
         """
-        return (jde - self.J2000) / 36525
+        return (jde - self._J2000) / 36525
 
     def julian_millennia(self, jde:float) -> float:
         """
         Calculate the Julian millennia from the Julian day.
         """
-        return (jde - self.J2000) / 365250
+        return (jde - self._J2000) / 365250

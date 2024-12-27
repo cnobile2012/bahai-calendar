@@ -869,7 +869,7 @@ class TimeDateUtils(BahaiCalendar):
             day = int(d) if d.isdigit() else 1
             date = self._isoweek_to_badi(year, wday, day, short=True)[:3]
         elif d_len in (7, 8):                   # YYYYDDD or YYYY-DDD
-            month_days = self.BADI_MONTH_NUM_DAYS
+            month_days = self._BADI_MONTH_NUM_DAYS
             month_days[18] = (0, 4 + self._is_leap_year(year))
             days = int(dtstr[4:7] if dc == 0 else dtstr[5:8])
 

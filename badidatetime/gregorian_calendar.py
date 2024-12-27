@@ -16,11 +16,11 @@ class GregorianCalendar(BaseCalendar):
     """
     # Julian date for the Gregorian epoch
     # https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/calendar_calculations.htm
-    GREGORIAN_EPOCH = 1721423.5
-    MONTHS = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-    GREGORIAN_LEAP_YEAR = lambda self, year: (
+    _GREGORIAN_EPOCH = 1721423.5
+    _MONTHS = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    _GREGORIAN_LEAP_YEAR = lambda self, year: (
         (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
-    GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
+    _GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
         (year % 4 == 0) * (year % 128 != 0) == 1)
 
     def __init__(self) -> None:
@@ -72,14 +72,14 @@ class GregorianCalendar(BaseCalendar):
         year, month, day = self.date_from_ymdhms(g_date)
 
         if exact: # An astronomically correct algorithm
-            GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
-                   else self.GREGORIAN_LEAP_YEAR)
+            GLY = (self._GREGORIAN_LEAP_YEAR_ALT if alt
+                   else self._GREGORIAN_LEAP_YEAR)
             td = self._days_in_years(year-1, alt=alt)
-            days = td + (self.GREGORIAN_EPOCH - 1)
-            month_days = list(self.MONTHS)
+            days = td + (self._GREGORIAN_EPOCH - 1)
+            month_days = list(self._MONTHS)
             month_days[1] += GLY(year)
             days += sum(month_days[:month-1]) + day
-            jd = round(days, self.ROUNDING_PLACES)
+            jd = round(days, self._ROUNDING_PLACES)
         else: # Meeus historically correct algorithm
             if (year, month) == (1582, 10):
                 assert day not in (5, 6, 7, 8, 9, 10, 11, 12, 13, 14), (
@@ -95,9 +95,9 @@ class GregorianCalendar(BaseCalendar):
             else:
                 b = 0
 
-            jd = round(math.floor(self.JULIAN_YEAR * year) + math.floor(
+            jd = round(math.floor(self._JULIAN_YEAR * year) + math.floor(
                 30.6001 * (month + 1)) + day + b + 1720994.5,
-                       self.ROUNDING_PLACES)
+                       self._ROUNDING_PLACES)
 
         return jd
 
@@ -123,12 +123,12 @@ class GregorianCalendar(BaseCalendar):
            by Jean Meeus ch3 p26-29
         """
         if exact: # An astronomically correct algorithm
-            GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
-                   else self.GREGORIAN_LEAP_YEAR)
+            GLY = (self._GREGORIAN_LEAP_YEAR_ALT if alt
+                   else self._GREGORIAN_LEAP_YEAR)
             # Get the number of days since the Gregorian epoch.
-            md = jd - (self.GREGORIAN_EPOCH - 1)
-            year = math.floor(abs(md / self.MEAN_TROPICAL_YEAR)) + 1
-            year *= -1 if md < (self.GREGORIAN_EPOCH - 1) else 1
+            md = jd - (self._GREGORIAN_EPOCH - 1)
+            year = math.floor(abs(md / self._MEAN_TROPICAL_YEAR)) + 1
+            year *= -1 if md < (self._GREGORIAN_EPOCH - 1) else 1
             # Refine the number of days since the epoch for the date.
             td = self._days_in_years(year, alt=alt)
             days = md - td
@@ -143,7 +143,7 @@ class GregorianCalendar(BaseCalendar):
             else:
                 year += 1
 
-            month_days = list(self.MONTHS)
+            month_days = list(self._MONTHS)
             month_days[1] += GLY(year)
             d = day = 0
 
@@ -161,7 +161,7 @@ class GregorianCalendar(BaseCalendar):
                 day = month_days[month-1] + day
                 year -= 1 if month == 12 else 0
 
-            date = (year, month, round(day, self.ROUNDING_PLACES))
+            date = (year, month, round(day, self._ROUNDING_PLACES))
         else: # Meeus algorithm
             j_day = jd + 0.5
             z = math.floor(j_day)
@@ -191,7 +191,7 @@ class GregorianCalendar(BaseCalendar):
             else:
                 year = c - 4715
 
-            date = (year, month, round(day, self.ROUNDING_PLACES))
+            date = (year, month, round(day, self._ROUNDING_PLACES))
 
         return date
 
@@ -221,13 +221,13 @@ class GregorianCalendar(BaseCalendar):
 
         # Find the year and remaining number of days.
         while True:
-            leap = self.GREGORIAN_LEAP_YEAR(year)
+            leap = self._GREGORIAN_LEAP_YEAR(year)
             diy = 365 + leap
             if days < diy: break
             days -= diy
             year += 1
 
-        month_days = list(self.MONTHS)
+        month_days = list(self._MONTHS)
         month_days[1] += leap
         days_before_month = 0
 
@@ -250,7 +250,7 @@ class GregorianCalendar(BaseCalendar):
         microsecond = 0
 
         if us:
-            microsecond = self.PARTIAL_SECOND_TO_MICROSECOND(second)
+            microsecond = self._PARTIAL_SECOND_TO_MICROSECOND(second)
             second = math.floor(second)
 
         #print(f"{t:18.6f} {zone:>+2.2f} {year:02} {month:02} {day:02} "
@@ -290,8 +290,8 @@ class GregorianCalendar(BaseCalendar):
         hour = date[3] if t_len > 3 and date[3] is not None else 0
         minute = date[4] if t_len > 4 and date[4] is not None else 0
         second = date[5] if t_len > 5 and date[5] is not None else 0
-        day += round(self.HR(hour) + self.MN(minute) + self.SEC(second),
-                     self.ROUNDING_PLACES)
+        day += round(self._HR(hour) + self._MN(minute) + self._SEC(second),
+                     self._ROUNDING_PLACES)
         return year, month, day
 
     def ymdhms_from_date(self, date:tuple, us:bool=False) -> tuple:
@@ -339,13 +339,13 @@ class GregorianCalendar(BaseCalendar):
         year = g_date[0]
         month = abs(g_date[1])
         day = abs(g_date[2])
-        LY = (self.JULIAN_LEAP_YEAR if historical and year < 1883
-              else self.GREGORIAN_LEAP_YEAR)
+        LY = (self._JULIAN_LEAP_YEAR if historical and year < 1883
+              else self._GREGORIAN_LEAP_YEAR)
         hour = g_date[3] if t_len > 3 and g_date[3] is not None else 0
         minute = g_date[4] if t_len > 4 and g_date[4] is not None else 0
         second = g_date[5] if t_len > 5 and g_date[5] is not None else 0
         assert 1 <= month <= 12, f"Invalid month '{month}', should be 1 - 12."
-        days = self.MONTHS[month - 1]
+        days = self._MONTHS[month - 1]
 
         if month == 2: # Subtract 0 or 1 from February if leap year.
             days += LY(year)

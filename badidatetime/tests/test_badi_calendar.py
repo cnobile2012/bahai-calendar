@@ -79,7 +79,7 @@ class TestBadiCalendar(unittest.TestCase):
         sunset on fixed date. This results in the UTC time of sunset.
         See: https://gml.noaa.gov/grad/solcalc/
         """
-        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
+        lat, lon, zone = self._bc._BAHAI_LOCATION[:3]
         data = (
             # Should be 1844-03-20T18:14:00
             ((1, 1, 1, 2), None, None, None, True, (18, 17, 26.5632)),
@@ -108,7 +108,7 @@ class TestBadiCalendar(unittest.TestCase):
         """
         Test that the naw_ruz_g_date method returns the correct Badi date.
         """
-        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
+        lat, lon, zone = self._bc._BAHAI_LOCATION[:3]
         data = (
             # 1844-03-19T18:16:36.710400
             (1, lat, lon, zone, False, True, (1844, 3, 19.762113)),
@@ -158,7 +158,7 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the first_day_of_ridvan_g_date method returns Jalál 13th
         in any year.
         """
-        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
+        lat, lon, zone = self._bc._BAHAI_LOCATION[:3]
         data = (
             # 0001-02-13T00:00:00 -> 1844-04-20T18:42:00
             (1, lat, lon, zone, False, True, (1844, 4, 19.780362)),
@@ -314,7 +314,7 @@ class TestBadiCalendar(unittest.TestCase):
               jd_from_gregorian_date method. The former will always be on the
               correct day, but are sumtimes not as accurate as the latter.
         """
-        epoch_coords = self._bc.BAHAI_LOCATION[:3]
+        epoch_coords = self._bc._BAHAI_LOCATION[:3]
         data = (
             # 0001-03-19T18:14:32.5536 -> 1721501.260099
             (1721501.261143, *epoch_coords, False, True, True, False,
@@ -350,7 +350,7 @@ class TestBadiCalendar(unittest.TestCase):
             (2401583.261756, *epoch_coords, False, True, True, False,
              (20, 1, 1)),
             # 1970-01-01T:00:00:00Z -> 2440585.5
-            (self._bc.POSIX_EPOCH, 51.477928, -0.001545, 0, False, True, True,
+            (self._bc._POSIX_EPOCH, 51.477928, -0.001545, 0, False, True, True,
              False, (126, 16, 2, 7, 59, 32.496)),
             # 2015-03-20T18:16:06.9888 -> 2457100.261192
             (2457100.261775, *epoch_coords, False, True, True, False,
@@ -579,7 +579,7 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the gregorian_date_from_badi_date method returns the
         correct Gregorian date.
         """
-        lat, lon, zone = self._bc.BAHAI_LOCATION[:3]
+        lat, lon, zone = self._bc._BAHAI_LOCATION[:3]
         data = (
             # 1844-03-19T18:16:36.710400
             ((1, 1, 1), lat, lon, zone, True,
@@ -619,7 +619,7 @@ class TestBadiCalendar(unittest.TestCase):
         https://www.latlong.net/place/prime-meridian-greenwich-30835.html#:~:text=Prime%20Meridian%20(Greenwich)%20Lat%20Long,%C2%B0%200'%205.5620''%20W.
         """
         local_coords = (35.5894, -78.7792, -5.0)
-        epoch_coords = self._bc.BAHAI_LOCATION[:3]
+        epoch_coords = self._bc._BAHAI_LOCATION[:3]
         data = (
             # 1970-01-01T00:00:00 -> UNIX Epoch at UTC
             # sunset the day before 16:01 lat=51.4769, lon=0, zone=0
@@ -899,7 +899,7 @@ class TestBadiCalendar(unittest.TestCase):
         """
         err_msg0 = "Cannot set more than one of fraction, us, and rtd to True."
         local_coords = (35.5894, -78.7792, -5.0)
-        epoch_coords = self._bc.BAHAI_LOCATION[:3]
+        epoch_coords = self._bc._BAHAI_LOCATION[:3]
         data = (
             # Test where the JD is greater that the sunset.
             (2460733.3, (181, 19, 1), *local_coords, False, False, False,
@@ -961,7 +961,7 @@ class TestBadiCalendar(unittest.TestCase):
         seconds of a day.
         """
         local_coords = (35.5894, -78.7792, -5.0)
-        epoch_coords = self._bc.BAHAI_LOCATION[:3]
+        epoch_coords = self._bc._BAHAI_LOCATION[:3]
         utc_coords = (51.477928, -0.001545, 0) # Greenwich
         data = (
             # BADI epoch location

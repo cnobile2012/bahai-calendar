@@ -8,8 +8,6 @@ import os
 from badidatetime.badi_calendar import BahaiCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
 
-DEBUG = os.getenv('DEBUG', False)
-
 if os.getenv('DEBUG', False):
     from badidatetime import datetime
 else:

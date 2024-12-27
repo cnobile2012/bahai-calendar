@@ -138,7 +138,7 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
     def __init__(self):
         super().__init__()
         self.gc = GregorianCalendar()
-        self.location = self.BAHAI_LOCATION[:3]
+        self.location = self._BAHAI_LOCATION[:3]
         #self.location = (35.682376, 51.285817, 3.5)
 
     def dump_sunset_after_ve(self):
@@ -215,7 +215,7 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
             # Meeus tables UTC times
             ve_utc_day = self.gc.jd_from_gregorian_date(item[1])
             ve_std_date = self.gc.gregorian_date_from_jd(ve_utc_day)
-            rd_ss_day = self._sun_setting(ve_utc_day, *self.BAHAI_LOCATION[:3])
+            rd_ss_day = self._sun_setting(ve_utc_day, *self._BAHAI_LOCATION[:3])
             badi_ss_date = self.gc.gregorian_date_from_jd(rd_ss_day)
             # VE more than 24 hours before sunset.
             hours = True if (rd_ss_day - ve_utc_day) >= 24 else False

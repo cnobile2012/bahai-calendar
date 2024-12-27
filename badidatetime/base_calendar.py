@@ -24,45 +24,45 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     Transformations between Time Systems:
    https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems
     """
-    HR = lambda self, x: x / 24
-    MN = lambda self, x: x / 24 / 60
-    SEC = lambda self, x: x / 24 / 60 / 60
-    MINS = lambda self, x: x / 60
-    SECS = lambda self, x: x / 3600
+    _HR = lambda self, x: x / 24
+    _MN = lambda self, x: x / 24 / 60
+    _SEC = lambda self, x: x / 24 / 60 / 60
+    _MINS = lambda self, x: x / 60
+    _SECS = lambda self, x: x / 3600
     # Convert microseconds to a partial second.
-    US = lambda self, x: x / 1000000
-    ANGLE = lambda self, d, m, s: d + (m + s / 60) / 60 # 0 - 360
-    AMOD = lambda self, x, y: y + x % -y
-    MOD3 = lambda self, x, a, b : x if a == b else (
+    _US = lambda self, x: x / 1000000
+    _ANGLE = lambda self, d, m, s: d + (m + s / 60) / 60 # 0 - 360
+    _AMOD = lambda self, x, y: y + x % -y
+    _MOD3 = lambda self, x, a, b : x if a == b else (
         a + math.fmod((x - a), (b - a)))
-    QUOTIENT = lambda self, m, n: math.floor(m / n)
+    _QUOTIENT = lambda self, m, n: math.floor(m / n)
 
     # The inline functions below will assume that 0 is midnight, if
     # converting from a Julian Period day add 0.5 to the value before
     # calling the function.
-    PARTIAL_DAY_TO_HOURS = lambda self, x: round(
-        (x % 1) * 24, self.ROUNDING_PLACES)
-    PARTIAL_HOUR_TO_MINUTE = lambda self, x: round(
-        (x % 1) * 60, self.ROUNDING_PLACES)
-    PARTIAL_MINUTE_TO_SECOND = PARTIAL_HOUR_TO_MINUTE
-    PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(
-        round(x % 1, self.ROUNDING_PLACES) * 1e6)
+    _PARTIAL_DAY_TO_HOURS = lambda self, x: round(
+        (x % 1) * 24, self._ROUNDING_PLACES)
+    _PARTIAL_HOUR_TO_MINUTE = lambda self, x: round(
+        (x % 1) * 60, self._ROUNDING_PLACES)
+    _PARTIAL_MINUTE_TO_SECOND = _PARTIAL_HOUR_TO_MINUTE
+    _PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(
+        round(x % 1, self._ROUNDING_PLACES) * 1e6)
 
-    MEAN_TROPICAL_YEAR = 365.2421897
+    _MEAN_TROPICAL_YEAR = 365.2421897
     #MEAN_SIDEREAL_YEAR = 365.256363004
 
-    MORNING = True
-    EVENING = False
+    _MORNING = True
+    _EVENING = False
     # Seasons set to degrees.
-    SPRING = 0
-    SUMMER = 90
-    AUTUMN = 180
-    WINTER = 270
-    SUN_OFFSET = 0.8333333333333334
-    STARS_PLANET_OFFSET = 0.5666666666666667
-    ROUNDING_PLACES = 6
-    POSIX_EPOCH = 2440585.5 # This is using the more exact algorithm.
-    JULIAN_CAL_EPOCH = 1721423.5
+    _SPRING = 0
+    _SUMMER = 90
+    _AUTUMN = 180
+    _WINTER = 270
+    _SUN_OFFSET = 0.8333333333333334
+    _STARS_PLANET_OFFSET = 0.5666666666666667
+    _ROUNDING_PLACES = 6
+    _POSIX_EPOCH = 2440585.5 # This is using the more exact algorithm.
+    _JULIAN_CAL_EPOCH = 1721423.5
 
     def __init__(self, *args, **kwargs):
         self._time = None
@@ -225,7 +225,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             self._cos_deg(delta) * self._cos_deg(h)))
 
     def _approx_local_hour_angle(self, tc:float, lat:float,
-                                 offset:float=SUN_OFFSET) -> float:
+                                 offset:float=_SUN_OFFSET) -> float:
         """
         Approximate local hour angle, measured westwards from the south
         in degrees.
@@ -246,7 +246,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                        apparent rising or setting, namely,
                        h0 = -0°34’ = -0°5667 for stars and planets;
                        h0 = -0°50' = -0°8333 for the Sun.
-                       Default is SUN_OFFSET, STARS_PLANET_OFFSET can also
+                       Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can also
                        be used.
         :type offset: float
         :return: The approximat local hour angle in degrees.
@@ -322,7 +322,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return -h / 360
 
     def _sun_rising(self, jd:float, lat:float, lon:float, zone:float=0, *,
-                    exact_tz:bool=False, offset:float=SUN_OFFSET) -> float:
+                    exact_tz:bool=False, offset:float=_SUN_OFFSET) -> float:
         """
         Find the jd for sunrise of the given jd.
 
@@ -343,7 +343,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                        apparent rising or setting, namely,
                        h0 = -0°34’ = -0°5667 for stars and planets;
                        h0 = -0°50' = -0°8333 for the Sun.
-                       Default is SUN_OFFSET, STARS_PLANET_OFFSET can also
+                       Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can also
                        be used.
         :type offset: bool
         :return: The jd moments of the sunrise.
@@ -355,10 +355,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         jd += self._rising_setting(jd, lat, lon, zone, exact_tz=exact_tz,
                                    offset=offset, sr_ss='RISE')
-        return round(jd, self.ROUNDING_PLACES)
+        return round(jd, self._ROUNDING_PLACES)
 
     def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0, *,
-                     exact_tz:bool=False, offset:float=SUN_OFFSET) -> float:
+                     exact_tz:bool=False, offset:float=_SUN_OFFSET) -> float:
         """
         Find the jd for sunset of the given jd.
 
@@ -379,7 +379,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                        apparent rising or setting, namely,
                        h0 = -0°34’ = -0°5667 for stars and planets;
                        h0 = -0°50' = -0°8333 for the Sun.
-                       Default is SUN_OFFSET, STARS_PLANET_OFFSET can also
+                       Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can also
                        be used.
         :type offset: bool
         :return: The jd moments of the sunset.
@@ -391,10 +391,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         jd += self._rising_setting(jd, lat, lon, zone, exact_tz=exact_tz,
                                    offset=offset, sr_ss='SET')
-        return round(jd, self.ROUNDING_PLACES)
+        return round(jd, self._ROUNDING_PLACES)
 
     def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0, *,
-                        exact_tz:bool=False, offset:float=SUN_OFFSET,
+                        exact_tz:bool=False, offset:float=_SUN_OFFSET,
                         sr_ss:str='RISE') -> float:
         """
         Find the jd difference for sunrise or sunset of the given jd.
@@ -416,7 +416,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                        apparent rising or setting, namely,
                        h0 = -0°34’ = -0°5667 for stars and planets;
                        h0 = -0°50' = -0°8333 for the Sun.
-                       Default is SUN_OFFSET, STARS_PLANET_OFFSET can also
+                       Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can also
                        be used.
         :type offset: float
         :param sr_ss: If 'RISE' return the sunrise else return sunset.
@@ -799,7 +799,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         l5 = self._sigma((self._L5_A, self._L5_B, self._L5_C), func)
         l = self._poly(tm, (l0, l1, l2, l3, l4, l5)) / 10**8
         return round(self._coterminal_angle(math.degrees(l)) if degrees else l,
-                     self.ROUNDING_PLACES)
+                     self._ROUNDING_PLACES)
 
     def _heliocentric_ecliptical_latitude(self, tm:float,
                                           degrees:bool=False) -> float:
@@ -824,7 +824,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         b1 = self._sigma((self._B1_A, self._B1_B, self._B1_C), func)
         b = self._poly(tm, (b0, b1)) / 10**8
         return round(self._coterminal_angle(math.degrees(b)) if degrees else b,
-                     self.ROUNDING_PLACES)
+                     self._ROUNDING_PLACES)
 
     def _radius_vector(self, tm:float, degrees:bool=False) -> float:
         """
@@ -851,7 +851,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         r4 = self._sigma((self._R4_A, self._R4_B, self._R4_C), func)
         r = self._poly(tm, (r0, r1, r2, r3, r4)) / 10**8
         return round(self._coterminal_angle(math.degrees(r)) if degrees else r,
-                     self.ROUNDING_PLACES)
+                     self._ROUNDING_PLACES)
 
     def apparent_solar_longitude(self, jde:float, degrees:bool=True) -> float:
         """
@@ -872,7 +872,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         if degrees:
            l = self._coterminal_angle(math.degrees(l))
 
-        return round(l, self.ROUNDING_PLACES)
+        return round(l, self._ROUNDING_PLACES)
 
     def apparent_solar_latitude(self, jde:float, degrees:bool=True) -> float:
         """
@@ -894,7 +894,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         if degrees:
             b = self._coterminal_angle(math.degrees(b))
 
-        return round(b, self.ROUNDING_PLACES)
+        return round(b, self._ROUNDING_PLACES)
 
     def _aberration(self, tm:float, fixed:bool=True) -> float:
         """
@@ -930,10 +930,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         r = self._radius_vector(tm, degrees=False)
         return round(self.decimal_from_dms(0, 0, -0.005775518 * r * aberration),
-                     self.ROUNDING_PLACES)
+                     self._ROUNDING_PLACES)
 
     def approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
-                                                     lam:int=SPRING) -> float:
+                                                     lam:int=_SPRING) -> float:
         """
         Find the approximate Julian day for the equinoxes or solstices.
 
@@ -942,31 +942,31 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         if g_year <= 1000:
             y = g_year / 1000
 
-            if lam == self.SPRING:
+            if lam == self._SPRING:
                 jde = self._poly(y, (1721139.29189, 365242.1374, 0.06134,
                                      0.00111, -0.00071))
-            elif lam == self.SUMMER:
+            elif lam == self._SUMMER:
                 jde = self._poly(y, (1721233.25401, 365241.72562, -0.05323,
                                      0.00907, 0.00025))
-            elif lam == self.AUTUMN:
+            elif lam == self._AUTUMN:
                 jde = self._poly(y, (1721325.70455, 365242.49558, -0.11677,
                                      -0.00297, 0.00074))
-            else: # lam == self.WINTER:
+            else: # lam == self._WINTER:
                 jde = self._poly(y, (1721414.39987, 365242.88257, -0.00769,
                                      -0.00933, -0.00006))
         else:
             y = (g_year - 2000) / 1000
 
-            if lam == self.SPRING:
+            if lam == self._SPRING:
                 jde = self._poly(y, (2451623.80984, 365242.37404, 0.05169,
                                      -0.00411, -0.00057))
-            elif lam == self.SUMMER:
+            elif lam == self._SUMMER:
                 jde = self._poly(y, (2451716.56767, 365241.62603, 0.00325,
                                      0.00888, -0.0003))
-            elif lam == self.AUTUMN:
+            elif lam == self._AUTUMN:
                 jde = self._poly(y, (2451810.21715, 365242.01767, -0.11575,
                                      0.00337, 0.00078))
-            else: # lam == self.WINTER:
+            else: # lam == self._WINTER:
                 jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
                                      -0.00823, 0.00032))
 
@@ -975,7 +975,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return jde
 
-    def find_moment_of_equinoxes_or_solstices(self, jd:float, lam:int=SPRING,
+    def find_moment_of_equinoxes_or_solstices(self, jd:float, lam:int=_SPRING,
                                               zone:float=0) -> float:
         """
         With the jd and time of year find an equinoxe or solstice at
@@ -1003,8 +1003,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         dl = 1 + 0.0334 * self._cos_deg(w + 0.0007) * self._cos_deg(2*w)
         s = self._sigma((self._EQ_SO_A, self._EQ_SO_B, self._EQ_SO_C),
                         lambda a, b, c: a * self._cos_deg(b + c * tc))
-        jde += (0.00001 * s) / dl + self.HR(zone)
-        return round(jde, self.ROUNDING_PLACES)
+        jde += (0.00001 * s) / dl + self._HR(zone)
+        return round(jde, self._ROUNDING_PLACES)
 
     def decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
                          direction:str='N') -> float:
@@ -1185,14 +1185,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            If a whole number as in 10.5 is passed in, the value to the left
            of the decimal will be stripped off before calculations are done.
         """
-        h = self.PARTIAL_DAY_TO_HOURS(dec)
+        h = self._PARTIAL_DAY_TO_HOURS(dec)
         hour = math.floor(h)
-        m = self.PARTIAL_HOUR_TO_MINUTE(h)
+        m = self._PARTIAL_HOUR_TO_MINUTE(h)
         minute = math.floor(m)
-        second = self.PARTIAL_MINUTE_TO_SECOND(m)
+        second = self._PARTIAL_MINUTE_TO_SECOND(m)
 
         if us:
-            microsec = (self.PARTIAL_SECOND_TO_MICROSECOND(second),)
+            microsec = (self._PARTIAL_SECOND_TO_MICROSECOND(second),)
             second = math.floor(second)
         else:
             microsec = ()
@@ -1227,7 +1227,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         p = second % 1
         s = abs(second) - p
         s *= -1 if second < 0 else 1
-        us = self.PARTIAL_SECOND_TO_MICROSECOND(second)
+        us = self._PARTIAL_SECOND_TO_MICROSECOND(second)
         return math.floor(s), us
 
     def _sin_deg(self, theta:float) -> float:
@@ -1420,7 +1420,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         jd -= 0 if _exact else self._exact_from_meeus(jd)
         # We add 1 because ordinal date representations satrt at 1 not 0.
-        return math.floor(jd - self.JULIAN_CAL_EPOCH) + 1
+        return math.floor(jd - self._JULIAN_CAL_EPOCH) + 1
 
     def _jd_from_ordinal(self, ordinal, *, exact=True):
         """
@@ -1435,5 +1435,5 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :rtype: float
         """
         # We subtract 1 because ordinal date representations satrt at 1 not 0.
-        jd = self.JULIAN_CAL_EPOCH + (ordinal - 1)
+        jd = self._JULIAN_CAL_EPOCH + (ordinal - 1)
         return jd + (0 if exact else self._meeus_from_exact(jd))

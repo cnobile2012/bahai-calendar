@@ -438,7 +438,7 @@ class JulianPeriodTests:
             leap = (self.JULIAN_LEAP_YEAR(year) if year < 1583
                     else self.GREGORIAN_LEAP_YEAR(year))
             location = (alt_lat_lon[year] if year in alt_lat_lon
-                        else self._bc.BAHAI_LOCATION[:3])
+                        else self._bc._BAHAI_LOCATION[:3])
 
             for month, days in enumerate(self.MONTHS, start=1):
                 if month == 2 and not leap:

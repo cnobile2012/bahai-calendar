@@ -46,163 +46,163 @@ class TestBaseCalendar(unittest.TestCase):
         self.gc = GregorianCalendar()
 
     #@unittest.skip("Temporarily skipped")
-    def test_HR(self):
+    def test__HR(self):
         """
-        Test the HR (hour) lambda.
+        Test the _HR (hour) lambda.
         """
         value = 6
-        hr = self.bc.HR(value)
+        hr = self.bc._HR(value)
         expected_hr = 0.25
-        msg = f"HR should be {expected_hr}, found {hr}."
+        msg = f"_HR should be {expected_hr}, found {hr}."
         self.assertEqual(expected_hr, hr, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_MN(self):
+    def test__MN(self):
         """
-        Test the MN (minute) lambda.
+        Test the _MN (minute) lambda.
         """
         value = 6
-        mn = self.bc.MN(value)
+        mn = self.bc._MN(value)
         expected_mn = 0.00416666666666666667
-        msg = f"MN should be {expected_mn}, found {mn}."
+        msg = f"_MN should be {expected_mn}, found {mn}."
         self.assertEqual(expected_mn, mn, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_SEC(self):
+    def test__SEC(self):
         """
-        Test the sec (second) lambda.
+        Test the _SEC (second) lambda.
         """
         value = 6
-        sec = self.bc.SEC(value)
+        sec = self.bc._SEC(value)
         expected_sec = 6.94444444444444444444e-5
-        msg = f"SEC should be {expected_sec}, found {sec}."
+        msg = f"_SEC should be {expected_sec}, found {sec}."
         self.assertEqual(expected_sec, sec, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_MINS(self):
+    def test__MINS(self):
         """
-        Test the MINS (minutes) lambda.
+        Test the _MINS (minutes) lambda.
         """
         value = 6
-        mins = self.bc.MINS(value)
+        mins = self.bc._MINS(value)
         expected_mins = 0.1
-        msg = f"MINS should be {expected_mins}, found {mins}."
+        msg = f"_MINS should be {expected_mins}, found {mins}."
         self.assertEqual(expected_mins, mins, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_SECS(self):
+    def test__SECS(self):
         """
-        Test the SECS (seconds) lambda.
+        Test the _SECS (seconds) lambda.
         """
         value = 6
-        secs = self.bc.SECS(value)
+        secs = self.bc._SECS(value)
         expected_secs = 0.00166666666666666667
-        msg = f"SECS should be {expected_secs}, found {secs}."
+        msg = f"_SECS should be {expected_secs}, found {secs}."
         self.assertEqual(expected_secs, secs, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_ANGLE(self):
+    def test__ANGLE(self):
         """
-        Test the ANGLE (angle) lambda.
+        Test the _ANGLE (angle) lambda.
         """
         d, m, s = (23, 26, 21.448)
-        angle = self.bc.ANGLE(d, m ,s)
+        angle = self.bc._ANGLE(d, m ,s)
         expected_angle = 23.43929111111111
-        msg = f"ANGLE should be {expected_angle}, found {angle}."
+        msg = f"_ANGLE should be {expected_angle}, found {angle}."
         self.assertEqual(expected_angle, angle, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_AMOD(self):
+    def test__AMOD(self):
         """
-        Test the AMOD lambda.
+        Test the _AMOD lambda.
         """
         data = ((2, 2, 2), (5, 2, 1), (5, -2, -1))
         msg = "Expected {} with args '{}, {}', found {}"
 
         for x, y, expected_result in data:
-            result = self.bc.AMOD(x, y)
+            result = self.bc._AMOD(x, y)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, x, y, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_MOD3(self):
+    def test__MOD3(self):
         """
-        Test the MOD3 (modular three) lambda.
+        Test the _MOD3 (modular three) lambda.
         """
         # Test a == b
         x, a, b = (25, 25, 100)
-        mod3 = self.bc.MOD3(x, a ,b)
+        mod3 = self.bc._MOD3(x, a ,b)
         expected_mod3 = x if a == b else a + (x - a) % (b - a)
-        msg = f"MOD3 should be {expected_mod3}, found {mod3}."
+        msg = f"_MOD3 should be {expected_mod3}, found {mod3}."
         self.assertEqual(expected_mod3, mod3, msg)
         # Test a != b
         x, a, b = (25, 10, 100)
-        mod3 = self.bc.MOD3(x, a ,b)
+        mod3 = self.bc._MOD3(x, a ,b)
         expected_mod3 = x if a == b else a + (x - a) % (b - a)
-        msg = f"MOD3 should be {expected_mod3}, found {mod3}."
+        msg = f"_MOD3 should be {expected_mod3}, found {mod3}."
         self.assertEqual(expected_mod3, mod3, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_PARTIAL_DAY_TO_HOURS(self):
+    def test__PARTIAL_DAY_TO_HOURS(self):
         """
-        Test that the PARTIAL_DAY_TO_HOURS lambda returns the correct hours.
+        Test that the _PARTIAL_DAY_TO_HOURS lambda returns the correct hours.
         """
         day = 1.5
         expected_result = 12
-        result = self.bc.PARTIAL_DAY_TO_HOURS(day)
-        msg = (f"PARTIAL_DAY_TO_HOURS should be {expected_result}, "
+        result = self.bc._PARTIAL_DAY_TO_HOURS(day)
+        msg = (f"_PARTIAL_DAY_TO_HOURS should be {expected_result}, "
                f"found (result).")
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_PARTIAL_HOUR_TO_MINUTE(self):
+    def test__PARTIAL_HOUR_TO_MINUTE(self):
         """
-        Test that the PARTIAL_HOUR_TO_MINUTE lambda returns the correct
+        Test that the _PARTIAL_HOUR_TO_MINUTE lambda returns the correct
         minutes.
         """
         day = 1.5
         expected_result = 30
-        result = self.bc.PARTIAL_HOUR_TO_MINUTE(day)
-        msg = (f"PARTIAL_HOUR_TO_MINUTE should be {expected_result}, "
+        result = self.bc._PARTIAL_HOUR_TO_MINUTE(day)
+        msg = (f"_PARTIAL_HOUR_TO_MINUTE should be {expected_result}, "
                f"found (result).")
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_PARTIAL_MINUTE_TO_SECOND(self):
+    def test__PARTIAL_MINUTE_TO_SECOND(self):
         """
-        Test that the PARTIAL_MINUTE_TO_SECOND lambda returns the correct
+        Test that the _PARTIAL_MINUTE_TO_SECOND lambda returns the correct
         seconds.
         """
         day = 1.5
         expected_result = 30
-        result = self.bc.PARTIAL_MINUTE_TO_SECOND(day)
-        msg = (f"PARTIAL_MINUTE_TO_SECOND should be {expected_result}, "
+        result = self.bc._PARTIAL_MINUTE_TO_SECOND(day)
+        msg = (f"_PARTIAL_MINUTE_TO_SECOND should be {expected_result}, "
                f"found (result).")
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_PARTIAL_SECOND_TO_MICROSECOND(self):
+    def test__PARTIAL_SECOND_TO_MICROSECOND(self):
         """
-        Test that the PARTIAL_SECOND_TO_MICROSECOND lambda returns the
+        Test that the _PARTIAL_SECOND_TO_MICROSECOND lambda returns the
         correct microseconds.
         """
         day = 1.5
         expected_result = 500000
-        result = self.bc.PARTIAL_SECOND_TO_MICROSECOND(day)
-        msg = (f"PARTIAL_SECOND_TO_MICROSECOND should be {expected_result}, "
+        result = self.bc._PARTIAL_SECOND_TO_MICROSECOND(day)
+        msg = (f"_PARTIAL_SECOND_TO_MICROSECOND should be {expected_result}, "
                f"found (result).")
         self.assertEqual(expected_result, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_QUOTIENT(self):
+    def test__QUOTIENT(self):
         """
-        Test the QUOTIENT (divid, floor, int) lambda,
+        Test the _QUOTIENT (divid, floor, int) lambda,
         """
         m = 19
         n = 2
-        quotient = self.bc.QUOTIENT(m, n)
+        quotient = self.bc._QUOTIENT(m, n)
         expected_quotient = int(math.floor(m / n))
-        msg = f"QUOTIENT should be {expected_quotient}, found {quotient}."
+        msg = f"_QUOTIENT should be {expected_quotient}, found {quotient}."
         self.assertEqual(expected_quotient, quotient, msg)
 
     #@unittest.skip("Temporarily skipped")
@@ -358,7 +358,7 @@ class TestBaseCalendar(unittest.TestCase):
 
         The variable 'self.bc.latitude' is the latitude in Tehran Iran.
         """
-        offset = self.bc.SUN_OFFSET
+        offset = self.bc._SUN_OFFSET
         data = (
             ((1844, 3, 20), self.bc.latitude, offset, 90.89234108635455),
             ((1988, 3, 20), 42.3333, offset, 90.98306896131454), # AA Ex15.a
@@ -475,21 +475,21 @@ class TestBaseCalendar(unittest.TestCase):
             # AA Ex.15.a  at Boston, US
             # JD        Latitude Longitude zone  exact
             (2447240.5, 42.3333, -71.0833, -5.0, False,
-             self.bc.STARS_PLANET_OFFSET,
+             self.bc._STARS_PLANET_OFFSET,
              (0.24210617024415584, 0.7468650828479303)),
             # 2024-03-20T00:00:00 -- (0.250694 = 6:01 am, 0.759027 = 6:13 pm)
           # https://www.timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
             # In Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
-            (2460389.5, 51.477928, -0.001545, 0, False, self.bc.SUN_OFFSET,
+            (2460389.5, 51.477928, -0.001545, 0, False, self.bc._SUN_OFFSET,
              (0.25124811609282555, 0.759618623423145)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
             # https://www.timeanddate.com/sun/@112931?month=3&year=2024
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 35.696111, 51.423056, 3.5, False, self.bc.SUN_OFFSET,
+            (2460389.5, 35.696111, 51.423056, 3.5, False, self.bc._SUN_OFFSET,
              (0.2553156470420874, 0.7612822588083131)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 35.696111, 51.423056, 0, True, self.bc.SUN_OFFSET,
+            (2460389.5, 35.696111, 51.423056, 0, True, self.bc._SUN_OFFSET,
              (0.25232413593097636, 0.7582907476972021)),
             )
         msg = "Expected {}, for jd {}, zone {}, exact_tz {}, found {}."
@@ -1004,14 +1004,14 @@ class TestBaseCalendar(unittest.TestCase):
         returns a Julian day of the equinoxes or solstices.
         """
         data = (
-            (500, self.bc.SPRING, 1903760.376019375),
-            (500, self.bc.SUMMER, 1903854.104661875),
-            (500, self.bc.AUTUMN, 1903946.9228224999),
-            (500, self.bc.WINTER, 1904035.8380625),
-            (2000, self.bc.SPRING, 2451623.80984),
-            (2000, self.bc.SUMMER, 2451716.56767),
-            (2000, self.bc.AUTUMN, 2451810.21715),
-            (2000, self.bc.WINTER, 2451900.05952),
+            (500, self.bc._SPRING, 1903760.376019375),
+            (500, self.bc._SUMMER, 1903854.104661875),
+            (500, self.bc._AUTUMN, 1903946.9228224999),
+            (500, self.bc._WINTER, 1904035.8380625),
+            (2000, self.bc._SPRING, 2451623.80984),
+            (2000, self.bc._SUMMER, 2451716.56767),
+            (2000, self.bc._AUTUMN, 2451810.21715),
+            (2000, self.bc._WINTER, 2451900.05952),
             )
         msg = "Expected {}, for year {} at angle {}, found {}."
 
@@ -1027,13 +1027,13 @@ class TestBaseCalendar(unittest.TestCase):
         Test that the find_moment_of_equinoxes_or_solstices method returns
         the correct equinoxe and solstice R.D. moments for the given years.
         """
-        SP = self.bc.SPRING
-        SM = self.bc.SUMMER
-        AU = self.bc.AUTUMN
-        WN = self.bc.WINTER
+        SP = self.bc._SPRING
+        SM = self.bc._SUMMER
+        AU = self.bc._AUTUMN
+        WN = self.bc._WINTER
         seasons = {SP: 'SPRING', SM: 'SUMMER', AU: 'AUTUMN', WN: 'WINTER'}
         data = (
-            # Vernal Equinoxe
+            # Vernal Equinox
             ((900, 3, 1), SP, (900, 3, 15, 18, 19, 15.6864)),
             ((1788, 3, 19, 22, 16), SP, (1788, 3, 19, 22, 16, 44.9472)),
             ((1844, 3, 20, 11, 53), SP, (1844, 3, 20, 11, 53, 50.208)),

@@ -28,7 +28,7 @@ class PosixTests:
     Out[19]: datetime.datetime(1970, 1, 1, 0, 0)
     """
     GMT_COORD = datetime.GMT_COORD
-    BADI_COORD = BahaiCalendar.BAHAI_LOCATION[:3]
+    BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
     # Force standard time in US/Eastern (America/New_York)
     # so test works all year.
     LOCAL_COORD = datetime.LOCAL_COORD[:2] + (-5,)

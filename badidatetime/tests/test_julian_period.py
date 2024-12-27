@@ -31,7 +31,7 @@ class TestJulianPeriod(unittest.TestCase):
         data = (
             (2394646.5, -1.5577960301163587), # Badi epoch
             (1721425.5, -19.98958247775496),
-            (self._jp.J2000, 0.0),
+            (self._jp._J2000, 0.0),
             )
         msg = "Expected {} for jd {}, found {}"
 
@@ -49,7 +49,7 @@ class TestJulianPeriod(unittest.TestCase):
         data = (
             (2394646.5, -0.15577960301163587),
             (1721425.5, -1.9989582477754961),
-            (self._jp.J2000, 0.0),
+            (self._jp._J2000, 0.0),
             )
         msg = "Expected {} for jd {}, found {}"
 

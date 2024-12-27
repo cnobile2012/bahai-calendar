@@ -30,16 +30,16 @@ class TestGregorianCalendar(unittest.TestCase):
         self._gc = GregorianCalendar()
 
     #@unittest.skip("Temporarily skipped")
-    def test_GREGORIAN_LEAP_YEAR(self):
+    def test__GREGORIAN_LEAP_YEAR(self):
         """
-        Test that the lambda GREGORIAN_LEAP_YEAR function correctly
+        Test that the lambda _GREGORIAN_LEAP_YEAR function correctly
         determines the Gregorian leap year.
         """
         years = ((1844, True), (1951, False), (2064, True), (2100, False))
         msg = "Expected {} for year {}, found {}"
 
         for year, value in years:
-            result = self._gc.GREGORIAN_LEAP_YEAR(year)
+            result = self._gc._GREGORIAN_LEAP_YEAR(year)
             self.assertEqual(value, result, msg.format(value, year, result))
 
     #@unittest.skip("Temporarily skipped")
@@ -339,9 +339,9 @@ class TestGregorianCalendar(unittest.TestCase):
             if validity:
                 # Test correct dates
                 for m in range(1, 13):
-                    for days in range(self._gc.MONTHS[m - 1]):
+                    for days in range(self._gc._MONTHS[m - 1]):
                         if m == 2: # Subtract 0 or 1 from Febuary if leap year.
-                            days -= (0 if self._gc.GREGORIAN_LEAP_YEAR(year)
+                            days -= (0 if self._gc._GREGORIAN_LEAP_YEAR(year)
                                      else 1)
 
                         for d in range(1, days + 1):
