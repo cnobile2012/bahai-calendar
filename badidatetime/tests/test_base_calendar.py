@@ -220,9 +220,9 @@ class TestBaseCalendar(unittest.TestCase):
                                         self.bc.time_representation)]), msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_delta_t(self):
+    def test__delta_t(self):
         """
-        Test that the delta_t method returns the correct delta T value
+        Test that the _delta_t method returns the correct delta T value
         for converting between UT and DT time.
 
         To check for valid values see: https://planetcalc.com/9200/
@@ -255,7 +255,7 @@ class TestBaseCalendar(unittest.TestCase):
 
         for g_date, seconds, expected_result in data:
             jde = self.gc.jd_from_gregorian_date(g_date)
-            result = self.bc.delta_t(jde, seconds=seconds)
+            result = self.bc._delta_t(jde, seconds=seconds)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, seconds, result))
 
@@ -275,7 +275,7 @@ class TestBaseCalendar(unittest.TestCase):
 
         for g_date, expected_result in data:
             jde = self.gc.jd_from_gregorian_date(g_date)
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.gc._mean_sidereal_time_greenwich(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
@@ -297,7 +297,7 @@ class TestBaseCalendar(unittest.TestCase):
 
         for g_date, expected_result in data:
             jde = self.gc.jd_from_gregorian_date(g_date)
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.gc._apparent_sidereal_time_greenwich(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
@@ -330,9 +330,9 @@ class TestBaseCalendar(unittest.TestCase):
 
         for g_date, lat, lon, expected_result in data:
             jd = self.gc.jd_from_gregorian_date(g_date)
-            tc = self.bc.julian_centuries(jd)
+            tc = self.bc._julian_centuries(jd)
             ast = self.bc._apparent_sidereal_time_greenwich(tc)
-            dt = self.gc.delta_t(jd)
+            dt = self.gc._delta_t(jd)
             jde = jd + dt
             # Find alpha
             ara = self.bc._sun_apparent_right_ascension(tc)
@@ -373,7 +373,7 @@ class TestBaseCalendar(unittest.TestCase):
 
         for g_date, lat, offset, expected_result in data:
             jde = self.gc.jd_from_gregorian_date(g_date)
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.bc._approx_local_hour_angle(tc, lat, offset)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
@@ -520,7 +520,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.bc._nutation_longitude(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -540,7 +540,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.bc._nutation_obliquity(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -563,7 +563,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, degrees, expected_result in data:
-            t = self.bc.julian_centuries(jde)
+            t = self.bc._julian_centuries(jde)
             result = self.bc._nutation_obliquity_longitude(t, degrees=degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -580,7 +580,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self.bc.julian_centuries(jde)
+            t = self.bc._julian_centuries(jde)
             result = self.bc._moon_mean_anomaly(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -597,7 +597,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self.bc.julian_centuries(jde)
+            t = self.bc._julian_centuries(jde)
             result = self.bc._moon_latitude(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -621,7 +621,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self.bc.julian_centuries(jde)
+            t = self.bc._julian_centuries(jde)
             result = self.bc._sun_earth_mean_anomaly(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -638,7 +638,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self.bc.julian_centuries(jde)
+            t = self.bc._julian_centuries(jde)
             result = self.bc._mean_moon_elongation(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -660,7 +660,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self.bc.julian_centuries(jde)
+            t = self.bc._julian_centuries(jde)
             result = self.bc._moon_ascending_node_longitude(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -682,7 +682,7 @@ class TestBaseCalendar(unittest.TestCase):
 
         for g_date, expected_result in data:
             jde = self.gc.jd_from_gregorian_date(g_date)
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.gc._true_obliquity_of_ecliptic(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, g_date, result))
@@ -700,7 +700,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.bc._sun_mean_longitude(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -718,7 +718,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self.bc.julian_centuries(jde)
+            t = self.bc._julian_centuries(jde)
             result = self.bc._eccentricity_earth_orbit(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -735,7 +735,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.bc._sun_apparent_longitude(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -755,7 +755,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            t = self.bc.julian_centuries(jde)
+            t = self.bc._julian_centuries(jde)
             result = self.bc._sun_equation_of_center(t)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -772,7 +772,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.bc._sun_true_longitude(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -796,7 +796,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            tc = self.bc.julian_centuries(jde)
+            tc = self.bc._julian_centuries(jde)
             result = self.bc._sun_apparent_right_ascension(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -821,7 +821,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jd, expected_result in data:
-            tc = self.bc.julian_centuries(jd)
+            tc = self.bc._julian_centuries(jd)
             result = self.bc._sun_apparent_declination(tc)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, result))
@@ -841,7 +841,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, degrees, expected_result in data:
-            tm = self.bc.julian_millennia(jde)
+            tm = self.bc._julian_millennia(jde)
             result = self.bc._heliocentric_ecliptical_longitude(tm, degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -861,7 +861,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, degrees, expected_result in data:
-            tm = self.bc.julian_millennia(jde)
+            tm = self.bc._julian_millennia(jde)
             result = self.bc._heliocentric_ecliptical_latitude(tm, degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
@@ -880,15 +880,15 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, degrees, expected_result in data:
-            tm = self.bc.julian_millennia(jde)
+            tm = self.bc._julian_millennia(jde)
             result = self.bc._radius_vector(tm, degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_apparent_solar_longitude(self):
+    def test__apparent_solar_longitude(self):
         """
-        Test that the apparent_solar_longitude method returns the
+        Test that the _apparent_solar_longitude method returns the
         longitude of sun at moment tee.
 
         Equinox & Solstice Calculator
@@ -958,14 +958,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            result = self.bc.apparent_solar_longitude(jde)
+            result = self.bc._apparent_solar_longitude(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_apparent_solar_latitude(self):
+    def test__apparent_solar_latitude(self):
         """
-        Test that the apparent_solar_latitudemethod returns the correct values.
+        Test that the _apparent_solar_latitudemethod returns the correct values.
         """
         data = (
             # 1992-10-13T00:00:00 DT -- 0.000172 AA Ex.25.b
@@ -974,7 +974,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jde {}, found {}."
 
         for jde, expected_result in data:
-            result = self.bc.apparent_solar_latitude(jde)
+            result = self.bc._apparent_solar_latitude(jde)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jde, result))
 
@@ -992,15 +992,15 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jd {}, found {}."
 
         for jd, fixed, expected_result in data:
-            tm = self.bc.julian_millennia(jd)
+            tm = self.bc._julian_millennia(jd)
             result = self.bc._aberration(tm, fixed=fixed)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_approx_julian_day_for_equinoxes_or_solstices(self):
+    def test__approx_julian_day_for_equinoxes_or_solstices(self):
         """
-        Test that the approx_julian_day_for_equinoxes_or_solstices method
+        Test that the _approx_julian_day_for_equinoxes_or_solstices method
         returns a Julian day of the equinoxes or solstices.
         """
         data = (
@@ -1016,15 +1016,15 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for year {} at angle {}, found {}."
 
         for year, season, expected_result in data:
-            result = self.bc.approx_julian_day_for_equinoxes_or_solstices(
+            result = self.bc._approx_julian_day_for_equinoxes_or_solstices(
                 year, lam=season)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, season, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_find_moment_of_equinoxes_or_solstices(self):
+    def test__find_moment_of_equinoxes_or_solstices(self):
         """
-        Test that the find_moment_of_equinoxes_or_solstices method returns
+        Test that the _find_moment_of_equinoxes_or_solstices method returns
         the correct equinoxe and solstice R.D. moments for the given years.
         """
         SP = self.bc._SPRING
@@ -1077,7 +1077,7 @@ class TestBaseCalendar(unittest.TestCase):
 
         for date, season, expected_result in data:
             jde = self.gc.jd_from_gregorian_date(date)
-            result = self.bc.find_moment_of_equinoxes_or_solstices(
+            result = self.bc._find_moment_of_equinoxes_or_solstices(
                 jde, lam=season)
             result = self.gc.gregorian_date_from_jd(result)
             result = self.gc.ymdhms_from_date(result)
@@ -1086,9 +1086,9 @@ class TestBaseCalendar(unittest.TestCase):
                 msg.format(expected_result, seasons[season], result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_decimal_from_dms(self):
+    def test__decimal_from_dms(self):
         """
-        Test that the method decimal_from_dms correctly converts degrees,
+        Test that the method _decimal_from_dms correctly converts degrees,
         minutes, and seconds into a decimal number.
 
         https://warble.com/blog/2017/11/05/virtually-hovering-over-holy-places/
@@ -1113,14 +1113,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with '{}', found {}."
 
         for args, expected_result in data:
-            result = self.bc.decimal_from_dms(*args)
+            result = self.bc._decimal_from_dms(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_dms_from_decimal(self):
+    def test__dms_from_decimal(self):
         """
-        Test that the dms_from_degrees method correctly converts a decimal
+        Test that the _dms_from_decimal method correctly converts a decimal
         representation of a latitude or longitude into degrees, minutes,
         and seconds.
         """
@@ -1141,14 +1141,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with '{}', found {}."
 
         for args, expected_result in data:
-            result = self.bc.dms_from_decimal(*args)
+            result = self.bc._dms_from_decimal(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_degrees_from_hms(self):
+    def test__degrees_from_hms(self):
         """
-        Test that the degrees_from_hms method converts hours, minutes,
+        Test that the _degrees_from_hms method converts hours, minutes,
         and seconds into degrees properly.
         """
         data = (
@@ -1159,14 +1159,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with h,m,s {}, found {}."
 
         for args, expected_result in data:
-            result = self.bc.degrees_from_hms(*args)
+            result = self.bc._degrees_from_hms(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_hms_from_degrees(self):
+    def test__hms_from_degrees(self):
         """
-        Test that the hms_from_degrees method converts degrees to hours,
+        Test that the _hms_from_degrees method converts degrees to hours,
         minutes, and seconds properly.
         """
         data = (
@@ -1177,14 +1177,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with degrees {}, found {}."
 
         for degrees, expected_result in data:
-            result = self.bc.hms_from_degrees(degrees)
+            result = self.bc._hms_from_degrees(degrees)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, degrees, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_seconds_from_dhms(self):
+    def test__seconds_from_dhms(self):
         """
-        Test that the seconds_from_dhms method converts hours minutes,
+        Test that the _seconds_from_dhms method converts hours minutes,
         and seconds to seconds.
         """
         data = (
@@ -1194,14 +1194,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with h,m,s {}, found {}."
 
         for args, expected_result in data:
-            result = self.bc.seconds_from_dhms(*args)
+            result = self.bc._seconds_from_dhms(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_dhms_from_seconds(self):
+    def test__dhms_from_seconds(self):
         """
-        Test that the dhms_from_seconds method converts seconds into
+        Test that the _dhms_from_seconds method converts seconds into
         hours, minutes, and seconds properly.
         """
         data = (
@@ -1211,14 +1211,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with seconds {}, found {}."
 
         for seconds, expected_result in data:
-            result = self.bc.dhms_from_seconds(seconds)
+            result = self.bc._dhms_from_seconds(seconds)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, seconds, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_tz_decimal_from_dhms(self):
+    def test__tz_decimal_from_dhms(self):
         """
-        Test that the tz_decimal_from_dhms method converts hours, minutes,
+        Test that the _tz_decimal_from_dhms method converts hours, minutes,
         and seconds of a time zone to a decimal number representing degrees.
         """
         data = (
@@ -1228,14 +1228,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with h,m,s {}, found {}."
 
         for args, expected_result in data:
-            result = self.bc.tz_decimal_from_dhms(*args)
+            result = self.bc._tz_decimal_from_dhms(*args)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, args, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_tz_dhms_from_decimal(self):
+    def test__tz_dhms_from_decimal(self):
         """
-        Test that the tz_dhms_from_decimal method returns converts a
+        Test that the _tz_dhms_from_decimal method returns converts a
         decimal number to hours, minutes, and seconds.
         """
         data = (
@@ -1245,14 +1245,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with decimal {}, found {}."
 
         for dec, expected_result in data:
-            result = self.bc.tz_dhms_from_decimal(dec)
+            result = self.bc._tz_dhms_from_decimal(dec)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, dec, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_hms_from_decimal_day(self):
+    def test__hms_from_decimal_day(self):
         """
-        Test that the hms_from_decimal_day method returns hours, minutes,
+        Test that the _hms_from_decimal_day method returns hours, minutes,
         and seconds deom a decimal number.
         """
         data = (
@@ -1266,14 +1266,14 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with decimal {} and us {}, found {}."
 
         for dec, us, expected_result in data:
-            result = self.bc.hms_from_decimal_day(dec, us=us)
+            result = self.bc._hms_from_decimal_day(dec, us=us)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, dec, us, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_decimal_day_from_hms(self):
+    def test__decimal_day_from_hms(self):
         """
-        Test that the decimal_day_from_hms method returns the correct
+        Test that the _decimal_day_from_hms method returns the correct
         decimal part of the day.
         """
         data = (
@@ -1285,7 +1285,7 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {} with hms {}, found {}."
 
         for hms, expected_result in data:
-            result = self.bc.decimal_day_from_hms(*hms)
+            result = self.bc._decimal_day_from_hms(*hms)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, hms, result))
 

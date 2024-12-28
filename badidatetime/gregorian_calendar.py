@@ -320,7 +320,7 @@ class GregorianCalendar(BaseCalendar):
         total_seconds = ((hour * 3600) + (minute * 60) + second +
                          (microsec / 1e6))
         day += total_seconds / 86400
-        hhmmssus = self.hms_from_decimal_day(day, us=us)
+        hhmmssus = self._hms_from_decimal_day(day, us=us)
         return (year, month, math.floor(day)) + hhmmssus
 
     def _check_valid_gregorian_month_day(self, g_date:tuple,

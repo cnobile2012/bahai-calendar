@@ -21,7 +21,7 @@ class OddsAndEnds:
     MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
               12, 13, 14, 15, 16, 17, 18, 0, 19)
     LOCAL_COORDS = (35.5894, -78.7792, -5.0)
-    BADI_COORDS = BahaiCalendar.BAHAI_LOCATION[:3]
+    BADI_COORDS = BahaiCalendar._BAHAI_LOCATION[:3]
     tz0 = ZoneInfo('Asia/Tehran')
     tz1 = ZoneInfo('US/Eastern')
     GREG_POSIX_DATES = (
@@ -54,7 +54,6 @@ class OddsAndEnds:
 
     def find_posix_time(self, options):
         """
-
         """
         data = []
 
@@ -71,14 +70,14 @@ class OddsAndEnds:
             # Add the before midnight fraction to the fractional part of
             # the Gregorian day minus 0.5.
             total_frac = bm_frac + (m_jd % 1 - 0.5)
-            hms = self._bc.hms_from_decimal_day(total_frac)
+            hms = self._bc._hms_from_decimal_day(total_frac)
             full_date0 = b_date[:3] + hms
             full_date1 = b_date[:3] + (None, None) + hms
             greg_ts = dtime(*date, tzinfo=tz).timestamp()
 
             #print(full_date0, full_date1, file=sys.stderr)
 
-            badi_ts = datetime.datetime(*full_date1, tzinfo=tz).timestamp()
+            badi_ts = datetime(*full_date1, tzinfo=tz).timestamp()
             diff = round(badi_ts - greg_ts, 6)
             data.append((date, b_date, hms, full_date0, greg_ts, badi_ts, diff))
 

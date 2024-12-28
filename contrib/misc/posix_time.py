@@ -15,7 +15,9 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from badidatetime import BahaiCalendar, GregorianCalendar, datetime
+from badidatetime import (BahaiCalendar, GregorianCalendar, datetime,
+                          timezone, timedelta, GMT_COORD, BADI_COORD,
+                          LOCAL_COORD)
 
 
 class PosixTests:
@@ -27,14 +29,13 @@ class PosixTests:
     In [18]: dtime.datetime.fromtimestamp(18000) This -5 hours from UTC time.
     Out[19]: datetime.datetime(1970, 1, 1, 0, 0)
     """
-    GMT_COORD = datetime.GMT_COORD
-    BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
+    #BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
     # Force standard time in US/Eastern (America/New_York)
     # so test works all year.
-    LOCAL_COORD = datetime.LOCAL_COORD[:2] + (-5,)
+    #LOCAL_COORD = datetime.LOCAL_COORD[:2] + (-5,)
 
     UTC_US_E_TZ = dtime.timezone(dtime.timedelta(hours=-5))
-    BADI_US_E_TZ = datetime.timezone(datetime.timedelta(hours=-5))
+    BADI_US_E_TZ = timezone(timedelta(hours=-5))
 
     TEST_TS = (
         ((1970, 1, 1), (126, 16, 2, None, None, 7, 58, 31.4976), BADI_US_E_TZ,
@@ -58,7 +59,7 @@ class PosixTests:
         for g_date, b_date, tb_tz, expected_result, in self.TEST_TS:
             gdt = dtime.datetime(*g_date)
             gt = gdt.timestamp()
-            bdt = datetime.datetime(*b_date, tzinfo=tb_tz)
+            bdt = datetime(*b_date, tzinfo=tb_tz)
             bt = bdt.timestamp()
             #            Greg    Greg TS Badi    Badi TZ  Badi TS
             data.append((g_date, gt,     b_date, tb_tz,   bt))

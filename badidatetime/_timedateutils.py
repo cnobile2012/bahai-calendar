@@ -303,8 +303,8 @@ class TimeDateUtils(BahaiCalendar):
         noon. Then determine which side of noon the current Badi time is on.
         """
         midday_frac = self._find_midday(ttup)
-        time_frac = self.decimal_day_from_hms(ttup.tm_hour, ttup.tm_min,
-                                              ttup.tm_sec)
+        time_frac = self._decimal_day_from_hms(ttup.tm_hour, ttup.tm_min,
+                                               ttup.tm_sec)
 
         if midday_frac <= time_frac:
             hour = ttup.tm_hour - 12
@@ -363,8 +363,8 @@ class TimeDateUtils(BahaiCalendar):
         """
         """
         midday_frac = self._find_midday(ttup)
-        time_frac = self.decimal_day_from_hms(ttup.tm_hour, ttup.tm_min,
-                                              ttup.tm_sec)
+        time_frac = self._decimal_day_from_hms(ttup.tm_hour, ttup.tm_min,
+                                               ttup.tm_sec)
 
         if midday_frac <= time_frac:
             st = self.pm

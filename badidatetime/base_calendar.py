@@ -85,7 +85,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # Meeus Astronomical Algorithms
     #
 
-    def delta_t(self, jd:float, *, seconds:bool=False) -> float:
+    def _delta_t(self, jd:float, *, seconds:bool=False) -> float:
         """
         Calculate the value of ΔT = TD − UT, for TD = ΔT + UT, and for
         UT = ΔT - TD. Only the year and month are considered, days, hours,
@@ -299,14 +299,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             f"and exact_tz: {exact_tz}.")
         zone = zone if not exact_tz else lon / 15
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
-        tc = self.julian_centuries(jd)
-        dt = self.delta_t(jd)
+        tc = self._julian_centuries(jd)
+        dt = self._delta_t(jd)
         tc_td = dt / 36525 + tc  # Compensate for the Julian Century
         alpha = self._sun_apparent_right_ascension(tc_td)
         ast = self._apparent_sidereal_time_greenwich(tc)
         m = func0((alpha - lon - ast) / 360)
         md = self._transit_correction(tc, ast, dt, lon, m)
-        m += md + self.tz_decimal_from_dhms(0, zone, 0, 0)
+        m += md + self._tz_decimal_from_dhms(0, zone, 0, 0)
         return m
 
     def _transit_correction(self, tc, ast, dt, lon, m):
@@ -438,8 +438,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         assert sr_ss in flags, (
             f"Invalid value, should be one of '{flag}' found '{sr_ss}'.")
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
-        tc = self.julian_centuries(jd)
-        dt = self.delta_t(jd)
+        tc = self._julian_centuries(jd)
+        dt = self._delta_t(jd)
         tc_td = dt / 36525 + tc # Compensate for the Julian Century
         alpha = self._sun_apparent_right_ascension(tc_td)
         delta = self._sun_apparent_declination(tc_td)
@@ -454,7 +454,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             m += dm
             if abs(dm) < 0.0001: break
 
-        m += self.tz_decimal_from_dhms(0, zone, 0, 0)
+        m += self._tz_decimal_from_dhms(0, zone, 0, 0)
         return m % 1
 
     def _rise_set_correction(self, tc, ast, dt, lat, lon, m, offset):
@@ -853,13 +853,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return round(self._coterminal_angle(math.degrees(r)) if degrees else r,
                      self._ROUNDING_PLACES)
 
-    def apparent_solar_longitude(self, jde:float, degrees:bool=True) -> float:
+    def _apparent_solar_longitude(self, jde:float, degrees:bool=True) -> float:
         """
         Find the apparent solar longitude.
 
         Meeus--AA ch.25 p.166
         """
-        tm = self.julian_millennia(jde)
+        tm = self._julian_millennia(jde)
         l = self._heliocentric_ecliptical_longitude(tm, degrees=False)
         l += math.pi
         # Convert to FK5 notation
@@ -874,18 +874,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return round(l, self._ROUNDING_PLACES)
 
-    def apparent_solar_latitude(self, jde:float, degrees:bool=True) -> float:
+    def _apparent_solar_latitude(self, jde:float, degrees:bool=True) -> float:
         """
         Find the apparent solar latitude.
 
         Meeus--AA ch.25 p.166
         """
-        tm = self.julian_millennia(jde)
+        tm = self._julian_millennia(jde)
         tc = tm * 10 # Convert millenna to centuries
         b = self._heliocentric_ecliptical_latitude(tm)
         b *= -1 # Invert the result
         # Convert to FK5 notation
-        l = self.apparent_solar_longitude(jde, degrees=False)
+        l = self._apparent_solar_longitude(jde, degrees=False)
         b1 = self._poly(tc, (l, -1.397, -0.00031))
         bd = (math.radians(0.000010877777777777778) *
               (math.cos(b1) - math.sin(b1)))
@@ -929,10 +929,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             aberration += math.radians(a) * tm**2 * self._sin_deg(b + c * tm)
 
         r = self._radius_vector(tm, degrees=False)
-        return round(self.decimal_from_dms(0, 0, -0.005775518 * r * aberration),
-                     self._ROUNDING_PLACES)
+        return round(self._decimal_from_dms(
+            0, 0, -0.005775518 * r * aberration), self._ROUNDING_PLACES)
 
-    def approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
+    def _approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
                                                      lam:int=_SPRING) -> float:
         """
         Find the approximate Julian day for the equinoxes or solstices.
@@ -975,7 +975,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return jde
 
-    def find_moment_of_equinoxes_or_solstices(self, jd:float, lam:int=_SPRING,
+    def _find_moment_of_equinoxes_or_solstices(self, jd:float, lam:int=_SPRING,
                                               zone:float=0) -> float:
         """
         With the jd and time of year find an equinoxe or solstice at
@@ -997,8 +997,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
         year = gc.gregorian_year_from_jd(jd)
-        jde = self.approx_julian_day_for_equinoxes_or_solstices(year, lam)
-        tc = self.julian_centuries(jde)
+        jde = self._approx_julian_day_for_equinoxes_or_solstices(year, lam)
+        tc = self._julian_centuries(jde)
         w = 35999.373 * tc - 2.47
         dl = 1 + 0.0334 * self._cos_deg(w + 0.0007) * self._cos_deg(2*w)
         s = self._sigma((self._EQ_SO_A, self._EQ_SO_B, self._EQ_SO_C),
@@ -1006,7 +1006,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         jde += (0.00001 * s) / dl + self._HR(zone)
         return round(jde, self._ROUNDING_PLACES)
 
-    def decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
+    def _decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
                          direction:str='N') -> float:
         '''
         Coordinantes in degrees, minutes, and seconds.
@@ -1047,7 +1047,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         # Adjust the sign based on the direction.
         return -decimal if direction.upper() in ('S', 'W') else decimal
 
-    def dms_from_decimal(self, coord:float, direction:str) -> tuple:
+    def _dms_from_decimal(self, coord:float, direction:str) -> tuple:
         """
         Convert a decimal degree into degrees, minutes, and seconds.
 
@@ -1080,7 +1080,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return degrees, minutes, seconds, direc
 
-    def degrees_from_hms(self, h:int, m:int, s:float) -> float:
+    def _degrees_from_hms(self, h:int, m:int, s:float) -> float:
         """
         Find the degrees from the hours, minutes, and seconds of 360 degrees.
         Where as time zones are 15 degrees apart so 24 time zones times 15
@@ -1093,7 +1093,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         return 15 * h + 15 * m / 60 + 15 * s / 3600
 
-    def hms_from_degrees(self, deg:float) -> tuple:
+    def _hms_from_degrees(self, deg:float) -> tuple:
         """
         Find the hours, minutes, and seconds from 0 - 360 degrees. Where
         as time zones are 15 degrees apart so 24 time zones times 15
@@ -1109,7 +1109,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         s = (deg / 15 - h - m / 60) * 3600
         return h, m, s
 
-    def seconds_from_dhms(self, days:int, hours:int, minutes:int,
+    def _seconds_from_dhms(self, days:int, hours:int, minutes:int,
                           seconds:float, zone:float=0) -> float:
         """
         Convert days, hours, minutes, and seconds to seconds.
@@ -1117,7 +1117,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return (days * 86400+ (hours + zone) * 3600 + minutes * 60
                 + seconds + zone * 3600)
 
-    def dhms_from_seconds(self, seconds:float, zone:float=0) -> tuple:
+    def _dhms_from_seconds(self, seconds:float, zone:float=0) -> tuple:
         """
         Convert seconds into days, hours, minutes, and seconds. Depending
         on the timezone there could be an additional day added.
@@ -1140,8 +1140,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return day, hours, minutes, (seconds - hours * 3600) - minutes * 60
 
-    def tz_decimal_from_dhms(self, days:int, hours:int, minutes:int,
-                             seconds:int) -> int:
+    def _tz_decimal_from_dhms(self, days:int, hours:int, minutes:int,
+                              seconds:int) -> int:
         """
         Convert days, hours, minutes, and seconds to a decimal number
         representing percentage of one revolution around the Earth. Where
@@ -1151,9 +1151,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            This method is used in determining time zones.
         """
-        return self.seconds_from_dhms(days, hours, minutes, seconds) / 86400
+        return self._seconds_from_dhms(days, hours, minutes, seconds) / 86400
 
-    def tz_dhms_from_decimal(self, dec:float) -> tuple:
+    def _tz_dhms_from_decimal(self, dec:float) -> tuple:
         """
         Convert a decimal number into days, hours, minutes, and seconds
         of a time zone. The decimal number represents the percentage of
@@ -1164,9 +1164,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            This method is used in determining time zones.
          """
-        return self.dhms_from_seconds(dec * 86400)
+        return self._dhms_from_seconds(dec * 86400)
 
-    def hms_from_decimal_day(self, dec:float, *, us=False) -> tuple:
+    def _hms_from_decimal_day(self, dec:float, *, us=False) -> tuple:
         """
         Convert a decimal day to hours, minutes, and seconds. If this
         method is used for a Julian Period day, 0.5 must be added to the
@@ -1199,7 +1199,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return (hour, minute, second) + microsec
 
-    def decimal_day_from_hms(self, h:int, m:int, s:float) -> float:
+    def _decimal_day_from_hms(self, h:int, m:int, s:float) -> float:
         """
         Convert hours, minutes, and seconds to a decimal day.
 

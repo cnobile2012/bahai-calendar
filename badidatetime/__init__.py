@@ -15,4 +15,5 @@ else:
 
     __all__ = ('date', 'datetime', 'time', 'timedelta', 'timezone', 'tzinfo',
                'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
-               'UTC', 'BADI', 'LOCAL', 'BahaiCalendar', 'GregorianCalendar',)
+               'LOCAL_COORD', 'UTC', 'BADI', 'LOCAL', 'BahaiCalendar',
+               'GregorianCalendar',)

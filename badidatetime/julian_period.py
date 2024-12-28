@@ -31,13 +31,13 @@ class JulianPeriod:
     _JULIAN_YEAR = 365.25
     _JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
 
-    def julian_centuries(self, jde):
+    def _julian_centuries(self, jde):
         """
         Calculate the Julian centuries from the Julian day.
         """
         return (jde - self._J2000) / 36525
 
-    def julian_millennia(self, jde:float) -> float:
+    def _julian_millennia(self, jde:float) -> float:
         """
         Calculate the Julian millennia from the Julian day.
         """

@@ -326,14 +326,14 @@ class JulianPeriodTests:
         or doubling up.
         Should produce no output if working correctly.
 
-        -k ith optional -A for alternete leap year calculation.
+        -k With optional -A for alternete leap year calculation.
         -S and -E are manditory.
         If -J is used then the test is for consecutive Julian Period days.
 
         If -JM is used the test is for consecutive Julian Period days using
         Meeus' algorithm.
 
-        If -J is used the test is for consecutive Julian Period days using
+        If -G is used the test is for consecutive Julian Period days using
         my algorithm.
 
         Some tests will display, to stderr a progress counter indicating
@@ -679,7 +679,7 @@ if __name__ == "__main__":
     if options.debug:
         sys.stderr.write("DEBUG--options: {}\n".format(options))
 
-    if options.analyze:
+    if options.analyze: # -a
         data = [f"{idx:>02} "
                 f"{str(date):<17} "
                 f"{str(leap):<6} "
@@ -707,7 +707,7 @@ if __name__ == "__main__":
               #"              Diff"
               )
         [print(item) for item in data]
-    elif options.analyze_1:
+    elif options.analyze_1: # -1
         if options.start is None or options.end is None:
             print("If option -1 is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -735,7 +735,7 @@ if __name__ == "__main__":
                   "Diff"
                   )
             [print(item) for item in data]
-    elif options.analyze_2:
+    elif options.analyze_2: # -2
         if options.start is None or options.end is None:
             print("If option -2 is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -755,7 +755,7 @@ if __name__ == "__main__":
                   "Leap   "
                   )
             [print(item) for item in data]
-    elif isinstance(options.compare, int):
+    elif isinstance(options.compare, int): # -c
         data = [
             f"Year {year:>4} "
             f"GLY_STD {gly_std:<1} "
@@ -763,7 +763,7 @@ if __name__ == "__main__":
             for year, gly_std, gly_alt in jpt.compare_leap_year_algorithms(
                 options.compare)]
         [print(item) for item in data]
-    elif options.consecutive:
+    elif options.consecutive: # -k
         if options.start is None or options.end is None:
             print("If option -k is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -786,7 +786,7 @@ if __name__ == "__main__":
             ret = 1
 
         if ret == 0: [print(item) for item in data]
-    elif options.julian_day:
+    elif options.julian_day: # -j
         if options.start is None or options.end is None:
             print("If option -j is used, -S and -E must also be used.",
                   file=sys.stderr)

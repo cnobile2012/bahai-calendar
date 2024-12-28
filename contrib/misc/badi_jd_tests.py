@@ -901,7 +901,7 @@ class DateTests(BahaiCalendar):
                     b_date = self.badi_date_from_jd(jd, short=True,
                                                     fraction=True)
                     ss_diff = ss1 - ss0
-                    hms = self.hms_from_decimal_day(ss_diff)
+                    hms = self._hms_from_decimal_day(ss_diff)
                     data.append((b_date, g_date, round(ss0 % 1, 6),
                                  round(ss1 % 1, 6), round(ss_diff, 6), hms))
 
@@ -969,7 +969,7 @@ class DateTests(BahaiCalendar):
             m = 18 * 19 + 4 + self._is_leap_year(year)
 
         td = self._days_in_years(year-1)
-        jd = td + math.floor(self.BADI_EPOCH+1) + m + day
+        jd = td + math.floor(self._BADI_EPOCH+1) + m + day
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
@@ -1087,7 +1087,7 @@ class DateTests(BahaiCalendar):
                 # We must use the Meeus algorithm not mine when finding the
                 # equinox and sunset. So don't use exact=options.exact here.
                 jd = self.gc.jd_from_gregorian_date(g_date) # Julian Period day
-                ve_jd = self.find_moment_of_equinoxes_or_solstices(
+                ve_jd = self._find_moment_of_equinoxes_or_solstices(
                     jd, zone=self._BAHAI_LOCATION[2])
 
             ss_jd = self._sun_setting(ve_jd, *self._BAHAI_LOCATION[:3])
@@ -1154,7 +1154,7 @@ class DateTests(BahaiCalendar):
         Get the Gregorian date from the Badi date.
         """
         jd = self._jd_from_badi_date(b_date, lat=lat, lon=lon, zone=zone,
-                                     options=options)
+                                     coeffon=options.coff)
         gd = self.gc.gregorian_date_from_jd(jd, exact=options.exact)
         g_date = self.gc.ymdhms_from_date(gd)
         return g_date
@@ -1340,7 +1340,7 @@ if __name__ == "__main__":
         print(f"{str(short_day):13} {str(short_hms):19} "
               f"{str(long_day):13} {str(long_hms):19}")
         end_time = time.time()
-        days, hours, minutes, seconds = dt.dhms_from_seconds(
+        days, hours, minutes, seconds = dt._dhms_from_seconds(
             end_time - start_time)
         print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
               f"{round(seconds, 6):02.6} seconds.")
@@ -1365,6 +1365,27 @@ if __name__ == "__main__":
                    f"{total:>03}"
                    ) for (date, g_date, weekday, wd_name, m_name,
                           leap, days, total) in dt.find_leap_years(options)]
+    elif options.g_dates: # -g
+        if options.start is None or options.end is None:
+            print("If option -g is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            print("b_date           "
+                  "bjd            "
+                  "g_date                         "
+                  "gjd            "
+                  "diff "
+                  "offby")
+            [print(f"{str(b_date):<16} "
+                   f"{bjd:<14} "
+                   f"{str(g_date):<30} "
+                   f"{gjd:<14} "
+                   f"{diff:<4} "
+                   f"{offby}"
+                   )
+             for (b_date, bjd, g_date,
+                  gjd, diff, offby) in dt.find_gregorian_dates(options)]
     elif options.list: # -l
         if options.start is None or options.end is None:
             print("If option -l is used, -S and -E must also be used.",
@@ -1394,27 +1415,6 @@ if __name__ == "__main__":
         data = dt.get_range(options.range)
         [print(item) for item in data]
         print(f"Total years: {len(data)}")
-    elif options.g_dates: # -g
-        if options.start is None or options.end is None:
-            print("If option -g is used, -S and -E must also be used.",
-                  file=sys.stderr)
-            ret = 1
-        else:
-            print("b_date           "
-                  "bjd            "
-                  "g_date                         "
-                  "gjd            "
-                  "diff "
-                  "offby")
-            [print(f"{str(b_date):<16} "
-                   f"{bjd:<14} "
-                   f"{str(g_date):<30} "
-                   f"{gjd:<14} "
-                   f"{diff:<4} "
-                   f"{offby}"
-                   )
-             for (b_date, bjd, g_date,
-                  gjd, diff, offby) in dt.find_gregorian_dates(options)]
     elif options.twenty_four: # -t
         if options.start is None or options.end is None:
             print("If option -t is used, -S and -E must also be used.",

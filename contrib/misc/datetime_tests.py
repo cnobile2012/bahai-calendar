@@ -20,7 +20,7 @@ from badidatetime._timedateutils import _td_utils
 
 class DatetimeTests(BahaiCalendar):
     LOCAL_COORDS = (35.5894, -78.7792, -5.0)
-    BADI_COORDS = BahaiCalendar.BAHAI_LOCATION[:3]
+    BADI_COORDS = BahaiCalendar._BAHAI_LOCATION[:3]
     MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
               12, 13, 14, 15, 16, 17, 18, 0, 19)
     GREG_BADI_DATES = (
@@ -99,7 +99,7 @@ class DatetimeTests(BahaiCalendar):
         for g_date, b_date in self.GREG_BADI_DATES:
             g_dt = dtime.datetime(*g_date)
             g_ord = g_dt.toordinal()
-            b_dt = datetime.datetime(*b_date)
+            b_dt = datetime(*b_date)
             b_ord = b_dt.toordinal()
             same = g_ord == b_ord
             diff = g_ord - b_ord
@@ -148,7 +148,7 @@ class DatetimeTests(BahaiCalendar):
                     g_date = self._gc.gregorian_date_from_jd(jd, exact=True)
                     # The ordinal date for visual comparison.
                     ordinal = self._ordinal_from_jd(jd)
-                    o = datetime.datetime.fromordinal(ordinal, short=True)
+                    o = datetime.fromordinal(ordinal, short=True)
                     o_date = (o.year, o.month, o.day)
                     diff1 = self._subtract_tuples(o_date, date)
                     data.append((g_date, jd, o_date, b_date,
@@ -241,7 +241,7 @@ if __name__ == "__main__":
         print(f"   Badi Errors: {total_diff0}")
         print(f"  Total Errors: {total_errors}")
         end_time = time.time()
-        days, hours, minutes, seconds = dt.dhms_from_seconds(
+        days, hours, minutes, seconds = dt._dhms_from_seconds(
             end_time - start_time)
         print(f"  Elapsed time: {hours:02} hours, {minutes:02} minutes, "
               f"{round(seconds, 6):02.6} seconds.")

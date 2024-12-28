@@ -83,7 +83,7 @@ class BahaiCalendar(BaseCalendar):
         :rtype: tuple
         """
         jd = self.jd_from_badi_date(date[:3], lat, lon, zone)
-        return self.hms_from_decimal_day(jd + 0.5)
+        return self._hms_from_decimal_day(jd + 0.5)
 
     def naw_ruz_g_date(self, year:int, lat:float=None, lon:float=None,
                        zone:float=None, *, hms:bool=False) -> tuple:
@@ -587,7 +587,7 @@ class BahaiCalendar(BaseCalendar):
         diff1 = self._meeus_from_exact(jd + 1)
         ss1 = self._sun_setting(jd + 1 + diff1, *self._GMT_LOCATION[:3])
         mid = (ss1 - ss0) / 2
-        return self.hms_from_decimal_day(mid) if hms else mid
+        return self._hms_from_decimal_day(mid) if hms else mid
 
     def _trim_hms(self, hms:tuple) -> tuple:
         """
@@ -796,7 +796,7 @@ class BahaiCalendar(BaseCalendar):
             day = round(day)
             hms = ()
         else:
-            hh, mm, ss = self.hms_from_decimal_day(frac)
+            hh, mm, ss = self._hms_from_decimal_day(frac)
 
             if us:
                 microsecond = self._PARTIAL_SECOND_TO_MICROSECOND(ss)
@@ -832,6 +832,6 @@ class BahaiCalendar(BaseCalendar):
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
         # Subtract the first day from the next day gived the total
         # hours, minutes, and seconds between them.
-        value = list(self.hms_from_decimal_day(ss1 - ss0))
+        value = list(self._hms_from_decimal_day(ss1 - ss0))
         value[0] = 24 if value[0] == 0 else value[0]
         return tuple(value)

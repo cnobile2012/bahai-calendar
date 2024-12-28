@@ -6,7 +6,7 @@ __docformat__ = "restructuredtext en"
 
 __all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
            "MINYEAR", "MAXYEAR", 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
-           "UTC", "BADI", 'LOCAL')
+           "LOCAL_COORD", "UTC", "BADI", 'LOCAL')
 
 import sys
 import time as _time

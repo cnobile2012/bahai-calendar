@@ -26,7 +26,7 @@ class ApproxLHA(BaseCalendar):
         data = []
 
         for jd in range(2394646, 2467330):
-            tc = self.julian_centuries(jd)
+            tc = self._julian_centuries(jd)
 
             for lat in range(-180, 181):
                 h0 = self.__approx_local_hour_angle(tc, lat)
@@ -43,11 +43,9 @@ class ApproxLHA(BaseCalendar):
 
         return data
 
-
     def __approx_local_hour_angle(self, tc:float, lat:float,
                                   offset:float=SUN_OFFSET) -> float:
         """
-
         """
         delta = self._sun_apparent_declination(tc)
         cos_h0 = ((self._sin_deg(-offset) - self._sin_deg(lat) *
@@ -57,8 +55,6 @@ class ApproxLHA(BaseCalendar):
 
 
 if __name__ == "__main__":
-    #import argparse
-
     alha = ApproxLHA()
     [print(deg, h0, cos_h0, jd, alt)
      for deg, h0, cos_h0, jd, alt in alha.analize()]

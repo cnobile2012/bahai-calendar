@@ -23,9 +23,9 @@ class TestJulianPeriod(unittest.TestCase):
         self._gc = GregorianCalendar()
 
     #@unittest.skip("Temporarily skipped")
-    def test_julian_centuries(self):
+    def test__julian_centuries(self):
         """
-        Test that the julian_centuries method returns the Julian
+        Test that the _julian_centuries method returns the Julian
         century in dynamical time from a Julian moment.
         """
         data = (
@@ -36,12 +36,12 @@ class TestJulianPeriod(unittest.TestCase):
         msg = "Expected {} for jd {}, found {}"
 
         for jd, expected_result in data:
-            result = self._jp.julian_centuries(jd)
+            result = self._jp._julian_centuries(jd)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_julian_millennia(self):
+    def test__julian_millennia(self):
         """
         Test that the julian_millennis method returns the Julian
         millennia in dynamical time from a Julian moment.
@@ -54,6 +54,6 @@ class TestJulianPeriod(unittest.TestCase):
         msg = "Expected {} for jd {}, found {}"
 
         for jd, expected_result in data:
-            result = self._jp.julian_millennia(jd)
+            result = self._jp._julian_millennia(jd)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, jd, result))
