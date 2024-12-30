@@ -1166,10 +1166,13 @@ class DateTests(BahaiCalendar):
             data.append(((k, v, y, m, d), (year, m, d)))
 
     def _day_of_week(self, year, month, day):
-        # weekday starts at 0 and ends at 6. We need to add one below.
+        # The weekday starts at 0 and ends at 6. We need to add one below
+        # to make it ISO compatible.
         weekday = _td_utils._day_of_week(year, month, day)
         wd_name = _td_utils.DAYNAMES[weekday]
         m_name = _td_utils.MONTHNAMES[month]
+
+
         return weekday+1, wd_name, m_name
 
 
@@ -1249,6 +1252,7 @@ if __name__ == "__main__":
     options = parser.parse_args()
     dt = DateTests()
     ret = 0
+    basename = os.path.basename(__file__)
 
     if options.analyze: # -a
         if options.start is None or options.end is None:
@@ -1256,7 +1260,11 @@ if __name__ == "__main__":
             options.start = 1  # Julian year 1
             options.end = 3005 # Gregorian year 3005
 
-        if options.graph:
+        G = 'G' if options.graph else ''
+        print(f"./contrib/misc/{basename} -a{G}S{options.start} "
+              f"-E{options.end}")
+
+        if options.graph: # -G
             options.coff = True
             data = dt.analyze_date_error(options)
             items = []
@@ -1321,6 +1329,8 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            print(f"./contrib/misc/{basename} -cS{options.start} "
+                  f"-E{options.end}")
             data = dt.create_date_lists(options)
             bad_items = dt.check_long_date_from_short_date(data)
             bad_items = bad_items if bad_items else "All dates match."
@@ -1332,6 +1342,8 @@ if __name__ == "__main__":
         if options.end is None:
             options.end = 1162    # Gregorian Calendar year 3005
 
+        print(f"./contrib/misc/{basename} -dS{options.start} "
+              f"-E{options.end}")
         start_time = time.time()
         (short_day, short_hms,
          long_day, long_hms) = dt.find_longest_and_shortest_days(options)
@@ -1350,6 +1362,8 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            print(f"./contrib/misc/{basename} -eS{options.start} "
+                  f"-E{options.end}")
             print("Badi           Gregorian                          "
                   "Week Day      Month      Leap  Days Day in")
             print("Date           Date                               Day  "
@@ -1371,6 +1385,8 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            print(f"./contrib/misc/{basename} -gS{options.start} "
+                  f"-E{options.end}")
             print("b_date           "
                   "bjd            "
                   "g_date                         "
@@ -1392,6 +1408,8 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            print(f"./contrib/misc/{basename} -lS{options.start} "
+                  f"-E{options.end}")
             data = dt.create_date_lists(options)
             pprint.pprint(data)
     elif options.precursor: # -p
@@ -1400,6 +1418,8 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            print(f"./contrib/misc/{basename} -pS{options.start} "
+                  f"-E{options.end}")
             data = dt.find_coefficents_precursor(options)
             [print(f"{gy:> 5} {by:> 5}, {n:<1} {a:>2}")
              for gy, by, n, a in data]
@@ -1410,8 +1430,11 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            print(f"./contrib/misc/{basename} -qS{options.start} "
+                  f"-E{options.end}")
             [print(item) for item in dt.find_coefficents(options)]
     elif options.range != 0: # -r
+        print(f"./contrib/misc/{basename} -r")
         data = dt.get_range(options.range)
         [print(item) for item in data]
         print(f"Total years: {len(data)}")
@@ -1421,6 +1444,8 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            print(f"./contrib/misc/{basename} -tS{options.start} "
+                  f"-E{options.end}")
             print("Badi Date         Gregorian Date        "
                   "SS1 Frac SS2 Frac SS2-SS1  HMS Diff")
             [print(f"{str(b_date):<17} "
@@ -1437,6 +1462,8 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            print(f"./contrib/misc/{basename} -wS{options.start} "
+                  f"-E{options.end}")
             [print(f"{str(date):15} "
                    f"{r_day:8} "
                    f"{idx} "

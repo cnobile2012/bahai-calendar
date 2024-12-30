@@ -15,7 +15,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
 from badidatetime import BahaiCalendar, GregorianCalendar, datetime
-from badidatetime._timedateutils import _td_utils
 
 
 class DatetimeTests(BahaiCalendar):
@@ -225,7 +224,7 @@ if __name__ == "__main__":
                 total_diff1 += 1
 
             if (0, 0, 0) not in (diff0, diff1):
-                items.append(g_date, jd, o_date, b_date, date, diff0, diff1)
+                items.append((g_date, jd, o_date, b_date, date, diff0, diff1))
 
         [print(f"{str(g_date):21} "
                f"{jd:<14} "
