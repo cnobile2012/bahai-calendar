@@ -705,7 +705,7 @@ class DateTests(BahaiCalendar):
         for year in range(start, end):
             is_leap = self._is_leap_year(year)
             days = 365 + is_leap
-            total = 0
+            doy = 0
 
             for month in self.MONTHS:
                 dm = 19 if month != 0 else 4 + is_leap
@@ -713,11 +713,11 @@ class DateTests(BahaiCalendar):
                 for day in range(1, dm + 1):
                     date = (year, month, day)
                     g_date = self.gregorian_date_from_badi_date(date)
-                    # weekday, wd_name, m_name
-                    weektuple = self._day_of_week(*date)
-                    total += 1
+                    # week, weekday, wd_name, m_name
+                    doy += 1
+                    weektuple = self._day_of_week(*date, doy)
                     data.append((date, g_date, *weektuple,
-                                 is_leap, days, total))
+                                 is_leap, days, doy))
 
         return data
 
@@ -1165,15 +1165,49 @@ class DateTests(BahaiCalendar):
         for d in reversed(range(1, days)):
             data.append(((k, v, y, m, d), (year, m, d)))
 
-    def _day_of_week(self, year, month, day):
+    def _day_of_week(self, year, month, day, doy):
         # The weekday starts at 0 and ends at 6. We need to add one below
         # to make it ISO compatible.
         weekday = _td_utils._day_of_week(year, month, day)
         wd_name = _td_utils.DAYNAMES[weekday]
         m_name = _td_utils.MONTHNAMES[month]
+        weekday += 1
+        week = self._week_of_year(year, month, day, weekday, doy)
+        return week, weekday, wd_name, m_name
 
+    _REL = {0: 0, -1: -2, -2: -4, -3: -6, -4: -8, -5: -10, -6: -12,
+            13: 7, 14: 9, 15: 11, 16: 13, 17: 15, 18: 17, 19: 19}
 
-        return weekday+1, wd_name, m_name
+    def _week_of_year(self, year, month, day, weekday, doy):
+        def _off(m, day, num):
+            if (m == 19 and 14 <= day <= 19) or (m == 1 and 1 <= day <= 7):
+                off = day - num
+                offset = (off - self._REL[off] if off in self._REL else -1)
+            else:
+                offset = -1
+
+            return offset
+
+        week = (doy - (weekday - 1)) // 7 + 1
+        offset = _off(month, day, weekday)
+
+        if month == 19:
+            if offset in (6, 5, 4):
+                week = 52
+            elif offset in (3, 2, 1):
+                week = 1
+        elif month == 1:
+            if offset in (6, 5, 4):
+                week = 52
+            elif offset in (3, 2, 1):
+                week = 1
+            else:
+                off = _off(1, 1, _td_utils._day_of_week(year, 1, 1) + 1)
+
+                if off in (2, 3):
+                    week += 1
+
+        return week
 
 
 if __name__ == "__main__":
@@ -1342,9 +1376,9 @@ if __name__ == "__main__":
         if options.end is None:
             options.end = 1162    # Gregorian Calendar year 3005
 
+        start_time = time.time()
         print(f"./contrib/misc/{basename} -dS{options.start} "
               f"-E{options.end}")
-        start_time = time.time()
         (short_day, short_hms,
          long_day, long_hms) = dt.find_longest_and_shortest_days(options)
         print("Shortest Day  Length              Longest Day   Length")
@@ -1362,23 +1396,30 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            start_time = time.time()
             print(f"./contrib/misc/{basename} -eS{options.start} "
                   f"-E{options.end}")
-            print("Badi           Gregorian                          "
+            print("Badi           Gregorian                          Week "
                   "Week Day      Month      Leap  Days Day in")
-            print("Date           Date                               Day  "
-                  "Name     Name       Year  Year Year")
-            print('-'*92)
+            print("Date           Date                               Num  "
+                  "Day  Name     Name       Year  Year Year")
+            print('-'*97)
             [print(f"{str(date):<14} "
                    f"{str(g_date):<34} "
+                   f"{week:02}   "
                    f"{weekday}    "
                    f"{wd_name:<8} "
                    f"{m_name:<10} "
                    f"{str(leap):5s} "
                    f"{days:<3}  "
                    f"{total:>03}"
-                   ) for (date, g_date, weekday, wd_name, m_name,
+                   ) for (date, g_date, week, weekday, wd_name, m_name,
                           leap, days, total) in dt.find_leap_years(options)]
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                  f"{round(seconds, 6):02.6} seconds.")
     elif options.g_dates: # -g
         if options.start is None or options.end is None:
             print("If option -g is used, -S and -E must also be used.",
