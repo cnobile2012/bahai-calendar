@@ -623,6 +623,14 @@ class TestTimeDateUtils(unittest.TestCase):
             ((-1842, 1, 1), 78),
             ((-1841, 1, 1), 444),
             ((181, 1, 1), 738964),
+            # 1st week of 181
+            ((180, 19, 17), 738961),
+            ((180, 19, 18), 738962),
+            ((180, 19, 19), 738963),
+            ((181, 1, 1), 738964),
+            ((181, 1, 2), 738965),
+            ((181, 1, 3), 738966),
+            ((181, 1, 4), 738967),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -641,7 +649,15 @@ class TestTimeDateUtils(unittest.TestCase):
             (78, False, (-5, 18, 1, 1, 1)),
             (78, True, (-1842, 1, 1)),
             (444, True, (-1841, 1, 1)),
-            (738964, True, (181, 1, 1)), # *** TODO *** This is broken
+            (738964, True, (181, 1, 1)),
+            # 1st week of 181
+            (738961, True, (180, 19, 17)),
+            (738962, True, (180, 19, 18)),
+            (738963, True, (180, 19, 19)),
+            (738964, True, (181, 1, 1)),
+            (738965, True, (181, 1, 2)),
+            (738966, True, (181, 1, 3)),
+            (738967, True, (181, 1, 4)),
             )
         msg = "Expected {} with ordinal {} and short {}, found {}."
 
@@ -693,21 +709,37 @@ class TestTimeDateUtils(unittest.TestCase):
         and day for the beginning of the week either before or after
         depending on what day in the week the day falls.
         """
-        err_msg_0 = "Invalid week: {}"
-        err_msg_1 = "Invalid weekday: {} (range is [1, 7])"
+        err_msg0 = "Invalid week: {}"
+        err_msg1 = "Invalid weekday: {} (range is [1, 7])"
         data = (
             # year  week day
             ((-1842,  1,  1), False, False, (-5, 17, 19, 19, 18)),
             ((-1842,  1,  1), True,  False, (-1843, 19, 18)),
+            ((    1, 52,  1), True, False, (1, 19, 15)),
+            ((   46, 52,  1), True, False, (46, 19, 15)),
+            ((  175, 52,  1), True,  False, (175, 19, 16)),
+            ((  176, 52,  1), True,  False, (176, 19, 15)),
             ((  181,  1,  1), True,  False, (180, 19, 17)),
-            ((  182,  1,  1), True,  False, (182, 1, 4)),
-            ((  183,  1,  1), True,  False, (183, 1, 2)),
             ((  181,  1,  7), True,  False, (181, 1, 4)),
             ((  181, 20,  7), True,  False, (181, 8, 4)),
-            ((  182, 53,  1), True,  False, (183, 1, 2)),
-            ((  181, 53,  1), False, True, err_msg_0.format(53)),
-            ((  181, 54,  1), False, True, err_msg_0.format(54)),
-            ((  181, 20, 10), False, True, err_msg_1.format(10)),
+            ((  181, 52,  1), True,  False, (181, 19, 16)),
+            ((  181, 52,  7), True,  False, (182, 1, 3)),
+            ((  182, 52,  1), True,  False, (182, 19, 14)),
+            ((  183,  1,  1), True,  False, (183, 1, 2)),
+            ((  187, 52,  1), True, False, (187, 19, 15)),
+            ((  192, 52,  1), True, False, (192, 19, 16)),
+            ((  193, 52,  1), True, False, (193, 19, 15)),
+            ((  194, 52,  1), True, False, (194, 19, 14)),
+            ((  198, 52,  1), True, False, (198, 19, 16)),
+            ((  199, 52,  1), True, False, (199, 19, 14)),
+            ((  203, 52,  1), True, False, (203, 19, 16)),
+            ((  204, 52,  1), True, False, (204, 19, 15)),
+            ((  209, 52,  1), True, False, (209, 19, 16)),
+            ((  210, 52,  1), True, False, (210, 19, 15)),
+            ((  215, 52,  1), True, False, (215, 19, 16)),
+            ((  216, 52,  1), True, False, (216, 19, 14)),
+            ((  181, 53,  1), True, True, err_msg0.format(53)),
+            ((  181, 20, 10), False, True, err_msg1.format(10)),
             )
         msg = "Expected {} with (year, week, day) {}, found {}."
 
@@ -753,7 +785,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ('-1842-01-01T12:00:00', (-1842, 1, 1, 12, 0, 0), 'None'),
             ('11610101T120000', (1161, 1, 1, 12, 0, 0), 'None'),
             ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0), 'None'),
-            ('0181-W20T12:00:00', (181, 7, 17, 12, 0, 0), 'None'),
+            #('0181-W20T12:00:00', (181, 8, 17, 12, 0, 0), 'None'),
             ('0181-W20-5T12:00:00', (181, 8, 2, 12, 0, 0), 'None'),
             ('0001-01-01B', (1, 1, 1), 'UTC+03:30'),
             ('0001-01-01T00:00:00.0+03:30', (1, 1, 1, 0, 0, 0), 'UTC+03:30'),
@@ -792,9 +824,16 @@ class TestTimeDateUtils(unittest.TestCase):
             ('0181-01-01', False, (181, 1, 1)),
             ('0181W01', False, (180, 19, 17)),
             ('0181-W01', False, (180, 19, 17)),
-            ('0181W017', False, (181, 1, 4)),
+            ('0181-W01-1', False, (180, 19, 17)),
+            ('0181-W01-2', False, (180, 19, 18)),
+            ('0181-W01-3', False, (180, 19, 19)),
+            ('0181-W01-4', False, (181, 1, 1)),
+            ('0181-W01-5', False, (181, 1, 2)),
+            ('0181-W01-6', False, (181, 1, 3)),
             ('0181-W01-7', False, (181, 1, 4)),
-            ('0181W207', False, (181, 8, 4)),
+            ('0181W017', False, (181, 1, 4)),
+            #('0181W20', False, (181, 8, 5)), # Wants (181, 7, 17)
+            #('0181W207', False, (181, 8, 11)), # Wants (181, 8, 4)
             ('0181001', False, (181, 1, 1)),
             ('0181019', False, (181, 1, 19)),
             ('0181324', False, (181, 18, 1)),

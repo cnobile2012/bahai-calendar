@@ -620,7 +620,7 @@ class TimeDateUtils(BahaiCalendar):
 
     def _days_in_month(self, year:int, month:int) -> int:
         """
-        The number of days in that month in that year.
+        The number of days in provided month in provided year.
 
         :param int year: Badi year
         :param int month: Badi month (0..19)
@@ -667,7 +667,7 @@ class TimeDateUtils(BahaiCalendar):
 
     def _ymd2ord(self, year:int, month:int, day:int) -> int:
         """
-        Get the number of days since Badi year -1842 (Gregorian 0001-03-20)
+        Get the number of days since Badi year -1842 (Gregorian 0001-03-19)
         including the current day.
 
         year, month, day -> ordinal, considering -1842-01-01 as day 1.
@@ -707,8 +707,8 @@ class TimeDateUtils(BahaiCalendar):
         # be the same as the date value passed into _ymd2ord.
         jd = (self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False) -
               self.DAYS_BEFORE_1ST_YEAR + n)
-        return self.badi_date_from_jd(jd, short=short, trim=True, rtd=True,
-                                      _chk_on=False)
+        return self.badi_date_from_jd(math.floor(jd)+0.5, short=short,
+                                      trim=True, rtd=True, _chk_on=False)
 
     def _build_struct_time(self, date:tuple, dstflag:int, *,
                            tzinfo:'timezone'=None,
@@ -734,6 +734,11 @@ class TimeDateUtils(BahaiCalendar):
         way ISO weeks are counted in the Gregorian Calendar which is Monday
         to Sunday.
 
+        .. note::
+
+           Whereas a Gregorian year can have 53 weeks in it a Badi year can
+           have 51 weeks in it and never 53.
+
         :param int year: Badi year.
         :param int month: Badi month (0..19)
         :param int day: Badi day in week.
@@ -743,24 +748,28 @@ class TimeDateUtils(BahaiCalendar):
         :rtype: tuple
         :raises AssertionError: If the week or weekday is out of range.
         """
-        if not 0 < week < 53:
-            out_of_range = True
+        p_offset = 0
 
-            if week == 53:
-                # ISO years have 53 weeks in them on years starting with a
-                # Fidal (Tuesday) and leap years starting on a Kamal
-                # (Monday). Badi weeks start on Jalal (Saturday).
-                first_weekday = self._ymd2ord(year, 1, 1) % 7
+        if not 0 < week < 52: # We're looking for only the 53rd week.
+            day_one = _td_utils._day_of_week(year, 1, 1) + 1
 
-                if (first_weekday == 4 or (first_weekday == 3 and
-                                           self._is_leap_year(year))):
+            if day_one in  (3, 4):
+                out_of_range = True
+
+                if week == 52:
+                    # In Badi years that have 52 weeks and start on the 3rd
+                    # day (Kamál) or the 4th day (Fiḍāl).
+                    # Badi weeks start on Jalal (Saturday).
+                    # *** TODO *** This needs to be tested over a larger year
+                    #              spread.
+                    p_offset = 7
                     out_of_range = False
 
-            assert not out_of_range, f"Invalid week: {week}"
+                assert not out_of_range, f"Invalid week: {week}"
 
         assert 0 < day < 8, f"Invalid weekday: {day} (range is [1, 7])"
         # Now compute the offset from (Y, 1, 1) in days:
-        day_offset = (week - 1) * 7 + (day - 1)
+        day_offset = (week - 1) * 7 + (day - 1) + p_offset
         # Calculate the ordinal day for Jalal, week 1
         day_1 = self._isoweek1jalal(year)
         ord_day = day_1 + day_offset
@@ -776,6 +785,7 @@ class TimeDateUtils(BahaiCalendar):
         :rtype: int
         """
         firstday = self._ymd2ord(year, 1, 1)
+        # We subtract 6 instead of add 6 as is done in _isoweek1Monday.
         firstweekday = (firstday - 6) % 7
         week1jalal = firstday - firstweekday
 
