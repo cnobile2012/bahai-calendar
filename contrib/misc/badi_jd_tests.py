@@ -1206,6 +1206,11 @@ class DateTests(BahaiCalendar):
 
                 if off in (2, 3):
                     week += 1
+        elif month in range(2, 19):
+                off = _off(1, 1, _td_utils._day_of_week(year, 1, 1) + 1)
+
+                if off in (2, 3):
+                    week += 1
 
         return week
 
