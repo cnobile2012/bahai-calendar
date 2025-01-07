@@ -1188,6 +1188,10 @@ class DateTests(BahaiCalendar):
 
             return offset
 
+        def _fix_2_3(year):
+            off = _off(1, 1, _td_utils._day_of_week(year, 1, 1) + 1)
+            return 1 if off in (2, 3) else 0
+
         week = (doy - (weekday - 1)) // 7 + 1
         offset = _off(month, day, weekday)
 
@@ -1202,15 +1206,9 @@ class DateTests(BahaiCalendar):
             elif offset in (3, 2, 1):
                 week = 1
             else:
-                off = _off(1, 1, _td_utils._day_of_week(year, 1, 1) + 1)
-
-                if off in (2, 3):
-                    week += 1
+                week += _fix_2_3(year)
         elif month in range(2, 19):
-                off = _off(1, 1, _td_utils._day_of_week(year, 1, 1) + 1)
-
-                if off in (2, 3):
-                    week += 1
+            week += _fix_2_3(year)
 
         return week
 
