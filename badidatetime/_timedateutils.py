@@ -28,6 +28,8 @@ class TimeDateUtils(BahaiCalendar):
                       6: 'Raḥ', 7: 'Kal', 8: 'Kam', 9: 'Asm', 10: 'Izz',
                       11: 'Mas', 12: 'Ilm', 13: 'Qud', 14: 'Qaw', 15: 'Mas',
                       16: 'Sha', 17: 'Sul', 18: 'Mul', 0: 'Ayy', 19: 'Alá'}
+    # The first day that we start our count Julian year 1, March 19th
+    FIRST_YEAR_EPOCH = 1721501.261143
     # This keeps the Badi day count in par with the Gregorian day count.
     DAYS_BEFORE_1ST_YEAR = 77 # This keeps us insync with Gregorian dates.
 
@@ -703,12 +705,14 @@ class TimeDateUtils(BahaiCalendar):
         :return: The Badi date.
         :rtype: tuple
         """
-        # We subtract 77 days from the total so that the Badi date will
-        # be the same as the date value passed into _ymd2ord.
-        jd = (self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False) -
-              self.DAYS_BEFORE_1ST_YEAR + n)
-        return self.badi_date_from_jd(math.floor(jd)+0.5, short=short,
-                                      trim=True, rtd=True, _chk_on=False)
+        # We subtract 77 days from the total then add the value of n so that
+        # the Badi date will be the same as the date value passed into
+        # _ymd2ord and give the same date as Python standard datetime package.
+        # The reason we need to do this is that the first date that this
+        # package can provide is equivalent to Julian year 1, March, 19th.
+        jd = self.FIRST_YEAR_EPOCH - 1 - self.DAYS_BEFORE_1ST_YEAR + n
+        return self.badi_date_from_jd(jd, short=short, trim=True,
+                                      rtd=True, _chk_on=False)
 
     def _build_struct_time(self, date:tuple, dstflag:int, *,
                            tzinfo:'timezone'=None,
