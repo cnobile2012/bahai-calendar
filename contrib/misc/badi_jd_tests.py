@@ -688,7 +688,7 @@ class DateTests(BahaiCalendar):
 
         return short_day, short_hms, long_day, long_hms
 
-    def find_leap_years(self, options):
+    def find_weekdays(self, options):
         """
         -e and -S and -E
 
@@ -872,10 +872,10 @@ class DateTests(BahaiCalendar):
         data = []
         start = options.start
         end = options.end
-        assert -1843 < start < 1162, (
-            f"Start '{start}' must be from -1842 to 1161.")
-        assert -1842 < end < 1163, (
-            f"End '{end}' must be from -1841 to 1162")
+        assert (self.MINYEAR-1) < start < (self.MAXYEAR+1), (
+            f"Start '{start}' must be from {self.MINYEAR} to {self.MAXYEAR}.")
+        assert self.MINYEAR < end < (self.MAXYEAR+2), (
+            f"End '{end}' must be from {self.MINYEAR} to {self.MAXYEAR}")
         lat, lon, zone = self._BAHAI_LOCATION[:3]
 
         for year in range(start, end):
@@ -907,49 +907,41 @@ class DateTests(BahaiCalendar):
 
         return data
 
-    def find_day_of_week(self, options):
+    def find_leap_years(self, options):
         """
-        Dump both the Badi and Gregorian weekdays.
-        -w and -S and -E
-        Optional -R to change the referance day from Jalál to whatever.
+        -y with -S and -E
         """
         data = []
-        _daynames = ['Jalál', 'Jamál', 'Kamál', 'Fiḍāl',
-                     '`Idāl', 'Istijlāl', 'Istiqlāl']
-        _g_daynames = ['Saturday', 'Sunday', 'Monday', 'Tuesday',
-                       'Wednesday', 'Thursday', 'Friday']
         start = options.start
         end = options.end
-        assert -1843 < start < 1162, (
-            f"Start '{start}' must be from -1842 to 1161.")
-        assert -1842 < end < 1163, (
-            f"End '{end}' must be from -1841 to 1162")
-        ref_day = options.ref_day
-
-        if ref_day != 'Jalál':
-            if ref_day in _daynames:
-                r_idx = _daynames.index(ref_day)
-                _daynames = _daynames[r_idx:] + _daynames[:r_idx]
-                _g_daynames = _g_daynames[r_idx:] + _g_daynames[:r_idx]
-            else:
-                raise ValueError(f"Invalid reference_day {options.ref_day}. "
-                                 "Must be a valid day of the week.")
+        assert (self.MINYEAR-1) < start < (self.MAXYEAR+1), (
+            f"Start '{start}' must be from {self.MINYEAR} to {self.MAXYEAR}.")
+        assert self.MINYEAR < end < (self.MAXYEAR+2), (
+            f"End '{end}' must be from {self.MINYEAR} to {self.MAXYEAR}")
+        last_leap_year = 0
+        last_5_spread = 0
 
         for year in range(start, end):
             is_leap = self._is_leap_year(year)
-            days = 365 + is_leap
-            total = 0
 
-            for month in self.MONTHS:
-                dm = 19 if month != 0 else 4 + self._is_leap_year(year)
+            if is_leap:
+                if last_leap_year == 0:
+                    years = 4
+                else:
+                    years = year - last_leap_year
 
-                for day in range(1, dm + 1):
-                    date = (year, month, day)
-                    idx = (_td_utils._ymd2ord(year, month, day) % 7 + 7) % 7
-                    badi_weekday = _daynames[idx]
-                    greg_weekday = _g_daynames[idx]
-                    data.append((date, ref_day, idx,
-                                 badi_weekday, greg_weekday))
+                if last_5_spread == 0:
+                    spread = ''
+                elif years == 5:
+                    spread = year - last_5_spread
+                else:
+                    spread = ''
+
+                data.append((year, is_leap, years, spread))
+                last_leap_year = year
+
+                if years == 5:
+                    last_5_spread = year
 
         return data
 
@@ -1229,8 +1221,8 @@ if __name__ == "__main__":
         '-d', '--day', action='store_true', default=False, dest='day',
         help="Find the longest and shortest day.")
     parser.add_argument(
-        '-e', '--leap-years', action='store_true', default=False,
-        dest='leap_years', help="Find leap years between -1842 and 1161.")
+        '-e', '--weekdays', action='store_true', default=False,
+        dest='weekdays', help="Find weekdays between provided years.")
     parser.add_argument(
         '-g', '--g-dates', action='store_true', default=False, dest='g_dates',
         help="Convert Badi to Gregorian dates.")
@@ -1248,11 +1240,11 @@ if __name__ == "__main__":
         '-r', '--range', type=int, default=0, dest='range',
         help="Dump an analysis of date ranges. Takes an integer value.")
     parser.add_argument(
-        '-w', '--weekday', action='store_true', default=False,
-        dest='weekday', help="Dump consecutive Badi and Gregorian weekdays.")
-    parser.add_argument(
         '-t', '--twenty-four', action='store_true', default=False,
         dest='twenty_four', help="Find day length.")
+    parser.add_argument(
+        '-y', '--leap-years', action='store_true', default=False,
+        dest='leap_years', help="Dump leap years.")
     parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help="Use alternative leap year method.")
@@ -1393,7 +1385,7 @@ if __name__ == "__main__":
             end_time - start_time)
         print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
               f"{round(seconds, 6):02.6} seconds.")
-    elif options.leap_years: # -e
+    elif options.weekdays: # -e
         if options.start is None or options.end is None:
             print("If option -e is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -1417,7 +1409,7 @@ if __name__ == "__main__":
                    f"{days:<3}  "
                    f"{total:>03}"
                    ) for (date, g_date, week, weekday, wd_name, m_name,
-                          leap, days, total) in dt.find_leap_years(options)]
+                          leap, days, total) in dt.find_weekdays(options)]
             end_time = time.time()
             days, hours, minutes, seconds = dt._dhms_from_seconds(
                 end_time - start_time)
@@ -1500,21 +1492,26 @@ if __name__ == "__main__":
                    f"{str(hms):19}"
                    ) for (b_date, g_date, fss0, fss1,
                           ss_diff, hms) in dt.twenty_four_hours(options)]
-    elif options.weekday: # -w
+    elif options.leap_years: # -y
         if options.start is None or options.end is None:
             print("If option -w is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
         else:
-            print(f"./contrib/misc/{basename} -wS{options.start} "
+            data = dt.find_leap_years(options)
+            print(f"./contrib/misc/{basename} -yS{options.start} "
                   f"-E{options.end}")
-            [print(f"{str(date):15} "
-                   f"{r_day:8} "
-                   f"{idx} "
-                   f"{bwd:8} "
-                   f"{gwd:9}"
-                   ) for (date, r_day, idx,
-                       bwd, gwd) in dt.find_day_of_week(options)]
+            print("                  5 Year")
+            print("Year  Leap  Years Spread")
+            print('-'*24)
+            [print(f"{year:+5d} "
+                   f"{str(leap):5} "
+                   f"{years}     "
+                   f"{spread}"
+                   ) for year, leap, years, spread in data]
+            print(f"         Leap years: {len(data)}")
+            total_5 = [l[2] for l in data]
+            print(f"5th year leap years: {total_5.count(5)}")
     else:
         parser.print_help()
 
