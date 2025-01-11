@@ -207,10 +207,15 @@ def _get_local_coordinates():
     """
     offset, dst, key = _local_timezone_info()
     # Get latitude and longitude
-    g = geocoder.ip('me')
-    latitude = g.lat
-    longitude = g.lng
-    return latitude, longitude, offset / 3600
+
+    try:
+        g = geocoder.ip('me')
+    except Exception as e:
+        print(f"Error: {e}") # *** TODO *** Fix this to have the correct info.
+    else:
+        latitude = g.lat
+        longitude = g.lng
+        return latitude, longitude, offset / 3600
 
 LOCAL_COORD = _get_local_coordinates()
 

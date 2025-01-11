@@ -83,6 +83,43 @@ class OddsAndEnds:
 
         return data
 
+    def test_ordinals(self, options):
+        """
+        -o with -S and -E
+        """
+        data = []
+        start = options.start
+        end = options.end
+        assert (self._bc.MINYEAR-1) < start < (self._bc.MAXYEAR+1), (
+            f"Start '{start}' must be from {self._bc.MINYEAR} "
+            f"to {self._bc.MAXYEAR}.")
+        assert self._bc.MINYEAR < end < (self._bc.MAXYEAR+2), (
+            f"End '{end}' must be from {self._bc.MINYEAR} "
+            f"to {self._bc.MAXYEAR}")
+        prev_ord = 0
+
+        for year in range(start, end):
+            is_leap = self._bc._is_leap_year(year)
+            days = 365 + is_leap
+
+            for month in self.MONTHS:
+                dm = 19 if month != 0 else 4 + is_leap
+
+                for day in range(1, dm + 1):
+                    date0 = (year, month, day)
+                    ordinal = _td_utils._ymd2ord(*date0)
+                    date1 = _td_utils._ord2ymd(ordinal, short=True)
+                    flag = date0 != date1
+                    assert prev_ord == 0 or (prev_ord + 1) == ordinal, (
+                        f"The Previous Ordinal {previous_ord} is not one "
+                        f"less than the current ordinal {ordinal}.")
+                    data.append((date0, ordinal, date1, is_leap, flag))
+                    prev_ord = ordinal
+
+        return data
+
+    # Support methods
+
     def _year_week_day(self, year:int, month:int, day:int,
                        week0:bool=False) -> tuple:
         """
@@ -126,7 +163,16 @@ if __name__ == "__main__":
     parser.add_argument(
         '-b', '--analyze1', action='store_true', default=False,
         dest='analyze1', help="Reconcile POSIX timestamps with Badi Dates.")
-
+    parser.add_argument(
+        '-o', '--ordinal', action='store_true', default=False,
+        dest='ordinal', help="Test that _ymd2ord and _ord2ymd produce "
+        "the correct dates.")
+    parser.add_argument(
+        '-E', '--end', type=int, default=None, dest='end',
+        help=f"End Badi year {BahaiCalendar.MAXYEAR} of sequence.")
+    parser.add_argument(
+        '-S', '--start', type=int, default=None, dest='start',
+        help=f"Start Badi year {BahaiCalendar.MINYEAR} of sequence.")
     options = parser.parse_args()
     oae = OddsAndEnds()
     ret = 0
@@ -147,6 +193,24 @@ if __name__ == "__main__":
                f"{diff:>+10.4f}"
                ) for (date, b_date, hms, comb, greg_ts,
                       badi_ts, diff) in oae.find_posix_time(options)]
+    elif options.ordinal: # -o
+        if options.start is None or options.end is None:
+            print("If option -o is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            data = oae.test_ordinals(options)
+            print("Start Date      Ordinal Result Date     Leap  Error")
+            print('-'*51)
+            [print(f"{str(date0):15} "
+                   f"{ordinal:>7} "
+                   f"{str(date1):15} "
+                   f"{str(leap):5} "
+                   f"{str(flag):5}"
+                   ) for date0, ordinal, date1, leap, flag in data]
+            print(f"    Total Years Tested: {len(data)}")
+            errors = [l[4] == True for l in data].count(True)
+            print(f"Total Number of Errors: {errors}")
     else:
         parser.print_help()
 
