@@ -47,15 +47,16 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # Badi epoch (Sunset 1844-03-19T18:16:36)
-            ((1844, 3, 19, 18, 16, 36.7104), False, True, (1, 1, 1, 1, 1)),
+            ((1844, 3, 19, 18, 16, 36.7104), False, True,
+             (1, 1, 1, 1, 1, 0, 3, 21.0528)),
             # CC ch#16 p271 First day of Riḍván
             ((1930, 4, 20, 18, 43, 55, 27200), False, True,
-             (1, 5, 11, 2, 13, 0, 1, 39.9648)),
+             (1, 5, 11, 2, 13, 0, 4, 59.2896)),
             # B.E. 100 (Vernal Equinox 1943-03-20T18:17:22.675500)
             ((1943, 3, 20, 18, 17, 22, 675200), False, True,
-             (1, 6, 5, 1, 1, 0, 0, 50.112)),
+             (1, 6, 5, 1, 1, 0, 4, 12.1152)),
             # World Centre update (Vernal Equinox 2015-03-21T02:15:00)
-            ((2015, 3, 21, 2, 15), True, True, (172, 1, 1, 7, 58, 2.64)),
+            ((2015, 3, 21, 2, 15), True, True, (172, 1, 1, 8, 1, 24.9888)),
             )
         msg = "Expected {} with g_date {}, found {}"
 
@@ -317,88 +318,95 @@ class TestBadiCalendar(unittest.TestCase):
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
         data = (
             # 0001-03-19T18:14:32.5536 -> 1721501.260099
-            (1721501.261143, *epoch_coords, False, True, True, False,
+            (1721501.261143, *epoch_coords, False, True, True, False, False,
              (-1842, 1, 1, 0, 1, 30.2016)),
             # 0001-04-08T18:30:00 -> 1721521.270833
-            (1721521.271398, *epoch_coords, False, True, True, False,
+            (1721521.271398, *epoch_coords, False, True, True, False, False,
              (-1842, 2, 2, 0, 1, 28.6464)),
             # 0002-02-24T17:56:00 -> 1721843.247222
-            (1721843.248313, *epoch_coords, False, True, True, False,
+            (1721843.248313, *epoch_coords, False, True, True, False, False,
              (-1842, 0, 1, 0, 1, 43.4208)),
             # 0002-02-25T17:58:00 -> 1721844.248611
-            (1721844.248905, *epoch_coords, False, True, True, False,
+            (1721844.248905, *epoch_coords, False, True, True, False, False,
              (-1842, 0, 2, 0, 1, 42.6432)),
             # 0002-02-26T17:59:00 -> 1721845.249306
-            (1721845.249493, *epoch_coords, False, True, True, False,
+            (1721845.249493, *epoch_coords, False, True, True, False, False,
              (-1842, 0, 3, 0, 1, 41.952)),
             # 0002-03-02T18:02:00 -> 1721849.251389
-            (1721849.251804, *epoch_coords, False, True, True, False,
+            (1721849.251804, *epoch_coords, False, True, True, False, False,
              (-1842, 19, 2, 0, 1, 39.1008)),
             # 0002-03-06T18:05:00 -> 1721853.253472
-            (1721853.254053, *epoch_coords, False, True, True, False,
+            (1721853.254053, *epoch_coords, False, True, True, False, False,
              (-1842, 19, 6, 0, 1, 36.5088)),
             # 1583-03-20T18:16:57.1872 -> 2299315.261773
-            (2299315.261773, *epoch_coords, False, True, True, False,
-             (-260, 1, 1)),
+            (2299315.261773, *epoch_coords, False, True, True, False, False,
+             (-260, 1, 1, 0, 3, 17.9424)),
             # 1844-03-19T18:16:36.7104 -> 2394643.261536
-            (2394643.262113, *epoch_coords, False, True, True, False,
-             (1, 1, 1, 0, 0, 49.8528)),
+            (2394643.262113, *epoch_coords, False, True, True, False, False,
+             (1, 1, 1, 0, 4, 10.9056)),
             # 1845-03-20T18:16:24.4416 -> 2395009.261394
-            (2395009.261972, *epoch_coords, False, True, True,  False,
-             (2, 1, 1)),
+            (2395009.261972, *epoch_coords, False, True, True,  False, False,
+             (2, 1, 1, 0, 3, 20.448)),
             # 1863-03-20T18:16:05.6928 -> 2401583.261177
-            (2401583.261756, *epoch_coords, False, True, True, False,
-             (20, 1, 1)),
+            (2401583.261756, *epoch_coords, False, True, True, False, False,
+             (20, 1, 1, 0, 3, 20.9664)),
+            # Three consecutive days that gave me trouble
+            (2394641.5, *epoch_coords, False, True, True, False, True,
+             (0, 19, 18)),
+            (2394642.5, *epoch_coords, False, True, True, False, True,
+             (0, 19, 19)),
+            (2394643.5, *epoch_coords, False, True, True, False, True,
+             (1, 1, 1)),
             # 1970-01-01T:00:00:00Z -> 2440585.5
             (self._bc._POSIX_EPOCH, 51.477928, -0.001545, 0, False, True, True,
-             False, (126, 16, 2, 7, 59, 32.496)),
+             False, False, (126, 16, 2, 8, 3, 7.7184)),
             # 2015-03-20T18:16:06.9888 -> 2457100.261192
-            (2457100.261775, *epoch_coords, False, True, True, False,
-             (172, 1, 1)),
+            (2457100.261775, *epoch_coords, False, True, True, False, False,
+             (172, 1, 1, 0, 3, 22.3488)),
             # 2024-03-19T18:15:57.312 -> 2460387.26108
-            (2460387.262245, *epoch_coords, False, True, True, False,
-             (181, 1, 1, 0, 0, 50.2848)),
+            (2460387.262245, *epoch_coords, False, True, True, False, False,
+             (181, 1, 1, 0, 4, 12.8928)),
             # 2024-04-20T18:42:00 -> 2460419.27975
-            (2460419.281258, *epoch_coords, False, True, True,  False,
-             (181, 2, 14, 0, 1, 40.656)),
+            (2460419.281258, *epoch_coords, False, True, True,  False, False,
+             (181, 2, 14, 0, 5, 1.1904)),
             # 1st day of Ayyám-i-Há -> 2022-02-24T17:57:55.152000
-            (2459633.248555, *epoch_coords, False, True, True, False,
-             (178, 0, 1, 0, 1, 51.9744)),
+            (2459633.248555, *epoch_coords, False, True, True, False, False,
+             (178, 0, 1, 0, 5, 39.8112)),
             # 5th day of Ayyám-i-Há -> 2022-03-28T18:01:35.40000
-            (2459637.2511, *epoch_coords, False, True, True, False,
-             (178, 0, 5, 0, 1, 49.296)),
+            (2459637.2511, *epoch_coords, False, True, True, False, False,
+             (178, 0, 5, 0, 5, 31.8624)),
             # 2022-03-01T18:02:29.299200 -> 2459638.251728
-            (2459638.251728, *epoch_coords, False, True, True, False,
-             (178, 19, 1, 0, 1, 48.7776)),
+            (2459638.251728, *epoch_coords, False, True, True, False, False,
+             (178, 19, 1, 0, 5, 29.9616)),
             # Badi short form -> 2024-05-12T19:02:00 -> 2460441.293056
-            (2460443.29504, *epoch_coords, False, True, True, False,
-             (181, 3, 19, 0, 1, 35.04)),
+            (2460443.29504, *epoch_coords, False, True, True, False, False,
+             (181, 3, 19, 0, 4, 48.9216)),
             # 2024-05-12T19:02:00 -> 2460441.293056
-            (2460441.29504, *epoch_coords, True, True, True, False,
-             (181, 3, 17, 0, 3, 11, 376000)),
+            (2460441.29504, *epoch_coords, True, True, True, False, False,
+             (181, 3, 17, 0, 6, 27, 417600)),
             # Badi long form -> 2024-05-14T19:02:00 -> 2460443.293056
-            (2460443.293056, *epoch_coords, False, False, True, False,
-             (1, 10, 10, 3, 19, 0, 1, 16.3776)),
-            (2460443.293056, *epoch_coords, True, False, True, False,
-             (1, 10, 10, 3, 19, 0, 1, 16, 377600)),
+            (2460443.293056, *epoch_coords, False, False, True, False, False,
+             (1, 10, 10, 3, 19, 0, 1, 57.504)),
+            (2460443.293056, *epoch_coords, True, False, True, False, False,
+             (1, 10, 10, 3, 19, 0, 1, 57, 504000)),
             # 2024-07-17T19:19:00
-            (2460507.304861, *epoch_coords, False, True, True, False,
-             (181, 7, 7, 0, 0, 15.8112)),
+            (2460507.304861, *epoch_coords, False, True, True, False, False,
+             (181, 7, 6, 11, 57, 16.6176)),
             # 2024-07-17T19:19:00 Test fractional day. -> 2460507.304861
-            (2460507.304861, *epoch_coords, False, True, True, True,
-             (181, 7, 7.000183)),
+            (2460507.304861, *epoch_coords, False, True, True, True, False,
+             (181, 7, 6.498109)),
             # Error with hours
             # (2024, 3, 19, 18, 15, 57.312) -> (181, 1, 1)
-            (2460387.26108, *epoch_coords, False, True, True, False,
-             (181, 1, 1, 0, 0, 50.3712)),
+            (2460387.26108, *epoch_coords, False, True, True, False, False,
+             (181, 1, 1, 0, 2, 32.2368)),
             )
         msg = "Expected {} for jd {} for lat {}, lon {}, and zone {}, found {}"
 
         for (jd, lat, lon, zone, us, short, trim,
-             fraction, expected_result) in data:
+             fraction, rtd, expected_result) in data:
             result = self._bc.badi_date_from_jd(
                 jd, lat, lon, zone, us=us, short=short, trim=trim,
-                fraction=fraction)
+                fraction=fraction, rtd=rtd)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, jd, lat, lon, zone, result))
 
@@ -550,20 +558,22 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             ((1844, 3, 19, 18, 16, 36.7104), False, True, True,
-             (1, 1, 1, 1, 1)),
-            ((1844, 3, 19, 18, 16, 36.7104), True, True, True, (1, 1, 1)),
+             (1, 1, 1, 1, 1, 0, 3, 21.0528)),
+            ((1844, 3, 19, 18, 16, 36.7104), True, True, True,
+             (1, 1, 1, 0, 3, 21.0528)),
             ((2024, 5, 14, 20), False, True, True,
-             (1, 10, 10, 3, 19, 0, 56, 43.5552)),
+             (1, 10, 10, 3, 19, 0, 59, 57.4368)),
             ((2024, 5, 14, 20), True, True, True,
-             (181, 3, 19, 0, 56, 43.5552)),
+             (181, 3, 19, 0, 59, 57.4368)),
             ((2024, 3, 19, 18, 15, 57.312), True, True, True,
-             (181, 1, 1, 0, 0, 50.3712)),
+             (181, 1, 1, 0, 2, 32.2368)),
             # The next tests may show the wrong month and day if
             # _exact=False is used.
             # The _exact=False condition is generally used in testing.
             ((1844, 3, 19, 18, 16, 36.7104), True, True, False,
-             (1, 1, 3, 0, 0, 49.8528)),
-            ((2024, 5, 14, 20), True, True, False, (181, 4, 2, 0, 55, 8.5152)),
+             (1, 1, 3, 0, 1, 40.224)),
+            ((2024, 5, 14, 20), True, True, False,
+             (181, 4, 2, 0, 58, 19.8912)),
             )
         msg = "Expected {} for date {}, short {} and exact {}, found {}"
 
@@ -625,23 +635,26 @@ class TestBadiCalendar(unittest.TestCase):
             # sunset the day before 16:01 lat=51.4769, lon=0, zone=0
             #                      UTC 12am == (126, 16, 2, 8, 0, 0)
             (0, 51.477928, -0.001545, 0, False, True, True,
-             (126, 16, 2, 7, 59, 32.496)),
+             (126, 16, 2, 8, 3, 7.7184)),
             #                      UTC 12am == (1, 7, 12, 16, 2, 8, 0, 0)
             (0, 51.477928, -0.001545, 0, False, False, True,
-             (1, 7, 12, 16, 2, 7, 59, 32.496)),
+             (1, 7, 12, 16, 2, 8, 3, 7.7184)),
             # 1969-12-31T23:59:59 This is one second before the POSIX epoch
             (-1, 51.477928, -0.001545, 0, False, True, True,
-             (126, 16, 2, 7, 59, 31.4952)),
+             (126, 16, 2, 8, 3, 6.7176)),
             (-1, 51.477928, -0.001545, 0, True, True, True,
-             (126, 16, 2, 7, 59, 31, 495200)),
+             (126, 16, 2, 8, 3, 6, 717600)),
             # 2024-08-21T14:33:46.246101 -- Locality in NC USA
             # The h, m, & s are counted from the beginning of the Badi day
             # which would be the previous Gregorian day.
             (1724265226.246101, *local_coords, False, True, True,
-             (181, 9, 4, 0, 22, 31.7352)),
+             (181, 9, 3, 11, 31, 14.9304)),
+            # Just after sunset US/Eastern on (2024, 1, 12, 17, 34, 1, 290939)
+            (1736721241.2909386, *local_coords, True, True, False,
+             (181, 16, 15, 5, 14, 54, 790800)),
             # Test with zone 3.5 (Tehran Iran) 2024-08-28T00:59:58.549010+3:30
             (1724794198.5490103, *epoch_coords, False, True, True,
-             (181, 9, 10, 2, 52, 36.2964)),
+             (181, 9, 10, 2, 47, 14.7156)),
             )
         msg = "Expected {} for timestamp {}, found {}"
 
@@ -897,46 +910,66 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the _adjust_date method returns the corrected date based
         on the JD and the original date.
         """
-        err_msg0 = "Cannot set more than one of fraction, us, and rtd to True."
+        err_msg0 = "Cannot set more than one of fraction, us, or rtd to True."
         local_coords = (35.5894, -78.7792, -5.0)
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
         data = (
-            # Test where the JD is greater that the sunset.
-            (2460733.3, (181, 19, 1), *local_coords, False, False, False,
-             (181, 19, 1, 1, 2, 14.64)),
-            (2460387.3, (181, 1, 1), *local_coords, False, False, False,
-             (181, 1, 1, 0, 45, 29.1168)),
-            # Test fraction
-            (2460733.2, (181, 19, 1), *local_coords, True, False, False,
-              (181, 19, 1.056775)),
+            # Test where the JD is < the sunset.
+            # Stage 1
+            (2460387.2, (181, 1, 1), *local_coords, True, False, False, False,
+             (180, 19, 19.434516)),
+            # Stage 2
+            (2460406.2, (181, 2, 1), *local_coords, True, False, False, False,
+             (181, 1, 19.423559)),
+            # Stage 3
+            (2460733.2, (181, 19, 1), *local_coords, True, False, False, False,
+              (181, 0, 4.446448)),
+            # Stage 4
+            (2460729.2, (181, 0, 1), *local_coords, True, False, False, False,
+              (181, 18, 19.449096)),
+            # Test where the JD is >= the sunset. Stage 5
+            (2460733.3, (181, 19, 1), *local_coords, False, False, False, False,
+             (181, 19, 1, 1, 5, 56.7744)),
+            # Test fraction -- Stage 5
+            (2460733.3, (181, 19, 1), *local_coords, True, False, False, False,
+              (181, 19, 1.045796)),
+            # Stage 5
+            (2394641.5, (0, 19, 18), *epoch_coords, False, False, True, False,
+             (0, 19, 18)),
+            (2394642.5, (0, 19, 19), *epoch_coords, False, False, True, False,
+             (0, 19, 19)),
+            (2394643.5, (1, 1, 1), *epoch_coords, False, False, True, False,
+             (1, 1, 1)),
+            (2460387.3, (181, 1, 1), *local_coords, False, False, False, False,
+             (181, 1, 1, 0, 48, 51.2064)),
             # Test 1st day of the year for a few years
-            # 1845-03-20T18:16:24.4416 -> 2395009.261394
+            # 1845-03-20T18:16:24.4416 -> 2395009.261394 Stage 5
             (2395009.261972, (2, 1, 1), *epoch_coords, False, False, False,
-             (2, 1, 1, 0, 0, 0.0)),
-            # 1863-03-20T18:16:05.6928 -> 2401583.261177
+             False, (2, 1, 1, 0, 3, 20.448)),
+            # 1863-03-20T18:16:05.6928 -> 2401583.261177 Stage 5
             (2401583.261756, (20, 1, 1), *epoch_coords, False, False, False,
-             (20, 1, 1, 0, 0, 0.0)),
-            # 2015-03-20T18:16:06.9888 -> 2457100.261192
+             False, (20, 1, 1, 0, 3, 20.9664)),
+            # 2015-03-20T18:16:06.9888 -> 2457100.261192 Stage 5
             (2457100.261775, (172, 1, 1), *epoch_coords, False, False, False,
-             (172, 1, 1, 0, 0, 0.0)),
-            # 2024-03-19T18:15:57.312 -> 2460387.26108
+             False, (172, 1, 1, 0, 3, 22.3488)),
+            # 2024-03-19T18:15:57.312 -> 2460387.26108 Stage 5
             (2460387.262245, (181, 1, 1), *epoch_coords, False, False, False,
-             (181, 1, 1, 0, 0, 50.2848)),
+             False, (181, 1, 1, 0, 4, 12.8928)),
             # Test with microseconds
-            # JD from jd_from_badi_date()
+            # JD from jd_from_badi_date() Stage 5
             (2460387.262245, (181, 1, 1), *epoch_coords, False, True, False,
-             (181, 1, 1, 0, 0, 50, 284800)),
-            # JD from jd_from_gregorian_date()
+             False, (181, 1, 1, 0, 4, 12, 892800)),
+            # JD from jd_from_gregorian_date() Stage 5
             (2460387.26108, (181, 1, 1), *epoch_coords, False, True, False,
-             (181, 1, 1, 0, 0, 50, 371200)),
+             False, (181, 1, 1, 0, 2, 32, 236800)),
             # Error conditions
-            (2460733.2, (181, 19, 1), *local_coords, True, True, True,
+            (2460733.2, (181, 19, 1), *local_coords, True, True, False, True,
              err_msg0),
             )
         msg = "Expected {} for jd {} and date {}, found {}"
 
         for (jd, date, lat, lon, zone, fraction,
-             us, validity, expected_result) in data:
+             us, rtd, validity, expected_result) in data:
             if validity:
                 try:
                     result = self._bc._adjust_date(jd, date, lat, lon, zone,
@@ -950,7 +983,8 @@ class TestBadiCalendar(unittest.TestCase):
                         f"not raised, with result {result}.")
             else:
                 result = self._bc._adjust_date(jd, date, lat, lon, zone,
-                                               fraction=fraction, us=us)
+                                               fraction=fraction, us=us,
+                                               rtd=rtd)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, jd, date, result))
 

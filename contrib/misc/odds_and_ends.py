@@ -100,7 +100,6 @@ class OddsAndEnds:
 
         for year in range(start, end):
             is_leap = self._bc._is_leap_year(year)
-            days = 365 + is_leap
 
             for month in self.MONTHS:
                 dm = 19 if month != 0 else 4 + is_leap
@@ -109,12 +108,20 @@ class OddsAndEnds:
                     date0 = (year, month, day)
                     ordinal = _td_utils._ymd2ord(*date0)
                     date1 = _td_utils._ord2ymd(ordinal, short=True)
-                    flag = date0 != date1
-                    assert prev_ord == 0 or (prev_ord + 1) == ordinal, (
-                        f"The Previous Ordinal {previous_ord} is not one "
-                        f"less than the current ordinal {ordinal}.")
-                    data.append((date0, ordinal, date1, is_leap, flag))
+
+                    if (options.previous and
+                        (prev_ord != 0 and (prev_ord + 1) != ordinal)):
+                        data.append((date0, prev_ord, date1, ordinal))
+                    elif not options.previous:
+                        flag = date0 != date1
+
+                        if flag:
+                            data.append((date0, ordinal, date1, is_leap, flag))
+
                     prev_ord = ordinal
+
+            if not year % 100:
+                print(year, file=sys.stderr)
 
         return data
 
@@ -171,15 +178,21 @@ if __name__ == "__main__":
         '-E', '--end', type=int, default=None, dest='end',
         help=f"End Badi year {BahaiCalendar.MAXYEAR} of sequence.")
     parser.add_argument(
+        '-P', '--previous', action='store_true', default=False,
+        dest='previous', help=f"Dump the previous and current ordinals.")
+    parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
         help=f"Start Badi year {BahaiCalendar.MINYEAR} of sequence.")
     options = parser.parse_args()
     oae = OddsAndEnds()
     ret = 0
+    basename = os.path.basename(__file__)
 
     if options.analyze0: # -a
+        print(f"./contrib/misc/{basename} -a")
         oae.find_year_week_day_of_week(options)
     elif options.analyze1: # -b
+        print(f"./contrib/misc/{basename} -b")
         print("Gregorian Date                    Badi Date                  "
               "   HMS               Combined                     Greg TS"
               "          Badi TS          Diff")
@@ -198,8 +211,21 @@ if __name__ == "__main__":
             print("If option -o is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
+        elif options.previous:
+            data = oae.test_ordinals(options)
+            print(f"./contrib/misc/{basename} -oPS{options.start} "
+                  f"-E{options.end}")
+            print("Start Date      Prev Ord Result Date     Cur Ord")
+            print('-'*48)
+            [print(f"{str(date0):15}  "
+                   f"{prev_ord:>7} "
+                   f"{str(date1):15} "
+                   f"{ordinal:>7} "
+                   ) for date0, prev_ord, date1, ordinal in data]
         else:
             data = oae.test_ordinals(options)
+            print(f"./contrib/misc/{basename} -oS{options.start} "
+                  f"-E{options.end}")
             print("Start Date      Ordinal Result Date     Leap  Error")
             print('-'*51)
             [print(f"{str(date0):15} "
@@ -208,7 +234,7 @@ if __name__ == "__main__":
                    f"{str(leap):5} "
                    f"{str(flag):5}"
                    ) for date0, ordinal, date1, leap, flag in data]
-            print(f"    Total Years Tested: {len(data)}")
+            print(f"    Total Years Tested: {options.end-options.start}")
             errors = [l[4] == True for l in data].count(True)
             print(f"Total Number of Errors: {errors}")
     else:

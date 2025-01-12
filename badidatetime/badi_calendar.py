@@ -27,7 +27,7 @@ class BahaiCalendar(BaseCalendar):
     #                 lattude    longitude  zone IANA name      elevation
     _BAHAI_LOCATION = (35.682376, 51.285817, 3.5, 'Asia/Tehran', 0)
     _GMT_LOCATION = (51.477928, -0.001545, 0, 0)
-    _BADI_EPOCH = 2394643.262113 # 2394645.261536 using Meeus' algorithm
+    _BADI_EPOCH = 2394643.5 # 2394645.5 using Meeus' algorithm
     _BADI_MONTH_NUM_DAYS = [
         (1, 19), (2, 19), (3, 19), (4, 19), (5, 19), (6, 19), (7, 19),
         (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
@@ -169,7 +169,6 @@ class BahaiCalendar(BaseCalendar):
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_coff(year), self._ROUNDING_PLACES)
 
-
     def _get_coff(self, year):
         """
         General ranges are determined with:
@@ -297,8 +296,9 @@ class BahaiCalendar(BaseCalendar):
             return y-1 if (math.floor(fjdy) - math.floor(cjd)) > 0 else y
 
         md = jd - (self._BADI_EPOCH - 1)
-        # This is only needed for the last two days of Badi year 1161.
-        y = 1 if md < 424046 else 0
+        # This is only needed for the last two days of Badi year 1161
+        # and the day before the epoch.
+        y = 1 if md < 424046 and md != 0 else 0
         year = math.floor(md / self._MEAN_TROPICAL_YEAR) + y
         leap, yds, ld = get_leap_year_info(year, _chk_on)
 
@@ -558,6 +558,10 @@ class BahaiCalendar(BaseCalendar):
         days = math.floor(t / 86400)
         jd = days + self._POSIX_EPOCH
         jd += t % 86400 / 86400
+        mjd = jd - self._meeus_from_exact(jd)
+        ss = self._sun_setting(mjd, lat, lon, zone)
+
+        print(jd)
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim)
 
@@ -763,6 +767,11 @@ class BahaiCalendar(BaseCalendar):
         The adjusted year, month, and day based on if the JD falls before
         or after sunset.
 
+        .. warning::
+
+           This method will give disasterous results if the jd and and ymd
+           arguments are off by more than a day.
+
         :param float jd: Exact Julian Period day.
         :param tuple ymd: The year month, and day.
         :param float lat: The latitude.
@@ -779,21 +788,50 @@ class BahaiCalendar(BaseCalendar):
         :rtype: tuple
         """
         assert self._xor_boolean((fraction, us, rtd)), (
-            "Cannot set more than one of fraction, us, and rtd to True.")
+            "Cannot set more than one of fraction, us, or rtd to True.")
+        year, month, day = ymd
         jd0 = math.floor(jd) # So we always get the sunset on the current day.
-        mjd0 = jd0 + self._meeus_from_exact(jd0) # Current day
+        mjd0 = jd0 - self._meeus_from_exact(jd0) # Current day
         jd_frac = jd % 1
         # Current day sunset
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
-        ss0 -= self._exact_from_meeus(ss0)
-        year, month, day = ymd
-        frac = abs(jd_frac - ss0 % 1)
+        ss_frac = ss0 % 1
+
+        if jd_frac < ss_frac:
+            # Previous day sunset
+            jd1 = jd0 - 1
+            mjd1 = jd1 - self._meeus_from_exact(jd1)
+            ss1 =  self._sun_setting(mjd1, lat, lon, zone)
+            frac = abs(0.5 - ss1 % 1 + jd_frac)
+            day -= 1
+
+            if day == 0:
+                if month == 1: # Stage 1
+                    year -= 1
+                    month = 19
+                    day = 19
+                    #print('Stage 1', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                elif month in range(2, 19): # Stage 2
+                    month -= 1
+                    day = 19
+                    #print('Stage 2', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                elif month == 19: # Stage 3
+                    month = 0
+                    day = 4 + self._is_leap_year(year)
+                    #print('Stage 3', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                else: # month 0 -> Ayyám-i-Há Stage 4
+                    month = 18
+                    day = 19
+                    #print('Stage 4', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+        else: # Stage 5
+            frac = abs(jd_frac - ss_frac)
+            #print('Stage 5', jd, ymd, jd_frac, ss_frac)
 
         if fraction:
             day = round(day + frac, self._ROUNDING_PLACES)
             hms = ()
         elif rtd:
-            day = round(day)
+            day = round(day + frac)
             hms = ()
         else:
             hh, mm, ss = self._hms_from_decimal_day(frac)

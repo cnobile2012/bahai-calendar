@@ -640,8 +640,6 @@ class TimeDateUtils(BahaiCalendar):
         :return: The number in the year preceding the first day of month.
         :rtype: int
         """
-        #assert 0 <= month <= 19, (f"Invalid month '{month}', it must be "
-        #                          "in the range of [0, 19].")
         month -= -18 if month < 2 else 1 if 1 < month < 19 else 19
         dbm = 0
 
@@ -669,13 +667,13 @@ class TimeDateUtils(BahaiCalendar):
 
     def _ymd2ord(self, year:int, month:int, day:int) -> int:
         """
-        Get the number of days since Badi year -1842 (Gregorian 0001-03-19)
+        Get the number of days since Badi year -1842 (Julian 0001-03-19)
         including the current day.
 
-        year, month, day -> ordinal, considering -1842-01-01 as day 1.
+        year, month, day -> ordinal, considering -1842-01-01 as day 1
 
         :param int year: Badi year
-        :param int month: Badi month (0..19)
+        :param int month: Badi month [0, 19]
         :param int day: Badi day
         :return: The number of days since Badi year -1842 including the
                  current day.
@@ -686,11 +684,16 @@ class TimeDateUtils(BahaiCalendar):
             f"Day '{day}' for month {month} must be in range of 1..{dim}")
         # We add 77 days to the total so that the ordinal number can be
         # compared to the ordinals in the standard datetime package.
-        return (self.DAYS_BEFORE_1ST_YEAR + self._days_before_year(year) +
-                self._days_before_month(year, month) + day)
 
-    #_FIFTH_YEARS = ((37, -1413), (37, -980), (37, -580), (41, -242),
-    #                (29, 117), (37, 187), (29, 216))
+        # For some reason out of the 3004 year that are provided only
+        # these three years are off by 1.
+        if year in (-1796, -1792, -1788):
+            fudge = 1
+        else:
+            fudge = 0
+
+        return (self.DAYS_BEFORE_1ST_YEAR + self._days_before_year(year) +
+                self._days_before_month(year, month) + day + fudge)
 
     def _ord2ymd(self, n:int, *, short:bool=False) -> tuple:
         """
@@ -714,8 +717,8 @@ class TimeDateUtils(BahaiCalendar):
         # The reason we need to do this is that the first date that this
         # package can provide is equivalent to Julian year 1, March, 19th.
         jd = self.FIRST_YEAR_EPOCH - 1 - self.DAYS_BEFORE_1ST_YEAR + n
-        return self.badi_date_from_jd(jd, short=short, trim=True,
-                                      rtd=True, _chk_on=False)
+        return self.badi_date_from_jd(math.floor(jd) + 0.5, short=short,
+                                      trim=True, rtd=True, _chk_on=False)
 
     def _build_struct_time(self, date:tuple, dstflag:int, *,
                            tzinfo:'timezone'=None,

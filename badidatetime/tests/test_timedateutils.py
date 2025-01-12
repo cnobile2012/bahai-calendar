@@ -649,6 +649,8 @@ class TestTimeDateUtils(unittest.TestCase):
             (78, False, (-5, 18, 1, 1, 1)),
             (78, True, (-1842, 1, 1)),
             (444, True, (-1841, 1, 1)),
+            (673219, True, (0, 19, 19)),
+            (673220, True, (1, 1, 1)),
             (738964, True, (181, 1, 1)),
             # 1st week of 181
             (738961, True, (180, 19, 17)),
@@ -658,6 +660,7 @@ class TestTimeDateUtils(unittest.TestCase):
             (738965, True, (181, 1, 2)),
             (738966, True, (181, 1, 3)),
             (738967, True, (181, 1, 4)),
+            (739100, True, (181, 8, 4)),
             )
         msg = "Expected {} with ordinal {} and short {}, found {}."
 

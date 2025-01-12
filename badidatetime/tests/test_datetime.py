@@ -418,6 +418,7 @@ class TestBadiDatetime_date(unittest.TestCase):
                              msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_fromtimestamp(self):
         """
         Test that the fromtimestamp class method creates an instance of
@@ -2295,17 +2296,17 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             # Latitude and Longitude dependent
             # 1969-12-31T19:00:00+00:00 -> 0126-16-02T01:46:33.168000+00:00
-            (-18000, False, tz1, True, '0126-16-02T01:47:57.120000+00:00'),
+            (-18000, False, tz1, True, '0126-16-02T01:50:45.340800+00:00'),
             # Assume UTC as starting point.
-            (0, True, tz1, True, '0126-16-02T07:59:32.496000+00:00'),
+            (0, True, tz1, True, '0126-16-02T08:03:07.718400+00:00'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz0, True, '0126-16-02T05:17:57.120000+03:30'),
+            (-18000, False, tz0, True, '0126-16-02T05:20:45.340800+03:30'),
             # Assume UTC as starting point.
-            (0, True, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
+            (0, True, tz0, True, '0126-16-02T11:33:07.718400+03:30'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz2, True, '0126-16-01T20:47:57.120000-05:00'),
+            (-18000, False, tz2, True, '0126-16-01T20:50:45.340800-05:00'),
             )
         msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
                "and short {}, found {}.")
@@ -2332,26 +2333,26 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Latitude and Longitude dependent
             # Assume local time as starting point.
             # 1970-01-01 -> Badi date and time relative to naive local time.
-            (0, None, True, '0126-16-02T06:47:57.120000'),
+            (0, None, True, '0126-16-02T06:50:45.340800'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to UTC
-            (0, tz1, True, '0126-16-02T07:59:32.496000+00:00'),
+            (0, tz1, True, '0126-16-02T08:03:07.718400+00:00'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to +03:30
-            (0, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
+            (0, tz0, True, '0126-16-02T11:33:07.718400+03:30'),
             # Local time (2024, 11, 30, 20, 24, 13, 327577)
             # *** TODO *** There is a problem with the two results below, both
             # should be the same. Checked with tz is correct. This could be
             # that only God knows what coordinates are used for IANA time
-            # zones to arrive at the correct time. Off by 03:51:10.3392 hrs.
+            # zones to arrive at the correct time. Off by 03:54:10.915200 hrs.
             # Latitude and Longitude dependent
-            (1733016253.327577, None, True, '0181-14-10T08:22:10.063200'),
-            (1733016253.327577, tz2, True, '0181-14-10T04:29:56.306400-05:00'),
+            (1733016253.327577, None, True, '0181-14-10T08:21:17.532000'),
+            (1733016253.327577, tz2, True, '0181-14-10T04:27:06.616800-05:00'),
             # Some long form datetimes.
             # Latitude and Longitude dependent
-            (0, None, False, '01-07-12-16-02T06:47:57.120000'),
-            (0, tz1, False, '01-07-12-16-02T07:59:32.496000+00:00'),
-            (0, tz0, False, '01-07-12-16-02T11:29:32.496000+03:30'),
+            (0, None, False, '01-07-12-16-02T06:50:45.340800'),
+            (0, tz1, False, '01-07-12-16-02T08:03:07.718400+00:00'),
+            (0, tz0, False, '01-07-12-16-02T11:33:07.718400+03:30'),
             )
         msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
                "found {}.")
@@ -2543,6 +2544,9 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         tz2 = ZoneInfo('US/Eastern')
         data = (
             # 2024-03-20T07:30:00+03:30 -> 1710907200
+            # 2460387.262245 = sunset on 0181-01-01T00:00:00
+            # 0.3125 = T07:30:00
+            # 0.550255 = 0.5 - 0.262245 + 0.3125 = T13:12:22.032
             ((181, 1, 1, None, None, 13, 16, 8.9472), tz0, 0, 1710907200),
             # 2024-03-20T04:00:00+00:00 -> 1710907200
             ((181, 1, 1, None, None, 9, 46, 8.9472), tz1, 0, 1710907200),
@@ -2757,6 +2761,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                                  f"Expected fold {fold1}, found {result.fold}")
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test__local_timezone(self):
         """
         Test that the _local_timezone method returns the local time offset.
@@ -3352,6 +3357,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         err_msg1 = "unsupported operand type(s) for +: 'datetime' and '{}'"
         data = (
             ((1, 1, 1), (1,), False, (1, 1, 2)),
+            ((1, 1, 1), (-1,), False, (0, 19, 19)),
             ((1, 1, 1), (366,), False, (2, 1, 1)),             # Leap year
             ((181, 1, 1), (365,), False, (182, 1, 1)),         # Non leap year
             ((1, 1, 1, 1, 1), (366,), False, (1, 1, 2, 1, 1)), # Leap year
