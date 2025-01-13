@@ -558,10 +558,10 @@ class BahaiCalendar(BaseCalendar):
         days = math.floor(t / 86400)
         jd = days + self._POSIX_EPOCH
         jd += t % 86400 / 86400
-        mjd = jd - self._meeus_from_exact(jd)
-        ss = self._sun_setting(mjd, lat, lon, zone)
+        #mjd = jd - self._meeus_from_exact(jd)
+        #ss = self._sun_setting(mjd, lat, lon, zone)
+        #print(jd)
 
-        print(jd)
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim)
 

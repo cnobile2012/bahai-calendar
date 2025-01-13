@@ -141,8 +141,7 @@ class TimeDateUtils(BahaiCalendar):
                 year = process_short_form(ttup)
                 idx = 1
             else: # pragma: no cover
-                raise TypeError(f"Invalid timetuple, found length {t_len}, "
-                                f"{dir(ttup)}.")
+                raise TypeError(f"Invalid timetuple, found length {t_len}.")
         else: # A Tuple or class derived from a standard tuple
             if t_len == 11: # Long form
                 year = process_long_form(ttup)
@@ -151,8 +150,7 @@ class TimeDateUtils(BahaiCalendar):
                 year = process_short_form(ttup)
                 idx = 1
             else:
-                raise TypeError(f"Invalid timetuple, found length {t_len}, "
-                                f"{dir(ttup)}.")
+                raise TypeError(f"Invalid timetuple, found length {t_len}.")
 
         month = ttup[idx]
         day = ttup[idx+1]

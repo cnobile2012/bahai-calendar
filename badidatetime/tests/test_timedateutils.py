@@ -185,7 +185,7 @@ class TestTimeDateUtils(unittest.TestCase):
                      "[1, 366].")
         err_msg11 = "Invalid isdst '{}', it must be in the range of [-1, 1]."
         err_msg12 = "The ttup argument {} is not a proper tuple."
-        err_msg13 = "Invalid timetuple, found length {}, {}."
+        err_msg13 = "Invalid timetuple, found length {}."
         data = (
             ### Valid tuples
             ((MIN_K, 18, 1, 1, 1, 1, 1, 1), -1, ttup_l, False, ''),
@@ -266,16 +266,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ([1, 1, 1, 1, 1, 1], -1, bad_t, True,
              err_msg12.format("<class 'list'>")),
             ((1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, True,
-             err_msg13.format(
-                 13, "['__add__', '__class__', '__class_getitem__', "
-                 "'__contains__', '__delattr__', '__dir__', '__doc__', "
-                 "'__eq__', '__format__', '__ge__', '__getattribute__', "
-                 "'__getitem__', '__getnewargs__', '__getstate__', '__gt__', "
-                 "'__hash__', '__init__', '__init_subclass__', '__iter__', "
-                 "'__le__', '__len__', '__lt__', '__mul__', '__ne__', "
-                 "'__new__', '__reduce__', '__reduce_ex__', '__repr__', "
-                 "'__rmul__', '__setattr__', '__sizeof__', '__str__', "
-                 "'__subclasshook__', 'count', 'index']")),
+             err_msg13.format(13)),
             )
         msg = "Expected {}, with date {}. found {}."
 
