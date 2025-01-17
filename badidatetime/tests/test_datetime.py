@@ -426,8 +426,9 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         data = (
             (0, True, '0126-16-02'),
-            (1723057467.0619307, False, '01-10-10-08-09'),
-            (1723057467.0619307, True, '0181-08-09'),
+            # Gregorian date (2024, 8, 7) this is definitly (0181, 8, 9)
+            (1723057467.0619307, False, '01-10-10-08-08'),
+            (1723057467.0619307, True, '0181-08-08'),
             )
         msg = "Expected {} with timestamp {}, found {}."
 

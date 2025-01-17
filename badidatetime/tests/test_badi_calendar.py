@@ -627,6 +627,7 @@ class TestBadiCalendar(unittest.TestCase):
 
         The lat and lon at GMT is:
         https://www.latlong.net/place/prime-meridian-greenwich-30835.html#:~:text=Prime%20Meridian%20(Greenwich)%20Lat%20Long,%C2%B0%200'%205.5620''%20W.
+        https://www.unixtimestamp.com/
         """
         local_coords = (35.5894, -78.7792, -5.0)
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
@@ -655,6 +656,9 @@ class TestBadiCalendar(unittest.TestCase):
             # Test with zone 3.5 (Tehran Iran) 2024-08-28T00:59:58.549010+3:30
             (1724794198.5490103, *epoch_coords, False, True, True,
              (181, 9, 10, 2, 47, 14.7156)),
+            # 2024-08-07T14:04:24-0500
+            (1723057467.0619307, *local_coords, False, True, True,
+             (181, 8, 8, 11, 46, 47.2512)),
             )
         msg = "Expected {} for timestamp {}, found {}"
 
