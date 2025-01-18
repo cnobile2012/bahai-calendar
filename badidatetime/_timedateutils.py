@@ -718,8 +718,7 @@ class TimeDateUtils(BahaiCalendar):
         return self.badi_date_from_jd(math.floor(jd) + 0.5, short=short,
                                       trim=True, rtd=True, _chk_on=False)
 
-    def _build_struct_time(self, date:tuple, dstflag:int, *,
-                           tzinfo:'timezone'=None,
+    def _build_struct_time(self, date:tuple, dstflag:int, *, tzinfo=None,
                            short_in=False) -> NamedTuple:
         """
         Build either the ShortFormStruct or LongFormStruct NamedTuple.
@@ -1076,6 +1075,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         Correctly substitute for %z and %Z escapes in strftime formats.
         """
+        from .datetime import timezone, timedelta
         # Don't call utcoffset() or tzname() unless actually needed.
         freplace = None  # the string to use for %f
         zreplace = None  # the string to use for %z
@@ -1123,7 +1123,7 @@ class TimeDateUtils(BahaiCalendar):
                                     if u:
                                         zreplace += f'{s:02}.{u:06}'
                                     elif s:
-                                        zreplace += f'{s02}'
+                                        zreplace += f'{s:02}'
 
                         push(zreplace)
                     elif ch == 'Z':

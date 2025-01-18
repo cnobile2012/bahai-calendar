@@ -5,19 +5,12 @@
 __docformat__ = "restructuredtext en"
 
 import re
-import os
-import sys
 import locale
 import time
 import pickle
 import unittest
 from unittest.mock import patch
-
 from zoneinfo import ZoneInfo
-
-PWD = os.path.dirname(os.path.abspath(__file__))
-BASE_DIR = os.path.dirname(os.path.dirname(PWD))
-sys.path.append(BASE_DIR)
 
 from badidatetime import datetime, disable_geocoder
 from ..badi_calendar import BahaiCalendar
@@ -129,8 +122,8 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 else:
                     result = result if result else None
                     raise AssertionError(
-                        f"With {name} and {offset} an error is "
-                        f"not raised, with result {result}.")
+                        f"With {tz} an error is not raised, with "
+                        f"result {result}.")
             else:
                 result = datetime._check_tzinfo_arg(tz)
                 self.assertEqual(expected_result, result, msg.format(
@@ -3583,9 +3576,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 except TypeError as e:
                     self.assertEqual(err_msg0, str(e))
                 else:
-                    result = result if result else None
-                    raise AssertionError(f"With {date} an error is not "
-                                         f"raised, with result {result}.")
+                    raise AssertionError(f"With {date} an error is not raised.")
             else:
                 dt._datetime__setstate(bytes_str, tz)
 
@@ -3782,7 +3773,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
-                    raise AssertionError(f"With {tz1} an error is not "
+                    raise AssertionError(f"With {offset} an error is not "
                                          f"raised, with result {result}.")
             else:
                 if isinstance(date, tuple):
@@ -3823,7 +3814,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
                     self.assertEqual(expected_result, str(e))
                 else:
                     result = result if result else None
-                    raise AssertionError(f"With {tz1} an error is not "
+                    raise AssertionError(f"With {offset} an error is not "
                                          f"raised, with result {result}.")
             else:
                 if isinstance(date, tuple):

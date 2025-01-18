@@ -77,7 +77,7 @@ class struct_time:
     """
     Create a structure representing a Badi date and time.
     """
-    def __new__(cls, date:tuple, tzinfo:'timezone'=None):
+    def __new__(cls, date:tuple, tzinfo=None):
         self = object.__new__(cls)
         super().__init__(self)
         short = cls.__is_short_form(date)

@@ -332,22 +332,24 @@ class date(BahaiCalendar):
                              "for date parsing, isoformat string: "
                              f"{date_string!r}.")
 
+        bc = BahaiCalendar()
+
         try:
-            bc = BahaiCalendar()
             date = _td_utils._parse_isoformat_date(date_string)
         except Exception as e:
             del bc
             raise ValueError(str(e))
         else:
             if date == ():
+                del bc
                 raise ValueError(f"Invalid isoformat string: {date_string!r}.")
 
             if short:
                 b_date = date
             else:
                 b_date = bc.long_date_from_short_date(date, trim=True)
-                del bc
 
+            del bc
             return cls(*b_date)
 
     @classmethod

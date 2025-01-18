@@ -436,7 +436,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         flags = ('RISE', 'SET')
         sr_ss = sr_ss.upper()
         assert sr_ss in flags, (
-            f"Invalid value, should be one of '{flag}' found '{sr_ss}'.")
+            f"Invalid value, should be one of '{flags}' found '{sr_ss}'.")
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self._julian_centuries(jd)
         dt = self._delta_t(jd)
