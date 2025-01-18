@@ -12,7 +12,7 @@ import unittest
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
-from badidatetime import datetime, disable_geocoder
+from badidatetime import datetime, enable_geocoder
 from ..badi_calendar import BahaiCalendar
 
 
@@ -2105,6 +2105,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
         self._time_fields = ('hour', 'minute', 'second', 'microsecond')
+
+    @classmethod
+    def setUpClass(cls):
+        enable_geocoder()
 
     def _get_time(self, time):
         t_len = len(time)
