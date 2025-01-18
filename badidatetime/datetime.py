@@ -1653,6 +1653,7 @@ class datetime(date):
         # Extract TZ data
         gmtoff = localtm.tm_gmtoff
         zone = localtm.tm_zone
+        print(gmtoff, zone)
         return timezone(timedelta(seconds=gmtoff), zone)
 
     def astimezone(self, tz:tzinfo=None):

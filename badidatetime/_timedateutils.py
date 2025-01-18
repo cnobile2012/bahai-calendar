@@ -429,7 +429,6 @@ class TimeDateUtils(BahaiCalendar):
         year = self._get_year(ttup)
         n = '-' if year < 0 else ''
         delim = self.date_format[0]
-        century = int(year / 100) * 100
         data = []
 
         for fmt in self.date_format[1:]:

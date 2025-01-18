@@ -9,11 +9,12 @@ import locale
 import time
 import pickle
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, PropertyMock
 from zoneinfo import ZoneInfo
 
 from badidatetime import datetime, enable_geocoder
 from ..badi_calendar import BahaiCalendar
+from .._timedateutils import _td_utils
 
 
 class TestBadiDatetimeFunctions(unittest.TestCase):
@@ -299,7 +300,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__local_timezone_info(self):
         """
         Test that the _local_timezone_info function returns the timezone
@@ -651,10 +652,15 @@ class TestBadiDatetime_date(unittest.TestCase):
                              msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_strftime(self):
+    @patch('badidatetime._timedateutils.TimeDateUtils.date_format',
+           new_callable=PropertyMock)
+    def test_strftime(self, mock_property):
         """
         Test that the strftime method returns a formatted date time string.
+        We need to mock the date_format property because everywhere is not
+        here.
         """
+        mock_property.return_value = ['/', 'm', 'd', 'Y']
         data = (
             ((181, 19, 1), '%D', '19/01/81'),
             ((1, 10, 10, 19, 1), '%D', '19/01/81'),
@@ -2496,7 +2502,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     def test__mktime(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
-        local time.
+        local time. *** TODO *** Fix more of these tests
         """
         # All results below indicate local time.
         data = (
