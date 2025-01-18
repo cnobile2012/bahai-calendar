@@ -337,11 +337,9 @@ class date(BahaiCalendar):
         try:
             date = _td_utils._parse_isoformat_date(date_string)
         except Exception as e:
-            del bc
             raise ValueError(str(e))
         else:
             if date == ():
-                del bc
                 raise ValueError(f"Invalid isoformat string: {date_string!r}.")
 
             if short:
