@@ -1,9 +1,10 @@
 # %load ipython_badi.py
-from badidatetime import GregorianCalendar, BahaiCalendar, datetime, date, time, timezone, timedelta, tzinfo
+# %load_ext autoreload
+import os; os.environ['DEBUG'] = "1"
+from badidatetime import GregorianCalendar, BahaiCalendar, datetime
 from badidatetime._timedateutils import TimeDateUtils
 from zoneinfo import ZoneInfo
 import math, time, datetime as dtime
 gc = GregorianCalendar()
 bc = BahaiCalendar()
 _td_utils = TimeDateUtils()
-%load_ext autoreload

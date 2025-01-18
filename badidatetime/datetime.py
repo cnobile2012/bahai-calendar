@@ -13,12 +13,11 @@ import time as _time
 import math as _math
 from datetime import datetime as _dtime, timedelta, tzinfo
 from types import NoneType
-from tzlocal import get_localzone
-import geocoder
 
 from .badi_calendar import BahaiCalendar
 from ._structures import struct_time
 from ._timedateutils import _td_utils
+
 
 _MAXORDINAL = 1097267 # date.max.toordinal()
 MINYEAR = BahaiCalendar.MINYEAR
@@ -26,6 +25,8 @@ MAXYEAR = BahaiCalendar.MAXYEAR
 BADI_IANA = BahaiCalendar._BAHAI_LOCATION[3] # Asia/Terhan
 BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
 GMT_COORD = (51.477928, -0.001545, 0)
+# LOCAL_COORD is lazily configured to the local coordinates if not disabled.
+LOCAL_COORD = BADI_COORD
 
 def _cmp(x, y):
     return 0 if x == y else 1 if x > y else -1
@@ -149,7 +150,7 @@ def _fromutc(this, dt):
 
     .. note::
 
-       This function needs to be implimented outside the tzinfo class so
+       This function needs to be implemented outside the tzinfo class so
        that the tzinfo class can be used with the zoneinfo class. Normally
        the tzinfo class would just be overridden with this function added.
     """
@@ -181,43 +182,6 @@ def _fromutc(this, dt):
                              "results; cannot convert.")
 
     return dt + dtdst
-
-def _local_timezone_info():
-    """
-    Returns the offset in seconds, dst, IANA timezone key.
-
-    :returns: Offset in seconds, True or False for dst, and the IANA key.
-    :rtype: tuple
-
-    .. note::
-
-       Currently this must use the Python built in datetime, because the
-       tzlocal package does not work completely with the badi datetime
-       package.
-    """
-    localzone = get_localzone()
-    dt = _dtime.now(localzone)
-    offset = dt.utcoffset().total_seconds()
-    dst = dt.dst().total_seconds() != 0
-    return offset, dst, localzone.key
-
-def _get_local_coordinates():
-    """
-    Get the locales coordinents and timezone offset.
-    """
-    offset, dst, key = _local_timezone_info()
-    # Get latitude and longitude
-
-    try:
-        g = geocoder.ip('me')
-    except Exception as e:
-        print(f"Error: {e}") # *** TODO *** Fix this to have the correct info.
-    else:
-        latitude = g.lat
-        longitude = g.lng
-        return latitude, longitude, offset / 3600
-
-LOCAL_COORD = _get_local_coordinates()
 
 def _module_name(module):
     """
@@ -486,7 +450,7 @@ class date(BahaiCalendar):
     def _str_convertion(self):
         """
         Return a string representation of the date. In the case of a short
-        from date the returned Badi date is in ISO format. Thre is not iso
+        from date the returned Badi date is in ISO format. There is no ISO
         standard for the long form Badi date.
         """
         if self.is_short:
@@ -1468,7 +1432,7 @@ class datetime(date):
         _check_tzinfo_arg(tz)
         return cls._fromtimestamp(t, tz is not None, tz, short=short)
 
-    # Both the ustfromtimestamp() and utcnow() methods have been depricated.
+    # Both the ustfromtimestamp() and utcnow() methods have been deprecated.
     # https://docs.python.org/3/deprecations/index.html
 
     @classmethod

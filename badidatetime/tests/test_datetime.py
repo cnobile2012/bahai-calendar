@@ -19,7 +19,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from badidatetime import datetime
+from badidatetime import datetime, disable_geocoder
 from ..badi_calendar import BahaiCalendar
 
 
