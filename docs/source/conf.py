@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # badidatetime API documentation build configuration file.
@@ -20,19 +20,12 @@ import os
 import sys
 import re
 import datetime
-import shutil
 
 def update_file(orgname, rstname):
     orgname = os.path.join('..', '..', orgname)
 
-    if os.path.exists(rstname):
-        rst_size = os.path.getsize(rstname)
-        org_size = os.path.getsize(orgname)
-
-        if rst_size != org_size:
-            shutil.copy(orgname, rstname)
-    else:
-        shutil.copy(orgname, rstname)
+    if not os.path.exists(rstname):
+        os.symlink(orgname, rstname)
 
 sys.path.insert(0, os.path.abspath('../..'))
 
@@ -76,6 +69,7 @@ templates_path = ['_templates']
 #
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
+source_encoding = 'UTF-8'
 
 # The master toctree document.
 master_doc = 'index'
@@ -149,8 +143,8 @@ html_sidebars = {
 
 html_theme_options = {
     'github_banner': True,
-    'github_user': 'cnobile2012',
-    'github_repo': 'python-thunderborg',
+    'github_user': 'cnobile2025',
+    'github_repo': 'bahai-calendar',
     'fixed_sidebar': True,
     }
 
@@ -158,11 +152,13 @@ html_theme_options = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'ThunderBorgMotorControllerAPIdoc'
+htmlhelp_basename = 'BadiCalendarAPIDoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
 
+latex_engine = 'xelatex'
+latex_use_xindy = False
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
@@ -179,6 +175,7 @@ latex_elements = {
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
+    'preamble': '\\usepackage[UTF8]{ctex}\n'
     }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -186,8 +183,8 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc,
-     'ThunderBorgMotorControllerAPI.tex',
-     'ThunderBorg Motor Controller API Documentation',
+     'BadiCalendarAPIDoc.tex',
+     "Badí' Calendar API Documentation",
      'Carl J. Nobile',
      'manual'),
     ]
@@ -199,8 +196,8 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc,
-     'thunderborgmotorcontrollerapi',
-     'ThunderBorg Motor Controller API Documentation',
+     'badicalendarapidoc',
+     "Badí' Calendar API Documentation",
      [author], 1)
     ]
 
@@ -212,11 +209,11 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc,
-     'ThunderBorgMotorControllerAPI',
-     'ThunderBorg Motor Controller API Documentation',
+     'BadiCalendarAPIDoc',
+     "Badí' Calendar API Documentation",
      author,
-     'ThunderBorgMotorControllerAPI',
-     'An alternative API for the ThunderBorg motor controller.',
+     'BadiCalendarAPIDoc',
+     "An implementation of the Badí' Calendar.",
      'Miscellaneous'),
     ]
 
