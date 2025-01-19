@@ -20,14 +20,25 @@ import os
 import sys
 import re
 import datetime
+import shutil
+
+def update_file(orgname, rstname):
+    orgname = os.path.join('..', '..', orgname)
+
+    if os.path.exists(rstname):
+        rst_size = os.path.getsize(rstname)
+        org_size = os.path.getsize(orgname)
+
+        if rst_size != org_size:
+            shutil.copy(orgname, rstname)
+    else:
+        shutil.copy(orgname, rstname)
 
 sys.path.insert(0, os.path.abspath('../..'))
 
-#not os.path.exists('install.rst') and os.symlink(
-#    os.path.join('..', '..', 'INSTALL.rst'), 'install.rst')
-#not os.path.exists('testing.rst') and os.symlink(
-#    os.path.join('..', '..', 'badidatetime', 'tests', 'README.rst'),
-#    'testing.rst')
+update_file('README.rst', 'introduction.rst')
+#update_file('INSTALL.rst', 'install.rst')
+#update_file(os.path.join('tests', 'README.rst'), 'testing.rst')
 
 def version_info():
     regex = r'(?m)(^{}[\s]*=[\s]*(?P<ver>\d*)$)'
@@ -118,7 +129,7 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
