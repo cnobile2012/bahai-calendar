@@ -1,18 +1,36 @@
-***************
-Baha'i Calendar
-***************
+**************************************
+Introduction to the Badí' Calendar API
+**************************************
 
-An implementation of the Baha'i Calendar from Calendrical Calculations --
-The Ultimate Edition 4th Edition.
+The objective of this API (Application Programming Interface) is to implement
+a library that provides date and time functionality similar to the standard
+Python datetime package, however for the Badí' Calendar This API is much more
+extensive that that standard package as it includes all the astronomical
+calculations to fine the Vernal Equinox and many other calculation that are
+needed to support how the Badí' Calendar works.
 
-To give credit where credit is due much thanks to Edward M. Reingold and Nachum
-Dershowitz for giving me permission to use their code as a base line to my
-Python code. You will find snippets of their original LISP code plus other
-comments of explanation from their book in the comments in my code.
+The Badí' Calendar is an Astronomical Self-correcting Solar Calendar. What that
+means is that the determination of leap years is based on the number of days
+from the sunset immediately preceding the Vernal Equinox to the sunset
+immediately preceding the next Vernal Equinox. Counting the days it will either
+be 365 an ordinary year or 366 a leap year. Since it uses the time of the
+Vernal Equinox and the only way to calculate this is by doing lots of
+astronomical calculations it's an Astronomical Calendar. It is self-correcting
+because there is no guess work since we know exactly when the Vernal Equinox
+occurs. It is solar because the Vernal Equinox has a direct relation to the
+Sun. The Badí' leap years are irregular and cannot be guess with an easy
+formula.
 
-Much of the code is also derived from Astronomical Algorithms by Jean Meeus.
+In contrast the Gregorian Calendar is only a solar calendar. It uses an
+approximation formula--simple as it is--to essentially guess when the leap
+years will be. This formula I call a 4/100/400 formula. In other words a leap
+year is every 4 years unless the year is divisible by 100 then it isn't a leap
+year unless it is also dividable by 400 then it is a leap year. So Gregorian
+leap years are on a 400 year cycle and can be predicted by the above formula
+thus making leap years fairly regular.
 
-This code will eventually be an implementation of library code similar to
-the datetime package that comes with standard Python but for the Badi calendar.
+Much of the code is also derived from Astronomical Algorithms by Jean Meeus and
+there are some remnants from Calendrical Calculations -- The Ultimate Edition
+4th Edition by Edward M. Reingold and Nachum Dershowitz.
 
-Feel free to contact me at: carl dot nobile at gmail.com
+Feel free to contact me at: carl dot nobile at gmail dot com

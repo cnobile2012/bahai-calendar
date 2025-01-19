@@ -301,19 +301,6 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                     expected_result, date, tz, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__local_timezone_info(self):
-        """
-        Test that the _local_timezone_info function returns the timezone
-        offset in seconds, dst (True or False), and the IANA key.
-
-        NOTE: The _local_timezone_info cannot be tested, because any test
-              requires knowing the exact local timezone, and would break if
-              not run in the same timezone that the test we written for.
-        """
-        offset, is_dst = datetime._local_timezone_info()
-        self.assertEqual()
-
-    #@unittest.skip("Temporarily skipped")
     def test__module_name(self):
         """
         Test that the _module_name function returns the module path without
@@ -2115,6 +2102,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         enable_geocoder()
+        datetime.LOCAL = datetime.timezone.local = datetime.timezone._create(
+            datetime.timedelta(hours=-5.0))
 
     def _get_time(self, time):
         t_len = len(time)
