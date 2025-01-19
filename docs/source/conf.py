@@ -36,6 +36,7 @@ def update_file(orgname, rstname):
 
 sys.path.insert(0, os.path.abspath('../..'))
 
+# Remember to put the files below in .gitignore.
 update_file('README.rst', 'introduction.rst')
 update_file('INSTALL.rst', 'install.rst')
 #update_file(os.path.join('tests', 'README.rst'), 'testing.rst')
@@ -80,7 +81,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Badí Date and Time API.'
+project = "Badí' Date and Time API."
 author = 'Carl J. Nobile'
 copyright = '{:d}, {:s}'.format(datetime.datetime.now().year, author)
 

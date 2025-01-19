@@ -1,9 +1,14 @@
-. toctree::
+badidatetime package
+====================
 
-    badidatetime.tests
+Subpackages
+-----------
+
+.. toctree::
+
+   badidatetime.tests
 
 .. automodule:: badidatetime
-
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

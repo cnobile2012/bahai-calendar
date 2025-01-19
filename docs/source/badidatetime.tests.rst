@@ -1,3 +1,6 @@
+tborg.tests package
+===================
+
 .. automodule:: badidatetime.tests.test_badi_calendar
     :members:
     :undoc-members:

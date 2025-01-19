@@ -1,5 +1,9 @@
+*****************
+API Documentation
+*****************
+
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
    badidatetime
    contrib/misc

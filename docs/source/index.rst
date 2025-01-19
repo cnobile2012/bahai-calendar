@@ -1,3 +1,12 @@
+..
+    -*- coding: utf-8 -*-
+*********************************
+Welcome to The Badí' Calendar API
+*********************************
+
+Contents
+========
+
 .. toctree::
    :maxdepth: 2
 
@@ -6,3 +15,10 @@
    usage
    testing
    modules
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
