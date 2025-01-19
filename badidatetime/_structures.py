@@ -6,8 +6,6 @@ __docformat__ = "restructuredtext en"
 
 from typing import NamedTuple
 
-from .badi_calendar import BahaiCalendar
-
 
 class ShortFormStruct(NamedTuple):
     tm_year: int       # range[-1842, 1161]

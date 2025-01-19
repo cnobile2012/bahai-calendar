@@ -37,7 +37,7 @@ def update_file(orgname, rstname):
 sys.path.insert(0, os.path.abspath('../..'))
 
 update_file('README.rst', 'introduction.rst')
-#update_file('INSTALL.rst', 'install.rst')
+update_file('INSTALL.rst', 'install.rst')
 #update_file(os.path.join('tests', 'README.rst'), 'testing.rst')
 
 def version_info():

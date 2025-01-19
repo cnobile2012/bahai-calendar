@@ -31,7 +31,7 @@ class TimeDateUtils(BahaiCalendar):
     # The first day that we start our count Julian year 1, March 19th
     FIRST_YEAR_EPOCH = 1721501.261143
     # This keeps the Badi day count in par with the Gregorian day count.
-    DAYS_BEFORE_1ST_YEAR = 77 # This keeps us insync with Gregorian dates.
+    DAYS_BEFORE_1ST_YEAR = 77  # This keeps us insync with Gregorian dates.
 
     def __init__(self):
         """
@@ -56,7 +56,7 @@ class TimeDateUtils(BahaiCalendar):
         try:
             # Get the date format for the current locale
             date_format = locale.nl_langinfo(locale.D_FMT)
-        except AttributeError: # pragma: no cover
+        except AttributeError:  # pragma: no cover
             date_format = '%m/%d/%y'
 
         self._locale_data['d_format'] = self._order_format(
@@ -131,22 +131,22 @@ class TimeDateUtils(BahaiCalendar):
             return ttup[0]
 
         t_len = len(ttup)
-        named_tuple = hasattr(ttup, '_asdict') # _make also can work
+        named_tuple = hasattr(ttup, '_asdict')  # _make also can work
 
         if named_tuple: # Both long and short NamedTuple
-            if t_len == 13: # Long form
+            if t_len == 13:  # Long form
                 year = process_long_form(ttup)
                 idx = 3
-            elif t_len == 11: # Short form
+            elif t_len == 11:  # Short form
                 year = process_short_form(ttup)
                 idx = 1
-            else: # pragma: no cover
+            else:  # pragma: no cover
                 raise TypeError(f"Invalid timetuple, found length {t_len}.")
-        else: # A Tuple or class derived from a standard tuple
-            if t_len == 11: # Long form
+        else:  # A Tuple or class derived from a standard tuple
+            if t_len == 11:  # Long form
                 year = process_long_form(ttup)
                 idx = 3
-            elif t_len == 9: # Short form
+            elif t_len == 9:  # Short form
                 year = process_short_form(ttup)
                 idx = 1
             else:
@@ -282,9 +282,9 @@ class TimeDateUtils(BahaiCalendar):
     def H(self, ttup, org, mod):
         """
         """
-        if mod == '-': # %-H
+        if mod == '-':  # %-H
             st = f"{ttup.tm_hour}"
-        else: # %H
+        else:  # %H
             st = f"{ttup.tm_hour:02}"
 
         return st
@@ -315,7 +315,7 @@ class TimeDateUtils(BahaiCalendar):
             st = f"{hour}"
         elif org == 'l':
             st = f"{hour: 2}"
-        else: # %I
+        else:  # %I
             st = f"{hour:02}"
 
         return st
@@ -427,7 +427,6 @@ class TimeDateUtils(BahaiCalendar):
         """
         """
         year = self._get_year(ttup)
-        n = '-' if year < 0 else ''
         delim = self.date_format[0]
         data = []
 
@@ -756,10 +755,10 @@ class TimeDateUtils(BahaiCalendar):
         """
         p_offset = 0
 
-        if not 0 < week < 52: # We're looking for only the 53rd week.
+        if not 0 < week < 52:  # We're looking for only the 53rd week.
             day_one = _td_utils._day_of_week(year, 1, 1) + 1
 
-            if day_one in  (3, 4):
+            if day_one in (3, 4):
                 out_of_range = True
 
                 if week == 52:
@@ -869,13 +868,13 @@ class TimeDateUtils(BahaiCalendar):
             "and between 0 and 2 hyphens (-) used.")
         d_len = len(dtstr)
 
-        if dc == 1 and d_len == 7 and not wc:   # YYYY-MM
+        if dc == 1 and d_len == 7 and not wc:    # YYYY-MM
             date = (year, int(dtstr[5:7]), 1)
-        elif dc == 0 and d_len == 8 and not wc: # YYYYMMDD
+        elif dc == 0 and d_len == 8 and not wc:  # YYYYMMDD
             date = (year, int(dtstr[4:6]), int(dtstr[7:9]))
-        elif dc == 2 and not wc:                # YYYY-MM-DD
+        elif dc == 2 and not wc:                 # YYYY-MM-DD
             date = (year, int(dtstr[5:7]), int(dtstr[8:10]))
-        elif wc and 7 <= d_len <=10: # YYYYWww, YYYY-Www, YYYYWwwD, YYYY-Www-D
+        elif wc and 7 <= d_len <=10:  # YYYYWww, YYYY-Www, YYYYWwwD, YYYY-Www-D
             pos = 5 if dc == 0 else 6
             wday = int(dtstr[pos:pos+2])
             pos += 2 if dc == 0 else 3
@@ -884,7 +883,7 @@ class TimeDateUtils(BahaiCalendar):
                 f"Invalid ISO string {dtstr}.")
             day = int(d) if d.isdigit() else 1
             date = self._isoweek_to_badi(year, wday, day, short=True)[:3]
-        elif d_len in (7, 8):                   # YYYYDDD or YYYY-DDD
+        elif d_len in (7, 8):                    # YYYYDDD or YYYY-DDD
             month_days = self._BADI_MONTH_NUM_DAYS
             month_days[18] = (0, 4 + self._is_leap_year(year))
             days = int(dtstr[4:7] if dc == 0 else dtstr[5:8])
@@ -1074,7 +1073,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         Correctly substitute for %z and %Z escapes in strftime formats.
         """
-        from .datetime import timezone, timedelta
+        from .datetime import timedelta
         # Don't call utcoffset() or tzname() unless actually needed.
         freplace = None  # the string to use for %f
         zreplace = None  # the string to use for %z
