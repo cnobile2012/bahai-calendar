@@ -34,46 +34,6 @@ class TestBadiCalendar(unittest.TestCase):
         self._gc = GregorianCalendar()
 
     #@unittest.skip("Temporarily skipped")
-    def test_parse_gregorian_datetime(self):
-        """
-        Test that the parse_gregorian_datetime method creates the badi
-        long form date representation.
-
-        Thus, for example, Monday, April 21, 1930 would be called “Kamāl
-        (Monday), the day of Qudrat (the thirteenth), of the month of Jalāl,
-        (the second) of the year Bahhāj (the eleventh), of the fifth  Vāhid,
-        of the first Kull-i-Shay, of the Bahá’í Era.
-        [major, cycle, year, month, day]
-        """
-        data = (
-            # Badi epoch (Sunset 1844-03-19T18:16:36)
-            ((1844, 3, 19, 18, 16, 36.7104), False, True,
-             (1, 1, 1, 1, 1, 0, 3, 21.0528)),
-            # CC ch#16 p271 First day of Riḍván
-            ((1930, 4, 20, 18, 43, 55, 27200), False, True,
-             (1, 5, 11, 2, 13, 0, 4, 59.2896)),
-            # B.E. 100 (Vernal Equinox 1943-03-20T18:17:22.675500)
-            ((1943, 3, 20, 18, 17, 22, 675200), False, True,
-             (1, 6, 5, 1, 1, 0, 4, 12.1152)),
-            # World Centre update (Vernal Equinox 2015-03-21T02:15:00)
-            ((2015, 3, 21, 2, 15), True, True, (172, 1, 1, 8, 1, 24.9888)),
-            )
-        msg = "Expected {} with g_date {}, found {}"
-
-        for g_date, short, trim, expected_result in data:
-            if len(g_date) == 6:
-                sm = self._bc._sec_microsec_from_seconds(g_date[-1])
-            else:
-                sm = ()
-
-            date = g_date[:5] + sm if sm else g_date
-            dt = datetime.datetime(*date)
-            self._bc.parse_gregorian_datetime(dt, short=short, trim=trim)
-            result = self._bc.date_representation
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test_utc_sunset(self):
         """
         Test that the utc_sunset method returns the universal time of

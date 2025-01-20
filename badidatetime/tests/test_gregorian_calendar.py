@@ -43,26 +43,6 @@ class TestGregorianCalendar(unittest.TestCase):
             self.assertEqual(value, result, msg.format(value, year, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test_parse_datetime(self):
-        """
-        Test that the parse_datetime method sets the date and time properly.
-
-        We test using the Baha'i epoch on 1844-03-20T18:16:00
-        """
-        data = (
-            (datetime(year=1844, month=3, day=20, hour=18, minute=16),
-             (1844, 3, 20, 18, 16, 0)),
-            )
-
-        msg = "Expected result {}, found {}."
-
-        for date, expected_result in data:
-            self._gc.parse_datetime(date)
-            result = self._gc.date_representation
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test_jd_from_gregorian_date(self):
         """
         Test that the jd_from_gregorian_date method returns a

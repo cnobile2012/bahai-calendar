@@ -71,7 +71,10 @@ if os.getenv('DEBUG', False):
     __all__ = ('BahaiCalendar', 'GregorianCalendar', 'datetime',
         'enable_geocoder')
 else:
-    from badidatetime.datetime import *
+    from badidatetime.datetime import (
+        date, datetime, time, timedelta, timezone, tzinfo, MINYEAR, MAXYEAR,
+        BADI_IANA, BADI_COORD, GMT_COORD, LOCAL_COORD, UTC, BADI, LOCAL,
+        BahaiCalendar, GregorianCalendar, enable_geocoder)
 
     __all__ = ('date', 'datetime', 'time', 'timedelta', 'timezone', 'tzinfo',
                'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',

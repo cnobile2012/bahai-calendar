@@ -206,20 +206,6 @@ class TestBaseCalendar(unittest.TestCase):
         self.assertEqual(expected_quotient, quotient, msg)
 
     #@unittest.skip("Temporarily skipped")
-    def test_parse_datetime(self):
-        """
-        Test that the parse_datetime method creates an instance object.
-        """
-        now = datetime.datetime.now()
-        self.bc.parse_datetime(now)
-        ms = now.microsecond / 1e6
-        expected_dt = (now.hour, now.minute, now.second + ms)
-        msg = f"Expected {expected_dt}, found {self.bc._time}"
-        self.assertTrue(
-            all([i == j for i, j in zip(expected_dt,
-                                        self.bc.time_representation)]), msg)
-
-    #@unittest.skip("Temporarily skipped")
     def test__delta_t(self):
         """
         Test that the _delta_t method returns the correct delta T value
@@ -891,24 +877,27 @@ class TestBaseCalendar(unittest.TestCase):
         Test that the _apparent_solar_longitude method returns the
         longitude of sun at moment tee.
 
-        Equinox & Solstice Calculator
-        https://stellafane.org/misc/equinox.html
+        Equinox & Solstice Calculator: https://stellafane.org/misc/equinox.html
 
-        Solar Position Calculator
-        https://gml.noaa.gov/grad/solcalc/
-        Greenwich lat: 51, 29, 36.24 N (51.4934)
-                  lon: 00, 00, 00.00 E (0.0)
+        Solar Position Calculator: https://gml.noaa.gov/grad/solcalc/
 
-        Data from the book pages 225, 446 and 452
-        ===============================================================
-                                  Solar     Approximate      Season
-        Name
-                                  longitude date             length
-        ---------------------------------------------------------------
-        Vernal (spring) equinox     0◦      March 20         92.76 days
-        Summer solstice            90◦      June 21          93.65 days
-        Autumnal (fall) equinox   180◦      September 22−23  89.84 days
-        Winter solstice           270◦      December 21−22   88.99 days
+        | Greenwich
+        |    lat: 51, 29, 36.24 N (51.4934)
+        |    lon: 00, 00, 00.00 E (0.0)
+
+        | Data from the book pages 225, 446 and 452
+        +-------------------------+----------+----------------+-----------+
+        |                         | Solar    | Approximate    | Season    |
+        | Name                    | longitude| date           | length    |
+        +=========================+==========+================+===========+
+        | Vernal (spring) equinox |   0◦     | March 20       | 92.76 days|
+        +-------------------------+----------+----------------+-----------+
+        | Summer solstice         |  90◦     | June 21        | 93.65 days|
+        +-------------------------+----------+----------------+-----------+
+        | Autumnal (fall) equinox | 180◦     | September 22−23| 89.84 days|
+        +-------------------------+----------+----------------+-----------+
+        | Winter solstice         | 270◦     | December 21−22 | 88.99 days|
+        +-------------------------+----------+----------------+-----------+
         """
         data = (
             # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC

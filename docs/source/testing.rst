@@ -1,0 +1,7 @@
+Test Packages
+=============
+
+.. toctree::
+
+   badidatetime.tests
+   contrib.tests

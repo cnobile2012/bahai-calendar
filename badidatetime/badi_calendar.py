@@ -16,13 +16,15 @@ __all__ = ('BahaiCalendar',)
 class BahaiCalendar(BaseCalendar):
     """
     Implementation of the Baha'i (Badi) Calendar.
+
+    | WGS84:          35.689252, 51.3896 1595m 3.5
+    | WGS84--https://coordinates-converter.com/
+    | https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-
+    | https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
+    | https://www.google.com/maps/place/Tehran,+Tehran+Province,+Iran/@35.9098957,51.51371,9.49z/data=!4m6!3m5!1s0x3f8e02c69b919039:0x17c26479772c5928!8m2!3d35.6891975!4d51.3889736!16s%2Fm%2F025zk75?entry=ttu
+    | https://gml.noaa.gov/grad/solcalc/ Sunset data
     """
-    # WGS84:          35.689252, 51.3896 1595m 3.5
-    # WGS84--https://coordinates-converter.com/
-    # https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-
-# https://en-us.topographic-map.com/map-g9q1h/Tehran/?center=35.69244%2C51.19492
-# https://www.google.com/maps/place/Tehran,+Tehran+Province,+Iran/@35.9098957,51.51371,9.49z/data=!4m6!3m5!1s0x3f8e02c69b919039:0x17c26479772c5928!8m2!3d35.6891975!4d51.3889736!16s%2Fm%2F025zk75?entry=ttu
-    # https://gml.noaa.gov/grad/solcalc/ Sunset data
+
     # Near Mehrabad International Airport
     #                 lattude    longitude  zone IANA name      elevation
     _BAHAI_LOCATION = (35.682376, 51.285817, 3.5, 'Asia/Tehran', 0)
@@ -33,10 +35,10 @@ class BahaiCalendar(BaseCalendar):
         (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
         (15, 19), (16, 19), (17, 19), (18, 19), (0, 0), (19, 19)
         ]
-    KULL_I_SHAY_MIN = -5
-    KULL_I_SHAY_MAX = 4
-    MINYEAR = -1842
-    MAXYEAR = 1161
+    KULL_I_SHAY_MIN = -5  # Minimum kull_i_shay supported
+    KULL_I_SHAY_MAX = 4   # Maximum kull_i_shay supported
+    MINYEAR = -1842       # Minimum year supported
+    MAXYEAR = 1161        # Maximum year supported
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,26 +50,6 @@ class BahaiCalendar(BaseCalendar):
         # Baha'i date: [kull_i_shay, vahid, year, month, day]
         self._bahai_date = None
         self._gc = GregorianCalendar()
-
-    def parse_gregorian_datetime(self, dt:datetime.datetime, lat:float=None,
-                                 lon:float=None, zone:float=None, *,
-                                 short=False, trim:bool=False) -> None:
-        """
-        Parse a Gregorian date to a long or short form Badi date.
-        """
-        self._gc.parse_datetime(dt)
-        jd = self._gc.jd_from_gregorian_date(self._gc.date_representation,
-                                             exact=True)
-        self.date_representation = self.badi_date_from_jd(
-            jd, lat=lat, lon=lon, zone=zone, short=short, trim=trim)
-
-    @property
-    def date_representation(self) -> tuple:
-        return self._bahai_date
-
-    @date_representation.setter
-    def date_representation(self, representation:tuple=None):
-        self._bahai_date = representation
 
     def utc_sunset(self, date:tuple, lat:float=None, lon:float=None,
                    zone:float=None) -> tuple:
@@ -597,9 +579,15 @@ class BahaiCalendar(BaseCalendar):
         """
         Trim the hours, minutes, seconds or microseconds off the date if
         zero unless a lower value was not zero.
-        Examples: (12, 30, 6, 0) The zero microseconds would be trimmed.
-                  (12, 0, 6, 0) The zero microseconds would be trimmed but
-                                the zero minutes would not be trimmed.
+
+        +----------------+--------------------------------------------+
+        | Examples       | Description                                |
+        +================+============================================+
+        | (12, 30, 6, 0) | The zero microseconds would be trimmed.    |
+        +----------------+--------------------------------------------+
+        | (12,  0, 6, 0) | The zero microseconds would be trimmed but |
+        |                | the zero minutes would not be trimmed.     |
+        +----------------+--------------------------------------------+
 
         :param tuple hms: An hour, minute, and second object.
         :return: An object with the lower order parts stripped off if

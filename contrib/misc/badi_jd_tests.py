@@ -18,31 +18,36 @@ from badidatetime._timedateutils import _td_utils
 
 
 class DateTests(BahaiCalendar):
+    """
+    Equinox and Solstices, Perihelion, and Aphelion
+    https://www.timeanddate.com/sun/@112931?month=3&year=1844
+
+    The site below is where I've gotten the Vernal Equinox data it uses
+    the 4, 100, and 400 algorithm, so we must also. The 4 and 128 algorithm
+    is more accurate, but I've not found Vernal Equinox data that uses it.
+
+    | https://data.giss.nasa.gov/modelE/ar5plots/srvernal.html
+    | https://aa.usno.navy.mil/data/Earth_Seasons
+    | https://www.astropixels.com/ephemeris/soleq2001.html
+    | https://stellafane.org/misc/equinox.html
+
+    | Julian Period day into:
+    | https://aa.usno.navy.mil/data/JulianDate
+
+    | Sun rise and set info:
+    | https://gml.noaa.gov/grad/solcalc/
+    | https://aa.usno.navy.mil/data/RS_OneYear
+    | https://www.sunrisesunset.com/England/GreaterLondon/Greenwich.asp
+    | Tehran: 35.682376, 51.285817 USED
+    """
+
+    # Gregorian offset to the year before the Bahi epoch.
     TRAN_COFF = 1843
-    # Equinox and Solstices, Perihelion, and Aphelion
-    # https://www.timeanddate.com/sun/@112931?month=3&year=1844
-    # The site below is where I've gotten the Vernal Equinox data it uses
-    # the 4, 100, and 400 algorithm, so we must also. The 4 and 128 algorithm
-    # is more accurate, but I've not found Vernal Equinox data that uses it.
-    # https://data.giss.nasa.gov/modelE/ar5plots/srvernal.html
-    # https://aa.usno.navy.mil/data/Earth_Seasons
-    # https://www.astropixels.com/ephemeris/soleq2001.html
-    # https://stellafane.org/misc/equinox.html
-    #------------------------------------------------------------------------
-    # Julian Period day into:
-    # https://aa.usno.navy.mil/data/JulianDate
-    # -----------------------------------------------------------------------
-    # Sun rise and set info:
-    # https://gml.noaa.gov/grad/solcalc/
-    # https://aa.usno.navy.mil/data/RS_OneYear
-    # https://www.sunrisesunset.com/England/GreaterLondon/Greenwich.asp
-    # Tehran: 35.682376, 51.285817 USED
-    ########################################################
-    # Nur Mazandaran Province, Iran (City Center) NOT USED #
-    # Nur: 36.569336, 52.0050234 NOT USED                  #
-    ########################################################
-    # I use coordinates and the sunset in the city of Tehran to determine the
+
+    # The coordinates and the sunset in the city of Tehran to determine the
     # yearly Badi epochs. Below are the Gregorian dates of the Vernal Equinox.
+    # This needs to be done because Meeus's algorithm uses an historically
+    # correct algorithm which is astronomically incorrect.
     VE_0001_1582 = (
         (   1, 3, 20, 13, 19), (   2, 3, 20, 19,  8), (   3, 3, 21,  0, 58),
         (   4, 3, 20,  6, 47), (   5, 3, 20, 12, 36), (   6, 3, 20, 18, 25),
@@ -642,13 +647,13 @@ class DateTests(BahaiCalendar):
         The shortest and longest days are:
 
         First occurrence
-        ---------------
+        ----------------
         ((-1842, 1, 1), (23, 59, 40.9056), (-344, 19, 1), (24, 0, 2.16))
         2024-10-30 15:53:02.883745 -> 2024-10-30 16:45:24.637078
         52 minutes, 21 seconds, 753333 microseconds
 
         Last occurrence
-        --------------
+        ---------------
         ((-1744, 19, 1), (23, 59, 40.9056), (-261, 11, 9), (24, 0, 2.16))
         2024-10-30 21:22:48.037574 -> 2024-10-30 22:14:48.889369
         52 minutes, 0 seconds, 851795 microseconds

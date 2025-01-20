@@ -10,9 +10,10 @@ Contents
 
    introduction
    install
+   discussions
    usage
-   testing
    modules
+   testing
 
 Indices and tables
 ==================

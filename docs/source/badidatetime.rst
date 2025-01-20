@@ -1,14 +1,42 @@
-badidatetime package
-====================
+Badí' Calendar packages
+========================
 
-Subpackages
------------
+.. automodule:: badidatetime.datetime
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-.. toctree::
+.. automodule:: badidatetime.badi_calendar
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-   badidatetime.tests
+.. automodule:: badidatetime.gregorian_calendar
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-.. automodule:: badidatetime
+.. automodule:: badidatetime.base_calendar
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: badidatetime.julian_period
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: badidatetime._astronomical_terms
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: badidatetime._structures
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: badidatetime._timedateutils
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,6 +1,6 @@
-*************************************************
-Installing a Virtual Environment and badidatetime
-*************************************************
+************
+Installation
+************
 
 Installing a Virtual Python Environment
 =======================================

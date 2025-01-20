@@ -1,5 +1,5 @@
-tborg.tests package
-===================
+Unittest Packages
+=================
 
 .. automodule:: badidatetime.tests.test_badi_calendar
     :members:
@@ -26,7 +26,7 @@ tborg.tests package
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: badidatetime.tests.test_structure.
+.. automodule:: badidatetime.tests.test_structure
     :members:
     :undoc-members:
     :show-inheritance:

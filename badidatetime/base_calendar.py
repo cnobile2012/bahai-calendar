@@ -18,8 +18,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     """
     Basic functionality used with all calenders.
 
-    U.T. = Mean solar time at Greenwich, England (0◦ meridian), reckoned
-           from midnight; sometimes GMT, Greenwich Mean Time
+    U.T. = Mean solar time at Greenwich, England (0◦ meridian), reckoned from
+           midnight; sometimes GMT, Greenwich Mean Time
 
     Transformations between Time Systems:
    https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems
@@ -68,18 +68,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         self._time = None
         self._nutation = {'lon': (0, 0, False), 'obl': (0, 0, False)}
         self._sun_tss = {'trn': (), 'rsn': (), 'stn': ()}
-
-    def parse_datetime(self, dt:datetime.datetime) -> None:
-        ms = dt.microsecond / 1e6
-        self.time_representation = (dt.hour, dt.minute, dt.second + ms)
-
-    @property
-    def time_representation(self):
-        return self._time
-
-    @time_representation.setter
-    def time_representation(self, representation):
-        self._time = representation
 
     #
     # Meeus Astronomical Algorithms
@@ -1232,35 +1220,36 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _sin_deg(self, theta:float) -> float:
         """
-        (defun sin-degrees (theta)
-          ;; TYPE angle -> amplitude
-          ;; Sine of theta (given in degrees).
-          (sin (radians-from-degrees theta)))
         """
+        # (defun sin-degrees (theta)
+        #   ;; TYPE angle -> amplitude
+        #   ;; Sine of theta (given in degrees).
+        #   (sin (radians-from-degrees theta)))
         return math.sin(math.radians(theta))
 
     def _cos_deg(self, theta:float) -> float:
         """
-        (defun cos-degrees (theta)
-          ;; TYPE angle -> amplitude
-          ;; Cosine of theta (given in degrees).
-          (cos (radians-from-degrees theta)))
         """
+        # (defun cos-degrees (theta)
+        #   ;; TYPE angle -> amplitude
+        #   ;; Cosine of theta (given in degrees).
+        #   (cos (radians-from-degrees theta)))
         return math.cos(math.radians(theta))
 
     def _sigma(self, lists:tuple, func:object) -> float:
         """
-        (defmacro sigma (list body)
-          ;; TYPE (list-of-pairs (list-of-reals->real))
-          ;; TYPE -> real
-          ;; list is of the form ((i1 l1)...(in ln)).
-          ;; Sum of body for indices i1...in
-          ;; running simultaneously thru lists l1...ln.
-          `(apply `+ (mapcar (function (lambda
-                                         ,(mapcar `car list)
-                                         ,body))
-                             ,@(mapcar `cadr list))))
         """
+        # (defmacro sigma (list body)
+        #   ;; TYPE (list-of-pairs (list-of-reals->real))
+        #   ;; TYPE -> real
+        #   ;; list is of the form ((i1 l1)...(in ln)).
+        #   ;; Sum of body for indices i1...in
+        #   ;; running simultaneously thru lists l1...ln.
+        #   `(apply `+ (mapcar (function (lambda
+        #                                  ,(mapcar `car list)
+        #                                  ,body))
+        #                      ,@(mapcar `cadr list))))
+
         # Ensure all lists have the same length
         assert len(set(len(lst) for lst in lists)) == 1, (
             "Lists must have the same length")
@@ -1273,14 +1262,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         y = A + B * x + C * x^2 + D * x^3 + E * x^4
         do this:
         y = A + x * (B + x * (C + x * (D + x * E)))
-
-        (defun poly (x a)
-          ;; TYPE (real list-of-reals) -> real
-          ;; Sum powers of x with coefficients (from order 0 up) in list a.
-          (if (equal a nil)
-              0
-            (+ (first a) (* x (poly x (rest a))))))
         """
+        # (defun poly (x a)
+        #   ;; TYPE (real list-of-reals) -> real
+        #   ;; Sum powers of x with coefficients (from order 0 up) in list a.
+        #   (if (equal a nil)
+        #       0
+        #     (+ (first a) (* x (poly x (rest a))))))
         return 0 if not a else a[0] + (x * self._poly(x, a[1:]))
 
     def _days_in_years(self, y:int, *, alt:bool=False) -> int:
