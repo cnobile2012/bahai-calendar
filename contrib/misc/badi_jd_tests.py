@@ -578,9 +578,12 @@ class DateTests(BahaiCalendar):
         (1579, 3, 21,  5, 17), (1580, 3, 20, 11,  6), (1581, 3, 20, 16, 55),
         (1582, 3, 20, 22, 44),
         )
+
+    # These are custom years, month, and days.
+    # *** TODO *** All need to be converted to work properly.
     INJECT = (
-        ((178, 0, 5), (2022, 3, 1, 17, 59)), # *** TODO *** Convert all to
-        ((178, 19, 1), (2022, 3, 2, 18)),    #              correct sunset
+        ((178, 0, 5), (2022, 3, 1, 17, 59)),
+        ((178, 19, 1), (2022, 3, 2, 18)),
         ((178, 19, 2), (2022, 3, 3, 18, 1)),
         ((181, 1, 2), (2024, 3, 21, 18, 17)),
         ((181, 1, 5), (2024, 3, 24, 18, 20)),
@@ -602,6 +605,9 @@ class DateTests(BahaiCalendar):
         ((182, 0, 1), (2026, 2, 25, 17, 57, 29.0592)),
         ((182, 0, 5), (2026, 3, 1, 18, 1, 8.9472)),
         )
+
+    # Badi month sequence where 1 - 19 are the actual Badi month and
+    # 0 is Ayyám-i-Há
     MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
               12, 13, 14, 15, 16, 17, 18, 0, 19)
 

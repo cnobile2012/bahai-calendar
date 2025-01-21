@@ -6,9 +6,6 @@ Individual Test Apps
     :undoc-members:
     :show-inheritance:
 
-.. autodata:: badi_jd_tests.DateTests.INJECT
-   :annotation: = <omitted>
-
 .. automodule:: contrib.misc.datetime_tests
     :members:
     :undoc-members:

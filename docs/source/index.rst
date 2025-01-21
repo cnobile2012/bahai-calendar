@@ -9,8 +9,8 @@ Contents
    :maxdepth: 2
 
    introduction
-   install
    discussions
+   install
    usage
    modules
    testing

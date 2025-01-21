@@ -44,5 +44,5 @@ def equinoxes_or_solstices(year=1962):
     return jde + (0.00001 * s) / dl
 
 
-jde = equinoxes_or_solstices()
-print(jde)
+if __name__ == "__main__":
+    print(equinoxes_or_solstices())
