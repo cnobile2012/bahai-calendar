@@ -29,10 +29,12 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         pip install -r requirements/development.txt
-    - name: Run setup script
+    - name: Prepare flake8 environment
       run: |
         python .github/workflows/setup_script.py
+        echo "Prepare flake8 environment"
     - name: Lint with flake8
+      needs: Prepare flake8 environment
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
