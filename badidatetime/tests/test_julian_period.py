@@ -29,7 +29,7 @@ class TestJulianPeriod(unittest.TestCase):
         century in dynamical time from a Julian moment.
         """
         data = (
-            (2394646.5, -1.5577960301163587), # Badi epoch
+            (2394646.5, -1.5577960301163587),  # Badi epoch
             (1721425.5, -19.98958247775496),
             (self._jp._J2000, 0.0),
             )

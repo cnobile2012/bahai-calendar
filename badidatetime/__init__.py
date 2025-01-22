@@ -5,11 +5,17 @@
 __docformat__ = "restructuredtext en"
 
 import os
+import importlib
 import geocoder
 from tzlocal import get_localzone
+from datetime import datetime as _dtime
+
 from badidatetime.badi_calendar import BahaiCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
-from datetime import datetime as _dtime
+
+dt_objects = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
+              'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
+              'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL')
 
 
 def _local_timezone_info():
@@ -53,30 +59,20 @@ def enable_geocoder(enable=True):
     :param bool enable: If True (default) geocoder is run else if False it
                         is not run.
     """
-    from badidatetime import datetime
+    badidt = importlib.import_module('badidatetime.datetime')
 
     if enable:
-        datetime.LOCAL_COORD = _get_local_coordinates()
+        badidt.LOCAL_COORD = _get_local_coordinates()
     else:
-        datetime.LOCAL_COORD = datetime.BADI_COORD
+        badidt.LOCAL_COORD = badidt.BADI_COORD
 
-    datetime.LOCAL = datetime.timezone.local = datetime.timezone._create(
-        datetime.timedelta(hours=datetime.LOCAL_COORD[2]))
-    del datetime
+    badidt.LOCAL = badidt.timezone.local = badidt.timezone._create(
+        badidt.timedelta(hours=badidt.LOCAL_COORD[2]))
+    badidt = importlib.reload(badidt)
+
+    for obj in dt_objects:
+        globals()[obj] = getattr(badidt, obj)
 
 
-if os.getenv('DEBUG', False):
-    from badidatetime import datetime
-
-    __all__ = ('BahaiCalendar', 'GregorianCalendar', 'datetime',
-        'enable_geocoder')
-else:
-    from badidatetime.datetime import (
-        date, datetime, time, timedelta, timezone, tzinfo, MINYEAR, MAXYEAR,
-        BADI_IANA, BADI_COORD, GMT_COORD, LOCAL_COORD, UTC, BADI, LOCAL,
-        BahaiCalendar, GregorianCalendar, enable_geocoder)
-
-    __all__ = ('date', 'datetime', 'time', 'timedelta', 'timezone', 'tzinfo',
-               'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
-               'LOCAL_COORD', 'UTC', 'BADI', 'LOCAL', 'BahaiCalendar',
-               'GregorianCalendar', 'enable_geocoder')
+enable_geocoder(False)
+__all__ = ('BahaiCalendar', 'GregorianCalendar') + dt_objects

@@ -4,9 +4,9 @@
 #
 __docformat__ = "restructuredtext en"
 
-__all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
-           "MINYEAR", "MAXYEAR", 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
-           "LOCAL_COORD", "UTC", "BADI", 'LOCAL')
+__all__ = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
+           'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
+           'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL')
 
 import sys
 import time as _time
@@ -25,8 +25,8 @@ MAXYEAR = BahaiCalendar.MAXYEAR
 BADI_IANA = BahaiCalendar._BAHAI_LOCATION[3] # Asia/Terhan
 BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
 GMT_COORD = (51.477928, -0.001545, 0)
-# LOCAL_COORD is lazily configured to the local coordinates if not disabled.
-LOCAL_COORD = BADI_COORD
+# LOCAL_COORD and LOCAL is lazily configured to the local coordinates
+# if enables or the default is BADI_COORD, and BADI.
 
 def _cmp(x, y):
     return 0 if x == y else 1 if x > y else -1
@@ -2262,7 +2262,6 @@ class timezone(tzinfo):
 
 UTC = timezone.utc = timezone._create(timedelta(0))
 BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
-LOCAL = timezone.local = timezone._create(timedelta(hours=LOCAL_COORD[2]))
 
 # bpo-37642: These attributes are rounded to the nearest minute for backwards
 # compatibility, even though the constructor will accept a wider range of

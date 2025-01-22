@@ -1,6 +1,14 @@
 Warnings
 ========
 
+The Universal House of Justice sent a letter dated 10 July 2014 to the Bahá'ís
+of the World indicating a change to the Badí' Calendar. Tehran, Iran was set as
+the point at which the Vernal Equinox and the sunset before it will be observed
+thus starting the beginning of each Bahá'í year. They did not provide exact
+coordinates. 
+
+
+
 In number 35 of “Questions and Answers”, which is supplementary to the
 Kitáb-i-Aqdas, Bahá’u’lláh responds to a question concerning Naw-Rúz and
 states: “The Festival of Naw-Rúz falleth on the day that the sun entereth the

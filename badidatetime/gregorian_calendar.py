@@ -5,7 +5,6 @@
 __docformat__ = "restructuredtext en"
 
 import math
-from datetime import datetime
 
 from badidatetime.base_calendar import BaseCalendar
 

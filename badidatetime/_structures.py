@@ -4,6 +4,7 @@
 #
 __docformat__ = "restructuredtext en"
 
+import importlib
 from typing import NamedTuple
 
 
@@ -111,7 +112,7 @@ class struct_time:
         """
         Fill in missing data.
         """
-        from badidatetime import datetime
+        datetime = importlib.import_module('badidatetime.datetime')
 
         if short:
             b_date = date[:3] + (None, None) + date[3:6]

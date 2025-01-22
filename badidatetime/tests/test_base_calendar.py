@@ -886,6 +886,7 @@ class TestBaseCalendar(unittest.TestCase):
         |    lon: 00, 00, 00.00 E (0.0)
 
         | Data from the book pages 225, 446 and 452
+
         +-------------------------+----------+----------------+-----------+
         |                         | Solar    | Approximate    | Season    |
         | Name                    | longitude| date           | length    |

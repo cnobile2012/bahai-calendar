@@ -8,13 +8,16 @@ import re
 import locale
 import time
 import pickle
+import importlib
 import unittest
 from unittest.mock import patch, PropertyMock
 from zoneinfo import ZoneInfo
 
-from badidatetime import datetime, enable_geocoder
+from .. import enable_geocoder
 from ..badi_calendar import BahaiCalendar
 from .._timedateutils import _td_utils
+
+datetime = importlib.import_module('badidatetime.datetime')
 
 
 class TestBadiDatetimeFunctions(unittest.TestCase):

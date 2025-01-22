@@ -7,7 +7,6 @@
 import os
 import sys
 import math
-import pprint
 import time
 import datetime as dtime
 
@@ -15,9 +14,10 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
+print(os.getenv('DEBUG', 0),end='\n')
+
 from badidatetime import (BahaiCalendar, GregorianCalendar, datetime,
-                          timezone, timedelta, GMT_COORD, BADI_COORD,
-                          LOCAL_COORD)
+                          timezone, timedelta)
 
 
 class PosixTests:
@@ -26,8 +26,9 @@ class PosixTests:
 
     The Python datetime package seems to always give local time from
     timestamps not UTC time. For Example:
-    In [18]: dtime.datetime.fromtimestamp(18000) This -5 hours from UTC time.
-    Out[19]: datetime.datetime(1970, 1, 1, 0, 0)
+
+    | In [18]: dtime.datetime.fromtimestamp(18000) This -5 hours from UTC time.
+    | Out[19]: datetime.datetime(1970, 1, 1, 0, 0)
     """
     #BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
     # Force standard time in US/Eastern (America/New_York)

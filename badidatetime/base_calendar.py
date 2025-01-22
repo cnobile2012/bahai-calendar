@@ -5,7 +5,6 @@
 __docformat__ = "restructuredtext en"
 
 import math
-import datetime
 
 from functools import reduce
 from operator import mul
@@ -22,7 +21,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            midnight; sometimes GMT, Greenwich Mean Time
 
     Transformations between Time Systems:
-   https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems
+    | https://gssc.esa.int/navipedia/index.php/Transformations_between_Time_Systems
     """
     _HR = lambda self, x: x / 24
     _MN = lambda self, x: x / 24 / 60
@@ -513,8 +512,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           See:
-      https://articles.adsabs.harvard.edu/full/seri/CeMec/0027/0000079.000.html
+           See: https://articles.adsabs.harvard.edu/full/seri/CeMec/0027/0000079.000.html
         """
         lm = self._moon_mean_anomaly(tc)
         ls = self._sun_earth_mean_anomaly(tc)

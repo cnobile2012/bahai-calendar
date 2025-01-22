@@ -7,6 +7,7 @@ __docformat__ = "restructuredtext en"
 import os
 import sys
 import locale
+import importlib
 import unittest
 from unittest.mock import patch, PropertyMock
 from zoneinfo import ZoneInfo
@@ -15,9 +16,10 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from badidatetime import datetime
 from .._timedateutils import _td_utils
 from ..badi_calendar import BahaiCalendar
+
+datetime = importlib.import_module('badidatetime.datetime')
 
 
 class TestTimeDateUtils(unittest.TestCase):

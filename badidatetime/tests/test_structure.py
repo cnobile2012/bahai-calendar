@@ -5,10 +5,13 @@
 __docformat__ = "restructuredtext en"
 
 import unittest
+import importlib
 
 from .._structures import struct_time
-from badidatetime import datetime
+#from badidatetime import datetime
 from zoneinfo import ZoneInfo
+
+datetime = importlib.import_module('badidatetime.datetime')
 
 
 class TestStructures(unittest.TestCase):
