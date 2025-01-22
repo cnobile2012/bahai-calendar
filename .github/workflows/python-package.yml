@@ -37,7 +37,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Run setup script
       run: |
-        python setup_script.py
+        python .github/workflows/setup_script.py
     - name: Test with pytest
       run: |
         make tests
