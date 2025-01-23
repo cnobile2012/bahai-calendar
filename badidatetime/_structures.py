@@ -76,7 +76,8 @@ class struct_time:
     """
     Create a structure representing a Badi date and time.
     """
-    def __new__(cls, date:tuple, tzinfo=None):
+
+    def __new__(cls, date: tuple, tzinfo=None):
         self = object.__new__(cls)
         super().__init__(self)
         short = cls.__is_short_form(date)
@@ -94,7 +95,7 @@ class struct_time:
         return inst
 
     @classmethod
-    def __is_short_form(cls, date):
+    def __is_short_form(cls, date: tuple):
         d_size = len(date)
 
         if d_size == 9:
@@ -108,7 +109,7 @@ class struct_time:
         return short
 
     @classmethod
-    def __fill_in_missing(cls, date, tzinfo, short):
+    def __fill_in_missing(cls, date: tuple, tzinfo, short: bool):
         """
         Fill in missing data.
         """

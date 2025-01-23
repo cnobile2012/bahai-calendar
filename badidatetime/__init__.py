@@ -4,7 +4,6 @@
 #
 __docformat__ = "restructuredtext en"
 
-import os
 import importlib
 import geocoder
 from tzlocal import get_localzone
@@ -37,6 +36,7 @@ def _local_timezone_info():
     dst = dt.dst().total_seconds() != 0
     return offset, dst, localzone.key
 
+
 def _get_local_coordinates():
     """
     Get the locales coordinates and timezone offset.
@@ -48,6 +48,7 @@ def _get_local_coordinates():
     latitude = g.lat
     longitude = g.lng
     return latitude, longitude, offset / 3600
+
 
 def enable_geocoder(enable=True):
     """

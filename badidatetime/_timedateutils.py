@@ -102,7 +102,7 @@ class TimeDateUtils(BahaiCalendar):
     def time_format(self):
         return self._locale_data['t_format']
 
-    def _checktm(self, ttup:tuple) -> None:
+    def _checktm(self, ttup: tuple) -> None:
         """
         Check that the fields in the tuple are of the correct type. This
         check on date information is different than what is found inn the
@@ -133,7 +133,7 @@ class TimeDateUtils(BahaiCalendar):
         t_len = len(ttup)
         named_tuple = hasattr(ttup, '_asdict')  # _make also can work
 
-        if named_tuple: # Both long and short NamedTuple
+        if named_tuple:  # Both long and short NamedTuple
             if t_len == 13:  # Long form
                 year = process_long_form(ttup)
                 idx = 3
@@ -426,7 +426,6 @@ class TimeDateUtils(BahaiCalendar):
     def x(self, ttup, org, mod):
         """
         """
-        year = self._get_year(ttup)
         delim = self.date_format[0]
         data = []
 
@@ -505,7 +504,7 @@ class TimeDateUtils(BahaiCalendar):
                        'z': z, 'Z': Z, '%': percent
                        }
 
-    def strftime(self, format:str, ttup:tuple) -> str:
+    def strftime(self, format: str, ttup: tuple) -> str:
         """
         """
         self._check_format(format)
@@ -575,8 +574,8 @@ class TimeDateUtils(BahaiCalendar):
                 ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1) * 19 +
                  ttup.tm_year))
 
-    def _year_week_day(self, year:int, month:int, day:int,
-                       week0:bool=False) -> tuple:
+    def _year_week_day(self, year: int, month: int, day: int,
+                       week0: bool=False) -> tuple:
         """
         Return the year, week, and day of the week from a short form
         Badi date.
@@ -604,7 +603,7 @@ class TimeDateUtils(BahaiCalendar):
 
         return year, week+1, day+1
 
-    def _days_before_year(self, year:int) -> float:
+    def _days_before_year(self, year: int) -> float:
         """
         Get the number of days before the 1st of Baha of the year.
 
@@ -616,7 +615,7 @@ class TimeDateUtils(BahaiCalendar):
         jd1 = self.jd_from_badi_date((year, 1, 1), _chk_on=False)
         return math.floor(jd1 - jd0) - 1
 
-    def _days_in_month(self, year:int, month:int) -> int:
+    def _days_in_month(self, year: int, month: int) -> int:
         """
         The number of days in provided month in provided year.
 
@@ -627,7 +626,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         return 4 + self._is_leap_year(year) if month == 0 else 19
 
-    def _days_before_month(self, year:int, month:int) -> int:
+    def _days_before_month(self, year: int, month: int) -> int:
         """
         The number of days in the year preceding the first day of month.
 
@@ -646,7 +645,7 @@ class TimeDateUtils(BahaiCalendar):
 
         return dbm
 
-    def _day_of_week(self, year:int, month:int, day:int) -> int:
+    def _day_of_week(self, year: int, month: int, day: int) -> int:
         """
         Find the day of the week where 0 == Jalál (Saturday) and
         6 == Istiqlāl (Friday).
@@ -661,7 +660,7 @@ class TimeDateUtils(BahaiCalendar):
         # day number to the day name we need to add 1 to the ordinal.
         return ((self._ymd2ord(year, month, day) + 1) % 7 + 7) % 7
 
-    def _ymd2ord(self, year:int, month:int, day:int) -> int:
+    def _ymd2ord(self, year: int, month: int, day: int) -> int:
         """
         Get the number of days since Badi year -1842 (Julian 0001-03-19)
         including the current day.
@@ -691,7 +690,7 @@ class TimeDateUtils(BahaiCalendar):
         return (self.DAYS_BEFORE_1ST_YEAR + self._days_before_year(year) +
                 self._days_before_month(year, month) + day + fudge)
 
-    def _ord2ymd(self, n:int, *, short:bool=False) -> tuple:
+    def _ord2ymd(self, n: int, *, short: bool=False) -> tuple:
         """
         It is more difficult to do this in the Badi Calendar because a Badi
         day can be more or less than 24 hours depending on when sunset is
@@ -716,8 +715,8 @@ class TimeDateUtils(BahaiCalendar):
         return self.badi_date_from_jd(math.floor(jd) + 0.5, short=short,
                                       trim=True, rtd=True, _chk_on=False)
 
-    def _build_struct_time(self, date:tuple, dstflag:int, *, tzinfo=None,
-                           short_in=False) -> NamedTuple:
+    def _build_struct_time(self, date: tuple, dstflag: int, *, tzinfo=None,
+                           short_in: bool=False) -> NamedTuple:
         """
         Build either the ShortFormStruct or LongFormStruct NamedTuple.
         """
@@ -731,8 +730,8 @@ class TimeDateUtils(BahaiCalendar):
         dnum = self._days_before_month(y, m) + d
         return struct_time(date + (wday, dnum, dstflag), tzinfo=tzinfo)
 
-    def _isoweek_to_badi(self, year:int, week:int, day:int, *,
-                         short:bool=False) -> tuple:
+    def _isoweek_to_badi(self, year: int, week: int, day: int, *,
+                         short: bool=False) -> tuple:
         """
         The week counts from Jalal (Saturday) as the first day and Istiqlal
         (Friday) the last day of the week. This is different from the usual
@@ -780,7 +779,7 @@ class TimeDateUtils(BahaiCalendar):
         ord_day = day_1 + day_offset
         return self._ord2ymd(ord_day, short=short)
 
-    def _isoweek1jalal(self, year:int) -> int:
+    def _isoweek1jalal(self, year: int) -> int:
         """
         Calculate the day number of Jalal (Saturday) starting week 1. It
         would be the first week with 4 or more days in the year in question.
@@ -799,7 +798,7 @@ class TimeDateUtils(BahaiCalendar):
 
         return week1jalal
 
-    def _parse_isoformat_date_time_timezone(self, dtstr:str) -> tuple:
+    def _parse_isoformat_date_time_timezone(self, dtstr: str) -> tuple:
         """
         Parse both the date and time represented in an ISO string into a
         date and time tuple.
@@ -833,7 +832,7 @@ class TimeDateUtils(BahaiCalendar):
 
         return date, time, tz
 
-    def _parse_isoformat_date(self, dtstr:str) -> tuple:
+    def _parse_isoformat_date(self, dtstr: str) -> tuple:
         """
         Parse a date ISO formatted string.
 
@@ -898,7 +897,7 @@ class TimeDateUtils(BahaiCalendar):
 
         return date
 
-    def _parse_isoformat_time(self, tmstr:str) -> tuple:
+    def _parse_isoformat_time(self, tmstr: str) -> tuple:
         """
         Parse a time ISO formatted string.
 
@@ -983,7 +982,7 @@ class TimeDateUtils(BahaiCalendar):
 
         return time
 
-    def _parse_isoformat_timezone(self, tzstr:str) -> tuple:
+    def _parse_isoformat_timezone(self, tzstr: str) -> tuple:
         """
         Parse a timezone ISO formatted string.
 
@@ -1038,8 +1037,8 @@ class TimeDateUtils(BahaiCalendar):
 
         return tz
 
-    def _check_date_fields(self, a:int, b:int, c:int, d:int=None,
-                           e:int=None, *, short_in:bool=False) -> None:
+    def _check_date_fields(self, a: int, b: int, c: int, d: int=None,
+                           e: int=None, *, short_in: bool=False) -> None:
         """
         Check the validity of the date.
 
