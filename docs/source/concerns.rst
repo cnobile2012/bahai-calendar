@@ -1,5 +1,12 @@
-Warnings
+.. -*-coding: utf-8-*-
+
 ========
+Concerns
+========
+
+------------------------------------------
+Letter from The Universal House of Justice
+------------------------------------------
 
 The Universal House of Justice sent a letter dated 10 July 2014 to the Bahá'ís
 of the World indicating a change to the Badí' Calendar. Tehran, Iran was set as

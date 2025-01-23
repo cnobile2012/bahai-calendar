@@ -1,7 +1,9 @@
-Discussions
-===========
+.. -*-coding: utf-8-*-
+
+Discussion
+==========
 
 .. toctree::
    :maxdepth: 2
 
-   warnings
+   concerns

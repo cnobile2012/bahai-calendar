@@ -1,7 +1,10 @@
+.. -*-coding: utf-8-*-
+
 *********************************
 Welcome to The Badí' Calendar API
 *********************************
 
+========
 Contents
 ========
 
@@ -15,6 +18,7 @@ Contents
    modules
    testing
 
+==================
 Indices and tables
 ==================
 

@@ -793,7 +793,7 @@ class TimeDateUtils(BahaiCalendar):
         firstweekday = (firstday - 6) % 7
         week1jalal = firstday - firstweekday
 
-        if firstweekday > 3: # First week day >= Fidal
+        if firstweekday > 3:  # First week day >= Fidal
             week1jalal += 7
 
         return week1jalal
@@ -946,7 +946,7 @@ class TimeDateUtils(BahaiCalendar):
             pos1 = 2 if cc == 2 else 0
 
             if t_len > 3:
-                if tmstr[3] == '.': # Thh.hhh
+                if tmstr[3] == '.':  # Thh.hhh
                     ph = float(tmstr[3:]) * 60
                     minute = math.floor(ph)
                     second = (ph % 1) * 60
@@ -965,17 +965,17 @@ class TimeDateUtils(BahaiCalendar):
                     second = float(tmstr[5 + pos0:])
                     second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
-                elif t_len == 5 + pos0: # Thhmm or Thh:mm
+                elif t_len == 5 + pos0:  # Thhmm or Thh:mm
                     minute = int(tmstr[3 + pos0:5 + pos0])
                     time = (hour, minute, 0)
-                elif t_len >= 7 + pos1: # Thhmmss.sss or Thh:mm:ss.sss
+                elif t_len >= 7 + pos1:  # Thhmmss.sss or Thh:mm:ss.sss
                     minute = int(tmstr[3 + pos0:5 + pos0])
                     second = float(tmstr[5 + pos1:])
                     second = math.floor(second) if second % 1 == 0 else second
                     time = (hour, minute, second)
                 else:
                     raise ValueError(f"Invalid time string, found {tmstr!r}")
-            else: # Thh
+            else:  # Thh
                 time = (hour, 0, 0)
         else:
             time = ()
@@ -1005,9 +1005,9 @@ class TimeDateUtils(BahaiCalendar):
         nc = tzstr.count('-')
         pc = tzstr.count('+')
         zc = tzstr.count('Z')
-        bc = tzstr.count('B') # This is an extention to the ISO standard
-        c_none = all([True for c in (nc, pc, zc, bc) if c == 0]) # All eq 0
-        ct_gt_1 = sum((nc, pc, zc, bc)) > 1 # More than one eq 1
+        bc = tzstr.count('B')  # This is an extention to the ISO standard
+        c_none = all([True for c in (nc, pc, zc, bc) if c == 0])  # All eq 0
+        ct_gt_1 = sum((nc, pc, zc, bc)) > 1  # More than one eq 1
         ca_gt_1 = any([True for c in (nc, pc, zc, bc) if c > 1]) # Any gt than 1
         assert c_none and not ct_gt_1 and not ca_gt_1, (
             "Can only have one of (-+Z) and no more than one of (-+Z) to "
@@ -1145,5 +1145,6 @@ class TimeDateUtils(BahaiCalendar):
 
         newformat = "".join(newformat)
         return self.strftime(newformat, timetuple)
+
 
 _td_utils = TimeDateUtils()

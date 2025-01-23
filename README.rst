@@ -1,12 +1,14 @@
+.. -*-coding: utf-8-*-
+
 ***************************************
 Introduction to the Badí' Calendar API
 ***************************************
 
 The objective of this API (Application Programming Interface) is to implement
 a library that provides date and time functionality similar to the standard
-Python datetime package, however for the Badí' Calendar This API is much more
-extensive than that standard package as it includes all the astronomical
-calculations to fine the Vernal Equinox and sunset and many other calculation
+Python datetime package, however for the Badí' Calendar this API is much more
+extensive than the standard package as it includes all the astronomical
+calculations to find the Vernal Equinox, sunset, and many other calculations
 that are needed to support how the Badí' Calendar works.
 
 The Badí' Calendar is an Astronomical Self-correcting Solar Calendar. What that
