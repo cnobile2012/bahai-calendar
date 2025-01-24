@@ -188,6 +188,9 @@ class GregorianCalendar(BaseCalendar):
         Find the year, month, day, hours, minutes, and seconds from a
         POSIX timestamp updated for provided time zone.
 
+        DO NOT USE THIS METHOD -- It's experimental and is not used in any
+        other code.
+
         *** TODO *** Fix for years before 1070
 
         :param t: POSIX timestamp

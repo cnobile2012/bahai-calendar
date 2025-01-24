@@ -31,3 +31,5 @@ sure to always import the packages you want after enabling the geocoder.
 
    from badidatetime import date, time, datetime, ...
 
+The ``enable_geocoder()`` function takes one argument which can be set either
+``True`` (default) or ``False``.

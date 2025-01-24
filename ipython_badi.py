@@ -1,7 +1,9 @@
 # %load ipython_badi.py
 # %load_ext autoreload
-import os; os.environ['DEBUG'] = "1"
-from badidatetime import GregorianCalendar, BahaiCalendar, datetime, enable_geocoder
+import importlib
+from badidatetime import enable_geocoder; enable_geocoder()
+datetime = importlib.import_module('badidatetime.datetime')
+from badidatetime import GregorianCalendar, BahaiCalendar
 from badidatetime._timedateutils import TimeDateUtils
 from zoneinfo import ZoneInfo
 import math, time, datetime as dtime
