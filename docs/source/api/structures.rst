@@ -4,6 +4,10 @@
 Structures
 ==========
 
+-------
+Classes
+-------
+
 .. automodule:: badidatetime._structures
    :members:
    :undoc-members:

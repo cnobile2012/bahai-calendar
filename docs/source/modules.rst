@@ -7,12 +7,12 @@ API Documentation
 .. toctree::
    :maxdepth: 2
 
-   init
-   datetime
-   badi_calendar
-   gregorian_calendar
-   base_calendar
-   julian_period
-   astronomical_terms
-   structures
-   timedateutils
+   api/init
+   api/datetime
+   api/badi_calendar
+   api/gregorian_calendar
+   api/base_calendar
+   api/julian_period
+   api/astronomical_terms
+   api/structures
+   api/timedateutils

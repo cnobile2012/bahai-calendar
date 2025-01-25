@@ -4,6 +4,10 @@
 AstronomicalTerm
 ================
 
+-----
+Class
+-----
+
 .. automodule:: badidatetime._astronomical_terms
    :members:
    :undoc-members:

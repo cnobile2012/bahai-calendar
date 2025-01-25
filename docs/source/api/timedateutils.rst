@@ -4,6 +4,10 @@
 Timedateutils
 =============
 
+-----
+Class
+-----
+
 .. automodule:: badidatetime._timedateutils
    :members:
    :undoc-members:

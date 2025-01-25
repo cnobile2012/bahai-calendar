@@ -31,8 +31,8 @@ Building a Development Environment for your Projects
 
 .. code-block:: console
 
-    $ sudo apt install build-essential python3.12 python3-setuptools git \
-               virtualenvwrapper
+    $ sudo apt install build-essential python3.12 python3-setuptools \
+                       git virtualenvwrapper
 
 The ``virtualenvwrapper`` package is a wrapper around ``virtualenv`` that
 provides easy to use tools for ``virtualenv`` and will install ``virtualenv``

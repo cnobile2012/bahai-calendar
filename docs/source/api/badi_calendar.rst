@@ -20,9 +20,9 @@ badidatetime.badi_calendar.MINYEAR : int
 badidatetime.badi_calendar.MAXYEAR : int
    Constant indicating the maximum year this API can represent.
 
--------------
-BahaiCalendar
--------------
+-----
+Class
+-----
 
 .. automodule:: badidatetime.badi_calendar
    :members:

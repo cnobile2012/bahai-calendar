@@ -4,6 +4,10 @@
 JulianPeriod
 ============
 
+-----
+Class
+-----
+
 .. automodule:: badidatetime.julian_period
    :members:
    :undoc-members:

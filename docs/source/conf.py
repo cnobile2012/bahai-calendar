@@ -39,7 +39,7 @@ def update_file(orgname, rstname):
 sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 
 # Remember to put the files below in .gitignore.
-update_file('README.rst', 'introduction.rst')
+#update_file('README.rst', 'introduction.rst')
 update_file('INSTALL.rst', 'install.rst')
 #update_file(os.path.join('tests', 'README.rst'), 'testing.rst')
 
@@ -136,7 +136,11 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'github_user': 'cnobile2012',
+    'github_repo': 'bahai-calendar',
+    'page_width': 'auto',
+    }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

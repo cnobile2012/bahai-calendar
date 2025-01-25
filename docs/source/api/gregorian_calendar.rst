@@ -4,6 +4,10 @@
 GregorianCalendar
 =================
 
+-----
+Class
+-----
+
 .. automodule:: badidatetime.gregorian_calendar
    :members:
    :undoc-members:

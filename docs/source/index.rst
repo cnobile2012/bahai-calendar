@@ -1,17 +1,12 @@
 .. -*-coding: utf-8-*-
 
-*********************************
-Welcome to The Badí' Calendar API
-*********************************
+.. include:: ../../README.rst
 
-========
-Contents
-========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
+   :hidden:
 
-   introduction
    discussions
    install
    usage

@@ -4,6 +4,10 @@
 BaseCalendar
 ============
 
+-----
+Class
+-----
+
 .. automodule:: badidatetime.base_calendar
    :members:
    :undoc-members:
