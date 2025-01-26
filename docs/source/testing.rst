@@ -1,7 +1,8 @@
 .. -*-coding: utf-8-*-
 
-Test Packages
-=============
+=======
+Testing
+=======
 
 .. toctree::
 

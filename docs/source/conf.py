@@ -21,6 +21,8 @@ import sys
 import re
 import datetime
 
+sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
+
 def setup(app):
     app.connect('html-page-context', add_custom_css)
 
@@ -36,10 +38,7 @@ def update_file(orgname, rstname):
     if not os.path.exists(rstname):
         os.symlink(orgname, rstname)
 
-sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
-
 # Remember to put the files below in .gitignore.
-#update_file('README.rst', 'introduction.rst')
 update_file('INSTALL.rst', 'install.rst')
 #update_file(os.path.join('tests', 'README.rst'), 'testing.rst')
 
@@ -76,6 +75,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
+    'sphinx_new_tab_link',
     ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -145,7 +145,7 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = [] #'_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.

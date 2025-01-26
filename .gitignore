@@ -14,7 +14,6 @@ __pycache__/
 *.pdf
 docs/api
 docs/htmlcov
-docs/source/introduction.rst
 docs/source/install.rst
 tmp/*
 !docs/*.pdf

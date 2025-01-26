@@ -1,8 +1,8 @@
 .. -*-coding: utf-8-*-
 
-=================
-Unittest Packages
-=================
+=========
+Unittests
+=========
 
 ------------
 BadiCalendar

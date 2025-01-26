@@ -198,7 +198,7 @@ class GregorianCalendar(BaseCalendar):
         :param zone: Timezone
         :type zone: float
         :param us: If True the seconds are split to seconds amd microseconds
-                   else if False the seconds has a partial day as a decimal.
+                   else if False the seconds has a fractional day as a decimal.
         :type us: bool
         :return: The time of the day corrected for the timezone.
         :rtype: tuple
@@ -265,7 +265,7 @@ class GregorianCalendar(BaseCalendar):
     def date_from_ymdhms(self, date:tuple) -> tuple:
         """
         Convert (year, month, day, hour, minute, second) into a
-        (year, month, day.partial) date.
+        (year, month, day.fractional) date.
 
         :param date: A six part date (y, m, d, hh, mm, ss).
         :type: tuple
@@ -286,13 +286,13 @@ class GregorianCalendar(BaseCalendar):
 
     def ymdhms_from_date(self, date:tuple, us:bool=False) -> tuple:
         """
-        Convert (year, month, day.partial) into a
+        Convert (year, month, day.fractional) into a
         (year, month, day, hour, minute, second).
 
         :param date: A three part date (y, m, d.nnn).
         :type date: tuple
         :param us: If True return microseconds as seperate field from
-                   seconds else return seconds with partial seconds.
+                   seconds else return seconds with fractional seconds.
                    Default is False.
         :type us: bool
         :return: A six part date (y, m, d, hh, mm, ss).

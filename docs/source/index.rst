@@ -7,7 +7,7 @@
    :maxdepth: 4
    :hidden:
 
-   discussions
+   essential_reading
    install
    usage
    modules

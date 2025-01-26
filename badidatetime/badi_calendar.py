@@ -9,7 +9,8 @@ import math
 from badidatetime.base_calendar import BaseCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
 
-__all__ = ('BahaiCalendar',)
+__all__ = ('BahaiCalendar', 'KULL_I_SHAY_MIN', 'KULL_I_SHAY_MAX', 'MINYEAR',
+           'MAXYEAR')
 
 
 class BahaiCalendar(BaseCalendar):

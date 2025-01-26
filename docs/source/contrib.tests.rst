@@ -1,8 +1,8 @@
 .. -*-coding: utf-8-*-
 
-====================
-Individual Test Apps
-====================
+=======================
+Individual Test Scripts
+=======================
 
 .. toctree::
    :maxdepth: 2

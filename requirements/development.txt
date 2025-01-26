@@ -12,3 +12,4 @@ ipython
 
 Sphinx
 sphinx_rtd_theme
+sphinx_new_tab_link
