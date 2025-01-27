@@ -92,7 +92,7 @@ source_encoding = 'UTF-8'
 master_doc = 'index'
 
 # General information about the project.
-project = "Badí' Date and Time API."
+project = "Badí' Date and Time API"
 author = 'Carl J. Nobile'
 copyright = '{:d}, {:s}'.format(datetime.datetime.now().year, author)
 
@@ -145,7 +145,7 @@ html_theme_options = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = [
-    #'_static/css/'
+    '_static/css/'
     ]
 
 # Custom sidebar templates, must be a dictionary that maps document names

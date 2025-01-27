@@ -1,0 +1,36 @@
+div.body {
+    max-width: 690px;
+}
+
+div.bodywrapper {
+    margin: 0 0 0 320px;
+    width: 760px;
+}
+
+div.document {
+    width: 1000px;
+    margin: 30px auto 0 auto;
+}
+
+div.documentwrapper {
+    width: 1050px;
+}
+
+div.sphinxsidebar {
+    width: 320px;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0 10px 0 0;
+}
+
+div.sphinxsidebarwrapper {
+    width: 300px;
+}
+
+H1.logo {
+    font-size: 27px;
+}
+
+div.footer {
+    width: 1050px;
+}
