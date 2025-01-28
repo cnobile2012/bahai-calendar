@@ -9,8 +9,7 @@ import math
 from badidatetime.base_calendar import BaseCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
 
-__all__ = ('BahaiCalendar', 'KULL_I_SHAY_MIN', 'KULL_I_SHAY_MAX', 'MINYEAR',
-           'MAXYEAR')
+__all__ = ('BahaiCalendar',)
 
 
 class BahaiCalendar(BaseCalendar):
@@ -49,8 +48,8 @@ class BahaiCalendar(BaseCalendar):
         self._bahai_date = None
         self._gc = GregorianCalendar()
 
-    def utc_sunset(self, date:tuple, lat:float=None, lon:float=None,
-                   zone:float=None) -> tuple:
+    def utc_sunset(self, date: tuple, lat: float=None, lon: float=None,
+                   zone: float=None) -> tuple:
         """
         Return the time of sunset in UTC time for the given Badi Day.
 
@@ -65,8 +64,8 @@ class BahaiCalendar(BaseCalendar):
         jd = self.jd_from_badi_date(date[:3], lat, lon, zone)
         return self._hms_from_decimal_day(jd + 0.5)
 
-    def naw_ruz_g_date(self, year:int, lat:float=None, lon:float=None,
-                       zone:float=None, *, hms:bool=False) -> tuple:
+    def naw_ruz_g_date(self, year: int, lat: float=None, lon: float=None,
+                       zone: float=None, *, hms: bool=False) -> tuple:
         """
         Return the Badi date for Naw-Ruz from the given Badi year.
 
@@ -85,9 +84,9 @@ class BahaiCalendar(BaseCalendar):
         date = self._gc.gregorian_date_from_jd(jd, exact=True)
         return self._gc.ymdhms_from_date(date) if hms else date
 
-    def first_day_of_ridvan_g_date(self, year:int, lat:float=None,
-                                   lon:float=None, zone:float=None, *,
-                                   hms:bool=False) -> tuple:
+    def first_day_of_ridvan_g_date(self, year: int, lat: float=None,
+                                   lon: float=None, zone: float=None, *,
+                                   hms: bool=False) -> tuple:
         """
         Find the first day of Riḍván in either with or without hours,
         minutes, and seconds.
@@ -109,8 +108,9 @@ class BahaiCalendar(BaseCalendar):
         date = self._gc.gregorian_date_from_jd(jd, exact=True)
         return self._gc.ymdhms_from_date(date) if hms else date
 
-    def jd_from_badi_date(self, b_date:tuple, lat:float=None, lon:float=None,
-                          zone:float=None, _chk_on=True) -> float:
+    def jd_from_badi_date(self, b_date: tuple, lat: float=None,
+                          lon: float=None, zone: float=None,
+                          _chk_on: bool=True) -> float:
         """
         Convert a Badi short form date to Julian period day.
 
@@ -149,7 +149,7 @@ class BahaiCalendar(BaseCalendar):
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_coff(year), self._ROUNDING_PLACES)
 
-    def _get_coff(self, year):
+    def _get_coff(self, year: int) -> int:
         """
         General ranges are determined with:
         ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year Where -S
@@ -237,10 +237,11 @@ class BahaiCalendar(BaseCalendar):
 
         return coff
 
-    def badi_date_from_jd(self, jd:float, lat:float=None, lon:float=None,
-                          zone:float=None, *, us:bool=False, short:bool=False,
-                          fraction:bool=False, trim:bool=False,
-                          rtd:bool=False, _chk_on=True) -> tuple:
+    def badi_date_from_jd(self, jd: float, lat: float=None, lon: float=None,
+                          zone: float=None, *, us: bool=False,
+                          short: bool=False, fraction: bool=False,
+                          trim: bool=False, rtd: bool=False,
+                          _chk_on: bool=True) -> tuple:
         """
         Convert a Julian Period day to a Badi date.
 
@@ -321,8 +322,8 @@ class BahaiCalendar(BaseCalendar):
 
         return b_date
 
-    def short_date_from_long_date(self, b_date:tuple, *, trim:bool=False,
-                                  _chk_on:bool=True) -> tuple:
+    def short_date_from_long_date(self, b_date: tuple, *, trim: bool=False,
+                                  _chk_on: bool=True) -> tuple:
         """
         Convert a long date (kvymdhms) to a short date (ymdhms). In either
         case microseconds could also be provided.
@@ -344,8 +345,8 @@ class BahaiCalendar(BaseCalendar):
         _chk_on and self._check_valid_badi_date(date, short_in=True)
         return date
 
-    def long_date_from_short_date(self, date:tuple, *, trim:bool=False,
-                                  _chk_on:bool=True) -> tuple:
+    def long_date_from_short_date(self, date: tuple, *, trim: bool=False,
+                                  _chk_on: bool=True) -> tuple:
         """
         Convert a date to a short date (ymdhms) to a long date (kvymdhms).
 
@@ -378,8 +379,8 @@ class BahaiCalendar(BaseCalendar):
         _chk_on and self._check_valid_badi_date(b_date)
         return b_date
 
-    def date_from_kvymdhms(self, b_date:tuple, *, short:bool=False,
-                           _chk_on:bool=True) -> tuple:
+    def date_from_kvymdhms(self, b_date: tuple, *, short: bool=False,
+                           _chk_on: bool=True) -> tuple:
         """
         Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second,
         us) into a (Kull-i-Shay, Váḥid, year, month, day.fraction) or
@@ -405,9 +406,9 @@ class BahaiCalendar(BaseCalendar):
         return (self.short_date_from_long_date(date, trim=True, _chk_on=_chk_on)
                 if short else date)
 
-    def kvymdhms_from_b_date(self, b_date:tuple, *, us:bool=False,
-                             short:bool=False, trim:bool=False,
-                             _chk_on:bool=True) -> tuple:
+    def kvymdhms_from_b_date(self, b_date: tuple, *, us: bool=False,
+                             short: bool=False, trim: bool=False,
+                             _chk_on: bool=True) -> tuple:
         """
         Convert (Kull-i-Shay, Váḥid, year, month, day.fraction) into
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second) or if
@@ -464,11 +465,11 @@ class BahaiCalendar(BaseCalendar):
         return (self.short_date_from_long_date(date, trim=trim, _chk_on=_chk_on)
                 if short else date)
 
-    def badi_date_from_gregorian_date(self, g_date:tuple, lat:float=None,
-                                      lon:float=None, zone:float=None, *,
-                                      short:bool=False, trim:bool=False,
-                                      rtd:bool=False,
-                                      _exact:bool=True) -> tuple:
+    def badi_date_from_gregorian_date(self, g_date: tuple, lat: float=None,
+                                      lon: float=None, zone: float=None, *,
+                                      short: bool=False, trim: bool=False,
+                                      rtd: bool=False, _exact: bool=True
+                                      ) -> tuple:
         """
         Get the Badi date from the Gregorian date.
 
@@ -491,9 +492,10 @@ class BahaiCalendar(BaseCalendar):
         return self.badi_date_from_jd(jd, lat=lat, lon=lon, zone=zone,
                                       short=short, trim=trim, rtd=rtd)
 
-    def gregorian_date_from_badi_date(self, b_date:tuple, lat:float=None,
-                                      lon:float=None, zone:float=None, *,
-                                      _exact=True, _chk_on=True) -> tuple:
+    def gregorian_date_from_badi_date(self, b_date: tuple, lat: float=None,
+                                      lon: float=None, zone: float=None, *,
+                                      _exact: bool=True, _chk_on: bool=True
+                                      ) -> tuple:
         """
         Get the Gregorian date from the Badi date.
 
@@ -516,9 +518,9 @@ class BahaiCalendar(BaseCalendar):
         return self._gc.ymdhms_from_date(self._gc.gregorian_date_from_jd(
             jd, exact=_exact), us=True)
 
-    def posix_timestamp(self, t:float, lat:float=None, lon:float=None,
-                        zone:float=None, *, us:bool=False, short=False,
-                        trim:bool=False) -> tuple:
+    def posix_timestamp(self, t:float, lat: float=None, lon: float=None,
+                        zone: float=None, *, us: bool=False, short: bool=False,
+                        trim: bool=False) -> tuple:
         """
         Get the Badi date from a POSIX timestamp.
 
@@ -545,7 +547,8 @@ class BahaiCalendar(BaseCalendar):
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim)
 
-    def midday(self, date:tuple, *, hms=False, _chk_on:bool=True) -> tuple:
+    def midday(self, date: tuple, *, hms: bool=False, _chk_on:bool=True
+               ) -> tuple:
         """
         Find the midday time in hours, minutes, and seconds with fraction.
 
@@ -573,7 +576,7 @@ class BahaiCalendar(BaseCalendar):
         mid = (ss1 - ss0) / 2
         return self._hms_from_decimal_day(mid) if hms else mid
 
-    def _trim_hms(self, hms:tuple) -> tuple:
+    def _trim_hms(self, hms: tuple) -> tuple:
         """
         Trim the hours, minutes, seconds or microseconds off the date if
         zero unless a lower value was not zero.
@@ -604,7 +607,8 @@ class BahaiCalendar(BaseCalendar):
 
         return tuple(reversed(items))
 
-    def _check_valid_badi_date(self, b_date:tuple, short_in=False) -> None:
+    def _check_valid_badi_date(self, b_date: tuple, short_in: bool=False
+                               ) -> None:
         """
         Check that the Kull-i-Shay, Váḥids, year, month, day, hour, minute,
         second, and microsecond values are valid.
@@ -667,8 +671,8 @@ class BahaiCalendar(BaseCalendar):
             assert not minute % 1, (
                 "If there is a part minute then there can be no seconds.")
 
-    def _check_valid_badi_time(self, hour:float, minute:float, second:float,
-                               us:int, maxsec:int=60) -> None:
+    def _check_valid_badi_time(self, hour: float, minute: float, second: float,
+                               us: int, maxsec: int=60) -> None:
         """
         Check that the hour, minute, second, and microsecond values are valid.
 
@@ -692,7 +696,7 @@ class BahaiCalendar(BaseCalendar):
             f"Invalid microseconds '{us}', it must be in the range of "
             "[0, 999999].")
 
-    def _is_leap_year(self, year:tuple, _chk_on:bool=True) -> bool:
+    def _is_leap_year(self, year: tuple, _chk_on: bool=True) -> bool:
         """
         Return a Boolean True if a Badi leap year, False if not.
 
@@ -706,7 +710,7 @@ class BahaiCalendar(BaseCalendar):
         """
         return self._days_in_year(year, _chk_on=_chk_on) == 366
 
-    def _days_in_year(self, year:int, _chk_on:bool=True) -> int:
+    def _days_in_year(self, year: int, _chk_on: bool=True) -> int:
         """
         Determine the number of days in the provided Badi year.
 
@@ -725,7 +729,7 @@ class BahaiCalendar(BaseCalendar):
         jd_n1 = self.jd_from_badi_date((year + 1, 1, 1), _chk_on=on)
         return int(math.floor(jd_n1) - math.floor(jd_n0))
 
-    def _get_hms(self, date:tuple, *, short_in:bool=False) -> tuple:
+    def _get_hms(self, date: tuple, *, short_in: bool=False) -> tuple:
         """
         Parse the hours, minutes, seconds, and microseconds, if they exist
         for either the short or long form Badi date.
@@ -746,9 +750,9 @@ class BahaiCalendar(BaseCalendar):
         us = date[s+3] if t_len > s+3 and date[s+3] is not None else 0
         return hour, minute, second, us
 
-    def _adjust_date(self, jd:float, ymd:tuple, lat:float, lon:float,
-                     zone:float, *, fraction:bool=False,
-                     us:bool=False, rtd:bool=False) -> tuple:
+    def _adjust_date(self, jd:float, ymd: tuple, lat: float, lon: float,
+                     zone: float, *, fraction: bool=False,
+                     us: bool=False, rtd: bool=False) -> tuple:
         """
         The adjusted year, month, and day based on if the JD falls before
         or after sunset.
@@ -834,7 +838,8 @@ class BahaiCalendar(BaseCalendar):
 
         return (year, month, day) + hms
 
-    def _day_Length(self, jd:float, lat:float, lon:float, zone:float) -> tuple:
+    def _day_Length(self, jd: float, lat: float, lon: float, zone: float
+                    ) -> tuple:
         """
         The hour, minute, and seconds of the days offset either less than
         or more than 24 hours.

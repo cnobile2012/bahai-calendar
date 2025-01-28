@@ -622,7 +622,7 @@ class TimeDateUtils(BahaiCalendar):
         return f"{ttup.tm_wday + 1}"
 
     def U(self, ttup, org, mod):
-        """
+        r"""
         Week number of the year (Jalál as the first day of the week) as a
         zero-padded decimal number. All days in a new year preceding the
         first \`Idāl are considered to be in week 0.
