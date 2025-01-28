@@ -14,6 +14,10 @@ from .badi_calendar import BahaiCalendar
 
 
 class TimeDateUtils(BahaiCalendar):
+    """
+    This class provides utility functionality to the datetime package. Its
+    use is through a pre-instantiated object _td_utils.
+    """
     # Badi additions are %:K for Kull-i-Shay and %:V for Váḥid
     VALID_FORMAT_CHRS = 'aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%'
     DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl', '`Idāl',
@@ -28,10 +32,14 @@ class TimeDateUtils(BahaiCalendar):
                       6: 'Raḥ', 7: 'Kal', 8: 'Kam', 9: 'Asm', 10: 'Izz',
                       11: 'Mas', 12: 'Ilm', 13: 'Qud', 14: 'Qaw', 15: 'Mas',
                       16: 'Sha', 17: 'Sul', 18: 'Mul', 0: 'Ayy', 19: 'Alá'}
-    # The first day that we start our count Julian year 1, March 19th
     FIRST_YEAR_EPOCH = 1721501.261143
-    # This keeps the Badi day count in par with the Gregorian day count.
-    DAYS_BEFORE_1ST_YEAR = 77  # This keeps us insync with Gregorian dates.
+    """
+    The first day that we start our count Julian year 1, March 19th.
+    """
+    DAYS_BEFORE_1ST_YEAR = 77
+    """
+    This keeps the Badi day count in par with the Gregorian day count.
+    """
 
     def __init__(self):
         """
@@ -49,6 +57,10 @@ class TimeDateUtils(BahaiCalendar):
         self._date_and_time_locale()
 
     def _date_and_time_locale(self):
+        """
+        Set the `_locale_data` dictionary instance object to locale date
+        and time information.
+        """
         self._locale_data['locale'] = locale.setlocale(locale.LC_TIME, '')
         self._locale_data['am'] = locale.nl_langinfo(locale.AM_STR)
         self._locale_data['pm'] = locale.nl_langinfo(locale.PM_STR)
@@ -64,7 +76,16 @@ class TimeDateUtils(BahaiCalendar):
         self._locale_data['t_format'] = self._order_format(
             self._find_time_order(), '%H:%M:%S')
 
-    def _order_format(self, fmt, default):
+    def _order_format(self, fmt: str, default: str) -> None:
+        """
+        Pulls out of the incoming strings data needed to processing date
+        and time formats.
+
+        :param str fmt: The string format to parse.
+        :param str default: A default format if `fmt` is invalid.
+        :return: Data for processing date and time formats.
+        :rtype: str
+        """
         if len(fmt) != 8:
             fmt = default
 
@@ -77,29 +98,49 @@ class TimeDateUtils(BahaiCalendar):
         return data
 
     def _find_time_order(self):
-        t_str = time.strftime('%X')
-        delim = t_str[2]
+        """
+        Find the locale time delimiter and id 24 or 12 hour time is used.
+
+        :return: The time delimiter and 24 or 12 hour time.
+        :rtype: str
+        """
+        delim = time.strftime('%X')[2]
         h = 'I' if time.strftime('%p') != "" else 'H'
         return f"%{h}{delim}%M{delim}%S"
 
     @property
     def locale(self):
+        """
+        Returns the current locale.
+        """
         return self._locale_data['locale']
 
     @property
     def am(self):
+        """
+        Returns the AM designator.
+        """
         return self._locale_data['am']
 
     @property
     def pm(self):
+        """
+        Returns the PM designator.
+        """
         return self._locale_data['pm']
 
     @property
     def date_format(self):
+        """
+        Returns the locale's date format.
+        """
         return self._locale_data['d_format']
 
     @property
     def time_format(self):
+        """
+        Returns the locale's time format.
+        """
         return self._locale_data['t_format']
 
     def _checktm(self, ttup: tuple) -> None:
@@ -107,12 +148,15 @@ class TimeDateUtils(BahaiCalendar):
         Check that the fields in the tuple are of the correct type. This
         check on date information is different than what is found inn the
         badi_calendar.py module as it needs to conform with ISO standards.
+
+        :param ttup: A time tuple.
+        :type ttup: ShortFormStruct or LongFormStruct
         """
         if not issubclass(ttup.__class__, tuple):
             raise TypeError(
                 f"The ttup argument {ttup.__class__} is not a proper tuple.")
 
-        def process_long_form(ttup):
+        def process_long_form(ttup: tuple):
             assert (self.KULL_I_SHAY_MIN <= ttup[0] <= self.KULL_I_SHAY_MAX), (
                 f"Invalid kull-i-shay {ttup[0]}, it must be in the range of "
                 f"[{self.KULL_I_SHAY_MIN}, {self.KULL_I_SHAY_MAX}].")
@@ -124,7 +168,7 @@ class TimeDateUtils(BahaiCalendar):
                 "range of [1, 19].")
             return (ttup[0] - 1) * 361 + (ttup[1] - 1) * 19 + ttup[2]
 
-        def process_short_form(ttup):
+        def process_short_form(ttup: tuple):
             assert self.MINYEAR <= ttup[0] <= self.MAXYEAR, (
                 f"Invalid year '{ttup[0]}' it must be in the range of ["
                 f"{self.MINYEAR}, {self.MAXYEAR}].")
@@ -173,7 +217,7 @@ class TimeDateUtils(BahaiCalendar):
         assert 0 <= second <= 61, (
             f"Invalid second '{second}', it must be in the range of [0, 61].")
         assert 0 <= wday <= 6, (
-            f"Invalid week day '{wday}', it must be inthe range of [0, 6].")
+            f"Invalid week day '{wday}', it must be in the range of [0, 6].")
         assert 1 <= yday <= 366, (
             f"Invalid day '{yday}' in year, it must be in the range of "
             "[1, 366].")
@@ -182,27 +226,66 @@ class TimeDateUtils(BahaiCalendar):
 
     def a(self, ttup, org, mod):
         """
+        Abbreviated weekday.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The abbreviated weekday.
+        :rtype: str
         """
         return self.DAYNAMES_ABV[ttup.tm_wday]
 
     def A(self, ttup, org, mod):
         """
+        Full weekday name.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The full weekday.
+        :rtype: str
         """
         return self.DAYNAMES[ttup.tm_wday]
 
     def b(self, ttup, org, mod):
         """
-        Return the abbreviated month name if %b or %h.
+        Abbreviated month name.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The abbreviated month name.
+        :rtype: str
         """
         return self.MONTHNAMES_ABV[ttup.tm_mon]
 
     def B(self, ttup, org, mod):
         """
+        Full month name.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The full month name.
+        :rtype: str
         """
         return self.MONTHNAMES[ttup.tm_mon]
 
     def c(self, ttup, org, mod):
         """
+        Locale specific date and time. Equivilent to "%a %b %e %H:%M:%S %Y".
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The locale specific date and time.
+        :rtype: str
         """
         st = f"{self.DAYNAMES_ABV[ttup.tm_wday]} "
         st += f"{self.MONTHNAMES_ABV[ttup.tm_mon]} "
@@ -222,6 +305,15 @@ class TimeDateUtils(BahaiCalendar):
 
     def C(self, ttup, org, mod):
         """
+        Century as a space-padded decimal number. (The year divided by 100
+        then truncated to an integer.)
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The century as a space-padded decimal number.
+        :rtype: str
         """
         year = self._get_year(ttup)
         n = '-' if year < 0 else ''
@@ -229,8 +321,14 @@ class TimeDateUtils(BahaiCalendar):
 
     def d(self, ttup, org, mod):
         """
-        Return a zero padded month. If the format was %-d or %e then
-        return an un-padded decimal number.
+        Day of month as a zero-padded decimal number.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The day of month as a zero-padded decimal number.
+        :rtype: str
         """
         if mod == '-':
             st = f"{ttup.tm_mday}"
@@ -242,10 +340,22 @@ class TimeDateUtils(BahaiCalendar):
 
     def D(self, ttup, org, mod):
         """
-        Return a locale dependent Badi short date. Badi long dates are
-        converted to short dates first.
-        This method does not tak into account format extenders, in other
-        words the - or : after the %. They should never show up in the locale.
+        Date where year is without century. Equivilent to a localized %m/%d/%y.
+
+        .. note::
+
+           Return a locale dependent Badí' short date. Badí' long dates are
+           converted to short dates first.
+           This method does not take into account format extenders, in other
+           words the - or : after the %. They should never show up in the
+           locale.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The date where year is without century.
+        :rtype: str
         """
         year = self._get_year(ttup)
         century = int(year / 100) * 100
@@ -267,13 +377,29 @@ class TimeDateUtils(BahaiCalendar):
 
     def f(self, ttup, org, mod):
         """
+        Microseconds as a decimal number.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The Microseconds as a decimal number.
+        :rtype: str
         """
         s, m = self._sec_microsec_from_seconds(ttup.tm_sec)
         return f"{round(m, 6):06}"
 
     def G(self, ttup, org, mod):
         """
-        Return an ISO 8601 year with century as a zero-padded decimal number.
+        ISO 8601 year with century as a zero-padded decimal number.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The ISO 8601 year with century as a zero-padded decimal
+                 number.
+        :rtype: str
         """
         year = self._get_year(ttup)
         n = '-' if year < 0 else ''
@@ -281,6 +407,15 @@ class TimeDateUtils(BahaiCalendar):
 
     def H(self, ttup, org, mod):
         """
+        Hour (24-hour clock) as a decimal number. Either zero-padded if %H
+        or not zero-padded if %-H.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The hour (24-hour clock) as a decimal number.
+        :rtype: str
         """
         if mod == '-':  # %-H
             st = f"{ttup.tm_hour}"
@@ -291,17 +426,28 @@ class TimeDateUtils(BahaiCalendar):
 
     def I(self, ttup, org, mod):
         """
-        If we assume that sunset was at 1800 hrs UTC then the Badi noon
-        would be about 0600 hrs UTC the next morning. This changes on a
-        daily bases because sunset changes and there is seldon exactly 24
-        hours between two sunsets.
+        Hour (12-hour clock) as a zero-padded decimal number.
 
-        *** TODO *** Does a 12-hour clock make sense in a Badi time?
+        .. note::
 
-        1st we need to find sunset for the provided date and the day after.
-        Subreact these two times and divide the results by 2 to determine
-        noon. Then determine which side of noon the current Badi time is on.
-        """
+           1. If we assume that sunset was at 1800 hrs UTC then the Badí' noon
+              would be about 0600 hrs UTC the next morning. This changes on a
+              daily bases because sunset changes and there is seldom exactly 24
+              hours between two sunsets.
+           2. 1st we need to find sunset for the provided date and the day
+              after. Subtract these two times and divide the results by 2 to
+              determine noon. Then determine which side of noon the current
+              Badí' time is on.
+
+        *** TODO *** Does a 12-hour clock make sense in a Badí' time?
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The hour (12-hour clock) as a zero-padded decimal number.
+        :rtype: str
+         """
         midday_frac = self._find_midday(ttup)
         time_frac = self._decimal_day_from_hms(ttup.tm_hour, ttup.tm_min,
                                                ttup.tm_sec)
@@ -322,13 +468,32 @@ class TimeDateUtils(BahaiCalendar):
 
     def j(self, ttup, org, mod):
         """
+        Day of the year as a decimal number. Either zero-padded if %j or
+        not zero-padded if %-j.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The day of the year as a decimal number.
+        :rtype: str
         """
         return f"{ttup.tm_yday}" if mod == '-' else f"{ttup.tm_yday:03}"
 
     def K(self, ttup, org, mod):
         """
-        Return the Kull-i-Shay. If the mod is not a : them return an empty
-        string.
+        Kull-i-Shay as a negative or positive decimal number.
+
+        .. note::
+
+           If the mod is not a : (colon) them return an empty string.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The Kull-i-Shay as a decimal number.
+        :rtype: str
         """
         st = ""
 
@@ -346,21 +511,55 @@ class TimeDateUtils(BahaiCalendar):
 
     def m(self, ttup, org, mod):
         """
+        Month as a decimal number. Either zero-padded if %m or not
+        zero-padded if %-m.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The month as a decimal number.
+        :rtype: str
         """
         return f"{ttup.tm_mon}" if mod == '-' else f"{ttup.tm_mon:02}"
 
     def M(self, ttup, org, mod):
         """
+        Minute as a zero-padded decimal number. Either zero-padded if %M or not
+        zero-padded if %-M.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The minute as a zero-padded decimal number.
+        :rtype: str
         """
         return f"{ttup.tm_min}" if mod == '-' else f"{ttup.tm_min:02}"
 
     def n(self, ttup, org, mod):
         """
+        Newline character.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The newline character.
+        :rtype: str
         """
         return "\n"
 
     def p(self, ttup, org, mod):
         """
+        Locale defined AM and PM.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The locale defined AM and PM.
+        :rtype: str
         """
         midday_frac = self._find_midday(ttup)
         time_frac = self._decimal_day_from_hms(ttup.tm_hour, ttup.tm_min,
@@ -375,6 +574,14 @@ class TimeDateUtils(BahaiCalendar):
 
     def r(self, ttup, org, mod):
         """
+        Locale defined 12-hour clock time (am/pm).
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The locale defined 12-hour clock time.
+        :rtype: str
         """
         sec = math.floor(ttup.tm_sec)
 
@@ -389,16 +596,48 @@ class TimeDateUtils(BahaiCalendar):
 
     def S(self, ttup, org, mod):
         """
+        Second as a decimal number. Either zero-padded if %S or not
+        zero-padded if %-S.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The second as a decimal number.
+        :rtype: str
         """
         return f"{ttup.tm_sec}" if mod == '-' else f"{ttup.tm_sec:02}"
 
     def u(self, ttup, org, mod):
         """
+        Weekday as a decimal number. With Jalál as 1.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The weekday as a decimal number.
+        :rtype: str
         """
         return f"{ttup.tm_wday + 1}"
 
     def U(self, ttup, org, mod):
         """
+        Week number of the year (Jalál as the first day of the week) as a
+        zero-padded decimal number. All days in a new year preceding the
+        first \`Idāl are considered to be in week 0.
+
+        .. note::
+
+           It make no sense to start a week on different day in the Badí'
+           Calendar. So the %W format is the same as %U.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The week number of the year.
+        :rtype: str
         """
         year = self._get_year(ttup)
         year, week, day = self._year_week_day(year, ttup.tm_mon,
@@ -407,6 +646,16 @@ class TimeDateUtils(BahaiCalendar):
 
     def V(self, ttup, org, mod):
         """
+        ISO 8601 week as a decimal number with Jalál as the first day of the
+        week. Week 01 is the week containing the 4th of Bahá. Either
+        zero-padded if %V or not zero-padded if %-V.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The ISO 8601 week as a decimal number.
+        :rtype: str
         """
         if mod == ':':
             if ttup.short:
@@ -425,6 +674,14 @@ class TimeDateUtils(BahaiCalendar):
 
     def x(self, ttup, org, mod):
         """
+        Locale defined date representation.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The locale defined date representation.
+        :rtype: str
         """
         delim = self.date_format[0]
         data = []
@@ -436,7 +693,15 @@ class TimeDateUtils(BahaiCalendar):
 
     def X(self, ttup, org, mod):
         """
-        """
+        Locale defined time representation.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The locale defined time representation.
+        :rtype: str
+         """
         delim = self.time_format[0]
         data = []
 
@@ -447,6 +712,15 @@ class TimeDateUtils(BahaiCalendar):
 
     def y(self, ttup, org, mod):
         """
+        Year without century as a decimal number. Either zero-padded if %y
+        or not zero-padded if %-y.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The year without century as a decimal number.
+        :rtype: str
         """
         year = self._get_year(ttup)
         century = int(year / 100) * 100
@@ -455,6 +729,14 @@ class TimeDateUtils(BahaiCalendar):
 
     def Y(self, ttup, org, mod):
         """
+        Year with century as a zero-padded decimal number.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The year with century as a decimal number.
+        :rtype: str
         """
         year = self._get_year(ttup)
         n = '-' if year < 0 else ''
@@ -462,10 +744,23 @@ class TimeDateUtils(BahaiCalendar):
 
     def z(self, ttup, org, mod):
         """
-        -14400.0       == -0400
-        37080          == +1030
-        22829.4        == +063415
-        11056.44427776 == +030712.
+        UTC offset in the form ±HHMM[SS[.ffffff]] (empty string if the
+        object is naive).
+
+        .. note::
+
+           Some equivalents from offset to ISO standard.
+           -14400.0       == -0400
+           37080          == +1030
+           22829.4        == +063415
+           11056.44427776 == +030712.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The UTC offset in the form ±HHMM[SS[.ffffff]].
+        :rtype: str
         """
         st = ""
 
@@ -488,11 +783,27 @@ class TimeDateUtils(BahaiCalendar):
 
     def Z(self, ttup, org, mod):
         """
+        Time zone name (empty string if the object is naive).
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The time zone name.
+        :rtype: str
         """
         return f"{ttup.tm_zone}" if ttup.tm_zone else ""
 
     def percent(self, ttup, org, mod):
         """
+        The literal '%' character.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :param str, org: The original text code.
+        :param str mod: Code modifier.
+        :return: The literal '%' character.
+        :rtype: str
         """
         return "%"
 
@@ -506,6 +817,14 @@ class TimeDateUtils(BahaiCalendar):
 
     def strftime(self, format: str, ttup: tuple) -> str:
         """
+        Convert a struck_time object into a string according to a specified
+        format.
+
+        :param str format: A string format.
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :return: A struck_time object converted to a formated string.
+        :rtype: str
         """
         self._check_format(format)
         self._checktm(ttup)
@@ -532,9 +851,11 @@ class TimeDateUtils(BahaiCalendar):
 
         return strf
 
-    def _check_format(self, format):
+    def _check_format(self, format: str) -> None:
         """
         Check that the correct format was provided.
+
+        :param str format: A string format.
         """
         idx = 0
         fmtlen = len(format)
@@ -558,7 +879,16 @@ class TimeDateUtils(BahaiCalendar):
         if fmtlen == 0:
             raise ValueError("Found an empty format string.")
 
-    def _find_midday(self, ttup):
+    def _find_midday(self, ttup: tuple) -> tuple:
+        """
+        Midday time in hours, minutes, and seconds representing the Badí'
+        midday.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :return: The Badí' midday.
+        :rtype: tuple
+        """
         if ttup.short:
             date = (ttup.tm_year, ttup.tm_mon, ttup.tm_mday, ttup.tm_hour,
                     ttup.tm_min, ttup.tm_sec)
@@ -569,7 +899,15 @@ class TimeDateUtils(BahaiCalendar):
 
         return self.midday(date)
 
-    def _get_year(self, ttup):
+    def _get_year(self, ttup: tuple) -> int:
+        """
+        Convert The Kull-i-Shay', Váḥid, year to a short mode year.
+
+        :param ttup: A struct_time object.
+        :type ttup: ShortFormStruct or LongFormStruct
+        :return: The short form year converted if necessary.
+        :rtype: int
+        """
         return (ttup.tm_year if ttup.short else
                 ((ttup.tm_kull_i_shay - 1) * 361 + (ttup.tm_vahid - 1) * 19 +
                  ttup.tm_year))
@@ -578,7 +916,7 @@ class TimeDateUtils(BahaiCalendar):
                        week0: bool=False) -> tuple:
         """
         Return the year, week, and day of the week from a short form
-        Badi date.
+        Badí' date.
 
         :param int, year: The year.
         :param int month: The month.
@@ -605,10 +943,11 @@ class TimeDateUtils(BahaiCalendar):
 
     def _days_before_year(self, year: int) -> float:
         """
-        Get the number of days before the 1st of Baha of the year.
+        Get the number of days before the 1st of Bahá of the year.
 
-        :param int year: Badi year
-        :return: The number of days since (-1841, 19, 19) of the Badi calendar.
+        :param int year: Badí' year
+        :return: The number of days since (-1841, 19, 19) of the Badí'
+                 calendar.
         :rtype: int
         """
         jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False)
@@ -619,8 +958,8 @@ class TimeDateUtils(BahaiCalendar):
         """
         The number of days in provided month in provided year.
 
-        :param int year: Badi year
-        :param int month: Badi month (0..19)
+        :param int year: Badí' year
+        :param int month: Badí' month (0..19)
         :return: The number of in the current month.
         :rtype: int
         """
@@ -630,8 +969,8 @@ class TimeDateUtils(BahaiCalendar):
         """
         The number of days in the year preceding the first day of month.
 
-        :param int year: Badi year
-        :param int month: Badi month (0..19)
+        :param int year: Badí' year
+        :param int month: Badí' month (0..19)
         :return: The number in the year preceding the first day of month.
         :rtype: int
         """
@@ -650,9 +989,9 @@ class TimeDateUtils(BahaiCalendar):
         Find the day of the week where 0 == Jalál (Saturday) and
         6 == Istiqlāl (Friday).
 
-        :param int year: Badi year
-        :param int month: Badi month (0..19)
-        :param int day: Badi day
+        :param int year: Badí' year
+        :param int month: Badí' month (0..19)
+        :param int day: Badí' day
         :return: The numerical day of the week.
         :rtype: int
         """
@@ -662,15 +1001,15 @@ class TimeDateUtils(BahaiCalendar):
 
     def _ymd2ord(self, year: int, month: int, day: int) -> int:
         """
-        Get the number of days since Badi year -1842 (Julian 0001-03-19)
+        Get the number of days since Badí' year -1842 (Julian 0001-03-19)
         including the current day.
 
         year, month, day -> ordinal, considering -1842-01-01 as day 1
 
-        :param int year: Badi year
-        :param int month: Badi month [0, 19]
-        :param int day: Badi day
-        :return: The number of days since Badi year -1842 including the
+        :param int year: Badí' year
+        :param int month: Badí' month [0, 19]
+        :param int day: Badí' day
+        :return: The number of days since Badí' year -1842 including the
                  current day.
         :rtype: int
         """
@@ -692,22 +1031,22 @@ class TimeDateUtils(BahaiCalendar):
 
     def _ord2ymd(self, n: int, *, short: bool=False) -> tuple:
         """
-        It is more difficult to do this in the Badi Calendar because a Badi
-        day can be more or less than 24 hours depending on when sunset is
-        and the time of the year. From the summer Solstice to the winter
-        Solstice the days get shorter. The day slowly comes down to 24 hours
-        around the Fall Equinox and then below 24 hours. The inverse happens
-        between the Winter Solstice and the Summer Solstice. We just use the
-        BadiCalendar API.
+        It is difficult to do this in the Badí' Calendar because a Badí' day
+        can be more or less than 24 hours depending on when sunset is and the
+        time of the year. From the summer Solstice to the winter Solstice the
+        days get shorter. The day slowly comes down to 24 hours around the
+        Fall Equinox and then below 24 hours. The inverse happens between the
+        Winter Solstice and the Summer Solstice. We just use the BadiCalendar
+        API.
 
         :param int n: The ordinal number of days from the MINYEAR.
         :param bool short: If True then parse for a short date else if False
                            parse for a long date.
-        :return: The Badi date.
+        :return: The Badí' date.
         :rtype: tuple
         """
         # We subtract 77 days from the total then add the value of n so that
-        # the Badi date will be the same as the date value passed into
+        # the Badí' date will be the same as the date value passed into
         # _ymd2ord and give the same date as Python standard datetime package.
         # The reason we need to do this is that the first date that this
         # package can provide is equivalent to Julian year 1, March, 19th.
@@ -718,7 +1057,16 @@ class TimeDateUtils(BahaiCalendar):
     def _build_struct_time(self, date: tuple, dstflag: int, *, tzinfo=None,
                            short_in: bool=False) -> NamedTuple:
         """
-        Build either the ShortFormStruct or LongFormStruct NamedTuple.
+        Build either a ShortFormStruct or LongFormStruct struct_time.
+
+        :param tuple date: A tuple date and time object.
+        :param int dstflag: A flag indicating daylight savings time. May be
+                            set to 1 when daylight savings time is in effect,
+                            and 0 when it is not. A value of -1 indicates
+                            that this is not known.
+        :param tzinfo tzinfo: If provided a tzinfo object.
+        :return: A struct_time object.
+        :rtype: ShortFormStruct or LongFormStruct
         """
         if short_in:
             y, m, d, hh, mm, ss = date
@@ -733,22 +1081,22 @@ class TimeDateUtils(BahaiCalendar):
     def _isoweek_to_badi(self, year: int, week: int, day: int, *,
                          short: bool=False) -> tuple:
         """
-        The week counts from Jalal (Saturday) as the first day and Istiqlal
+        The week counts from Jalál (Saturday) as the first day and Istiqlāl
         (Friday) the last day of the week. This is different from the usual
         way ISO weeks are counted in the Gregorian Calendar which is Monday
         to Sunday.
 
         .. note::
 
-           Whereas a Gregorian year can have 53 weeks in it a Badi year can
+           Whereas a Gregorian year can have 53 weeks in it a Badí' year can
            have 51 weeks in it and never 53.
 
-        :param int year: Badi year.
-        :param int month: Badi month (0..19)
-        :param int day: Badi day in week.
+        :param int year: Badí' year.
+        :param int month: Badí' month (0..19)
+        :param int day: Badí' day in week.
         :param bool short: If True then parse for a short date else if False
                            parse for a long date.
-        :return: A Badi date.
+        :return: A Badí' date.
         :rtype: tuple
         :raises AssertionError: If the week or weekday is out of range.
         """
@@ -761,9 +1109,9 @@ class TimeDateUtils(BahaiCalendar):
                 out_of_range = True
 
                 if week == 52:
-                    # In Badi years that have 52 weeks and start on the 3rd
+                    # In Badí' years that have 52 weeks and start on the 3rd
                     # day (Kamál) or the 4th day (Fiḍāl).
-                    # Badi weeks start on Jalal (Saturday).
+                    # Badí' weeks start on Jalal (Saturday).
                     # *** TODO *** This needs to be tested over a larger year
                     #              spread.
                     p_offset = 7
@@ -781,11 +1129,11 @@ class TimeDateUtils(BahaiCalendar):
 
     def _isoweek1jalal(self, year: int) -> int:
         """
-        Calculate the day number of Jalal (Saturday) starting week 1. It
+        Calculate the day number of Jalál (Saturday) starting week 1. It
         would be the first week with 4 or more days in the year in question.
 
-        :param int year: Badi year
-        :return: The number of the first Jalal in the Badi year.
+        :param int year: Badí' year
+        :return: The number of the first Jalál in the Badí' year.
         :rtype: int
         """
         firstday = self._ymd2ord(year, 1, 1)
@@ -839,8 +1187,8 @@ class TimeDateUtils(BahaiCalendar):
         :param str dtstr: A ISO compliant time string.
         :return: The year, month, and day parsed from a ISO string.
         :rtype: tuple
-        :raises AssertionError: Raised when the year is out of range or when too
-                                many hyphens are used.
+        :raises AssertionError: Raised when the year is out of range or when
+                                too many hyphens are used.
         :raises IndexError: When a string index is out of range.
         :raises ValueError: Raised when an invalid string is being parsed to
                             an integer or when an invalid ISO string is being
@@ -990,7 +1338,7 @@ class TimeDateUtils(BahaiCalendar):
         :return: A timezone object indicating the offset from UTC.
         :rtype: timezone
         :raises AssertionError: Raised when there are invalid timezone
-                                delimitors are found.
+                                delimiters are found.
         :raises ValueError: Raised when an invalid ISO string is being parsed.
         """
         from .datetime import timezone, timedelta
@@ -1005,7 +1353,7 @@ class TimeDateUtils(BahaiCalendar):
         nc = tzstr.count('-')
         pc = tzstr.count('+')
         zc = tzstr.count('Z')
-        bc = tzstr.count('B')  # This is an extention to the ISO standard
+        bc = tzstr.count('B')  # This is an extension to the ISO standard
         c_none = all([True for c in (nc, pc, zc, bc) if c == 0])  # All eq 0
         ct_gt_1 = sum((nc, pc, zc, bc)) > 1  # More than one eq 1
         ca_gt_1 = any([True for c in (nc, pc, zc, bc) if c > 1]) # Any gt than 1
@@ -1062,15 +1410,35 @@ class TimeDateUtils(BahaiCalendar):
 
         self._check_valid_badi_date(b_date, short_in=short_in)
 
-    def _check_time_fields(self, hour, minute, second, microsecond, fold):
+    def _check_time_fields(self, hour: int, minute: int, second: int,
+                           microsecond: int, fold: int) -> None:
+        """
+        Check the validity of the time.
+
+        :param int hour: The hour.
+        :param int minute: The minute.
+        :param int second: The second.
+        :param int microsecond: The microsecond.
+        :param int fold: The value of 1 if the time is in the time fold when
+                         the time falls back one hour in the Autumn or 0 any
+                         other time of the year.
+        """
         self._check_valid_badi_time(hour, minute, second, microsecond,
                                     maxsec=61)
         assert fold in (0, 1), (
             f"The fold argument '{fold}' must be either 0 or 1.")
 
-    def _wrap_strftime(self, object, format, timetuple):
+    def _wrap_strftime(self, object, format: str,
+                       timetuple: tuple) -> str:
         """
         Correctly substitute for %z and %Z escapes in strftime formats.
+
+        :param class object: A class instance that uses this method.
+        :param str format: The formatted string.
+        :param timetuple:
+        :type ttup: ShortFormStruct or LongFormStruct
+        :return: A correctly formatted string.
+        :rtype: str
         """
         from .datetime import timedelta
         # Don't call utcoffset() or tzname() unless actually needed.

@@ -189,7 +189,7 @@ class TestTimeDateUtils(unittest.TestCase):
         err_msg6 = "Invalid hour '{}', it must be in the range of [0, 24]."
         err_msg7 = "Invalid minute '{}', it must be in the range of [0, 59]."
         err_msg8 = "Invalid second '{}', it must be in the range of [0, 61]."
-        err_msg9 = "Invalid week day '{}', it must be inthe range of [0, 6]."
+        err_msg9 = "Invalid week day '{}', it must be in the range of [0, 6]."
         err_msg10 = ("Invalid day '{}' in year, it must be in the range of "
                      "[1, 366].")
         err_msg11 = "Invalid isdst '{}', it must be in the range of [-1, 1]."

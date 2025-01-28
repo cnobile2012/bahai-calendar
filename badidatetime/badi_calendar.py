@@ -547,7 +547,7 @@ class BahaiCalendar(BaseCalendar):
 
     def midday(self, date:tuple, *, hms=False, _chk_on:bool=True) -> tuple:
         """
-        Find the midday time in hours with fraction.
+        Find the midday time in hours, minutes, and seconds with fraction.
 
         :param tuple date: Badi date short or long.
         :param bool hms: If True return the hours, minutes, and seconds else
