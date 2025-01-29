@@ -23,15 +23,6 @@ import datetime
 
 sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 
-def setup(app):
-    app.connect('html-page-context', add_custom_css)
-
-def add_custom_css(app, pagename, templatename, context, doctree):
-    print(pagename)
-    if pagename == 'contrib.tests':
-        app.add_css_file('css/contrib.tests.css')  # may also be an URL
-        #context['custom_css'] = '_static/css/contrib.tests.css'
-
 def update_file(orgname, rstname):
     orgname = os.path.join('..', '..', orgname)
 

@@ -129,11 +129,11 @@ class BahaiCalendar(BaseCalendar):
             self.long_date_from_short_date(b_date, trim=True, _chk_on=_chk_on),
             short=True, _chk_on=_chk_on)
 
-        if month == 0: # Ayyam-i-Ha
+        if month == 0:  # Ayyam-i-Ha
             days = 18 * 19
-        elif month < 19: # month 1 - 18
+        elif month < 19:  # month 1 - 18
             days = (month - 1) * 19
-        else: # month == 19:
+        else:  # month == 19:
             days = 18 * 19 + 4 + self._is_leap_year(year, _chk_on=_chk_on)
 
         td = self._days_in_years(year-1)
@@ -162,9 +162,9 @@ class BahaiCalendar(BaseCalendar):
             func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
             coff = 0
 
-            if a and func(y, onoff0):   # Whatever is passed in onoff0.
+            if a and func(y, onoff0):    # Whatever is passed in onoff0.
                 coff = a
-            elif b and func(y, onoff1): # Whatever is passed in onoff1.
+            elif b and func(y, onoff1):  # Whatever is passed in onoff1.
                 coff = b
 
             return coff
@@ -197,7 +197,7 @@ class BahaiCalendar(BaseCalendar):
         p2 = ((-1519, -1499), (-1119, -1099), (-319, -299), (-719, -699),
               (85, 101), (477, 501), (873, 901))
         p2111 = ((-1747, -1715), (-1615, -1583), (-1483, -1451),
-                 (-1347, -1315), (-1327, -1315 ), (-1215,-1183 ),
+                 (-1347, -1315), (-1327, -1315), (-1215, -1183),
                  (-1083, -1051), (-947, -915), (-815, -783), (-683, -651),
                  (-547, -515), (-415, -383), (-283, -243), (-143, -111),
                  (-11, 21), (117, 149), (249, 281), (381, 413), (513, 545),
@@ -291,16 +291,16 @@ class BahaiCalendar(BaseCalendar):
                                       _chk_on=_chk_on)
         days = math.floor(jd) - math.floor(fjdy) + 1
 
-        if days <= 342: # Month 1 - 18
+        if days <= 342:  # Month 1 - 18
             m_days = days % 19
             day = 19 if m_days == 0 else m_days
-        elif (342 + ld) < days <= yds: # Month 19
+        elif (342 + ld) < days <= yds:  # Month 19
             day = days - (342 + ld)
-        else: # Ayyam-i-Ha
+        else:  # Ayyam-i-Ha
             day = days % 342
 
         month_days = self._BADI_MONTH_NUM_DAYS
-        month_days[18] = (0, ld) # Fix Ayyám-i-Há days
+        month_days[18] = (0, ld)  # Fix Ayyám-i-Há days
 
         for month, ds in month_days:
             if days <= ds: break
@@ -364,10 +364,10 @@ class BahaiCalendar(BaseCalendar):
         k = y / 361
         kull_i_shay = 0 if y == 0 else math.ceil(k)
         k0 = self._truncate_decimal(k % 1, self._ROUNDING_PLACES)
-        #k0 = round(k % 1, self._ROUNDING_PLACES)
+        # k0 = round(k % 1, self._ROUNDING_PLACES)
         v = k0 / 19 * 361
 
-        if v == 0: # If there is no fraction in v
+        if v == 0:  # If there is no fraction in v
             vahid = 19
             year = 19
         else:
@@ -518,7 +518,7 @@ class BahaiCalendar(BaseCalendar):
         return self._gc.ymdhms_from_date(self._gc.gregorian_date_from_jd(
             jd, exact=_exact), us=True)
 
-    def posix_timestamp(self, t:float, lat: float=None, lon: float=None,
+    def posix_timestamp(self, t: float, lat: float=None, lon: float=None,
                         zone: float=None, *, us: bool=False, short: bool=False,
                         trim: bool=False) -> tuple:
         """
@@ -540,10 +540,6 @@ class BahaiCalendar(BaseCalendar):
         days = math.floor(t / 86400)
         jd = days + self._POSIX_EPOCH
         jd += t % 86400 / 86400
-        #mjd = jd - self._meeus_from_exact(jd)
-        #ss = self._sun_setting(mjd, lat, lon, zone)
-        #print(jd)
-
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim)
 
@@ -841,7 +837,7 @@ class BahaiCalendar(BaseCalendar):
     def _day_Length(self, jd: float, lat: float, lon: float, zone: float
                     ) -> tuple:
         """
-        The hour, minute, and seconds of the days offset either less than
+        The hour, minute, and seconds of the day's offset either less than
         or more than 24 hours.
 
         :param float jd: The astronomically exact Julian Period day.
