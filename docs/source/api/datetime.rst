@@ -38,36 +38,26 @@ badidatetime.datetime.BADI : badidatetime.datetime.timezone
 badidatetime.datetime.LOCAL : badidatetime.datetime.timezone
    Constant indication the timezone object information for the local locale.
 
+----------------
+Module Functions
+----------------
+
+.. autofunction:: badidatetime.datetime._cmp
+.. autofunction:: badidatetime.datetime._divide_and_round
+.. autofunction:: badidatetime.datetime._check_offset
+.. autofunction:: badidatetime.datetime._check_tzinfo_arg
+.. autofunction:: badidatetime.datetime._cmperror
+.. autofunction:: badidatetime.datetime._format_time
+.. autofunction:: badidatetime.datetime._format_offset
+.. autofunction:: badidatetime.datetime._check_tzname
+.. autofunction:: badidatetime.datetime._fromutc
+.. autofunction:: badidatetime.datetime._module_name
+
 -------
 Classes
 -------
 
-.. autoclass:: badidatetime.datetime.timedelta
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: badidatetime.datetime.date
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: badidatetime.datetime.tzinfo
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: badidatetime.datetime.time
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: badidatetime.datetime.datetime
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. autoclass:: badidatetime.datetime.timezone
+.. automodule:: badidatetime.datetime
    :members:
    :undoc-members:
    :show-inheritance:

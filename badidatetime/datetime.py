@@ -29,57 +29,99 @@ GMT_COORD = (51.477928, -0.001545, 0)
 # if enables or the default is BADI_COORD, and BADI.
 
 def _cmp(x, y):
+    """
+    Compare two items.
+
+    :param object x: Item one.
+    :param object y: Item two.
+    :return: If 0 then x == y, else if 1 then x > y else if -1 then x < y.
+    """
     return 0 if x == y else 1 if x > y else -1
 
-def _divide_and_round(a, b):
+def _divide_and_round(a: int, b: int):
     """
     Divide a by b and round result to the nearest integer.
 
     When the ratio is exactly half-way between two integers,
     the even integer is returned.
+
+    :param int a: numerator
+    :param int b: denomerator
+    :return: Resultant value.
+    :rtype: int
     """
     # Based on the reference implementation for divmod_near
     # in Objects/longobject.c.
     q, r = divmod(a, b)
-    # round up if either r / b > 0.5, or r / b == 0.5 and q is odd.
+    # Round up if either r / b > 0.5, or r / b == 0.5 and q is odd.
     # The expression r / b > 0.5 is equivalent to 2 * r > b if b is
     # positive, 2 * r < b if b negative.
     r *= 2
     greater_than_half = r > b if b > 0 else r < b
     return q + (1 if greater_than_half or r == b and q % 2 == 1 else 0)
 
-def _check_offset(name, offset):
+def _check_offset(name: str, offset: timedelta) -> None:
     """
-    name is the offset-producing method, 'utcoffset', 'badioffset', or 'dst'.
-    offset is what it returned.
-    If offset isn't None or timedelta, raises TypeError.
-    If offset is None, returns None.
-    Else offset is checked for being in range.
-    If it is, its integer value is returned else ValueError is raised.
+    Check that the arguments are valid. If offset is None, returns None else
+    offset is checked for being in range.
+
+    :param str name: Name is the offset-producing method, `utcoffset`,
+                     `badioffset`, or `dst`.
+    :param timedelta offset: The timezone offset.
+    :return: If offset is None, returns None.
+    :raises assert: If the name is not in a list of constants.
+    :raises TypeError: If `offset` is not a `timedelta` object.
+    :raises ValueError: If `offset` not greater than -1 and less than 1.
     """
     assert name in ('utcoffset', 'badioffset', 'dst'), (
         f"Invalid name argument '{name}' must be one of "
         "('utcoffset', 'badioffset', 'dst').")
 
     if offset is not None:
-        if not isinstance(offset, timedelta):
-            raise TypeError(f"tzinfo.{name}() must return None "
-                            f"or timedelta, not {type(offset)}")
+        if offset is not None:
+            if not isinstance(offset, timedelta):
+                raise TypeError(f"tzinfo.{name}() must return None "
+                                f"or timedelta, not {type(offset)}")
 
-        if not -timedelta(1) < offset < timedelta(1):
-            raise ValueError(f"{name}()={offset}, must be strictly between "
-                             "-timedelta(hours=24) and timedelta(hours=24)")
+            if not -timedelta(1) < offset < timedelta(1):
+                raise ValueError(
+                    f"{name}()={offset}, must be strictly between "
+                    "-timedelta(hours=24) and timedelta(hours=24)")
 
-def _check_tzinfo_arg(tz):
+def _check_tzinfo_arg(tz: tzinfo):
+    """
+    Check that the `tz` argument is either `None` or a `tzinfo` subclass.
+
+    :param tzinfo tz: A `tzinfo` object.
+    :raises TypeError: If `tz is not `None` or a `tzinfo` subclass.
+    """
     if tz is not None and not isinstance(tz, tzinfo):
         raise TypeError("tzinfo argument must be None or of a tzinfo "
                         f"subclass, found {tz!r}")
 
 def _cmperror(x, y):
+    """
+    Test that `x` and `y` are the correct types to be compared.
+
+    :param x: Item one.
+    :param y: Item two.
+    :raises TypeError: Argument `a` and `b` cannot be compared.
+    """
     raise TypeError(f"Cannot compare {type(x).__name__!r} to "
                     f"{type(y).__name__!r}")
 
-def _format_time(hh, mm, ss, us, timespec='auto'):
+def _format_time(hh: int, mm: int, ss: int, us: int, timespec: str='auto'
+                 ) -> str:
+    """
+    Format time to a string.
+
+    :param int hh: The hour.
+    :param int mm: The minute.
+    :param int ss: The second.
+    :param int us: The microsecond.
+    :return: A formatted string.
+    :rtype: str
+    """
     specs = {
         'auto': '',
         'hours': '{:02}',
@@ -103,7 +145,15 @@ def _format_time(hh, mm, ss, us, timespec='auto'):
     else:
         return fmt.format(hh, mm, ss, us)
 
-def _format_offset(off):
+def _format_offset(off: timedelta) -> str:
+    """
+    Format an ISO offset.
+
+    :param timedelta off: A `timedelta` object.
+    :return: A formatted ISO offset.
+    :rtype: str
+    :raises TypeError: If `off` is not `None` or a `timedelta` object.
+    """
     if not isinstance(off, (timedelta, NoneType)):
         raise TypeError(f"The off value '{off}', must be a timedelta object "
                         "or None.")
@@ -129,30 +179,36 @@ def _format_offset(off):
 
     return s
 
-def _check_tzname(name):
+def _check_tzname(name: str):
     """
-    Just raise TypeError if the arg isn't None or a string.
+    Check that the `name` argument is either `None` or a `str`.
+
+    :param str name: The name of the timezone.
+    :raises TypeError: If `name` is not `None` or a `str`.
     """
     if name is not None and not isinstance(name, str):
         raise TypeError("tzinfo.tzname() must return None or string, "
                         f"not {type(name)!r}")
 
-def _fromutc(this, dt):
+def _fromutc(this: tzinfo, dt):
     """
-    datetime in UTC -> datetime in local time.
-    The method fromutc() in tzinfo will not accept the Badi datetime object,
+    The method fromutc() in tzinfo will not accept the Badí' datetime object,
     so this method needs to fill the role.
-
-    :param tzinfo this: The tzinfo object.
-    :param datetime.datetime dt: A datetime object.
-    :returns: The adjusted datetime from the provided UTC datetime.
-    :rtype: datetime.datetime
 
     .. note::
 
        This function needs to be implemented outside the tzinfo class so
        that the tzinfo class can be used with the zoneinfo class. Normally
        the tzinfo class would just be overridden with this function added.
+
+    :param tzinfo this: The tzinfo object.
+    :param datetime dt: A datetime object.
+    :returns: The adjusted datetime from the provided UTC datetime.
+    :rtype: datetime
+    :raises TypeError: If `dt` is not a `datetime` object.
+    :raises ValueError: If dt.tzinfo is not self.
+    :raises ValueError: If a `None` value returned from utcoffset().
+    :raises ValueError: If a `None` value returned from dst().
     """
 
     if not isinstance(dt, datetime):
@@ -183,9 +239,12 @@ def _fromutc(this, dt):
 
     return dt + dtdst
 
-def _module_name(module):
+def _module_name(module: str) -> str:
     """
     Find the package name without the first directory.
+
+    :param str module: The module name including it path information.
+    :return: The name of the module.
     """
     idx = module.find('.')
     dt_true = True if module[:idx] == 'datetime' else False

@@ -9,6 +9,9 @@ from typing import NamedTuple
 
 
 class ShortFormStruct(NamedTuple):
+    """
+    Implements a short form Badí' date and time NamedTuple.
+    """
     tm_year: int       # range[-1842, 1161]
     tm_mon: int        # range[0, 19]
     tm_mday: int       # range[1, 19]
@@ -28,6 +31,9 @@ class ShortFormStruct(NamedTuple):
 
     @property
     def short(self):
+        """
+        Indicates if this NamedTuple is a short or long form.
+        """
         return True
 
     def __repr__(self) -> str:
@@ -39,6 +45,9 @@ class ShortFormStruct(NamedTuple):
 
 
 class LongFormStruct(NamedTuple):
+    """
+    Implements a long form Badí' date and time NamedTuple.
+    """
     tm_kull_i_shay: int  # example, 1
     tm_vahid: int        # range[1, 19]
     tm_year: int         # range[1, 19]
@@ -60,6 +69,9 @@ class LongFormStruct(NamedTuple):
 
     @property
     def short(self):
+        """
+        Indicates if this NamedTuple is a short or long form.
+        """
         return False
 
     def __repr__(self) -> str:
@@ -74,10 +86,19 @@ class LongFormStruct(NamedTuple):
 
 class struct_time:
     """
-    Create a structure representing a Badi date and time.
+    Create a structure representing a Badí' date and time.
     """
 
     def __new__(cls, date: tuple, tzinfo=None):
+        """
+        Creates a ShortFormStruct or LongFormStruct NamedTuple.
+
+        :param tuple date: A tuple containing the data needed to create
+                           a NamedTuple.
+        :param tzinfo tzinfo: Timezone information or None.
+        :return: Instance object
+        :rtype: ShortFormStruct or LongFormStruct
+        """
         self = object.__new__(cls)
         super().__init__(self)
         short = cls.__is_short_form(date)
@@ -96,6 +117,16 @@ class struct_time:
 
     @classmethod
     def __is_short_form(cls, date: tuple):
+        """
+        Determines if the date tuple contains short or long form data.
+
+        :param tuple date: The date tuple to be processed.
+        :return: If `True` then the date tuple represents a short form Badí'
+                 date and time, if `False` date tuple represents a long form
+                 Badí' date and time.
+        :rtype: bool
+        :raises TypeError: Wrong tuple sequence size.
+        """
         d_size = len(date)
 
         if d_size == 9:
@@ -112,6 +143,14 @@ class struct_time:
     def __fill_in_missing(cls, date: tuple, tzinfo, short: bool):
         """
         Fill in missing data.
+
+        :param tuple date: The date tuple to be processed.
+        :param tzinfo tzinfo: Timezone information or None.
+        :param bool short: If `True` then the date tuple represents a short
+                           form Badí' date and time, if `False` date tuple
+                           represents a long form Badí' date and time.
+        :return: The updated date tuple.
+        :rtype: tuple
         """
         datetime = importlib.import_module('badidatetime.datetime')
 
