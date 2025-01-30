@@ -32,19 +32,33 @@ class BahaiCalendar(BaseCalendar):
         (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
         (15, 19), (16, 19), (17, 19), (18, 19), (0, 0), (19, 19)
         ]
-    KULL_I_SHAY_MIN = -5  # Minimum kull_i_shay supported
-    KULL_I_SHAY_MAX = 4   # Maximum kull_i_shay supported
-    MINYEAR = -1842       # Minimum year supported
-    MAXYEAR = 1161        # Maximum year supported
+    KULL_I_SHAY_MIN = -5
+    """
+    Minimum kull_i_shay supported
+    """
+    KULL_I_SHAY_MAX = 4
+    """
+    Maximum kull_i_shay supported
+    """
+    MINYEAR = -1842
+    """
+    Minimum year supported
+    """
+    MAXYEAR = 1161
+    """
+    Maximum year supported
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # kull_i_shay: 361-year (19^2) vahid (integer)
-        # vahid: (integer) 19-year vahid
-        # year: (integer) 1 - 19
-        # month: (integer) 1 - 19 plus 0 for Ayyām-i-Hā
-        # day: (integer) 1 - 19
-        # Baha'i date: [kull_i_shay, vahid, year, month, day]
+        """
+        kull_i_shay: 361-year (19^2) vahid (integer)
+        vahid: (integer) 19-year vahid
+        year: (integer) 1 - 19
+        month: (integer) 1 - 19 plus 0 for Ayyām-i-Hā
+        day: (integer) 1 - 19
+        Baha'i long form date: [kull_i_shay, vahid, year, month, day]
+        """
         self._bahai_date = None
         self._gc = GregorianCalendar()
 
@@ -151,12 +165,23 @@ class BahaiCalendar(BaseCalendar):
 
     def _get_coff(self, year: int) -> int:
         """
-        General ranges are determined with:
-        ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year Where -S
-        is the 1st year and -E is the nth year + 1 that needs to be process.
-        Use the following command to test the results of each segment.
-        ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
-        Full range is -1842 to 1161.
+        Generate the coefficients for correcting Badí' vernal equinox dates.
+
+        .. note::
+
+           | General ranges are determined with:
+           | ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
+
+           Where -S is the 1st year and -E is the nth year + 1 that needs to
+           be process. Use the following command to test the results of each
+           segment.
+           ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
+
+           Full range is -1842 to 1161.
+
+        :param int year: The year to find a coefficient for.
+        :return: The coefficient.
+        :rtype: int
         """
         def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
             func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
@@ -577,14 +602,20 @@ class BahaiCalendar(BaseCalendar):
         Trim the hours, minutes, seconds or microseconds off the date if
         zero unless a lower value was not zero.
 
-        +----------------+--------------------------------------------+
-        | Examples       | Description                                |
-        +================+============================================+
-        | (12, 30, 6, 0) | The zero microseconds would be trimmed.    |
-        +----------------+--------------------------------------------+
-        | (12,  0, 6, 0) | The zero microseconds would be trimmed but |
-        |                | the zero minutes would not be trimmed.     |
-        +----------------+--------------------------------------------+
+        .. list-table:: Examples
+           :widths: 18 16 66
+           :header-rows: 1
+
+           * - Examples
+             - Results
+             - Description
+           * - (12, 30, 6, 0)
+             - (12, 30, 6)
+             - The zero microseconds would be trimmed.
+           * - (12,  0, 6, 0)
+             - (12, 0, 6)
+             - The zero microseconds would be trimmed but the zero minutes
+               would be left untouched.
 
         :param tuple hms: An hour, minute, and second object.
         :return: An object with the lower order parts stripped off if
@@ -622,7 +653,7 @@ class BahaiCalendar(BaseCalendar):
         """
         cycle = 20
 
-        if not short_in: # Long Badi date
+        if not short_in:  # Long Badi date
             kull_i_shay, vahid, year, month, day = b_date[:5]
             hour, minute, second, us = self._get_hms(b_date)
             assert (self.KULL_I_SHAY_MIN <= kull_i_shay
@@ -636,7 +667,7 @@ class BahaiCalendar(BaseCalendar):
                 f"Invalid year '{year}' in a Váḥid, it must be in the "
                 "range of [1, 19].")
             ly = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
-        else: # Short Badi date
+        else:  # Short Badi date
             year, month, day = b_date[:3]
             hour, minute, second, us = self._get_hms(b_date, short_in=True)
             assert self.MINYEAR <= year <= self.MAXYEAR, (
@@ -776,8 +807,8 @@ class BahaiCalendar(BaseCalendar):
         assert self._xor_boolean((fraction, us, rtd)), (
             "Cannot set more than one of fraction, us, or rtd to True.")
         year, month, day = ymd
-        jd0 = math.floor(jd) # So we always get the sunset on the current day.
-        mjd0 = jd0 - self._meeus_from_exact(jd0) # Current day
+        jd0 = math.floor(jd)  # So we always get the sunset on the current day.
+        mjd0 = jd0 - self._meeus_from_exact(jd0)  # Current day
         jd_frac = jd % 1
         # Current day sunset
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
@@ -792,26 +823,26 @@ class BahaiCalendar(BaseCalendar):
             day -= 1
 
             if day == 0:
-                if month == 1: # Stage 1
+                if month == 1:  # Stage 1
                     year -= 1
                     month = 19
                     day = 19
-                    #print('Stage 1', jd, ymd, jd_frac, ss_frac, ss1 % 1)
-                elif month in range(2, 19): # Stage 2
+                    # print('Stage 1', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                elif month in range(2, 19):  # Stage 2
                     month -= 1
                     day = 19
-                    #print('Stage 2', jd, ymd, jd_frac, ss_frac, ss1 % 1)
-                elif month == 19: # Stage 3
+                    # print('Stage 2', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                elif month == 19:  # Stage 3
                     month = 0
                     day = 4 + self._is_leap_year(year)
-                    #print('Stage 3', jd, ymd, jd_frac, ss_frac, ss1 % 1)
-                else: # month 0 -> Ayyám-i-Há Stage 4
+                    # print('Stage 3', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                else:  # month 0 -> Ayyám-i-Há Stage 4
                     month = 18
                     day = 19
-                    #print('Stage 4', jd, ymd, jd_frac, ss_frac, ss1 % 1)
-        else: # Stage 5
+                    # print('Stage 4', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+        else:  # Stage 5
             frac = abs(jd_frac - ss_frac)
-            #print('Stage 5', jd, ymd, jd_frac, ss_frac)
+            # print('Stage 5', jd, ymd, jd_frac, ss_frac)
 
         if fraction:
             day = round(day + frac, self._ROUNDING_PLACES)

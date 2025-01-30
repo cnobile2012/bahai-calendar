@@ -2,7 +2,7 @@
 #
 # badidatetime/astronomical_terms.py
 #
-# flake8: noqa: 201
+# noqa: E201
 #
 __docformat__ = "restructuredtext en"
 

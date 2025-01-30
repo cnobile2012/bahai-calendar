@@ -30,7 +30,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _SECS = lambda self, x: x / 3600
     # Convert microseconds to a partial second.
     _US = lambda self, x: x / 1000000
-    _ANGLE = lambda self, d, m, s: d + (m + s / 60) / 60 # 0 - 360
+    _ANGLE = lambda self, d, m, s: d + (m + s / 60) / 60  # 0 - 360
     _AMOD = lambda self, x, y: y + x % -y
     _MOD3 = lambda self, x, a, b : x if a == b else (
         a + math.fmod((x - a), (b - a)))
@@ -48,7 +48,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         round(x % 1, self._ROUNDING_PLACES) * 1e6)
 
     _MEAN_TROPICAL_YEAR = 365.2421897
-    #MEAN_SIDEREAL_YEAR = 365.256363004
+    # MEAN_SIDEREAL_YEAR = 365.256363004
 
     _MORNING = True
     _EVENING = False
@@ -60,7 +60,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _SUN_OFFSET = 0.8333333333333334
     _STARS_PLANET_OFFSET = 0.5666666666666667
     _ROUNDING_PLACES = 6
-    _POSIX_EPOCH = 2440585.5 # This is using the more exact algorithm.
+    _POSIX_EPOCH = 2440585.5  # This is using the more exact algorithm.
     _JULIAN_CAL_EPOCH = 1721423.5
 
     def __init__(self, *args, **kwargs):
@@ -72,23 +72,21 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # Meeus Astronomical Algorithms
     #
 
-    def _delta_t(self, jd:float, *, seconds:bool=False) -> float:
+    def _delta_t(self, jd: float, *, seconds: bool=False) -> float:
         """
         Calculate the value of ΔT = TD − UT, for TD = ΔT + UT, and for
         UT = ΔT - TD. Only the year and month are considered, days, hours,
         minutes, and seconds are ignored.
 
-        :param jd: Julian day.
-        :type jd: float
-        :param seconds: If True leave as seconds in a minute else convert to
-                        seconds of a day.
-        :type seconds: bool
+        :param float jd: Julian day.
+        :param bool seconds: If True leave as seconds in a minute else convert
+                             to seconds of a day.
         :return: The delta t.
         :rtype: float
 
         .. note::
 
-           see: http://eclipse.gsfc.nasa.gov/SEcat5/deltatpoly.html
+           See: http://eclipse.gsfc.nasa.gov/SEcat5/deltatpoly.html
         """
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
@@ -144,21 +142,20 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             dt = self._poly(u, (62.92, 0.32217, 0.005589))
         elif year < 2150:
             dt = -20 + 32 * ((year - 1820) / 100)**2 - 0.5628 * (2150 - year)
-        else: # 2150 >= year
+        else:  # 2150 >= year
             dt = func(year)
 
         # Convert to seconds of a day where 66.9 dt == 2010
         # Seconds of a day are 0.0007743055555555556
         return dt if seconds else dt / 86400
 
-    def _mean_sidereal_time_greenwich(self, tc:float) -> float:
+    def _mean_sidereal_time_greenwich(self, tc: float) -> float:
         """
         Mean sidereal time at Greenwich. (GMST) If the hour angle is
         measured with respect to the mean equinox, mean sidereal time is
         being measured.
 
-        :param tc: Julian century.
-        :type tc: float
+        :param float tc: Julian century.
         :return: The mean sidereal time at Greenwich .
         :rtype: float
 
@@ -170,14 +167,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                       (tc * 36525) + 0.000387933 *
                                       tc**2 - tc**3 / 38710000)
 
-    def _apparent_sidereal_time_greenwich(self, tc:float) -> float:
+    def _apparent_sidereal_time_greenwich(self, tc: float) -> float:
         """
         The apparent sidereal time, or the Greenwich. (GAST) If the hour
         angle is measured with respect to the true equinox, apparent
         sidereal time is being measured.
 
-        :param tc: Julian century.
-        :type tc: float
+        :param float tc: Julian century.
         :return: The apparent sidereal time at Greenwich.
         :rtype: float
 
@@ -190,16 +186,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         d_psi = self._nutation_longitude(tc)
         return self._coterminal_angle(t0 + d_psi * self._cos_deg(eps))
 
-    def _altitude(self, delta:float, lat:float, h:float) -> float:
+    def _altitude(self, delta: float, lat: float, h: float) -> float:
         """
         Altitude in degrees, positive above the horizon, negative below.
 
-        :param delta: Declination in sidereal time.
-        :type delta: float
-        :param lat: Geographic latitude.
-        :type lat: float
-        :param h: Local hour angle.
-        :type h: float
+        :param float delta: Declination in sidereal time.
+        :param float lat: Geographic latitude.
+        :param float h: Local hour angle.
         :return: Altitude in degrees.
         :rtype: float
 
@@ -211,8 +204,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             self._sin_deg(lat) * self._sin_deg(delta) + self._cos_deg(lat) *
             self._cos_deg(delta) * self._cos_deg(h)))
 
-    def _approx_local_hour_angle(self, tc:float, lat:float,
-                                 offset:float=_SUN_OFFSET) -> float:
+    def _approx_local_hour_angle(self, tc: float, lat: float,
+                                 offset: float=_SUN_OFFSET) -> float:
         """
         Approximate local hour angle, measured westwards from the south
         in degrees.
@@ -224,18 +217,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         expressed in hours and minutes, is the time elapsed since the
         celestial body’s last transit of the observer’s meridian.
 
-        :param tc: Julian century.
-        :type tc: float
-        :param lat: Latitude in decimal
-        :type lat: float
-        :param offset: A constant “standard” altitude, i.e., the geometric
-                       altitude of the center of the body at the time of
-                       apparent rising or setting, namely,
-                       h0 = -0°34’ = -0°5667 for stars and planets;
-                       h0 = -0°50' = -0°8333 for the Sun.
-                       Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can also
-                       be used.
-        :type offset: float
+        :param float tc: Julian century.
+        :param float lat: Latitude in decimal
+        :param float offset: A constant “standard” altitude, i.e., the
+                             geometric altitude of the center of the body at
+                             the time of apparent rising or setting, namely,
+                             h0 = -0°34’ = -0°5667 for stars and planets;
+                             h0 = -0°50' = -0°8333 for the Sun.
+                             Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
+                             also be used.
         :return: The approximat local hour angle in degrees.
         :rtype: float
 
@@ -257,22 +247,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return math.degrees(math.acos(cos_h0))
 
-    def _sun_transit(self, jd:float, lon:float, zone:float=0.0,
-                     exact_tz:bool=False) -> float:
+    def _sun_transit(self, jd: float, lon: float, zone: float=0.0,
+                     exact_tz: bool=False) -> float:
         """
         The transit is when the body crosses the local maridian at upper
         culmination.
 
-        :param jd: Julian day in UT.
-        :type jd: float
-        :param lon: Geographic longitude positive east negative west.
-        :type lon: float
-        :param zone: This is the political timezone.
-        :type zone: float
-        :param exact_tz: Derive the timezone from the longitude. The 'zone'
-                         parameter is not used if this is True, Default is
-                         False.
-        :type exact_tz: bool
+        :param float jd: Julian day in UT.
+        :param float lon: Geographic longitude positive east negative west.
+        :param float zone: This is the political timezone.
+        :param bool exact_tz: Derive the timezone from the longitude. The
+                              'zone' parameter is not used if this is True,
+                              Default is False.
         :return:
         :rtype: float
 
@@ -296,8 +282,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         m += md + self._tz_decimal_from_dhms(0, zone, 0, 0)
         return m
 
-    def _transit_correction(self, tc, ast, dt, lon, m):
+    def _transit_correction(self, tc: float, ast: float, dt: float, lon: float,
+                            m: float) -> float:
         """
+        Find the correction to the transit.
+
+        :param float tc: The Julian Period century.
+        :param float ast: The apparent sidereal time at greenwich.
+        :param float dt: The delta T of the JD.
+        :param float lon: The longitude.
+        :param float m: Times on day, expressed as fractions.
+        :return: The correction to the transit.
+        :rtype: float
         """
         srt = ast + 360.98564736629 * m
         n = m + dt / 86400
@@ -308,31 +304,27 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         h = self._local_hour_angle(srt, lon, alpha)
         return -h / 360
 
-    def _sun_rising(self, jd:float, lat:float, lon:float, zone:float=0, *,
-                    exact_tz:bool=False, offset:float=_SUN_OFFSET) -> float:
+    def _sun_rising(self, jd: float, lat: float, lon: float, zone: float=0, *,
+                    exact_tz: bool=False, offset: float=_SUN_OFFSET) -> float:
         """
         Find the jd for sunrise of the given jd.
 
-        :param jd: Julian day in UT.
-        :type jd: float
-        :param lat: Geographic latitude positive north negative south.
-        :type lat: float
-        :param lon: Geographic longitude positive east negative west.
-        :type lon: float
-        :param zone: The time zone, defaults to the zero zone in Greenwich UK.
-        :type zone: float
-        :param exact_tz: The political time zones or the exact time zone
-                         derived from the longitude (15 degrees = 360 / 24).
-                         Default is False or the political time zone.
-        :type exact_tz: bool
-        :param offset: A constant “standard” altitude, i.e., the geometric
-                       altitude of the center of the body at the time of
-                       apparent rising or setting, namely,
-                       h0 = -0°34’ = -0°5667 for stars and planets;
-                       h0 = -0°50' = -0°8333 for the Sun.
-                       Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can also
-                       be used.
-        :type offset: bool
+        :param float jd: Julian day in UT.
+        :param float lat: Geographic latitude positive north negative south.
+        :param float lon: Geographic longitude positive east negative west.
+        :param float zone: The time zone, defaults to the zero zone in
+                           Greenwich UK.
+        :param bool exact_tz: The political time zones or the exact time zone
+                              derived from the longitude
+                              (15 degrees = 360 / 24).
+                              Default is False or the political time zone.
+        :param bool offset: A constant “standard” altitude, i.e., the geometric
+                            altitude of the center of the body at the time of
+                            apparent rising or setting, namely,
+                            h0 = -0°34’ = -0°5667 for stars and planets;
+                            h0 = -0°50' = -0°8333 for the Sun.
+                            Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
+                            also be used.
         :return: The jd moments of the sunrise.
         :rtype: float
 
@@ -344,31 +336,26 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                    offset=offset, sr_ss='RISE')
         return round(jd, self._ROUNDING_PLACES)
 
-    def _sun_setting(self, jd:float, lat:float, lon:float, zone:float=0, *,
-                     exact_tz:bool=False, offset:float=_SUN_OFFSET) -> float:
+    def _sun_setting(self, jd: float, lat: float, lon: float, zone: float=0, *,
+                     exact_tz: bool=False, offset: float=_SUN_OFFSET) -> float:
         """
         Find the jd for sunset of the given jd.
 
-        :param jd: Julian day in UT.
-        :type jd: float
-        :param lat: Geographic latitude positive north negative south.
-        :type lat: float
-        :param lon: Geographic longitude positive east negative west.
-        :type lon: float
-        :param zone: The time zone, defaults to the zero zone in Greenwich UK.
-        :type zone: float
-        :param exact_tz: The political time zones (default) or the exact
-                         time zone. The exact time zone is derived from the
-                         longitude (15 degrees = 360 / 24).
-        :type exact_tz: bool
-        :param offset: A constant “standard” altitude, i.e., the geometric
-                       altitude of the center of the body at the time of
-                       apparent rising or setting, namely,
-                       h0 = -0°34’ = -0°5667 for stars and planets;
-                       h0 = -0°50' = -0°8333 for the Sun.
-                       Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can also
-                       be used.
-        :type offset: bool
+        :param float jd: Julian day in UT.
+        :param float lat: Geographic latitude positive north negative south.
+        :param float lon: Geographic longitude positive east negative west.
+        :param float zone: The time zone, defaults to the zero zone in
+                           Greenwich UK.
+        :param bool exact_tz: The political time zones (default) or the exact
+                              time zone. The exact time zone is derived from
+                              the longitude (15 degrees = 360 / 24).
+        :param bool offset: A constant “standard” altitude, i.e., the geometric
+                            altitude of the center of the body at the time of
+                            apparent rising or setting, namely,
+                            h0 = -0°34’ = -0°5667 for stars and planets;
+                            h0 = -0°50' = -0°8333 for the Sun.
+                            Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
+                            also be used.
         :return: The jd moments of the sunset.
         :rtype: float
 
@@ -380,34 +367,29 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                    offset=offset, sr_ss='SET')
         return round(jd, self._ROUNDING_PLACES)
 
-    def _rising_setting(self, jd:float, lat:float, lon:float, zone:float=0, *,
-                        exact_tz:bool=False, offset:float=_SUN_OFFSET,
-                        sr_ss:str='RISE') -> float:
+    def _rising_setting(self, jd: float, lat: float, lon: float, zone: float=0,
+                        *, exact_tz: bool=False, offset: float=_SUN_OFFSET,
+                        sr_ss: str='RISE') -> float:
         """
         Find the jd difference for sunrise or sunset of the given jd.
- 
-        :param jd: Julian day in UT.
-        :type jd: float
-        :param lat: Geographic latitude positive north negative south.
-        :type lat: float
-        :param lon: Geographic longitude positive east negative west.
-        :type lon: float
-        :param zone: The time zone, defaults to the zero zone in Greenwich UK.
-        :type zone: float
-        :param exact_tz: The political time zones or the exact time zone
-                         derived from the longitude (15 degrees = 360 / 24).
-                         Default is False or the political time zone.
-        :type exact_tz: bool
-        :param offset: A constant “standard” altitude, i.e., the geometric
-                       altitude of the center of the body at the time of
-                       apparent rising or setting, namely,
-                       h0 = -0°34’ = -0°5667 for stars and planets;
-                       h0 = -0°50' = -0°8333 for the Sun.
-                       Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can also
-                       be used.
-        :type offset: float
-        :param sr_ss: If 'RISE' return the sunrise else return sunset.
-        :type sr_ss: str
+
+        :param float jd: Julian day in UT.
+        :param float lat: Geographic latitude positive north negative south.
+        :param float lon: Geographic longitude positive east negative west.
+        :param float zone: The time zone, defaults to the zero zone in
+                           Greenwich UK.
+        :param bool exact_tz: The political time zones or the exact time zone
+                              derived from the longitude
+                              (15 degrees = 360 / 24).
+                              Default is False or the political time zone.
+        :param float offset: A constant “standard” altitude, i.e., the
+                             geometric altitude of the center of the body at
+                             the time of apparent rising or setting, namely,
+                             h0 = -0°34’ = -0°5667 for stars and planets;
+                             h0 = -0°50' = -0°8333 for the Sun.
+                             Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
+                             also be used.
+        :param str sr_ss: If 'RISE' return the sunrise else return sunset.
         :return: The offset that would be added to the currect date.
         :rtype: float
 
@@ -427,7 +409,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self._julian_centuries(jd)
         dt = self._delta_t(jd)
-        tc_td = dt / 36525 + tc # Compensate for the Julian Century
+        tc_td = dt / 36525 + tc  # Compensate for the Julian Century
         alpha = self._sun_apparent_right_ascension(tc_td)
         delta = self._sun_apparent_declination(tc_td)
         ast = self._apparent_sidereal_time_greenwich(tc)
@@ -444,8 +426,21 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         m += self._tz_decimal_from_dhms(0, zone, 0, 0)
         return m % 1
 
-    def _rise_set_correction(self, tc, ast, dt, lat, lon, m, offset):
+    def _rise_set_correction(self, tc: float, ast: float, dt: float,
+                             lat: float, lon: float, m: float, offset: float
+                             ) -> float:
         """
+        Find the correction to the sunrise and sunset.
+
+        :param float tc: The Julian Period century.
+        :param float ast: The apparent sidereal time at greenwich.
+        :param float dt: The delta T of the JD.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float m: Times on day, expressed as fractions.
+        :param float offset: Either `_SUN_OFFSET` or `_STARS_PLANET_OFFSET`.
+        :return: The correction to the sunrise or sunset.
+        :rtype: float
         """
         srt = ast + 360.98564736629 * m
         n = m + dt / 86400
@@ -462,16 +457,36 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return (alt + offset) / (360 * self._cos_deg(delta) *
                                  self._cos_deg(lat) * self._sin_deg(h))
 
-    def _local_hour_angle(self, srt, lon, alpha):
+    def _local_hour_angle(self, srt: float, lon: float, alpha: float) -> float:
         """
-        Meeus-AA p.103
+        The LHA is the angle between the meridian of the observer and the
+        meridian of the geographical position of the celestial body.
+
+        :param float srt: Sidereal time.
+        :param float lon: The Geographic longitude of the observer in degrees.
+        :param float alpha: The apparent right ascensions.
+        :return: The local hour angle.
+        :rtype: float
+
+        .. note::
+
+           | Meeus-AA p.103
+           | https://astronavigationdemystified.com/local-hour-angle-and-greenwich-hour-angle/
+
         """
         h = self._coterminal_angle(srt + lon - alpha)
         return h - 360 if h > 180 else h
 
-    def _nutation_longitude(self, tc:float, *, degrees:bool=False) -> float:
+    def _nutation_longitude(self, tc: float, *, degrees: bool=False) -> float:
         """
         Nutation longitude of the Earth's axis around it's 'mean' position.
+
+        :param float tc: The Julian Period century.
+        :param bool degrees: If `False` (default) return radians else if
+                             `True` return degrees.
+        :return: Either the radians or degrees depending on the `degrees`
+                 argument.
+        :rtype: float
         """
         tc_day, lon_sum, deg = self._nutation['lon']
 
@@ -483,9 +498,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return self._nutation['lon'][1]
 
-    def _nutation_obliquity(self, tc:float, *, degrees:bool=False) -> float:
+    def _nutation_obliquity(self, tc: float, *, degrees: bool=False) -> float:
         """
         Nutation obliquity of the Earth's equator around it's 'mean' position.
+
+        :param float tc: The Julian Period century.
+        :param bool degrees: If `False` (default) return radians else if
+                             `True` return degrees.
+        :return: The nutation of obliquity.
+        :rtype: float
         """
         tc_day , obj_sum, deg = self._nutation['obl']
 
@@ -497,16 +518,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return self._nutation['obl'][1]
 
-    def _nutation_obliquity_longitude(self, tc:float,
-                                      degrees:bool=False) -> float:
+    def _nutation_obliquity_longitude(self, tc: float, degrees: bool=False
+                                      ) -> float:
         """
         Nutation of the Earth's axis around it's 'mean' position.
 
-        :param tc: Time in Julian centuries.
-        :type tc: float
-        :param degrees: If True units of degrees is returned, if False
-                        units of radians is returned.
-        :type degrees: float
+        :param float tc: Time in Julian centuries.
+        :param float degrees: If True units of degrees is returned, if False
+                              units of radians is returned.
         :return: Moon latitude.
         :rtype: float
 
@@ -548,11 +567,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return lon_sum, obl_sum
 
-    def _moon_mean_anomaly(self, tc:float) -> float:
+    def _moon_mean_anomaly(self, tc: float) -> float:
         """
+        The position of the moon in its orbit around the Earth.
 
-        :param tc: Time in Julian centuries.
-        :type tc: float
+        :param float tc: Time in Julian centuries.
         :return: Moon mean anomaly.
         :rtype: float
 
@@ -564,11 +583,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return self._coterminal_angle(self._poly(
             tc, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
 
-    def _sun_earth_mean_anomaly(self, tc:float) -> float:
+    def _sun_earth_mean_anomaly(self, tc: float) -> float:
         """
+        The position of the Earth in its orbit around the Sun.
 
-        :param tc: Time in Julian centuries.
-        :type tc: float
+        :param float tc: Time in Julian centuries.
         :return: Sun and earth mean anomaly.
         :rtype: float
 
@@ -580,11 +599,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return self._coterminal_angle(self._poly(
             tc, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
 
-    def _moon_latitude(self, tc:float) -> float:
+    def _moon_latitude(self, tc: float) -> float:
         """
+        The angle between the Moon’s ecliptic longitude and its mean
+        longitude.
 
-        :param tc: Time in Julian centuries.
-        :type tc: float
+        :param float tc: Time in Julian centuries.
         :return: Moon latitude.
         :rtype: float
 
@@ -596,11 +616,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return self._coterminal_angle(self._poly(
             tc, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
 
-    def _mean_moon_elongation(self, tc:float) -> float:
+    def _mean_moon_elongation(self, tc: float) -> float:
         """
 
-        :param tc: Time in Julian centuries.
-        :type tc: float
+        :param float tc: Time in Julian centuries.
         :return: Mean moon elongation.
         :rtype: float
 
@@ -612,13 +631,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return self._coterminal_angle(self._poly(
             tc, (297.85036, 445267.11148, -0.0019142, 1 / 189474)))
 
-    def _moon_ascending_node_longitude(self, tc:float) -> float:
+    def _moon_ascending_node_longitude(self, tc: float) -> float:
         """
         Longitude of the ascending node of the Moon’s mean orbit on the
         ecliptic, measured from the mean equinox of the date:
 
-        :param tc: Time in Julian centuries.
-        :type tc: float
+        :param float tc: Time in Julian centuries.
         :return: Moon ascending node longitude.
         :rtype: float
 
@@ -630,13 +648,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return self._coterminal_angle(self._poly(
             tc, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
 
-    def _true_obliquity_of_ecliptic(self, tc:float) -> float:
+    def _true_obliquity_of_ecliptic(self, tc: float) -> float:
         """
         The obliquity of the ecliptic, or inclination of the Earth’s axis
         of rotation, is the angle between the equator and the ecliptic.
 
-        :param jde: Julian century.
-        :type jde: float
+        :param float jde: Julian century.
         :return: The obliquity of the ecliptic in degrees as a decimal.
         :rtype: float
 
@@ -655,13 +672,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                  0.0006805555555555556))
         return mean_ob + self._nutation_obliquity(tc)
 
-    def _sun_mean_longitude(self, tc:float) -> float:
+    def _sun_mean_longitude(self, tc: float) -> float:
         """
         The geometric mean longitude of the Sun, referred to the mean
         equinox of the date.
 
-        :param tc: Time in Julian centuries.
-        :type tc: float
+        :param float tc: Time in Julian centuries.
         :return: Mean longitude of the sun in degrees.
         :rtype: float
 
@@ -673,53 +689,88 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return self._coterminal_angle(self._poly(
             tc, (280.46646, 36000.76983, 0.0003032)))
 
-    def _eccentricity_earth_orbit(self, tc:float) -> float:
+    def _eccentricity_earth_orbit(self, tc: float) -> float:
         """
         The eccentricity of the earth's orbit.
 
-        Meeus--AA ch.25 p.163 Eq.25.4
+        :param float tc: Time in Julian centuries.
+        :return: The eccentricity of the earth's orbit.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.25 p.163 Eq.25.4
         """
         return self._poly(tc, (0.016708634, -0.000042037, -0.0000001267))
 
-    def _sun_equation_of_center(self, tc:float) -> float:
+    def _sun_equation_of_center(self, tc: float) -> float:
         """
-        Meeus--AA ch.25 p.164
+        Describes the difference between the true anomaly (the actual
+        angular position of the Earth in its orbit around the Sun) and the
+        mean anomaly (the position the Earth would have if its orbit were
+        perfectly circular and uniform). This difference is caused by the
+        elliptical shape of Earth’s orbit and the resulting non-uniform
+        motion of the Earth around the Sun.
+
+        :param float tc: Time in Julian centuries.
+        :return: The Sun's equation of it's center.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.25 p.164
         """
         m = self._sun_earth_mean_anomaly(tc)
         return ((1.914602 - 0.004817 * tc - 0.000014 * tc**2) *
                 self._sin_deg(m) + (0.019993 - 0.000101 * tc) *
                 self._sin_deg(2 * m) + 0.000290 * self._sin_deg(3 * m))
 
-    def _sun_true_longitude(self, tc:float) -> float:
+    def _sun_true_longitude(self, tc: float) -> float:
         """
         The true geometric longitude referred to the mean equinox of the
         date. This longitude is the quantity required for instance in the
         calculation of geocentric planetary positions.
 
-        Meeus--AA p.164
+        :param float tc: Time in Julian centuries.
+        :return: The true geometric longitude.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA p.164
         """
         l0 = self._sun_mean_longitude(tc)
         cen = self._sun_equation_of_center(tc)
         return l0 + cen
 
-    def _sun_apparent_longitude(self, tc:float) -> float:
+    def _sun_apparent_longitude(self, tc: float) -> float:
         """
-        Meeus--AA p.164
-        This has a less accurate result.
-        apparent_solar_longitude() should be more acurate.
+        The Sun’s apparent longitude is the angle measured from the vernal
+        equinox to the Sun’s position on the ecliptic plane as seen from
+        Earth.
+
+        :param float tc: Time in Julian centuries.
+        :return: The Sun’s apparent longitude.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA p.164
+
+           This has a less accurate result. apparent_solar_longitude()
+           should be more acurate.
         """
         sol = self._sun_true_longitude(tc)
         om = self._moon_ascending_node_longitude(tc)
         return sol - 0.00569 - 0.00478 * self._sin_deg(om)
 
-    def _sun_apparent_right_ascension(self, tc:float) -> float:
+    def _sun_apparent_right_ascension(self, tc: float) -> float:
         """
         Right ascension is measured (from 0 to 24 hours, sometimes from 0°
         to 360°) from the vernal equinox, positive to the east, along the
         celestial equator.
 
-        :param tc: Julian century.
-        :type tc: float
+        :param float tc: Julian century.
         :return: The apparent declination of the sun in radians.
         :rtype: float
 
@@ -736,15 +787,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                                         self._cos_deg(lam)))
         return self._coterminal_angle(alpha)
 
-    def _sun_apparent_declination(self, tc:float) -> float:
+    def _sun_apparent_declination(self, tc: float) -> float:
         """
         Declination is measured (from 0° to +90°) from the equator, positive
         to the north, negative to the south.
 
-        :param tc: Julian century.
-        :type tc: float
-        :param app: If True the apparent declination is returned, if
-        :type, app: bool
+        :param float tc: Julian century.
+        :param bool app: If True the apparent declination is returned, if
         :return: The apparent declination of the sun in radians.
         :rtype: float
 
@@ -758,16 +807,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         lam = self._sun_apparent_longitude(tc)
         return math.degrees(math.asin(self._sin_deg(eps) * self._sin_deg(lam)))
 
-    def _heliocentric_ecliptical_longitude(self, tm:float,
-                                           degrees:bool=False) -> float:
+    def _heliocentric_ecliptical_longitude(self, tm: float,
+                                           degrees: bool=False) -> float:
         """
         Find the heliocentric ecliptical longitude.
 
-        :param tm: The moment in time referenced to J2000 millennia.
-        :type tm: float
-        :param degrees: The results if False are radians, else True
-                        are degrees. Default is False.
-        :type degrees: bool
+        :param float tm: The moment in time referenced to J2000 millennia.
+        :param bool degrees: The results if False are radians, else True
+                             are degrees. Default is False.
         :return: Longitude in degrees or radians.
         :rtype: float
 
@@ -787,16 +834,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return round(self._coterminal_angle(math.degrees(l)) if degrees else l,
                      self._ROUNDING_PLACES)
 
-    def _heliocentric_ecliptical_latitude(self, tm:float,
-                                          degrees:bool=False) -> float:
+    def _heliocentric_ecliptical_latitude(self, tm: float,
+                                          degrees: bool=False) -> float:
         """
         Find the heliocentric ecliptical latitude.
 
-        :param tm: The moment in time referenced to J2000 millennia.
-        :type tm: float
-        :param degrees: The results if False are radians, else True
-                        are degrees. Default is False.
-        :type degrees: bool
+        :param float tm: The moment in time referenced to J2000 millennia.
+        :param bool degrees: The results if False are radians, else True
+                             are degrees. Default is False.
         :return: Latitude in degrees or radians.
         :rtype: float
 
@@ -812,15 +857,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return round(self._coterminal_angle(math.degrees(b)) if degrees else b,
                      self._ROUNDING_PLACES)
 
-    def _radius_vector(self, tm:float, degrees:bool=False) -> float:
+    def _radius_vector(self, tm: float, degrees: bool=False) -> float:
         """
         Find the distance of earth to the sun.
 
-        :param tm: The moment in time referenced to J2000 millennia.
-        :type tm: float
-        :param degrees: The results if False are radians, else True
-                        are degrees. Default is False.
-        :type degrees: bool
+        :param float tm: The moment in time referenced to J2000 millennia.
+        :param bool degrees: The results if False are radians, else True
+                             are degrees. Default is False.
         :return: Radius vector in degrees or radians.
         :rtype: float
 
@@ -839,17 +882,26 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return round(self._coterminal_angle(math.degrees(r)) if degrees else r,
                      self._ROUNDING_PLACES)
 
-    def _apparent_solar_longitude(self, jde:float, degrees:bool=True) -> float:
+    def _apparent_solar_longitude(self, jde: float,
+                                  degrees: bool=True) -> float:
         """
         Find the apparent solar longitude.
 
-        Meeus--AA ch.25 p.166
+        :param float jde: The Julian Period day.
+        :param bool degrees: The results if False are radians, else True
+                             are degrees. Default is False.
+        :return: The apparent solar longitude.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.25 p.166
         """
         tm = self._julian_millennia(jde)
         l = self._heliocentric_ecliptical_longitude(tm, degrees=False)
         l += math.pi
         # Convert to FK5 notation
-        l -= math.radians(2.5091666666666666e-05) # -0".09033
+        l -= math.radians(2.5091666666666666e-05)  # -0".09033
         # Convert to centuries
         l += self._nutation_longitude(tm * 10, degrees=False)
         # eq 25.11
@@ -860,16 +912,25 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return round(l, self._ROUNDING_PLACES)
 
-    def _apparent_solar_latitude(self, jde:float, degrees:bool=True) -> float:
+    def _apparent_solar_latitude(self, jde: float,
+                                 degrees: bool=True) -> float:
         """
         Find the apparent solar latitude.
 
-        Meeus--AA ch.25 p.166
+        :param float jde: The Julian Period day.
+        :param bool degrees: The results if False are radians, else True
+                             are degrees. Default is False.
+        :return: The apparent solar latitude.
+        :rtype: float
+
+        .. note::
+
+           Meeus--AA ch.25 p.166
         """
         tm = self._julian_millennia(jde)
-        tc = tm * 10 # Convert millenna to centuries
+        tc = tm * 10  # Convert millenna to centuries
         b = self._heliocentric_ecliptical_latitude(tm)
-        b *= -1 # Invert the result
+        b *= -1  # Invert the result
         # Convert to FK5 notation
         l = self._apparent_solar_longitude(jde, degrees=False)
         b1 = self._poly(tc, (l, -1.397, -0.00031))
@@ -882,17 +943,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return round(b, self._ROUNDING_PLACES)
 
-    def _aberration(self, tm:float, fixed:bool=True) -> float:
+    def _aberration(self, tm: float, fixed: bool=True) -> float:
         """
         Find the aberration of a date with respect to a fixed reference
         frame or to the mean equinox.
 
-        :param tc: The moment in time referenced to J2000 millennia.
-        :type tm: float
-        :param fixed: If True the results is to a fixed reference frame, if
-                      False the result is referenced to the mean equinox.
-                      Default is True.
-        :type fixed: bool
+        :param float tc: The moment in time referenced to J2000 millennia.
+        :param bool fixed: If `True` (default) the results is to a fixed
+                           reference frame, if `False` the result is
+                           referenced to the mean equinox.
         :return: The aberration of the date in degrees.
         :rtype: float
 
@@ -918,12 +977,21 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return round(self._decimal_from_dms(
             0, 0, -0.005775518 * r * aberration), self._ROUNDING_PLACES)
 
-    def _approx_julian_day_for_equinoxes_or_solstices(self, g_year:int,
-                                                     lam:int=_SPRING) -> float:
+    def _approx_julian_day_for_equinoxes_or_solstices(self, g_year: int,
+                                                     lam: int=_SPRING
+                                                      ) -> float:
         """
         Find the approximate Julian day for the equinoxes or solstices.
 
-        See: AA ch.27 p.177
+        :param int g_year: The Gregorian year.
+        :param int lam: The lamda, either `_SPRING` (default), `_SUMMER`,
+                        `_AUTUMN`, or `_WINTER`.
+        :return: The approximate Julian day for the equinoxes or solstices.
+        :rtype: float
+
+        .. note::
+
+           See: Meeus AA ch.27 p.177
         """
         if g_year <= 1000:
             y = g_year / 1000
@@ -937,7 +1005,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             elif lam == self._AUTUMN:
                 jde = self._poly(y, (1721325.70455, 365242.49558, -0.11677,
                                      -0.00297, 0.00074))
-            else: # lam == self._WINTER:
+            else:  # lam == self._WINTER:
                 jde = self._poly(y, (1721414.39987, 365242.88257, -0.00769,
                                      -0.00933, -0.00006))
         else:
@@ -952,7 +1020,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             elif lam == self._AUTUMN:
                 jde = self._poly(y, (2451810.21715, 365242.01767, -0.11575,
                                      0.00337, 0.00078))
-            else: # lam == self._WINTER:
+            else:  # lam == self._WINTER:
                 jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
                                      -0.00823, 0.00032))
 
@@ -961,18 +1029,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return jde
 
-    def _find_moment_of_equinoxes_or_solstices(self, jd:float, lam:int=_SPRING,
-                                              zone:float=0) -> float:
+    def _find_moment_of_equinoxes_or_solstices(self, jd: float,
+                                               lam: int=_SPRING,
+                                               zone: float=0) -> float:
         """
         With the jd and time of year find an equinoxe or solstice at
         Greenwich.
 
-        :param jd: Meeus algorithm Julian day.
-        :type jd: float
-        :param lam: Lambda is the season as in (SPRING, SUMMER, AUTUMN, WINTER)
-        :type lam: int
-        :param zone: The time zone.
-        :type zone: float
+        :param float jd: Meeus algorithm Julian day.
+        :param int lam: The lamda, either `_SPRING` (default), `_SUMMER`,
+                        `_AUTUMN`, or `_WINTER`.
+        :param float zone: The time zone.
         :return: The Julian day of the equinox or solstice.
         :rtype: float
 
@@ -992,15 +1059,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         jde += (0.00001 * s) / dl + self._HR(zone)
         return round(jde, self._ROUNDING_PLACES)
 
-    def _decimal_from_dms(self, degrees:int, minutes:int, seconds:float,
-                         direction:str='N') -> float:
+    def _decimal_from_dms(self, degrees: int, minutes: int, seconds: float,
+                         direction: str='N') -> float:
         '''
         Coordinantes in degrees, minutes, and seconds.
-        The Shrine of Baha’u’llah: 32°56’36.86″N, 35° 5’30.38″E
-        The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″E
-        The Guardian’s Resting Place (not 3D): 51°37’21.85″N, 0°08’35.57″W
 
-        ****
+        | The Shrine of Baha’u’llah: 32°56’36.86″N, 35° 5’30.38″E
+        | The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″E
+        | The Guardian’s Resting Place (not 3D): 51°37’21.85″N, 0°08’35.57″W
+
+
+        .. rubric:: Process
 
         Convert degrees, minutes, and seconds to a decimal.
 
@@ -1009,18 +1078,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         1. Add the degrees to the minutes divided by 60
         2. Add the seconds divided by (60 x 60), which is 3600
 
-        Example: To convert 35° 20′ 35", the answer is
-                 35 + (20/60) + (35/3600) = 35.34306 degrees.
+        .. rubric:: Example
 
-        :param degrees: The degree part of the coordinats.
-        :type degrees: int
-        :param minutes: The minute part of the coordinate.
-        :type minutes: int
-        :param seconds: The second part of the coordinate.
-        :param direction: The direction part of the coordinate which can be
-                          any of the following N, S, E, W in upper or lower
-                          case.
-        :type direction: str
+        To convert 35° 20′ 35", the answer is
+        35 + (20/60) + (35/3600) = 35.34306 degrees.
+
+        :param int degrees: The degree part of the coordinats.
+        :param int minutes: The minute part of the coordinate.
+        :param float seconds: The second part of the coordinate.
+        :param str direction: The direction part of the coordinate which can
+                              be any of the following N, S, E, W in upper or
+                              lower case.
         :return: latitude and longitude
         :rtype: tuple
         '''
@@ -1033,16 +1101,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         # Adjust the sign based on the direction.
         return -decimal if direction.upper() in ('S', 'W') else decimal
 
-    def _dms_from_decimal(self, coord:float, direction:str) -> tuple:
+    def _dms_from_decimal(self, coord: float, direction: str) -> tuple:
         """
         Convert a decimal degree into degrees, minutes, and seconds.
 
-        :param coord: The decimal coordinant.
-        :type coord: float
-        :param direction: The direction part of the coordinate which can be
-                          either of the following 'LAT' or 'LON' in upper
-                          or lower case.
-        :type direction: str
+        :param float coord: The decimal coordinant.
+        :param str direction: The direction part of the coordinate which can
+                              be any of the following N, S, E, W in upper or
+                              lower case.
         :return: The degree, minute, second, and direction for of the
                  coordinate.
         :rtype: tuple
@@ -1066,7 +1132,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return degrees, minutes, seconds, direc
 
-    def _degrees_from_hms(self, h:int, m:int, s:float) -> float:
+    def _degrees_from_hms(self, h: int, m: int, s: float) -> float:
         """
         Find the degrees from the hours, minutes, and seconds of 360 degrees.
         Where as time zones are 15 degrees apart so 24 time zones times 15
@@ -1076,10 +1142,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         and positive west of the meridian plane, or as positive westward
         from 0° to 360°. The angle may be measured in degrees or in time,
         with 24h = 360° exactly. So one hour is equal to (360/24)° = 15°.
+
+        :param int h: The hour.
+        :param int m: The minute.
+        :param float s: The second.
+        :return: The degrees from the hours, minutes, and seconds of
+                 360 degrees.
+        :rtype: float
         """
         return 15 * h + 15 * m / 60 + 15 * s / 3600
 
-    def _hms_from_degrees(self, deg:float) -> tuple:
+    def _hms_from_degrees(self, deg: float) -> tuple:
         """
         Find the hours, minutes, and seconds from 0 - 360 degrees. Where
         as time zones are 15 degrees apart so 24 time zones times 15
@@ -1089,28 +1162,49 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         and positive west of the meridian plane, or as positive westward
         from 0° to 360°. The angle may be measured in degrees or in time,
         with 24h = 360° exactly. So one hour is equal to (360/24)° = 15°.
+
+        :param float deg: The degrees of the 360 degree curcomference of
+                          the earth.
+        :return: The hours, minutes, and seconds.
+        :rtype: tuple
         """
         h = math.floor(deg / 15)
         m = math.floor((deg / 15 - h) * 60)
         s = (deg / 15 - h - m / 60) * 3600
         return h, m, s
 
-    def _seconds_from_dhms(self, days:int, hours:int, minutes:int,
-                          seconds:float, zone:float=0) -> float:
+    def _seconds_from_dhms(self, days: int, hours: int, minutes: int,
+                          seconds: float, zone: float=0) -> float:
         """
         Convert days, hours, minutes, and seconds to seconds.
+
+        :param int days: Number of days.
+        :param int hours: Number of hours.
+        :param int minutes: The number of minutes.
+        :param float seconds: The number of seconds with possible fraction.
+        :param float zone: The timezone in degrees, defaults to 0 or GMT.
+        :return: The number of seconds.
+        :rtype: float
         """
         return (days * 86400+ (hours + zone) * 3600 + minutes * 60
                 + seconds + zone * 3600)
 
-    def _dhms_from_seconds(self, seconds:float, zone:float=0) -> tuple:
+    def _dhms_from_seconds(self, seconds: float, zone: float=0) -> tuple:
         """
         Convert seconds into days, hours, minutes, and seconds. Depending
         on the timezone there could be an additional day added.
 
-        See: https://www.timeanddate.com/time/map/
-        Timezones can be from -11 to +14 based on the political timeszones
-        as of 2024-08-09.
+        :param float seconds: The number of seconds with possible fraction.
+        :param float zone: The timezone in degrees, defaults to 0 or GMT.
+        :return: The days, hours, minutes, and seconds.
+        :rtype: tuple
+
+        .. note::
+
+           See: https://www.timeanddate.com/time/map/
+
+           Timezones can be from -11 to +14 based on the political timeszones
+           as of 2024-08-09.
         """
         seconds += zone * 3600
         hours = math.floor(seconds / 3600)
@@ -1126,12 +1220,19 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return day, hours, minutes, (seconds - hours * 3600) - minutes * 60
 
-    def _tz_decimal_from_dhms(self, days:int, hours:int, minutes:int,
-                              seconds:int) -> int:
+    def _tz_decimal_from_dhms(self, days: int, hours: int, minutes: int,
+                              seconds: int) -> int:
         """
         Convert days, hours, minutes, and seconds to a decimal number
         representing percentage of one revolution around the Earth. Where
         the number 1 indicates one revolution.
+
+        :param int days: Number of days.
+        :param int hours: Number of hours.
+        :param int minutes: The number of minutes.
+        :param float seconds: The number of seconds with possible fraction.
+        :return: A decimal number.
+        :rtype: int
 
         .. note::
 
@@ -1139,12 +1240,16 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         return self._seconds_from_dhms(days, hours, minutes, seconds) / 86400
 
-    def _tz_dhms_from_decimal(self, dec:float) -> tuple:
+    def _tz_dhms_from_decimal(self, dec: float) -> tuple:
         """
         Convert a decimal number into days, hours, minutes, and seconds
         of a time zone. The decimal number represents the percentage of
         one revolution around the Earth. Where the number 1 indicates
         one revolution.
+
+        :param float dec: A decimal number.
+        :return: The days, hours, minutes, and seconds of a time zone.
+        :rtype: tuple
 
         .. note::
 
@@ -1152,17 +1257,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
          """
         return self._dhms_from_seconds(dec * 86400)
 
-    def _hms_from_decimal_day(self, dec:float, *, us=False) -> tuple:
+    def _hms_from_decimal_day(self, dec: float, *, us: bool=False) -> tuple:
         """
         Convert a decimal day to hours, minutes, and seconds. If this
         method is used for a Julian Period day, 0.5 must be added to the
         value before being passed in.
 
-        :param dec: A decimal number.
-        :type dec: float
-        :param us: If False (default) no seperate field for microseconds
-                   is returned else return microseconds.
-        :type us: bool
+        :param float dec: A decimal number.
+        :param bool us: If False (default) no seperate field for microseconds
+                        is returned else return microseconds.
         :return: A tuple representing the hour, minute, and seconds.
         :rtype: tuple
 
@@ -1185,28 +1288,25 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return (hour, minute, second) + microsec
 
-    def _decimal_day_from_hms(self, h:int, m:int, s:float) -> float:
+    def _decimal_day_from_hms(self, h: int, m: int, s: float) -> float:
         """
         Convert hours, minutes, and seconds to a decimal day.
 
-        :param h: Integer of the hour.
-        :type: int
-        :param m: Integer of the minute.
-        :type m: int
-        :param s: Float of the second.
-        :type s: float
+        :param ine h: The hour.
+        :param int m: The minute.
+        :param float s: The second.
         :return: A decimal value representing the day with a partial that
                  indicates the hours, minutes, and seconds.
-        :rtype: float or tuple
+        :rtype: float
         """
         return (h * 60 * 60 + m * 60 + s) / 86400
 
-    def _sec_microsec_from_seconds(self, second:float) -> tuple:
+    def _sec_microsec_from_seconds(self, second: float) -> tuple:
         """
         Split the second and microseconds.
 
-        :param second: The second with a partial indicating the microseconds.
-        :type second: float
+        :param float second: The second with a partial indicating the
+                             microseconds.
         :return: The second split between the second and microseconds.
         :rtype: tuple
         """
@@ -1216,67 +1316,108 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         us = self._PARTIAL_SECOND_TO_MICROSECOND(second)
         return math.floor(s), us
 
-    def _sin_deg(self, theta:float) -> float:
+    def _sin_deg(self, theta: float) -> float:
         """
+        Convert a value to sine in degrees.
+
+        :param float thete: The value to convert to degrees.
+        :return: The degrees representing the value provided.
+        :rtype: float
+
+        .. rubric:: LISP code from  Reingold &  Dershowitz CC TUE p. 513
+        .. code:: lisp
+
+           (defun sin-degrees (theta)
+             ;; TYPE angle -> amplitude
+             ;; Sine of theta (given in degrees).
+             (sin (radians-from-degrees theta)))
         """
-        # (defun sin-degrees (theta)
-        #   ;; TYPE angle -> amplitude
-        #   ;; Sine of theta (given in degrees).
-        #   (sin (radians-from-degrees theta)))
         return math.sin(math.radians(theta))
 
-    def _cos_deg(self, theta:float) -> float:
+    def _cos_deg(self, theta: float) -> float:
         """
+        Convert a value to the cosine in degrees.
+
+        :param float thete: The value to convert to degrees.
+        :return: The degrees representing the value provided.
+        :rtype: float
+
+        .. rubric:: LISP code from  Reingold &  Dershowitz CC TUE p. 513
+        .. code:: lisp
+
+           (defun cos-degrees (theta)
+             ;; TYPE angle -> amplitude
+             ;; Cosine of theta (given in degrees).
+             (cos (radians-from-degrees theta)))
         """
-        # (defun cos-degrees (theta)
-        #   ;; TYPE angle -> amplitude
-        #   ;; Cosine of theta (given in degrees).
-        #   (cos (radians-from-degrees theta)))
         return math.cos(math.radians(theta))
 
-    def _sigma(self, lists:tuple, func:object) -> float:
+    def _sigma(self, lists: tuple, func: object) -> float:
         """
-        """
-        # (defmacro sigma (list body)
-        #   ;; TYPE (list-of-pairs (list-of-reals->real))
-        #   ;; TYPE -> real
-        #   ;; list is of the form ((i1 l1)...(in ln)).
-        #   ;; Sum of body for indices i1...in
-        #   ;; running simultaneously thru lists l1...ln.
-        #   `(apply `+ (mapcar (function (lambda
-        #                                  ,(mapcar `car list)
-        #                                  ,body))
-        #                      ,@(mapcar `cadr list))))
+        This gives a summation of a list based on the criteria in the
+        provided function.
 
+        :param tuple lists: The list of values to sum.
+        :param object func: The function that determins the summation
+                            parameters.
+        :return: The summation.
+        :rtype: float
+
+        .. rubric:: LISP code from  Reingold &  Dershowitz CC TUE p. 473
+        .. code:: lisp
+
+           (defmacro sigma (list body)
+             ;; TYPE (list-of-pairs (list-of-reals->real))
+             ;; TYPE -> real
+             ;; list is of the form ((i1 l1)...(in ln)).
+             ;; Sum of body for indices i1...in
+             ;; running simultaneously thru lists l1...ln.
+             `(apply `+ (mapcar (function (lambda
+                                            ,(mapcar `car list)
+                                            ,body))
+                                ,@(mapcar `cadr list))))
+        """
         # Ensure all lists have the same length
         assert len(set(len(lst) for lst in lists)) == 1, (
             "Lists must have the same length")
         return sum(func(*e) for e in zip(*lists))
 
-    def _poly(self, x:float, a:list) -> float:
+    def _poly(self, x: float, a: list) -> float:
         """
-        This is the Horner method used to eliminate the use of powers.
-        Insted of:
-        y = A + B * x + C * x^2 + D * x^3 + E * x^4
-        do this:
-        y = A + x * (B + x * (C + x * (D + x * E)))
+        This is the Horner method of polynomial used to eliminate the use
+        of powers.
+
+        .. note::
+
+           | Instead of:
+           | y = A + B * x + C * x^2 + D * x^3 + E * x^4
+           | do this
+           | y = A + x * (B + x * (C + x * (D + x * E)))
+
+        :param float x: Power of number.
+        :param list a: The list of numbers in polynomial.
+        :return: The polynomial result.
+        :rtype: float
+
+        .. rubric:: LISP code from  Reingold &  Dershowitz CC TUE p. 473
+        .. code:: lisp
+
+           (defun poly (x a)
+             ;; TYPE (real list-of-reals) -> real
+             ;; Sum powers of x with coefficients (from order 0 up) in list a.
+             (if (equal a nil)
+                 0
+               (+ (first a) (* x (poly x (rest a))))))
         """
-        # (defun poly (x a)
-        #   ;; TYPE (real list-of-reals) -> real
-        #   ;; Sum powers of x with coefficients (from order 0 up) in list a.
-        #   (if (equal a nil)
-        #       0
-        #     (+ (first a) (* x (poly x (rest a))))))
         return 0 if not a else a[0] + (x * self._poly(x, a[1:]))
 
-    def _days_in_years(self, y:int, *, alt:bool=False) -> int:
+    def _days_in_years(self, y: int, *, alt: bool=False) -> int:
         """
         Find the number of days up to the provided year.
 
-        :param y: The year to count to.
-        :type y: int
-        :param alt: If True use the 4|128 rule else if False use the 4|100|400
-                    rule. The default is False.
+        :param int y: The year to count to.
+        :param bool alt: If True use the 4|128 rule else if False use the
+                         4|100|400 rule. The default is False.
         :return: The count of days including year one to the given year.
         :rtype: int
 
@@ -1296,11 +1437,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             n_400 = y // 400
             n_leap_years = n_4 - n_100 + n_400
 
-        a = y - n_leap_years # Non-leap years
-        b = y - a # Leap years
+        a = y - n_leap_years  # Non-leap years
+        b = y - a  # Leap years
         return a * 365 + b * 366
 
-    def _meeus_from_exact(self, jd:float) -> int:
+    def _meeus_from_exact(self, jd: float) -> int:
         """
         The returned difference value to convert an exact algorithm jd to
         a Meeus algorithm jd. This is added to the exact jd.
@@ -1324,7 +1465,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return diff
 
-    def _exact_from_meeus(self, jd:float) -> int:
+    def _exact_from_meeus(self, jd: float) -> int:
         """
         The returned difference value to convert a Meeus algorithm jd to
         an exact algorithm jd. This is subtracted from the meeus jd.
@@ -1348,14 +1489,20 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return diff
 
-    def _coterminal_angle(self, value:float) -> float:
+    def _coterminal_angle(self, value: float) -> float:
         """
-        Find the Coterminal Angle.
+        Find the Coterminal Angle from a value that is either more than
+        360 or less than 0.
+
+        :param float value: The value that is more than 360 or less than 0.
+        :return: The adjusted angle to be between 0 and 360.
+        :rtype: float
         """
         value = math.fmod(value, 360)
         return value + 360 if value < 0 else value
 
-    def _interpolation_from_three(self, y1, y2, y3, n, normalize=False):
+    def _interpolation_from_three(self, y1: float, y2: float, y3: float,
+                                  n: float, normalize: bool=False) -> float:
         """
         Interpolate from three terms with a factor.
 
@@ -1363,6 +1510,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float y2: 2nd of the three parameters.
         :param float y3: 3rd of the three parameters.
         :param float n: The factor.
+        :param bool mormalize: If `False' (default) no normalization is done
+                               else if `True` normalize.
+        :return: The three factor interpolation.
+        :rtype: float
         """
         a = y2 - y1
         b = y3 - y2
@@ -1374,14 +1525,24 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         c = b - a
         return y2 + (n / 2) * (a + b + n * c)
 
-    def _truncate_decimal(self, n, places):
+    def _truncate_decimal(self, n: int, places: int) -> int:
         """
         Trucate a decimal to a number of places.
+
+        .. note::
+
+           This is somewhat like rounding, but is used in places where
+           rounding gives an invalid results.
+
+        :param int n: Number to truncate.
+        :param int places: The number of places to truncate to.
+        :return: The truncated number.
+        :rtype: int
         """
         p = int('1' + '0' * places)
         return math.floor(n * p) / p
 
-    def _xor_boolean(self, booleans:tuple):
+    def _xor_boolean(self, booleans: tuple) -> bool:
         """
         Test that any number of booleans can all be False or only one True.
 
@@ -1394,7 +1555,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         count = sum(booleans)
         return (count % 2 == 1) or (count == 0)
 
-    def _ordinal_from_jd(self, jd, *, _exact=True):
+    def _ordinal_from_jd(self, jd: float, *, _exact: bool=True) -> int:
         """
         Convert a Julian Period day to an ordinal number.
 
@@ -1403,12 +1564,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                             astronomically exact Julin Period day else it
                             is the historically correct (Meeus) JD.
         :return: The ordinal number relating to the Julian Period day.
+        :rtype: int
         """
         jd -= 0 if _exact else self._exact_from_meeus(jd)
         # We add 1 because ordinal date representations satrt at 1 not 0.
         return math.floor(jd - self._JULIAN_CAL_EPOCH) + 1
 
-    def _jd_from_ordinal(self, ordinal, *, exact=True):
+    def _jd_from_ordinal(self, ordinal: int, *, exact: bool=True) -> float:
         """
         Convert an ordinal number to a Julian Period day.
 
