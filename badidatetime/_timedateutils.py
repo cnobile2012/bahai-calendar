@@ -1209,10 +1209,11 @@ class TimeDateUtils(BahaiCalendar):
 
         dc = dtstr.count('-')
         wc = dtstr.count('W')
-        assert (wc == 0 and dc in (0, 1, 2)) or (wc == 1 and dc in (0, 1, 2)), (
-            "Invalid format, there must be between 0 to 2 hyphens (-) in the "
-            "date format or there can be one uppercase (W) week identifier "
-            "and between 0 and 2 hyphens (-) used.")
+        assert ((wc == 0 and dc in (0, 1, 2)) or
+                (wc == 1 and dc in (0, 1, 2))), (
+                "Invalid format, there must be between 0 to 2 hyphens (-) in "
+                "the date format or there can be one uppercase (W) week "
+                "identifier and between 0 and 2 hyphens (-) used.")
         d_len = len(dtstr)
 
         if dc == 1 and d_len == 7 and not wc:    # YYYY-MM
@@ -1221,7 +1222,8 @@ class TimeDateUtils(BahaiCalendar):
             date = (year, int(dtstr[4:6]), int(dtstr[7:9]))
         elif dc == 2 and not wc:                 # YYYY-MM-DD
             date = (year, int(dtstr[5:7]), int(dtstr[8:10]))
-        elif wc and 7 <= d_len <=10:  # YYYYWww, YYYY-Www, YYYYWwwD, YYYY-Www-D
+        # YYYYWww, YYYY-Www, YYYYWwwD, YYYY-Www-D
+        elif wc and 7 <= d_len <= 10:
             pos = 5 if dc == 0 else 6
             wday = int(dtstr[pos:pos+2])
             pos += 2 if dc == 0 else 3
@@ -1284,7 +1286,8 @@ class TimeDateUtils(BahaiCalendar):
 
         del tmp_tmstr
         cc = tmstr.count(':')
-        assert cc < 3, f"Invalid number of colons (:), can be 0 - 2, found {cc}"
+        assert cc < 3, (
+            f"Invalid number of colons (:), can be 0 - 2, found {cc}")
         pc = tmstr.count('.')
         assert pc <= 1, f"Invalid number of dots (.), can be 0 - 1, found {pc}"
 
@@ -1354,9 +1357,9 @@ class TimeDateUtils(BahaiCalendar):
         pc = tzstr.count('+')
         zc = tzstr.count('Z')
         bc = tzstr.count('B')  # This is an extension to the ISO standard
-        c_none = all([True for c in (nc, pc, zc, bc) if c == 0])  # All eq 0
-        ct_gt_1 = sum((nc, pc, zc, bc)) > 1  # More than one eq 1
-        ca_gt_1 = any([True for c in (nc, pc, zc, bc) if c > 1]) # Any gt than 1
+        c_none = all([True for c in (nc, pc, zc, bc) if c == 0])  # All == 0
+        ct_gt_1 = sum((nc, pc, zc, bc)) > 1  # More than one == 1
+        ca_gt_1 = any([True for c in (nc, pc, zc, bc) if c > 1])  # Any > 1
         assert c_none and not ct_gt_1 and not ca_gt_1, (
             "Can only have one of (-+Z) and no more than one of (-+Z) to "
             "indicate a timezone.")
@@ -1368,7 +1371,8 @@ class TimeDateUtils(BahaiCalendar):
 
         del tmp_tzstr
         cc = tzstr.count(':')
-        assert cc < 2, f"Invalid number of colons (:), can be 0 - 1, found {cc}"
+        assert cc < 2, (
+            f"Invalid number of colons (:), can be 0 - 1, found {cc}")
 
         if tz_len > 0:
             if zc == 1 and tz_len == 1:
@@ -1479,8 +1483,10 @@ class TimeDateUtils(BahaiCalendar):
                                         offset = -offset
                                         sign = '-'
 
-                                    h, rest = divmod(offset, timedelta(hours=1))
-                                    m, rest = divmod(rest, timedelta(minutes=1))
+                                    h, rest = divmod(offset,
+                                                     timedelta(hours=1))
+                                    m, rest = divmod(rest,
+                                                     timedelta(minutes=1))
                                     s = rest.seconds
                                     u = offset.microseconds
                                     zreplace = f'{sign}{h:02}{m:02}'

@@ -10,14 +10,12 @@ import locale
 import importlib
 import unittest
 from unittest.mock import patch, PropertyMock
-from zoneinfo import ZoneInfo
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
 from .._timedateutils import _td_utils
-from ..badi_calendar import BahaiCalendar
 
 datetime = importlib.import_module('badidatetime.datetime')
 
@@ -240,9 +238,9 @@ class TestTimeDateUtils(unittest.TestCase):
             ((1, -1, 1, 0, 0, 0), -1, ttup_s, True, err_msg4.format(-1)),
             ((1, 20, 1, 0, 0, 0), -1, ttup_s, True, err_msg4.format(20)),
             # Day
-            ((1, 1, 1, 1, -1, 0 ,0, 0, 1, 1), -1, ttup_tl, True,
+            ((1, 1, 1, 1, -1, 0, 0, 0, 1, 1), -1, ttup_tl, True,
              err_msg5.format(-1, 1, 19)),
-            ((1, 1, 1, 1, 20, 0 ,0, 0, 1, 1), -1, ttup_tl, True,
+            ((1, 1, 1, 1, 20, 0, 0, 0, 1, 1), -1, ttup_tl, True,
              err_msg5.format(20, 1, 19)),
             # Day, leap year
             ((1, 0, 0, 0, 0, 0, 1, 1), -1, ttup_ts, True,
@@ -277,7 +275,6 @@ class TestTimeDateUtils(unittest.TestCase):
             ((1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), -1, ttup_tl, True,
              err_msg13.format(13)),
             )
-        msg = "Expected {}, with date {}. found {}."
 
         for date, dstflag, t_type, validity, expected_result in data:
             if validity: # Invalid tests
@@ -768,7 +765,7 @@ class TestTimeDateUtils(unittest.TestCase):
         of the first week with more than 3 days in it.
         """
         data = (
-            (  1, 673217), # 1844-03-16 
+            (  1, 673217), # 1844-03-16
             (181, 738961), # 2024-03-16
             (182, 739332), # 2025-03-22
             (183, 739696), # 2026-03-21
@@ -819,9 +816,9 @@ class TestTimeDateUtils(unittest.TestCase):
         err_msg0 = "Invalid character {} in incoming date string."
         err_msg1 = "Year is out of range: {}, min {}, max {}."
         err_msg2 = ("Invalid format, there must be between 0 to 2 hyphens "
-                     "(-) in the date format or there can be one uppercase "
-                     "(W) week identifier and between 0 and 2 hyphens (-) "
-                     "used.")
+                    "(-) in the date format or there can be one uppercase "
+                    "(W) week identifier and between 0 and 2 hyphens (-) "
+                    "used.")
         err_msg3 = "Invalid ISO string {}."
         data = (
             ('', False, ()),
@@ -891,7 +888,7 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         err_msg0 = "Invalid character {} in incoming time string."
         err_msg1 = ("Cannot have both a 'T' and a space or more than one "
-                     "of either to indicate time.")
+                    "of either to indicate time.")
         err_msg2 = ("Invalid time string, 1st character must be one of ( T), "
                     "found {}")
         err_msg3 = "Invalid number of colons (:), can be 0 - 2, found {}"

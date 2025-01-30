@@ -228,7 +228,7 @@ class BahaiCalendar(BaseCalendar):
                  (-11, 21), (117, 149), (249, 281), (381, 413), (513, 545),
                  (645, 677), (777, 809), (909, 941), (1041, 1073))
         p2211 = ((-1843, -1815), (-1715, -1699), (-1583, -1551),
-                 (-1451, -1435), (-1435, -1415), (-1315, -1299 ),
+                 (-1451, -1435), (-1435, -1415), (-1315, -1299),
                  (-1183, -1151), (-1051, -1019), (-915, -899), (-783, -751),
                  (-651, -619), (-515, -499), (-383, -351), (-243, -211),
                  (-111, -99), (21, 53), (149, 185), (281, 301), (413, 445),
@@ -568,7 +568,7 @@ class BahaiCalendar(BaseCalendar):
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim)
 
-    def midday(self, date: tuple, *, hms: bool=False, _chk_on:bool=True
+    def midday(self, date: tuple, *, hms: bool=False, _chk_on: bool=True
                ) -> tuple:
         """
         Find the midday time in hours, minutes, and seconds with fraction.
@@ -777,9 +777,9 @@ class BahaiCalendar(BaseCalendar):
         us = date[s+3] if t_len > s+3 and date[s+3] is not None else 0
         return hour, minute, second, us
 
-    def _adjust_date(self, jd:float, ymd: tuple, lat: float, lon: float,
-                     zone: float, *, fraction: bool=False,
-                     us: bool=False, rtd: bool=False) -> tuple:
+    def _adjust_date(self, jd: float, ymd: tuple, lat: float, lon: float,
+                     zone: float, *, fraction: bool=False, us: bool=False,
+                     rtd: bool=False) -> tuple:
         """
         The adjusted year, month, and day based on if the JD falls before
         or after sunset.
@@ -818,7 +818,7 @@ class BahaiCalendar(BaseCalendar):
             # Previous day sunset
             jd1 = jd0 - 1
             mjd1 = jd1 - self._meeus_from_exact(jd1)
-            ss1 =  self._sun_setting(mjd1, lat, lon, zone)
+            ss1 = self._sun_setting(mjd1, lat, lon, zone)
             frac = abs(0.5 - ss1 % 1 + jd_frac)
             day -= 1
 

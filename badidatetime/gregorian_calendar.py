@@ -32,7 +32,7 @@ class GregorianCalendar(BaseCalendar):
         """
         Convert Gregorian dates to Julian day count with the 1582 10, 15
         correction.
- 
+
         :param tuple g_date: A Gregorian date in the (year, month, day) format.
         :param bool exact: Julian days as if the Gregorian calendar started on
                            year 1. This is astronomically correct but not
@@ -68,7 +68,8 @@ class GregorianCalendar(BaseCalendar):
         else:  # Meeus historically correct algorithm
             if (year, month) == (1582, 10):
                 assert day not in (5, 6, 7, 8, 9, 10, 11, 12, 13, 14), (
-                    f"The days 5-14 in 1582-10 are invalid, found day '{day}'.")
+                    f"The days 5-14 in 1582-10 are invalid, found day '{day}'."
+                    )
 
             if month <= 2:
                 year -= 1

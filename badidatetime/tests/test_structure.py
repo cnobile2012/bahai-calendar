@@ -59,8 +59,6 @@ class TestStructures(unittest.TestCase):
         msg1 = "Expected {}, found {}."
 
         for dt, tz, validity, expected_result in data:
-            short = True if len(dt) == 7 else False
-
             if validity:
                 try:
                     result = struct_time(dt, tzinfo=tz)

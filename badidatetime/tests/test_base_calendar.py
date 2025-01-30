@@ -4,10 +4,8 @@
 #
 __docformat__ = "restructuredtext en"
 
-import os
 import math
 import unittest
-import datetime
 
 from ..base_calendar import BaseCalendar
 from ..gregorian_calendar import GregorianCalendar
@@ -106,7 +104,7 @@ class TestBaseCalendar(unittest.TestCase):
         Test the _ANGLE (angle) lambda.
         """
         d, m, s = (23, 26, 21.448)
-        angle = self.bc._ANGLE(d, m ,s)
+        angle = self.bc._ANGLE(d, m, s)
         expected_angle = 23.43929111111111
         msg = f"_ANGLE should be {expected_angle}, found {angle}."
         self.assertEqual(expected_angle, angle, msg)
@@ -131,13 +129,13 @@ class TestBaseCalendar(unittest.TestCase):
         """
         # Test a == b
         x, a, b = (25, 25, 100)
-        mod3 = self.bc._MOD3(x, a ,b)
+        mod3 = self.bc._MOD3(x, a, b)
         expected_mod3 = x if a == b else a + (x - a) % (b - a)
         msg = f"_MOD3 should be {expected_mod3}, found {mod3}."
         self.assertEqual(expected_mod3, mod3, msg)
         # Test a != b
         x, a, b = (25, 10, 100)
-        mod3 = self.bc._MOD3(x, a ,b)
+        mod3 = self.bc._MOD3(x, a, b)
         expected_mod3 = x if a == b else a + (x - a) % (b - a)
         msg = f"_MOD3 should be {expected_mod3}, found {mod3}."
         self.assertEqual(expected_mod3, mod3, msg)
@@ -319,17 +317,17 @@ class TestBaseCalendar(unittest.TestCase):
             tc = self.bc._julian_centuries(jd)
             ast = self.bc._apparent_sidereal_time_greenwich(tc)
             dt = self.gc._delta_t(jd)
-            jde = jd + dt
+            # jde = jd + dt
             # Find alpha
             ara = self.bc._sun_apparent_right_ascension(tc)
             ma = func((ara - lon - ast) / 360)
             alpha = inter_ra(tc, ma * dt / 86400)
             # Find delta
-            de = self.bc._sun_apparent_declination(tc)
-            md = func((de - lon - ast) / 360)
+            # de = self.bc._sun_apparent_declination(tc)
+            # md = func((de - lon - ast) / 360)
             delta = inter_de(tc, ma * dt / 86400)
             # Find the local hour angle
-            #srt = ast + 360.98564736629 *
+            # srt = ast + 360.98564736629 *
             h = self.bc._local_hour_angle(ast, lon, alpha)
             result = self.bc._altitude(delta, lat, h)
             self.assertEqual(
@@ -464,7 +462,7 @@ class TestBaseCalendar(unittest.TestCase):
              self.bc._STARS_PLANET_OFFSET,
              (0.24210617024415584, 0.7468650828479303)),
             # 2024-03-20T00:00:00 -- (0.250694 = 6:01 am, 0.759027 = 6:13 pm)
-          # https://www.timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
+            # https://www.timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
             # In Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
             (2460389.5, 51.477928, -0.001545, 0, False, self.bc._SUN_OFFSET,
              (0.25124811609282555, 0.759618623423145)),
@@ -1526,7 +1524,7 @@ class TestBaseCalendar(unittest.TestCase):
         data = (
             ((10.1212123456789, 6), 10.121212),
             ((0.01234, 3), 0.012),
-            ((1.0123456789, 12), 1.0123456789 ),
+            ((1.0123456789, 12), 1.0123456789),
             ((1.123, 20), 1.123),
             )
         msg = "Expected {} with args {}, found {}."

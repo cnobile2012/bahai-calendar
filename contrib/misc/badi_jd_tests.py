@@ -345,7 +345,7 @@ class DateTests(BahaiCalendar):
         ( 880, 3, 19, 17,  6), ( 881, 3, 19, 22, 55), ( 882, 3, 20,  4, 44),
         ( 883, 3, 20, 10, 34), ( 884, 3, 19, 16, 23), ( 885, 3, 19, 22, 12),
         ( 886, 3, 20,  9, 50), ( 887, 3, 20,  9, 50), ( 888, 3, 19, 15, 40),
-        ( 889, 3, 19, 21, 29), ( 890, 3, 20 , 3, 18), ( 891, 3, 20,  9,  7),
+        ( 889, 3, 19, 21, 29), ( 890, 3, 20,  3, 18), ( 891, 3, 20,  9,  7),
         ( 892, 3, 19, 14, 56), ( 893, 3, 19, 20, 46), ( 894, 3, 20,  2, 35),
         ( 895, 3, 20,  8, 24), ( 896, 3, 19, 14, 13), ( 897, 3, 19, 20,  2),
         ( 898, 3, 20,  1, 52), ( 899, 3, 20,  7, 41), ( 900, 3, 20, 13, 30),
@@ -687,7 +687,7 @@ class DateTests(BahaiCalendar):
                     if short_day == () or long_day == ():
                         short_day = long_day = date
                         short_hms = long_hms = hms
-                    elif hms <= short_hms :
+                    elif hms <= short_hms:
                         short_hms = hms
                         short_day = date
                     elif hms >= long_hms:
@@ -870,8 +870,8 @@ class DateTests(BahaiCalendar):
 
         for y in range(start, end):
             yj = end - y
-            jump = yj if yj in (1, 34, 67, 100) else 0 # jump values
-            data.append((y, (end - y) % 4, jump))      # mod 4 values
+            jump = yj if yj in (1, 34, 67, 100) else 0  # jump values
+            data.append((y, (end - y) % 4, jump))       # mod 4 values
 
         return data
 
@@ -891,8 +891,6 @@ class DateTests(BahaiCalendar):
 
         for year in range(start, end):
             is_leap = self._is_leap_year(year)
-            days = 365 + is_leap
-            total = 0
 
             for month in self.MONTHS:
                 dm = 19 if month != 0 else 4 + is_leap
@@ -964,11 +962,11 @@ class DateTests(BahaiCalendar):
         year, month, day = self.date_from_kvymdhms(
             self.long_date_from_short_date(b_date), short=True)
 
-        if month == 0: # Ayyam-i-Ha
+        if month == 0:    # Ayyam-i-Ha
             m = 18 * 19
-        elif month < 19: # month 1 - 18
+        elif month < 19:  # month 1 - 18
             m = (month - 1) * 19
-        else: # month == 19:
+        else:             # month == 19:
             m = 18 * 19 + 4 + self._is_leap_year(year)
 
         td = self._days_in_years(year-1)
@@ -992,9 +990,9 @@ class DateTests(BahaiCalendar):
             func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
             coff = 0
 
-            if a and func(y, onoff0): # Whatever is passed in onoff0.
+            if a and func(y, onoff0):    # Whatever is passed in onoff0.
                 coff = a
-            elif b and func(y, onoff1): # Whatever is passed in onoff1.
+            elif b and func(y, onoff1):  # Whatever is passed in onoff1.
                 coff = b
 
             return coff
@@ -1027,13 +1025,13 @@ class DateTests(BahaiCalendar):
         p2 = ((-1519, -1499), (-1119, -1099), (-319, -299), (-719, -699),
               (85, 101), (477, 501), (873, 901))
         p2111 = ((-1747, -1715), (-1615, -1583), (-1483, -1451),
-                 (-1347, -1315), (-1327, -1315 ), (-1215,-1183 ),
+                 (-1347, -1315), (-1327, -1315), (-1215, -1183),
                  (-1083, -1051), (-947, -915), (-815, -783), (-683, -651),
                  (-547, -515), (-415, -383), (-283, -243), (-143, -111),
                  (-11, 21), (117, 149), (249, 281), (381, 413), (513, 545),
                  (645, 677), (777, 809), (909, 941), (1041, 1073))
         p2211 = ((-1843, -1815), (-1715, -1699), (-1583, -1551),
-                 (-1451, -1435), (-1435, -1415), (-1315, -1299 ),
+                 (-1451, -1435), (-1435, -1415), (-1315, -1299),
                  (-1183, -1151), (-1051, -1019), (-915, -899), (-783, -751),
                  (-651, -619), (-515, -499), (-383, -351), (-243, -211),
                  (-111, -99), (21, 53), (149, 185), (281, 301), (413, 445),
@@ -1076,8 +1074,8 @@ class DateTests(BahaiCalendar):
     def _date_range(self, options):
         data = []
         ve_jd_0001_1582 = self._pre_process_vernal_equinoxs()
-        inject = [(b_date[0], (b_date, g_date))
-                  for b_date, g_date in self.INJECT]
+        #inject = [(b_date[0], (b_date, g_date))
+        #          for b_date, g_date in self.INJECT]
 
         for g_year in range(options.start, options.end):
             if g_year < 1583:
@@ -1089,7 +1087,7 @@ class DateTests(BahaiCalendar):
                 g_date = (g_year, 3, 1)
                 # We must use the Meeus algorithm not mine when finding the
                 # equinox and sunset. So don't use exact=options.exact here.
-                jd = self.gc.jd_from_gregorian_date(g_date) # Julian Period day
+                jd = self.gc.jd_from_gregorian_date(g_date)  # Julian Period day
                 ve_jd = self._find_moment_of_equinoxes_or_solstices(
                     jd, zone=self._BAHAI_LOCATION[2])
 
@@ -1116,7 +1114,7 @@ class DateTests(BahaiCalendar):
     def _calculate_b_date(self, b_date, jd_ss, data, options):
         try:
             g_date = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
-                jd_ss)) # Sunset before VE
+                jd_ss))  # Sunset before VE
             bjd = self._jd_from_badi_date(b_date, coeffon=options.coff)
             e_jd_ss = jd_ss - self._exact_from_meeus(jd_ss)
             # This must be round to 5 (See Badi year 128)
@@ -1136,7 +1134,7 @@ class DateTests(BahaiCalendar):
             assert year == (last_year + 1), (
                 f"last_year: {last_year}, current year {year}")
             jd = self.gc.jd_from_gregorian_date(date)
-            jd += self._BAHAI_LOCATION[2] / 24 # 3.5 hours for Tehran time
+            jd += self._BAHAI_LOCATION[2] / 24  # 3.5 hours for Tehran time
             data[year] = jd
             last_year = year
 
@@ -1151,8 +1149,9 @@ class DateTests(BahaiCalendar):
 
         return items
 
-    def _gregorian_date_from_badi_date(self, b_date:tuple, options, lat=0,
-                                       lon=0, zone=0) -> tuple:
+    def _gregorian_date_from_badi_date(self, b_date: tuple, options,
+                                       lat: float=0, lon: float=0,
+                                       zone: float=0) -> tuple:
         """
         Get the Gregorian date from the Badi date.
         """
@@ -1294,17 +1293,17 @@ if __name__ == "__main__":
     ret = 0
     basename = os.path.basename(__file__)
 
-    if options.analyze: # -a
+    if options.analyze:  # -a
         if options.start is None or options.end is None:
             # Set default Gregorian years.
-            options.start = 1  # Julian year 1
-            options.end = 3005 # Gregorian year 3005
+            options.start = 1   # Julian year 1
+            options.end = 3005  # Gregorian year 3005
 
         G = 'G' if options.graph else ''
         print(f"./contrib/misc/{basename} -a{G}S{options.start} "
               f"-E{options.end}")
 
-        if options.graph: # -G
+        if options.graph:  # -G
             options.coff = True
             data = dt.analyze_date_error(options)
             items = []
@@ -1363,7 +1362,7 @@ if __name__ == "__main__":
             if options.coff:
                 coff = sum(diffs) / len(diffs)
                 print(f"Average Coefficient: {coff}")
-    elif options.ck_dates: # -c
+    elif options.ck_dates:  # -c
         if options.start is None or options.end is None:
             print("If option -c is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -1375,12 +1374,12 @@ if __name__ == "__main__":
             bad_items = dt.check_long_date_from_short_date(data)
             bad_items = bad_items if bad_items else "All dates match."
             pprint.pprint(bad_items)
-    elif options.day: # -d
+    elif options.day:  # -d
         if options.start is None:
-            options.start = -1842 # Julian Calendar year 1
+            options.start = -1842  # Julian Calendar year 1
 
         if options.end is None:
-            options.end = 1162    # Gregorian Calendar year 3005
+            options.end = 1162     # Gregorian Calendar year 3005
 
         start_time = time.time()
         print(f"./contrib/misc/{basename} -dS{options.start} "
@@ -1396,7 +1395,7 @@ if __name__ == "__main__":
             end_time - start_time)
         print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
               f"{round(seconds, 6):02.6} seconds.")
-    elif options.weekdays: # -e
+    elif options.weekdays:  # -e
         if options.start is None or options.end is None:
             print("If option -e is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -1426,7 +1425,7 @@ if __name__ == "__main__":
                 end_time - start_time)
             print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
                   f"{round(seconds, 6):02.6} seconds.")
-    elif options.g_dates: # -g
+    elif options.g_dates:  # -g
         if options.start is None or options.end is None:
             print("If option -g is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -1449,7 +1448,7 @@ if __name__ == "__main__":
                    )
              for (b_date, bjd, g_date,
                   gjd, diff, offby) in dt.find_gregorian_dates(options)]
-    elif options.list: # -l
+    elif options.list:  # -l
         if options.start is None or options.end is None:
             print("If option -l is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -1459,7 +1458,7 @@ if __name__ == "__main__":
                   f"-E{options.end}")
             data = dt.create_date_lists(options)
             pprint.pprint(data)
-    elif options.precursor: # -p
+    elif options.precursor:  # -p
         if options.start is None or options.end is None:
             print("If option -p is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -1471,7 +1470,7 @@ if __name__ == "__main__":
             [print(f"{gy:> 5} {by:> 5}, {n:<1} {a:>2}")
              for gy, by, n, a in data]
             print(f"Total years: {len(data)}")
-    elif options.coeff: # -q
+    elif options.coeff:  # -q
         if options.start is None or options.end is None:
             print("If option -q is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -1480,12 +1479,12 @@ if __name__ == "__main__":
             print(f"./contrib/misc/{basename} -qS{options.start} "
                   f"-E{options.end}")
             [print(item) for item in dt.find_coefficents(options)]
-    elif options.range != 0: # -r
+    elif options.range != 0:  # -r
         print(f"./contrib/misc/{basename} -r")
         data = dt.get_range(options.range)
         [print(item) for item in data]
         print(f"Total years: {len(data)}")
-    elif options.twenty_four: # -t
+    elif options.twenty_four:  # -t
         if options.start is None or options.end is None:
             print("If option -t is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -1503,7 +1502,7 @@ if __name__ == "__main__":
                    f"{str(hms):19}"
                    ) for (b_date, g_date, fss0, fss1,
                           ss_diff, hms) in dt.twenty_four_hours(options)]
-    elif options.leap_years: # -y
+    elif options.leap_years:  # -y
         if options.start is None or options.end is None:
             print("If option -w is used, -S and -E must also be used.",
                   file=sys.stderr)

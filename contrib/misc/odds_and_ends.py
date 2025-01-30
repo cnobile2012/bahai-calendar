@@ -26,7 +26,7 @@ class OddsAndEnds:
     tz1 = ZoneInfo('US/Eastern')
     GREG_POSIX_DATES = (
         ((1844, 3, 19, 18, 16, 36, 710400), BADI_COORDS, tz0),
-        ((1970, 1, 1), LOCAL_COORDS, tz1), # POSIX epoch.
+        ((1970, 1, 1), LOCAL_COORDS, tz1),  # POSIX epoch.
         ((2024, 12, 23, 20, 28, 24), LOCAL_COORDS, tz1),
         )
 
@@ -59,9 +59,9 @@ class OddsAndEnds:
 
         for date, coords, tz in self.GREG_POSIX_DATES:
             m_jd = self._gc.jd_from_gregorian_date(date)
-            db_m_jd = m_jd - 1 # We need the day before.
+            db_m_jd = m_jd - 1  # We need the day before.
             ss = self._gc._sun_setting(db_m_jd, *coords)
-            ss -= self._bc._exact_from_meeus(ss) # Convert to exact JD
+            ss -= self._bc._exact_from_meeus(ss)  # Convert to exact JD
             b_date = self._bc.badi_date_from_jd(ss, *coords, short=True,
                                                 trim=True)
             # Get the fractional day between sunset and UTC 12 a.m. on the
@@ -110,7 +110,7 @@ class OddsAndEnds:
                     date1 = _td_utils._ord2ymd(ordinal, short=True)
 
                     if (options.previous and
-                        (prev_ord != 0 and (prev_ord + 1) != ordinal)):
+                       (prev_ord != 0 and (prev_ord + 1) != ordinal)):
                         data.append((date0, prev_ord, date1, ordinal))
                     elif not options.previous:
                         flag = date0 != date1
@@ -127,8 +127,8 @@ class OddsAndEnds:
 
     # Support methods
 
-    def _year_week_day(self, year:int, month:int, day:int,
-                       week0:bool=False) -> tuple:
+    def _year_week_day(self, year: int, month: int, day: int,
+                       week0: bool=False) -> tuple:
         """
         This method has only one purpose and that is to find the years that
         are in the 53rd week of the given year and is considered to be in
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         help=f"End Badi year {BahaiCalendar.MAXYEAR} of sequence.")
     parser.add_argument(
         '-P', '--previous', action='store_true', default=False,
-        dest='previous', help=f"Dump the previous and current ordinals.")
+        dest='previous', help="Dump the previous and current ordinals.")
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
         help=f"Start Badi year {BahaiCalendar.MINYEAR} of sequence.")
@@ -188,10 +188,10 @@ if __name__ == "__main__":
     ret = 0
     basename = os.path.basename(__file__)
 
-    if options.analyze0: # -a
+    if options.analyze0:  # -a
         print(f"./contrib/misc/{basename} -a")
         oae.find_year_week_day_of_week(options)
-    elif options.analyze1: # -b
+    elif options.analyze1:  # -b
         print(f"./contrib/misc/{basename} -b")
         print("Gregorian Date                    Badi Date                  "
               "   HMS               Combined                     Greg TS"
@@ -206,7 +206,7 @@ if __name__ == "__main__":
                f"{diff:>+10.4f}"
                ) for (date, b_date, hms, comb, greg_ts,
                       badi_ts, diff) in oae.find_posix_time(options)]
-    elif options.ordinal: # -o
+    elif options.ordinal:  # -o
         if options.start is None or options.end is None:
             print("If option -o is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -235,7 +235,7 @@ if __name__ == "__main__":
                    f"{str(flag):5}"
                    ) for date0, ordinal, date1, leap, flag in data]
             print(f"    Total Years Tested: {options.end-options.start}")
-            errors = [l[4] == True for l in data].count(True)
+            errors = [l[4] is True for l in data].count(True)
             print(f"Total Number of Errors: {errors}")
     else:
         parser.print_help()

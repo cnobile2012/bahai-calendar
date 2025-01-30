@@ -2,7 +2,6 @@
 
 import os
 import sys
-import math
 import pprint
 
 PWD = os.path.dirname(os.path.abspath(__file__))

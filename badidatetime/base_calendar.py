@@ -6,9 +6,6 @@ __docformat__ = "restructuredtext en"
 
 import math
 
-from functools import reduce
-from operator import mul
-
 from badidatetime.julian_period import JulianPeriod
 from badidatetime._astronomical_terms import AstronomicalTerms
 
@@ -32,7 +29,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _US = lambda self, x: x / 1000000
     _ANGLE = lambda self, d, m, s: d + (m + s / 60) / 60  # 0 - 360
     _AMOD = lambda self, x, y: y + x % -y
-    _MOD3 = lambda self, x, a, b : x if a == b else (
+    _MOD3 = lambda self, x, a, b: x if a == b else (
         a + math.fmod((x - a), (b - a)))
     _QUOTIENT = lambda self, m, n: math.floor(m / n)
 
@@ -411,7 +408,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         dt = self._delta_t(jd)
         tc_td = dt / 36525 + tc  # Compensate for the Julian Century
         alpha = self._sun_apparent_right_ascension(tc_td)
-        delta = self._sun_apparent_declination(tc_td)
         ast = self._apparent_sidereal_time_greenwich(tc)
         h0 = self._approx_local_hour_angle(tc, lat, offset=offset)
         m0 = func0((alpha - lon - ast) / 360)
@@ -508,7 +504,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :return: The nutation of obliquity.
         :rtype: float
         """
-        tc_day , obj_sum, deg = self._nutation['obl']
+        tc_day, obj_sum, deg = self._nutation['obl']
 
         if tc != tc_day or degrees != deg:
             lon_sum, obl_sum = self._nutation_obliquity_longitude(
@@ -908,7 +904,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         l += self._aberration(tm)
 
         if degrees:
-           l = self._coterminal_angle(math.degrees(l))
+            l = self._coterminal_angle(math.degrees(l))
 
         return round(l, self._ROUNDING_PLACES)
 
@@ -978,7 +974,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             0, 0, -0.005775518 * r * aberration), self._ROUNDING_PLACES)
 
     def _approx_julian_day_for_equinoxes_or_solstices(self, g_year: int,
-                                                     lam: int=_SPRING
+                                                      lam: int=_SPRING
                                                       ) -> float:
         """
         Find the approximate Julian day for the equinoxes or solstices.
@@ -1060,7 +1056,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return round(jde, self._ROUNDING_PLACES)
 
     def _decimal_from_dms(self, degrees: int, minutes: int, seconds: float,
-                         direction: str='N') -> float:
+                          direction: str='N') -> float:
         '''
         Coordinantes in degrees, minutes, and seconds.
 
@@ -1174,7 +1170,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return h, m, s
 
     def _seconds_from_dhms(self, days: int, hours: int, minutes: int,
-                          seconds: float, zone: float=0) -> float:
+                           seconds: float, zone: float=0) -> float:
         """
         Convert days, hours, minutes, and seconds to seconds.
 

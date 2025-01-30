@@ -5,7 +5,6 @@
 
 import os
 import sys
-import math
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
@@ -80,9 +79,10 @@ Vernal Equinox        Sunset of Epoch
 (2064, 3, 19, 23, 9)  (2064, 3, 19, 18, 16)
 """
 
+
 class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
+    #    Year WC Naw-Ruz     Vernal Equinox (GMT)
     WC_DATA = (
-        #Year WC Naw-Ruz     Vernal Equinox (GMT)
         (172, (2015, 3, 20), (2015, 3, 20, 22, 45)),
         (173, (2016, 3, 19), (2016, 3, 20,  4, 30)),
         (174, (2017, 3, 19), (2017, 3, 20, 10, 29)),
@@ -148,14 +148,13 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
 
         Use -v
         """
-        lam = self.SPRING
         data = []
 
         for year, wc_ss, nasa_ve in self.WC_DATA:
             # We do not use my version of the date to JD formula as it
             # will not work with any of Meeus' equations.
-            first_of_march = (wc_ss[0], wc_ss[1], 1) # Replace day with the 1st
-            jd = self.gc.jd_from_gregorian_date(first_of_march) # Get Julian
+            first_of_march = (wc_ss[0], wc_ss[1], 1)  # Replace day with the 1st
+            jd = self.gc.jd_from_gregorian_date(first_of_march)  # Get Julian
             my_ve_jd = self.find_moment_of_equinoxes_or_solstices(jd, zone=3.5)
             my_ss_jd = self._sun_setting(my_ve_jd, *self.location)
 
@@ -175,13 +174,13 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
             nasa_ve_3p5 = self.gc.ymdhms_from_date(
                 self.gc.gregorian_date_from_jd(nasa_ve_jd))
             #print(year, my_ve, nasa_ve_jd, file=sys.stderr)
-            data.append((year,                          # Baha'i year
-                         wc_ss,                         # WC sunset
-                         my_g_ss,                       # My Gregorian sunset
-                         round(my_ss_jd-my_ve_jd, 6),   # Sunset difference
-                         nasa_ve_3p5,                   # NASA VE
-                         my_ve_g,                       # My VE
-                         round(my_ve_jd-nasa_ve_jd, 6), # VE difference
+            data.append((year,                           # Baha'i year
+                         wc_ss,                          # WC sunset
+                         my_g_ss,                        # My Gregorian sunset
+                         round(my_ss_jd-my_ve_jd, 6),    # Sunset difference
+                         nasa_ve_3p5,                    # NASA VE
+                         my_ve_g,                        # My VE
+                         round(my_ve_jd-nasa_ve_jd, 6),  # VE difference
                          ))
 
         return data
@@ -197,8 +196,8 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
 
     def determine_year_length(self):
         data = []
-        wc_pre_year = 0
-        ss_pre_year = 0
+        #wc_pre_year = 0
+        #ss_pre_year = 0
         data.append("Year "
                     "VE STD Date                   "
                     "WC Naw-Ruz    "
@@ -211,7 +210,7 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         for year, item in self.WC_DATA.items():
             # World Center data
             wc_naw_ruz = item[0]
-            wc_nr_day = self.gc.jd_from_gregorian_date(wc_naw_ruz)
+            #wc_nr_day = self.gc.jd_from_gregorian_date(wc_naw_ruz)
             # Meeus tables UTC times
             ve_utc_day = self.gc.jd_from_gregorian_date(item[1])
             ve_std_date = self.gc.gregorian_date_from_jd(ve_utc_day)
@@ -227,20 +226,20 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
                          #wc_nr_day - wc_pre_year
                          #rd_ss_day - ss_pre_year
                          ))
-            wc_pre_year = wc_nr_day
-            ss_pre_year = rd_ss_day
+            #wc_pre_year = wc_nr_day
+            #ss_pre_year = rd_ss_day
 
         return data
 
     def find_coefficients(self):
         data = []
-        g_lte = 1.962
+        #g_lte = 1.962
         g_gt = 0.038
-        d0 = 365056.574 # or 365056.575
-        n0 = 730120 # 730113
+        d0 = 365056.574  # or 365056.575
+        n0 = 730120      # 730113
 
         for c in range(n0-20, 730151):
-            rd_lte = 716241 / d0
+            #rd_lte = 716241 / d0
             rd_gt = (716241 - c) / d0
             #data.append(f"{d0:<010}, {d}, {g_lte}, {rd_lte}")
             data.append(f"{c}, {g_gt}, {rd_gt}")
@@ -249,7 +248,6 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
 
 
 if __name__ == "__main__":
-    import pprint
     import argparse
 
     parser = argparse.ArgumentParser(

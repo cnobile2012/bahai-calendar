@@ -109,9 +109,11 @@ class struct_time:
             raise ValueError(msg)
 
         if short:
-            inst = ShortFormStruct(*self.__fill_in_missing(date, tzinfo, short))
+            inst = ShortFormStruct(
+                *self.__fill_in_missing(date, tzinfo, short))
         else:
-            inst = LongFormStruct(*self.__fill_in_missing(date, tzinfo, short))
+            inst = LongFormStruct(
+                *self.__fill_in_missing(date, tzinfo, short))
 
         return inst
 

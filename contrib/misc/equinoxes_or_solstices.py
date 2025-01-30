@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
 
-def sigma(lists:tuple, func:object) -> float:
+def sigma(lists: tuple, func: object) -> float:
     assert len(set(len(lst) for lst in lists)) == 1, (
         "Lists must have the same length")
     return sum(func(*e) for e in zip(*lists))

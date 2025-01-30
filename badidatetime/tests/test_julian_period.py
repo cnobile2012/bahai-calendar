@@ -4,11 +4,8 @@
 #
 __docformat__ = "restructuredtext en"
 
-import os
 import unittest
-#import datetime
 
-from ..base_calendar import BaseCalendar
 from ..julian_period import JulianPeriod
 from ..gregorian_calendar import GregorianCalendar
 

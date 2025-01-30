@@ -9,8 +9,6 @@
 import os
 import re
 import sys
-import math
-import pprint
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))

@@ -15,18 +15,18 @@ from datetime import datetime as _dtime, timedelta, tzinfo
 from types import NoneType
 
 from .badi_calendar import BahaiCalendar
-from ._structures import struct_time
 from ._timedateutils import _td_utils
 
 
-_MAXORDINAL = 1097267 # date.max.toordinal()
+_MAXORDINAL = 1097267  # date.max.toordinal()
 MINYEAR = BahaiCalendar.MINYEAR
 MAXYEAR = BahaiCalendar.MAXYEAR
-BADI_IANA = BahaiCalendar._BAHAI_LOCATION[3] # Asia/Terhan
+BADI_IANA = BahaiCalendar._BAHAI_LOCATION[3]  # Asia/Terhan
 BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
 GMT_COORD = (51.477928, -0.001545, 0)
 # LOCAL_COORD and LOCAL is lazily configured to the local coordinates
 # if enables or the default is BADI_COORD, and BADI.
+
 
 def _cmp(x, y):
     """
@@ -37,6 +37,7 @@ def _cmp(x, y):
     :return: If 0 then x == y, else if 1 then x > y else if -1 then x < y.
     """
     return 0 if x == y else 1 if x > y else -1
+
 
 def _divide_and_round(a: int, b: int):
     """
@@ -59,6 +60,7 @@ def _divide_and_round(a: int, b: int):
     r *= 2
     greater_than_half = r > b if b > 0 else r < b
     return q + (1 if greater_than_half or r == b and q % 2 == 1 else 0)
+
 
 def _check_offset(name: str, offset: timedelta) -> None:
     """
@@ -88,6 +90,7 @@ def _check_offset(name: str, offset: timedelta) -> None:
                     f"{name}()={offset}, must be strictly between "
                     "-timedelta(hours=24) and timedelta(hours=24)")
 
+
 def _check_tzinfo_arg(tz: tzinfo):
     """
     Check that the `tz` argument is either `None` or a `tzinfo` subclass.
@@ -99,6 +102,7 @@ def _check_tzinfo_arg(tz: tzinfo):
         raise TypeError("tzinfo argument must be None or of a tzinfo "
                         f"subclass, found {tz!r}")
 
+
 def _cmperror(x, y):
     """
     Test that `x` and `y` are the correct types to be compared.
@@ -109,6 +113,7 @@ def _cmperror(x, y):
     """
     raise TypeError(f"Cannot compare {type(x).__name__!r} to "
                     f"{type(y).__name__!r}")
+
 
 def _format_time(hh: int, mm: int, ss: int, us: int, timespec: str='auto'
                  ) -> str:
@@ -140,10 +145,11 @@ def _format_time(hh: int, mm: int, ss: int, us: int, timespec: str='auto'
     try:
         fmt = specs[timespec]
     except KeyError:
-        raise ValueError( f"Invalid timespec '{timespec}', must be one "
-                          f"of {tuple(specs.keys())}.")
+        raise ValueError(f"Invalid timespec '{timespec}', must be one "
+                         f"of {tuple(specs.keys())}.")
     else:
         return fmt.format(hh, mm, ss, us)
+
 
 def _format_offset(off: timedelta) -> str:
     """
@@ -179,6 +185,7 @@ def _format_offset(off: timedelta) -> str:
 
     return s
 
+
 def _check_tzname(name: str):
     """
     Check that the `name` argument is either `None` or a `str`.
@@ -189,6 +196,7 @@ def _check_tzname(name: str):
     if name is not None and not isinstance(name, str):
         raise TypeError("tzinfo.tzname() must return None or string, "
                         f"not {type(name)!r}")
+
 
 def _fromutc(this: tzinfo, dt):
     """
@@ -239,6 +247,7 @@ def _fromutc(this: tzinfo, dt):
 
     return dt + dtdst
 
+
 def _module_name(module: str) -> str:
     """
     Find the package name without the first directory.
@@ -258,8 +267,8 @@ class date(BahaiCalendar):
     __slots__ = ('_kull_i_shay', '_vahid', '_year', '_month', '_day',
                  '_hashcode', '__date', '__short')
 
-    def __new__(cls, a:int, b:int=None, c:int=None, d:int=None,
-                e:int=None) -> object:
+    def __new__(cls, a: int, b: int=None, c: int=None, d: int=None,
+                e: int=None) -> object:
         """
         Instantiate the class.
 
@@ -319,7 +328,7 @@ class date(BahaiCalendar):
     # Additional constructors
 
     @classmethod
-    def fromtimestamp(cls, t:float, *, short:bool=False) -> object:
+    def fromtimestamp(cls, t: float, *, short: bool=False) -> object:
         """
         Construct a date from a POSIX timestamp (like time.time()).
 
@@ -337,10 +346,10 @@ class date(BahaiCalendar):
         date = bc.posix_timestamp(t, *LOCAL_COORD, short=short, trim=True)
         del bc
         date = date[:3] if short else date[:5]
-        return cls(*date) # We do not need any time values.
+        return cls(*date)  # We do not need any time values.
 
     @classmethod
-    def today(cls, *, short:bool=False) -> object:
+    def today(cls, *, short: bool=False) -> object:
         """
         Construct a date from time.time().
 
@@ -355,7 +364,7 @@ class date(BahaiCalendar):
         return cls.fromtimestamp(_time.time(), short=short)
 
     @classmethod
-    def fromordinal(cls, n:int, *, short:bool=False) -> object:
+    def fromordinal(cls, n: int, *, short: bool=False) -> object:
         """
         Construct a date from a proleptic Badi ordinal.
 
@@ -378,7 +387,7 @@ class date(BahaiCalendar):
         return cls(*date)
 
     @classmethod
-    def fromisoformat(cls, date_string:str, *, short:bool=False) -> object:
+    def fromisoformat(cls, date_string: str, *, short: bool=False) -> object:
         """
         Construct a date from a string in ISO 8601 format.
         We only can convert from short form Badi dates.
@@ -410,8 +419,8 @@ class date(BahaiCalendar):
             return cls(*b_date)
 
     @classmethod
-    def fromisocalendar(cls, year:int, week:int, day:int, *,
-                        short:bool=False) -> object:
+    def fromisocalendar(cls, year: int, week: int, day: int, *,
+                        short: bool=False) -> object:
         """
         Construct a date from the ISO year, week number and weekday.
 
@@ -491,7 +500,7 @@ class date(BahaiCalendar):
             return ret
 
         raise TypeError(
-            f"Must be a str, not a {type(fmt).__name__}") # pragma: no cover
+            f"Must be a str, not a {type(fmt).__name__}")  # pragma: no cover
 
     def isoformat(self):
         """
@@ -575,15 +584,16 @@ class date(BahaiCalendar):
         """
         return _td_utils._ymd2ord(*self._short_from_long_form()[:3])
 
-    def replace(self, kull_i_shay:int=None, vahid:int=None, year:int=None,
-                month:int=None, day:int=None) -> object:
+    def replace(self, kull_i_shay: int=None, vahid: int=None, year: int=None,
+                month: int=None, day: int=None) -> object:
         """
         Return a new date with new values for the specified fields.
         """
         if self.is_short and (kull_i_shay or vahid):
             msg = "Cannot convert from a short to a long form date."
             raise ValueError(msg)
-        elif not self.is_short and year is not None and (year < 1 or year > 19):
+        elif (not self.is_short and year is not None and
+              (year < 1 or year > 19)):
             msg = ("Cannot convert from a long to a short form date. The "
                    f"value {year} is not valid for long form dates.")
             raise ValueError(msg)
@@ -595,10 +605,10 @@ class date(BahaiCalendar):
 
         return obj
 
-    def _replace_short(self, *, year:int=None, month:int=None, day:int=None,
-                       hour:int=None, minute:int=None, second:int=None,
-                       microsecond:int=None, tzinfo=True,
-                       fold:int=None) -> object:
+    def _replace_short(self, *, year: int=None, month: int=None, day: int=None,
+                       hour: int=None, minute: int=None, second: int=None,
+                       microsecond: int=None, tzinfo: tzinfo=True,
+                       fold: int=None) -> object:
         """
         Replace any of the year, month, or day.
         """
@@ -619,11 +629,11 @@ class date(BahaiCalendar):
 
         return obj
 
-    def _replace_long(self, *, kull_i_shay:int=None, vahid:int=None,
-                      year:int=None, month:int=None, day:int=None,
-                      hour:int=None, minute:int=None, second:int=None,
-                      microsecond:int=None, tzinfo=True,
-                      fold:int=None) -> object:
+    def _replace_long(self, *, kull_i_shay: int=None, vahid: int=None,
+                      year: int=None, month: int=None, day: int=None,
+                      hour: int=None, minute: int=None, second: int=None,
+                      microsecond: int=None, tzinfo=True,
+                      fold: int=None) -> object:
         """
         Replace any of the kull_i_shay, vahid, year, month, or day.
         """
@@ -835,7 +845,8 @@ class date(BahaiCalendar):
     def __reduce__(self):
         return (self.__class__, self._getstate())
 
-_date_class = date  # so functions w/ args named "date" can get at the class
+
+_date_class = date  # So functions w/ args named "date" can get at the class
 
 # This also needs to be done for long form date. *** TODO ***
 date.min = date(MINYEAR, 1, 1)
@@ -900,9 +911,9 @@ class time:
     __slots__ = ('_hour', '_minute', '_second', '_microsecond', '_tzinfo',
                  '_hashcode', '_fold')
 
-    def __new__(cls, hour:float=0, minute:float=0, second:float=0,
-                microsecond:int=0, tzinfo:tzinfo=None, *,
-                fold:int=0) -> object:
+    def __new__(cls, hour: float=0, minute: float=0, second: float=0,
+                microsecond: int=0, tzinfo: tzinfo=None, *,
+                fold: int=0) -> object:
         """
         Constructor.
 
@@ -922,7 +933,7 @@ class time:
         :rtype: time
         """
         if (isinstance(hour, (bytes, str)) and len(hour) == 6 and
-            ord(hour[0:1])&0x7F < 24):
+            ord(hour[0:1]) & 0x7F < 24):
             # Pickle support
             if isinstance(hour, str):
                 try:
@@ -1036,7 +1047,7 @@ class time:
 
         if myoff is None or otoff is None:
             if allow_mixed:
-                return 2 # arbitrary non-zero value
+                return 2  # arbitrary non-zero value
             else:
                 raise TypeError("Cannot compare naive and aware times.")
 
@@ -1059,7 +1070,7 @@ class time:
 
             tzoff = t.utcoffset()
 
-            if not tzoff: # zero or None
+            if not tzoff:  # zero or None
                 self._hashcode = hash(t._getstate()[0])
             else:
                 h, m = divmod(timedelta(
@@ -1275,29 +1286,31 @@ class time:
     def __reduce_ex__(self, protocol):
         return (self.__class__, self._getstate(protocol))
 
-    def __reduce__(self): # pragma: no cover
+    def __reduce__(self):  # pragma: no cover
         return self.__reduce_ex__(2)
 
-_time_class = time # so functions w/ args named "time" can get at the class
+
+_time_class = time  # so functions w/ args named "time" can get at the class
 
 time.min = time(0, 0, 0)
-time.max = time(24, 0, 3) # See contrib/misc/badi_jd_tests.py --day
+time.max = time(24, 0, 3)  # See contrib/misc/badi_jd_tests.py --day
 time.resolution = timedelta(microseconds=1)
 
 
 class datetime(date):
     """
-    datetime(year, month, day[, hour[, minute[, second[, microsecond[,tzinfo]]]]])
+    datetime(year, month, day[, hour[, minute[, second[,
+             microsecond[,tzinfo]]]]])
 
     The year, month and day arguments are required. tzinfo may be None, or an
     instance of a tzinfo subclass. The remaining arguments may be ints.
     """
     __slots__ = date.__slots__ + time.__slots__
 
-    def __new__(cls, a:int, b:int=None, c:int=None, d:int=None, e:int=None,
-                hour:float=0, minute:float=0, second:float=0,
-                microsecond:int=0, tzinfo:tzinfo=None, *,
-                fold:int=0) -> object:
+    def __new__(cls, a: int, b: int=None, c: int=None, d: int=None,
+                e: int=None, hour: float=0, minute: float=0, second: float=0,
+                microsecond: int=0, tzinfo: tzinfo=None, *,
+                fold: int=0) -> object:
         if (short := datetime._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
             super().__init__(self)
@@ -1458,8 +1471,8 @@ class datetime(date):
             # than the max time fold. See comments in _datetimemodule's
             # version of this method for more details.
             if t < max_fold_seconds and sys.platform.startswith('win'):
-                del bc # pragma: no cover
-                return result # pragma: no cover
+                del bc  # pragma: no cover
+                return result  # pragma: no cover
 
             dt = bc.posix_timestamp(t - max_fold_seconds, *LOCAL_COORD,
                                     us=True, short=short, trim=False)
@@ -1474,7 +1487,7 @@ class datetime(date):
                 date = _fix_short_date(dt, short)
                 probe2 = cls(*date, tzinfo=tz)
 
-                if probe2 == result: # pragma: no cover
+                if probe2 == result:  # pragma: no cover
                     result._fold = 1
         elif tz is not None:
             result = _fromutc(tz, result)
@@ -1483,7 +1496,7 @@ class datetime(date):
         return result
 
     @classmethod
-    def fromtimestamp(cls, t:float, tz:tzinfo=None, *, short:bool=False):
+    def fromtimestamp(cls, t: float, tz: tzinfo=None, *, short: bool=False):
         """
         Construct a datetime from a POSIX timestamp representing local time
         (like time.time()).
@@ -1495,14 +1508,14 @@ class datetime(date):
     # https://docs.python.org/3/deprecations/index.html
 
     @classmethod
-    def now(cls, tz=None, short:bool=False):
+    def now(cls, tz=None, short: bool=False):
         """
         Construct a datetime from time.time() and optional time zone info.
         """
         return cls.fromtimestamp(_time.time(), tz, short=short)
 
     @classmethod
-    def combine(cls, date:date, time:time, tzinfo:time.tzinfo=True):
+    def combine(cls, date: date, time: time, tzinfo: time.tzinfo=True):
         """
         Construct a datetime from a given date and a given time.
         """
@@ -1659,13 +1672,14 @@ class datetime(date):
         if tzinfo is True:
             tzinfo = self.tzinfo
 
-        if fold is None: # pragma: no cover
+        if fold is None:  # pragma: no cover
             fold = self.fold
 
         if self.is_short and (kull_i_shay or vahid):
             msg = "Cannot convert from a short to a long form date."
             raise ValueError(msg)
-        elif not self.is_short and year is not None and (year < 1 or year > 19):
+        elif (not self.is_short and year is not None and
+              (year < 1 or year > 19)):
             msg = ("Cannot convert from a long to a short form date. The "
                    f"value {year} is not valid for long form dates.")
             raise ValueError(msg)
@@ -1700,21 +1714,18 @@ class datetime(date):
             ts += (0,) * need if need > 0 else ()
             localtm = _td_utils._build_struct_time(ts, -1, tzinfo=LOCAL,
                                                    short_in=True)
-            date = localtm[:3] + (None, None) + localtm[3:6]
-            local = datetime(*date)
         else:
             need = 8 - ts_len
             ts += (0,) * need if need > 0 else ()
             localtm = _td_utils._build_struct_time(ts, -1, tzinfo=LOCAL,
                                                    short_in=False)
-            local = datetime(*localtm[:8])
 
         # Extract TZ data
         gmtoff = localtm.tm_gmtoff
         zone = localtm.tm_zone
         return timezone(timedelta(seconds=gmtoff), zone)
 
-    def astimezone(self, tz:tzinfo=None):
+    def astimezone(self, tz: tzinfo=None):
         """
         Returns a datetime object with the provided tzinfo object attached.
 
@@ -1953,10 +1964,10 @@ class datetime(date):
             # Assume that allow_mixed means that we are called from __eq__
             if allow_mixed:
                 if myoff != self.replace(fold=not self.fold).utcoffset():
-                    return 2 # arbitrary non-zero value
+                    return 2  # arbitrary non-zero value
 
                 if otoff != other.replace(fold=not other.fold).utcoffset():
-                    return 2 # arbitrary non-zero value
+                    return 2  # arbitrary non-zero value
 
             base_compare = myoff == otoff
 
@@ -1968,12 +1979,12 @@ class datetime(date):
 
         if myoff is None or otoff is None:
             if allow_mixed:
-                return 2 # arbitrary non-zero value
+                return 2  # arbitrary non-zero value
             else:
                 raise TypeError("Cannot compare naive and aware datetimes.")
 
         # XXX What follows could be done more efficiently...
-        diff = self - other # this will take offsets into account
+        diff = self - other  # this will take offsets into account
 
         if diff.days < 0:
             return -1
@@ -2078,8 +2089,8 @@ class datetime(date):
                 f"Invalid string {a} had length of {a_len} for pickle.")
             short = True if a_len == 10 else False
 
-            if ((short and 1 <= ord(a[2:3])&0x7F <= 19)
-                or not short and 1 <= ord(a[3:4])&0x7F <= 19):
+            if ((short and 1 <= ord(a[2:3]) & 0x7F <= 19)
+                or not short and 1 <= ord(a[3:4]) & 0x7F <= 19):
                 if isinstance(a, str):
                     try:
                         a = a.encode('latin1')
@@ -2157,8 +2168,9 @@ class datetime(date):
     def __reduce_ex__(self, protocol):
         return (self.__class__, self._getstate(protocol))
 
-    def __reduce__(self): # pragma: no cover
+    def __reduce__(self):  # pragma: no cover
         return self.__reduce_ex__(2)
+
 
 datetime.min = datetime(-1842, 1, 1)
 datetime.max = datetime(1161, 19, 19)
@@ -2171,7 +2183,7 @@ class timezone(tzinfo):
     # Sentinel value to disallow None
     _Omitted = object()
 
-    def __new__(cls, offset:timedelta, name:str=_Omitted) -> object:
+    def __new__(cls, offset: timedelta, name: str=_Omitted) -> object:
         """
         Construct the constructor.
 
@@ -2201,7 +2213,7 @@ class timezone(tzinfo):
         return cls._create(offset, name)
 
     @classmethod
-    def _create(cls, offset:timedelta, name:str=None):
+    def _create(cls, offset: timedelta, name: str=None):
         self = tzinfo.__new__(cls)
         self._offset = offset
         self._name = name
@@ -2243,21 +2255,21 @@ class timezone(tzinfo):
     def __str__(self):
         return self.tzname(None)
 
-    def utcoffset(self, dt:datetime):
+    def utcoffset(self, dt: datetime):
         if isinstance(dt, datetime) or dt is None:
             return self._offset
 
         raise TypeError("utcoffset() argument must be a datetime instance "
                         "or None")
 
-    def badioffset(self, dt:datetime):
+    def badioffset(self, dt: datetime):
         if isinstance(dt, datetime) or dt is None:
             return self._offset - timedelta(hours=BADI_COORD[2])
 
         raise TypeError("badioffset() argument must be a datetime instance "
                         "or None")
 
-    def tzname(self, dt:datetime):
+    def tzname(self, dt: datetime):
         if isinstance(dt, datetime) or dt is None:
             if self._name is None:
                 return self._name_from_offset(self._offset)
@@ -2267,13 +2279,13 @@ class timezone(tzinfo):
         raise TypeError("tzname() argument must be a datetime instance "
                         "or None")
 
-    def dst(self, dt:datetime):
+    def dst(self, dt: datetime):
         if isinstance(dt, datetime) or dt is None:
             return None
 
         raise TypeError("dst() argument must be a datetime instance or None")
 
-    def fromutc(self, dt:datetime):
+    def fromutc(self, dt: datetime):
         if isinstance(dt, datetime):
             if dt.tzinfo is not self:
                 raise ValueError("fromutc: dt.tzinfo is not self")
@@ -2287,7 +2299,7 @@ class timezone(tzinfo):
     _minoffset = -_maxoffset
 
     @staticmethod
-    def _name_from_offset(delta:timedelta) -> str:
+    def _name_from_offset(delta: timedelta) -> str:
         if not delta:
             return 'UTC'
 
@@ -2318,6 +2330,7 @@ class timezone(tzinfo):
 
     def __hash__(self):
         return hash(self._offset)
+
 
 UTC = timezone.utc = timezone._create(timedelta(0))
 BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))

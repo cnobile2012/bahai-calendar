@@ -6,8 +6,6 @@
 
 import os
 import sys
-import math
-import time
 import datetime as dtime
 
 PWD = os.path.dirname(os.path.abspath(__file__))
@@ -81,7 +79,7 @@ if __name__ == "__main__":
     pt = PosixTests()
     ret = 0
 
-    if options.analyze0: # -a
+    if options.analyze0:  # -a
         #print(pt.analize0(options))
         [print(f"{str(g_date):13} "
                f"{gt:10} "

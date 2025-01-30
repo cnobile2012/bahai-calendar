@@ -5,7 +5,7 @@
 
 import os
 import sys
-import pprint
+#import pprint
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))

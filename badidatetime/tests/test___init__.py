@@ -32,7 +32,7 @@ class Test__init__(unittest.TestCase):
         offset, dst, iana = _local_timezone_info()
         self.assertTrue(isinstance(offset, float),
                         f"The offset {offset} was not an float.")
-        self.assertTrue(dst in (0, 1), f"The dst was not a 0 or 1")
+        self.assertTrue(dst in (0, 1), "The dst was not a 0 or 1")
         self.assertTrue(isinstance(iana, str),
                         f"The IANA {iana} was not a string.")
 
@@ -73,9 +73,8 @@ class Test__init__(unittest.TestCase):
                          f"found {badidt.LOCAL}")
         enable_geocoder()
         self.assertNotEqual(badidt.LOCAL_COORD, badidt.BADI_COORD,
-                         f"The LOCAL_COORD should not be {badidt.BADI_COORD}, "
-                         f"found {badidt.LOCAL_COORD}")
+                            "The LOCAL_COORD should not be "
+                            f"{badidt.BADI_COORD}, found {badidt.LOCAL_COORD}")
         self.assertNotEqual(badidt.LOCAL, badidt.BADI,
-                         f"The LOCAL should not be {badidt.BADI}, "
-                         f"found {badidt.LOCAL}")
-
+                            f"The LOCAL should not be {badidt.BADI}, "
+                            f"found {badidt.LOCAL}")

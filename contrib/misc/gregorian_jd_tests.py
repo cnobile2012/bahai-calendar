@@ -5,8 +5,6 @@
 import os
 import sys
 import math
-import pprint
-from datetime import timedelta
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
@@ -142,7 +140,6 @@ class JulianPeriodTests:
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
                else self.GREGORIAN_LEAP_YEAR)
         data = []
-        values = range(1, 1583)
 
         for date in self.TEST_DATES:
             date = date if isinstance(date, tuple) else (date, 1, 1)
@@ -417,7 +414,7 @@ class JulianPeriodTests:
                         if last_jd != 0 and last_jd == jd:
                             data.append((date, last_jd, jd))
 
-                        last_jd = jd # Save the jd
+                        last_jd = jd  # Save the jd
         elif options.g_date:
             items = []
             last_date = ()
@@ -569,7 +566,7 @@ class JulianPeriodTests:
         GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         year, month, day = self.date_from_ymdhms(g_date)
         td = self._days_in_years(year-1, alt=alt)
-        days = td + (self.GREGORIAN_EPOCH - 1) # 37
+        days = td + (self.GREGORIAN_EPOCH - 1)  # 37
         month_days = list(self.MONTHS)
         month_days[1] = 29 if GLY(year) else 28
         days += sum(month_days[:month-1]) + day
@@ -586,7 +583,7 @@ class JulianPeriodTests:
         z = math.floor(j_day)
         f = j_day % 1
 
-        if z >= 2299161: # 1582-10-15 Julian and Gregorian crossover.
+        if z >= 2299161:  # 1582-10-15 Julian and Gregorian crossover.
             alpha = math.floor((z - 1867216.25) / 36524.25)
             a = z + 1 + alpha - math.floor(alpha / 4)
         else:
@@ -667,11 +664,11 @@ class JulianPeriodTests:
             n_400 = y // 400
             n_leap_years = n_4 - n_100 + n_400
 
-        a = y - n_leap_years # Non-leap years
-        b = y - a # Leap years
+        a = y - n_leap_years  # Non-leap years
+        b = y - a             # Leap years
         return a * 365 + b * 366
 
-    def date_from_ymdhms(self, date:tuple) -> tuple:
+    def date_from_ymdhms(self, date: tuple) -> tuple:
         """
         Convert (year, month, day, hour, minute, second) into a
         (year, month, day.partial) date.
@@ -749,23 +746,23 @@ if __name__ == "__main__":
     if options.debug:
         sys.stderr.write("DEBUG--options: {}\n".format(options))
 
-    if options.analyze: # -a
+    if options.analyze:  # -a
         data = [f"{idx:>02} "
                 f"{str(date):<17} "
                 f"{str(leap):<6} "
-                #f"{jd0:<10} "      # Meeus
-                #f"{str(gd0):<17} " # Meeus
-                f"{jd1:<10} "       # Mine
-                f"{str(gd1):<17} "  # Mine
+                #f"{jd0:<10} "       # Meeus
+                #f"{str(gd0):<17} "  # Meeus
+                f"{jd1:<10} "        # Mine
+                f"{str(gd1):<17} "   # Mine
                 #f"{jd1 - jd0:<4}"
                 for (
                     idx,
-                    (date, # Initial Gregorian date
-                     leap, # Is leap year
-                     jd0,  # Meeus
-                     gd0,  # Meeus
-                     jd1,  # Mine
-                     gd1)  # Mine
+                    (date,  # Initial Gregorian date
+                     leap,  # Is leap year
+                     jd0,   # Meeus
+                     gd0,   # Meeus
+                     jd1,   # Mine
+                     gd1)   # Mine
                     ) in enumerate(jpt.analyze(options), start=1)]
         print("ID "
               "Start Date"
@@ -777,19 +774,19 @@ if __name__ == "__main__":
               #"              Diff"
               )
         [print(item) for item in data]
-    elif options.analyze_1: # -1
+    elif options.analyze_1:  # -1
         if options.start is None or options.end is None:
             print("If option -1 is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
         else:
-            data = [f"{str(date):<17} " # Initial Gregorian date
-                    f"{str(leap):<6} "  # Is leap year
-                    f"{jd0:<10} "       # Meeus
-                    f"{str(gd0):<17} "  # Meeus
-                    f"{jd1:<10} "       # Mine
-                    f"{str(gd1):<17} "  # Mine
-                    f"{jd1 - jd0:<5}"   # Mine - Meeus (diff)
+            data = [f"{str(date):<17} "  # Initial Gregorian date
+                    f"{str(leap):<6} "   # Is leap year
+                    f"{jd0:<10} "        # Meeus
+                    f"{str(gd0):<17} "   # Meeus
+                    f"{jd1:<10} "        # Mine
+                    f"{str(gd1):<17} "   # Mine
+                    f"{jd1 - jd0:<5}"    # Mine - Meeus (diff)
                     for (date,
                          leap,
                          jd0,
@@ -805,16 +802,16 @@ if __name__ == "__main__":
                   "Diff"
                   )
             [print(item) for item in data]
-    elif options.analyze_2: # -2
+    elif options.analyze_2:  # -2
         if options.start is None or options.end is None:
             print("If option -2 is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
         else:
-            data = [f"{str(date):<16} " # Initial Gregorian date
-                    f"{str(gd1):<16} "  # Mine
-                    f"{jd1:<10} "       # Mine
-                    f"{str(leap):<6} "  # Is leap year
+            data = [f"{str(date):<16} "  # Initial Gregorian date
+                    f"{str(gd1):<16} "   # Mine
+                    f"{jd1:<10} "        # Mine
+                    f"{str(leap):<6} "   # Is leap year
                     for (date,
                          gd1,
                          jd1,
@@ -825,7 +822,7 @@ if __name__ == "__main__":
                   "Leap   "
                   )
             [print(item) for item in data]
-    elif isinstance(options.compare, int): # -c
+    elif isinstance(options.compare, int):  # -c
         data = [
             f"Year {year:>4} "
             f"GLY_STD {gly_std:<1} "
@@ -833,7 +830,7 @@ if __name__ == "__main__":
             for year, gly_std, gly_alt in jpt.compare_leap_year_algorithms(
                 options.compare)]
         [print(item) for item in data]
-    elif options.consecutive: # -k
+    elif options.consecutive:  # -k
         if options.start is None or options.end is None:
             print("If option -k is used, -S and -E must also be used.",
                   file=sys.stderr)
@@ -856,7 +853,7 @@ if __name__ == "__main__":
             ret = 1
 
         if ret == 0: [print(item) for item in data]
-    elif options.julian_day: # -j
+    elif options.julian_day:  # -j
         if options.start is None or options.end is None:
             print("If option -j is used, -S and -E must also be used.",
                   file=sys.stderr)

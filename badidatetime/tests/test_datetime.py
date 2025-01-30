@@ -15,7 +15,6 @@ from zoneinfo import ZoneInfo
 
 from .. import enable_geocoder
 from ..badi_calendar import BahaiCalendar
-from .._timedateutils import _td_utils
 
 datetime = importlib.import_module('badidatetime.datetime')
 
@@ -238,7 +237,6 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             (None, False, ''),
             (100, True, err_msg0.format(int)),
             )
-        msg = "Expected {} with name {}, found {}."
 
         for name, validity, expected_result in data:
             if validity:
@@ -259,10 +257,10 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         """
         err_msg0 = "_fromutc() requires a datetime argument."
         err_msg1 = "_fromutc() dt.tzinfo is not self"
-        err_msg2 = "_fromutc() requires a non-None utcoffset() result."
+        #err_msg2 = "_fromutc() requires a non-None utcoffset() result."
         err_msg3 = "_fromutc() requires a non-None dst() result."
-        err_msg4 = ("_fromutc(): dt.dst gave inconsistent results; cannot "
-                    "convert.")
+        #err_msg4 = ("_fromutc(): dt.dst gave inconsistent results; cannot "
+        #            "convert.")
         tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
@@ -284,7 +282,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                       if date else None)
 
                 if tz is None and not dt: # err_msg0
-                  this = None
+                    this = None
                 elif tz is None: # err_msg1
                     this = tz2
                 else:
@@ -295,8 +293,8 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 except (TypeError, ValueError) as e:
                     self.assertEqual(expected_result, str(e), f"Error: {date}")
                 else:
-                    raise AssertionError( f"With {date} an error is not "
-                                          f"raised, with result {result}.")
+                    raise AssertionError(f"With {date} an error is not "
+                                         f"raised, with result {result}.")
             else:
                 dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
                 result = datetime._fromutc(dt.tzinfo, dt)
@@ -345,8 +343,6 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the __new__ method creates an instance from both a pickle
         object and a normal instantiation.
         """
-        MIN = datetime.date.KULL_I_SHAY_MIN
-        MAX = datetime.date.KULL_I_SHAY_MAX
         err_msg0 = ("Invalid kull-i-shay {}, it must be in the range "
                     "of [-5, 4].")
         err_msg1 = "Invalid string {} had length of {} for pickle."
@@ -629,7 +625,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             # 2024-08-14 Wednesday
             ((1, 10, 10, 8, 16), '`Idāl Kamál 16 00:00:00 0181'),
             # 2024-08-15 Thursday
-            ((1, 10, 10, 8, 17) , 'Istijlāl Kamál 17 00:00:00 0181'),
+            ((1, 10, 10, 8, 17), 'Istijlāl Kamál 17 00:00:00 0181'),
             # 2033-03-19 Saturday
             ((190, 1, 1), 'Jalál Bahá  1 00:00:00 0190'),
             )
@@ -1708,14 +1704,13 @@ class TestBadiDatetime_time(unittest.TestCase):
                 t1 = datetime.time(*time1, tzinfo=tz1, fold=fold1)
                 result = t0._cmp(t1, allow_mixed=am)
                 self.assertEqual(expected_result, result, msg.format(
-                expected_result, time0, time1, result))
+                    expected_result, time0, time1, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___hash__(self):
         """
         Test that the __hash__ method returns the proper hash of the class.
         """
-        err_msg0 = "Must be a whole minute."
         data = (
             ((1, 30, 30), None, 0),
             ((1, 30, 30), None, 1),
@@ -1860,7 +1855,7 @@ class TestBadiDatetime_time(unittest.TestCase):
             ((1, 30, 30), '%r', '01:30:30 AM'),
             ((1, 30, 30), '%c', 'Jal Bah  1 01:30:30 0001'),
             ((1, 30, 30, 500000), '%T.%f', '01:30:30.500000'),
-            ((1, 30, 30, 500000), 'T%H:%M:%S.%f','T01:30:30.500000'),
+            ((1, 30, 30, 500000), 'T%H:%M:%S.%f', 'T01:30:30.500000'),
             )
         msg = "Expected {} with time {} and format {}, found {}."
 
@@ -2122,8 +2117,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the __new__ method creates an instance from both a pickle
         object and a normal instantiation.
         """
-        err_msg0 = ("A full short or long form Badi date must be used, found "
-                    "{} fields.")
+        # err_msg0 = ("A full short or long form Badi date must be used, found "
+        #             "{} fields.")
         err_msg1 = ("A fractional value cannot be followed by a less "
                     "significant value.")
         data = (
@@ -2151,8 +2146,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              datetime.timezone.badi, 0, False, '0001-01-01T00:00:00+03:30'),
             # Long form
             ((b'\x14\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00', datetime.BADI),
-             datetime.timezone.badi, 0, False,
-             '01-01-01-01-01T00:00:00+03:30'),
+             datetime.timezone.badi, 0, False, '01-01-01-01-01T00:00:00+03:30'),
             ((181, 1, 1, None, None, 12.123, 30.5), None, 0, True, err_msg1),
             ((181, 1, 1, None, None, 12.123, 0, 0.5), None, 0, True, err_msg1),
             ((181, 1, 1, None, None, 12, 30.5, 30.5), None, 0, True, err_msg1),
@@ -2439,7 +2433,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the fromisoformat classmethod creates an instance
         of datetime.
         """
-        data =(
+        data = (
             ('0181-01-01T12:30:30.500000', '0181-01-01T12:30:30.500000'),
             ('0001-01-01T00:00:00.0+03:30', '0001-01-01T00:00:00+03:30'),
             ('-1842-01-01T00:00:00+03:30', '-1842-01-01T00:00:00+03:30'),
@@ -2512,7 +2506,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Sunset exact JD 2460666.163238 (2024, 12, 23, 20, 28, 24)
             # 0.5 - 0.163238 = 0.336762
             # (8, 4, 56.2368) after sunset == 12 am 2024-12-23
-            # (8, 4, 56.2368) + (20, 28, 24) == 
+            # (8, 4, 56.2368) + (20, 28, 24) ==
             # I get 1735073211 off by 69507
             ## ((181, 15, 14, None, None, 3, 21, 18.288), 0, 1735003704),
 
@@ -2576,7 +2570,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the utctimetuple method returns a timetuple object.
         """
         data = (
-            ((181, 1, 1, None, None,12, 30, 30), None, 0,
+            ((181, 1, 1, None, None, 12, 30, 30), None, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=1, tm_mday=1, '
              'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=3, tm_yday=1, '
              'tm_isdst=0)'),
@@ -2858,9 +2852,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((1, 10, 10, 8, 16), '`Idāl Kamál 16 00:00:00 0181'),
             ((1, 10, 10, 8, 16, 12, 30, 30), '`Idāl Kamál 16 12:30:30 0181'),
             # 2024-08-15 Thursday
-            ((1, 10, 10, 8, 17) , 'Istijlāl Kamál 17 00:00:00 0181'),
-            ((1, 10, 10, 8, 17, 12, 30, 30) ,
-             'Istijlāl Kamál 17 12:30:30 0181'),
+            ((1, 10, 10, 8, 17), 'Istijlāl Kamál 17 00:00:00 0181'),
+            ((1, 10, 10, 8, 17, 12, 30, 30), 'Istijlāl Kamál 17 12:30:30 0181'),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -2961,7 +2954,6 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         NOTE: This may need a rewrite of the entire _strptime package.
         """
 
-
     #@unittest.skip("Temporarily skipped")
     def test_utcoffset(self):
         """
@@ -3058,7 +3050,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         for date0, tz0, date1, tz1, is_date, expected_result in data:
             dt0 = datetime.datetime(*date0, tzinfo=tz0)
 
-            if type(date1) == float:
+            if isinstance(date1, float):
                 dt1 = date1
             elif is_date:
                 dt1 = datetime.date(*date1)
@@ -3100,7 +3092,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             dt0 = datetime.datetime(*date0, tzinfo=tz0)
 
             if validity:
-                if type(date1) == float:
+                if isinstance(date1, float):
                     dt1 = date1
                 else:
                     dt1 = datetime.date(*date1)
@@ -3114,7 +3106,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                     raise AssertionError(f"With '{date0}' an error is not "
                                          f"raised, with result {result}.")
             else:
-                if type(date1) == float:
+                if isinstance(date1, float):
                     dt1 = date1
                 else:
                     dt1 = datetime.datetime(*date1, tzinfo=tz1)
@@ -3154,7 +3146,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             dt0 = datetime.datetime(*date0, tzinfo=tz0)
 
             if validity:
-                if type(date1) == float:
+                if isinstance(date1, float):
                     dt1 = date1
                 else:
                     dt1 = datetime.date(*date1)
@@ -3204,7 +3196,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             dt0 = datetime.datetime(*date0, tzinfo=tz0)
 
             if validity:
-                if type(date1) == float:
+                if isinstance(date1, float):
                     dt1 = date1
                 else:
                     dt1 = datetime.date(*date1)
@@ -3254,7 +3246,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             dt0 = datetime.datetime(*date0, tzinfo=tz0)
 
             if validity:
-                if type(date1) == float:
+                if isinstance(date1, float):
                     dt1 = date1
                 else:
                     dt1 = datetime.date(*date1)
@@ -3402,7 +3394,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         err_msg0 = "Result out of range."
         err_msg1 = "unsupported operand type(s) for -: 'datetime' and '{}'"
-        err_msg2 = "Cannot mix naive and timezone-aware time."
+        # err_msg2 = "Cannot mix naive and timezone-aware time."
         data = (
             ((1, 1, 1), None, (1,), (), False, (0, 19, 19)),
             ((1, 1, 1), None, (366,), (), False, (-1, 19, 19)),  # Leap year

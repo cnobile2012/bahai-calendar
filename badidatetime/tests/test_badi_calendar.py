@@ -5,7 +5,6 @@
 __docformat__ = "restructuredtext en"
 
 import unittest
-import datetime
 
 from ..badi_calendar import BahaiCalendar
 from ..gregorian_calendar import GregorianCalendar
@@ -386,7 +385,7 @@ class TestBadiCalendar(unittest.TestCase):
             # 1844-03-19T00:00:00 Before the Badi epoch
             ((0, 19, 19, 19, 19), False, True, (0, 19, 19, 0, 0, 0, 0)),
             # 1484-03-11T00:00:00 Before the Badi epoch
-            ((0, 1, 1, 1 ,1), False, True, (-360, 1, 1, 0, 0, 0, 0)),
+            ((0, 1, 1, 1, 1), False, True, (-360, 1, 1, 0, 0, 0, 0)),
             # 1843-03-21T00:00:00
             ((0, 19, 18, 1, 1), False, True, (-1, 1, 1, 0, 0, 0, 0)),
             # 1444-05-17T00:00:00
@@ -698,9 +697,9 @@ class TestBadiCalendar(unittest.TestCase):
         err_msg9 = ("Invalid microseconds '{}', it must be in the range of "
                     "[0, 999999].")
         err_msg10 = ("If there is a part day then there can be no hours, "
-                    "minutes, or seconds.")
+                     "minutes, or seconds.")
         err_msg11 = ("If there is a part hour then there can be no minutes or "
-                    "seconds.")
+                     "seconds.")
         err_msg12 = "If there is a part minute then there can be no seconds."
         data = (
             ((1, 1, 1, 1, 1), False, False, ''),  # Non leap year
@@ -715,7 +714,7 @@ class TestBadiCalendar(unittest.TestCase):
             #((174, 0, 1), True, False, ''), # During Ayyám-i-Há leap year
             ((1, 10, 10, 9, 8, 19, 1, 3, 532799), False, False, ''),
             # Invalid kull-i-shay
-            ((MIN_K-1, 2, 19, 19,19), False, True, err_msg0.format(MIN_K-1)),
+            ((MIN_K-1, 2, 19, 19, 19), False, True, err_msg0.format(MIN_K-1)),
             ((MAX_K+1, 1, 1, 1, 1), False, True, err_msg0.format(MAX_K+1)),
             # Invalid Váḥid
             ((1, 0, 1, 1, 1, 1, 1, 1), False, True, err_msg1.format(0)),
@@ -799,8 +798,6 @@ class TestBadiCalendar(unittest.TestCase):
         Test that the _is_leap_year method returns the correct Boolean
         for the given year or long Badi date.
         """
-        err_msg = ("If a tuple it must be at least the Kull-i-Shay', Váḥid, "
-                   "and year, found {}")
         data = (
             # Start of years
             (173, True, False),                 # 2016
@@ -887,16 +884,16 @@ class TestBadiCalendar(unittest.TestCase):
              (181, 1, 19.423559)),
             # Stage 3
             (2460733.2, (181, 19, 1), *local_coords, True, False, False, False,
-              (181, 0, 4.446448)),
+             (181, 0, 4.446448)),
             # Stage 4
             (2460729.2, (181, 0, 1), *local_coords, True, False, False, False,
-              (181, 18, 19.449096)),
+             (181, 18, 19.449096)),
             # Test where the JD is >= the sunset. Stage 5
             (2460733.3, (181, 19, 1), *local_coords, False, False, False, False,
              (181, 19, 1, 1, 5, 56.7744)),
             # Test fraction -- Stage 5
             (2460733.3, (181, 19, 1), *local_coords, True, False, False, False,
-              (181, 19, 1.045796)),
+             (181, 19, 1.045796)),
             # Stage 5
             (2394641.5, (0, 19, 18), *epoch_coords, False, False, True, False,
              (0, 19, 18)),

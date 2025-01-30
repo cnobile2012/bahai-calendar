@@ -49,7 +49,7 @@ tar	: clobber
 # Run just one test in a specific test file and class.
 # $ make tests TEST_PATH=tests/test_bases.py::TestBases::test_version
 .PHONY	: tests
-tests	: clobber flake8
+tests	: clobber
 	@rm -rf $(DOCS_DIR)/htmlcov
 	@coverage erase --rcfile=$(COVERAGE_FILE)
 	@coverage run --rcfile=$(COVERAGE_FILE) -m pytest --capture=tee-sys \

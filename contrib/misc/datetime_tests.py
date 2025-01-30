@@ -6,8 +6,6 @@
 
 import os
 import sys
-import math
-import pprint
 import datetime as dtime
 
 PWD = os.path.dirname(os.path.abspath(__file__))
@@ -130,8 +128,6 @@ class DatetimeTests(BahaiCalendar):
         for year in range(start, end):
             #print(year, file=sys.stderr)
             is_leap = self._is_leap_year(year)
-            days = 365 + is_leap
-            total = 0
 
             for month in self.MONTHS:
                 dm = 19 if month != 0 else 4 + is_leap
@@ -182,7 +178,7 @@ if __name__ == "__main__":
     dt = DatetimeTests()
     ret = 0
 
-    if options.analyze: # -a
+    if options.analyze:  # -a
         print("Gregorian Date                   Greg ord Badi Date     "
               "Badi ord Same  Df | JD             JD Diff    Badi Date     "
               "Date Diff Leap")
@@ -201,11 +197,11 @@ if __name__ == "__main__":
                ) for (g_date, g_ord, b_date, b_ord, same, diff,
                       g_jd, jd_diff, date, d_diff, leap)
          in dt.analyze_ordinal_error_list(options)]
-    elif options.analyze1: # -b
+    elif options.analyze1:  # -b
         if options.start is None or options.end is None:
             # Set default Gregorian years.
             options.start = -1842  # Julian year 1
-            options.end = 1162 # Gregorian year 3005
+            options.end = 1162     # Gregorian year 3005
 
         start_time = time.time()
         print(" "*84, "Badi - Orig    Ord - Orig")

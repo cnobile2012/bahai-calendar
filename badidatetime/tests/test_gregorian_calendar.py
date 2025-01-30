@@ -4,9 +4,6 @@
 #
 __docformat__ = "restructuredtext en"
 
-import os
-import math
-from datetime import datetime
 import unittest
 
 from ..gregorian_calendar import GregorianCalendar
@@ -251,7 +248,7 @@ class TestGregorianCalendar(unittest.TestCase):
         (year, month, day, hour, minute, second).
         """
         data = (
-            ((2024, 2, 15, 12, 45, 15), (2024, 2, 15.531424) ),
+            ((2024, 2, 15, 12, 45, 15), (2024, 2, 15.531424)),
             # Badi Calendar epoch
             ((1844, 3, 20, 18, 16), (1844, 3, 20.761111)),
             )
@@ -314,7 +311,6 @@ class TestGregorianCalendar(unittest.TestCase):
         for g_date, validity, err_msg in data:
             year = g_date[0]
             month = g_date[1]
-            day = g_date[2]
 
             if validity:
                 # Test correct dates
