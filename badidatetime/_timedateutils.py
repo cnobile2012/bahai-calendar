@@ -2,7 +2,7 @@
 #
 # badidatetime/_timedateutils.py
 #
-# noqa: E252
+# flake8: noqa: E252
 #
 __docformat__ = "restructuredtext en"
 
