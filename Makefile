@@ -49,7 +49,7 @@ tar	: clobber
 # Run just one test in a specific test file and class.
 # $ make tests TEST_PATH=tests/test_bases.py::TestBases::test_version
 .PHONY	: tests
-tests	: clobber
+tests	: clobber flake8
 	@rm -rf $(DOCS_DIR)/htmlcov
 	@coverage erase --rcfile=$(COVERAGE_FILE)
 	@coverage run --rcfile=$(COVERAGE_FILE) -m pytest --capture=tee-sys \
@@ -57,6 +57,13 @@ tests	: clobber
 	@coverage report -m --rcfile=$(COVERAGE_FILE)
 	@coverage html --rcfile=$(COVERAGE_FILE)
 	@echo $(TODAY)
+
+.PHONY	: flake8
+flake8	:
+	# Error on syntax errors or undefined names.
+	flake8 . --select=E9,F63,F7,F82 --show-source
+	# Warn on everything else.
+	flake8 . --exit-zero
 
 .PHONY	: sphinx
 sphinx  : clean

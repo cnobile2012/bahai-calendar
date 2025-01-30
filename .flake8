@@ -1,0 +1,16 @@
+[flake8]
+exclude =
+    .git,
+    __pycache__,
+    docs/source/conf.py,
+    old,
+    build,
+    dist
+
+per-file-ignores =
+    badidatetime/__init__.py: F401
+    badidatetime/badi_calendar.py: E501, E252, E741, C901, E731, E202, E701
+    badidatetime/datetime.py: F821, F822
+    badidatetime/_timedateutils.py: E252
+    badidatetime/_astronomical_terms.py: E201
+    

@@ -2,8 +2,6 @@
 #
 # badidatetime/_timedateutils.py
 #
-# flake8: noqa: E252
-#
 __docformat__ = "restructuredtext en"
 
 import time

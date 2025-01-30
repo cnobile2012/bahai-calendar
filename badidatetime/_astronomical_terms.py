@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# badidatetime/astronomical_terms.py
-#
-# flake8: noqa: E201
+# badidatetime/_astronomical_terms.py
 #
 __docformat__ = "restructuredtext en"
 
