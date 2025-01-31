@@ -24,26 +24,25 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name='Badi Datetime Package',
+    name='badidatetime',
     version=version(),
     packages=['badidatetime',],
     include_package_data=True,
     license='MIT',
-    description=('Badi Calendar Datetime API'),
+    description=('Badi Calendar Datetime API (badidatetime)'),
     long_description=README,
     url='https://github.com/cnobile2012/bahai-calendar',
     author='Carl J. Nobile',
     author_email='carl.nobile@gmail.com',
     classifiers=[
-        #'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
-        #'Topic :: Internet :: WWW/HTTP',
-        #'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Programming Language :: Python :: 3.13',
         ],
     install_requires=[
         'tzlocal', 'tzdata', 'geocoder',

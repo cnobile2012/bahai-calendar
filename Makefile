@@ -15,6 +15,7 @@ RM_REGEX	= '(^.*.pyc$$)|(^.*.wsgic$$)|(^.*~$$)|(.*\#$$)|(^.*,cover$$)'
 RM_CMD		= find $(PREFIX) -regextype posix-egrep -regex $(RM_REGEX) \
                   -exec rm {} \;
 COVERAGE_FILE	= $(PREFIX)/.coveragerc
+TEST_TAG	=
 PIP_ARGS	= # Pass variables for pip install.
 TEST_PATH	= # The path to run tests on.
 export DEBUG
@@ -68,6 +69,35 @@ flake8	:
 .PHONY	: sphinx
 sphinx  : clean
 	(cd $(DOCS_DIR); make html)
+
+# To add a pre-release candidate such as 'rc1' to a test package name an
+# environment variable needs to be set that setup.py can read.
+#
+# make build TEST_TAG=rc1
+# make upload-test TEST_TAG=rc1
+#
+# Assuming the version is 0.1.0 and rc1
+# The tarball would then be named badidatetime-0.1.0rc1.tar.gz
+#
+.PHONY	: build
+build	: export PR_TAG=$(TEST_TAG)
+build	: clean
+	python setup.py sdist
+
+.PHONY	: upload
+upload	: clobber
+	python setup.py sdist
+	python setup.py bdist_wheel --universal
+	twine upload --repository pypi dist/*
+
+.PHONY	: upload-test
+upload-test: clobber build
+	python setup.py bdist_wheel --universal
+	twine upload --repository testpypi dist/*
+
+#
+# Installation
+#
 
 .PHONY	: install-dev
 install-dev:

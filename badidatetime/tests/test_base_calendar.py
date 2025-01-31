@@ -308,21 +308,17 @@ class TestBaseCalendar(unittest.TestCase):
         SUN = self.bc._SUN_OFFSET
         PLT = self.bc._STARS_PLANET_OFFSET
         data = (
-            # 1987-04-10T19:21:00 -- 2446896.30625, lat, lon
-            # AA Ex.13.b alpha = 347.3193, delta = +15.1249
-            ((1987, 4, 10, 19, 21), 38.921388, -77.065416, 'SET', PLT,
-             -1.453758427010649),
-            # 2024-03-20T00:00:00 -> -0.8331021963100147
-            ((2024, 3, 20), 51.477928, -0.001545, 'SET', SUN,
-             -1.298984618215317),
-            # 2024-03-20T00:00:00 -> -0.8332800872601968
-            ((2024, 3, 20), 35.696111, 51.423056, 'SET', SUN,
-             -1.3256541419119139),
+            # 1988-03-20T00:00:00 -- 0.51766, 0.1213 -> -0.5665074179151752
+            # AA Ex.15.a at Boston, US
+            (2447240.5, 42.3333, -71.0833, 'SET', PLT, -1.2620568801432246),
+            # Greenwich, UK 2024-03-20T00:00:00 -> -0.8331021963100147
+            (2460389.5, 51.477928, -0.001545, 'SET', SUN, -1.298984618215317),
+            # Tehran, Iran 2024-03-20T00:00:00 -> -0.8332800872601968
+            (2460389.5, 35.696111, 51.423056, 'SET', SUN, -1.3256541419119139),
             )
-        msg = "Expected {}, for date {}, with lat {} and lon {}, found {}."
+        msg = "Expected {}, for jd {}, with lat {} and lon {}, found {}."
 
-        for g_date, lat, lon, sr_ss, offset, expected_result in data:
-            jd = self.gc.jd_from_gregorian_date(g_date)
+        for jd, lat, lon, sr_ss, offset, expected_result in data:
             tc = self.bc._julian_centuries(jd)
             h0 = self.bc._approx_local_hour_angle(tc, lat, offset=offset)
             ast = self.bc._apparent_sidereal_time_greenwich(tc)
@@ -338,7 +334,7 @@ class TestBaseCalendar(unittest.TestCase):
             # Get results
             result = self.bc._altitude(delta, lat, h)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, g_date, lat, lon, result))
+                expected_result, jd, lat, lon, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__approx_local_hour_angle(self):
@@ -464,13 +460,13 @@ class TestBaseCalendar(unittest.TestCase):
         PLT = self.bc._STARS_PLANET_OFFSET
         data = (
             # 1988-03-20T00:00:00 -- 0.51766, 0.1213
-            # AA Ex.15.a  at Boston, US
-            # JD        Latitude Longitude zone  exact
+            # AA Ex.15.a at Boston, US
+            # JD        Latitude Longitude zone  exact  offset
             (2447240.5, 42.3333, -71.0833, -5.0, False, PLT,
              (0.24210617024415584, 0.7468650828479303)),
             # 2024-03-20T00:00:00 -- (0.250694 = 6:01 am, 0.759027 = 6:13 pm)
             # https://timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
-            # In Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
+            # In Greenwich, UK with 51.477928 (lat) and -0.001545 (lon)
             (2460389.5, 51.477928, -0.001545, 0, False, SUN,
              (0.25124811609282555, 0.759618623423145)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
@@ -479,7 +475,7 @@ class TestBaseCalendar(unittest.TestCase):
             (2460389.5, 35.696111, 51.423056, 3.5, False, SUN,
              (0.2553156470420874, 0.7612822588083131)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
-            # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
+            # Transit in Tehran, Iran with 35.696111 (lat) and 51.423056 (lon)
             (2460389.5, 35.696111, 51.423056, 0, True, SUN,
              (0.25232413593097636, 0.7582907476972021)),
             )

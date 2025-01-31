@@ -3,10 +3,7 @@
 
 wheel
 twine
-#pynose
-#testfixtures
 pytest
-#pytest-cov
 coverage
 flake8
 ipython
