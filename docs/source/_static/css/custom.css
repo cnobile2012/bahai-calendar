@@ -1,19 +1,19 @@
 div.body {
-    max-width: 690px;
+    max-width: 700px;
 }
 
 div.bodywrapper {
     margin: 0 0 0 320px;
-    width: 760px;
+    width: 800px;
 }
 
 div.document {
-    width: 1000px;
+    width: 1060px;
     margin: 30px auto 0 auto;
 }
 
 div.documentwrapper {
-    width: 1050px;
+    width: 1150px;
 }
 
 div.sphinxsidebar {
@@ -32,5 +32,5 @@ H1.logo {
 }
 
 div.footer {
-    width: 1050px;
+    width: 1100px;
 }

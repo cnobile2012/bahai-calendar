@@ -573,8 +573,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.22 p.144
-           Referenced by lm (M').
+           | Meeus--AA ch.22 p.144
+           | Referenced by lm (M').
         """
         return self._coterminal_angle(self._poly(
             tc, (134.96298, 477198.867398, 0.0086972, 1 / 56250)))
@@ -589,8 +589,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.22 p.144
-           Referenced by ls (M).
+           | Meeus--AA ch.22 p.144
+           | Referenced by ls (M).
         """
         return self._coterminal_angle(self._poly(
             tc, (357.52772, 35999.05034, -0.0001603, -1 / 300000)))
@@ -606,8 +606,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.22 p.144
-           Referenced by ff (F).
+           | Meeus--AA ch.22 p.144
+           | Referenced by ff (F).
         """
         return self._coterminal_angle(self._poly(
             tc, (93.27191, 483202.017538, -0.0036825, 1 / 327270)))
@@ -621,8 +621,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch22 p144
-           Referenced by dd (D).
+           | Meeus--AA ch22 p144
+           | Referenced by dd (D).
         """
         return self._coterminal_angle(self._poly(
             tc, (297.85036, 445267.11148, -0.0019142, 1 / 189474)))
@@ -638,8 +638,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch22 p144
-           Referenced by om (omega).
+           | Meeus--AA ch22 p144
+           | Referenced by om (omega).
         """
         return self._coterminal_angle(self._poly(
             tc, (125.04452, -1934.136261, 0.0020708, 1 / 450000)))
@@ -655,9 +655,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.22 p.147 Eq.22.3
-           Convert lots of things:
-           https://www.xconvert.com/unit-converter/arcseconds-to-degrees
+           | Meeus--AA ch.22 p.147 Eq.22.3
+           | Convert lots of things:
+           | https://www.xconvert.com/unit-converter/arcseconds-to-degrees
         """
         u = tc / 100
         mean_ob = self._poly(u, (23.43929111111111, -1.3002583333333335,
@@ -679,8 +679,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p.163 Eq.25.2
-           References by L0
+           | Meeus--AA ch.25 p.163 Eq.25.2
+           | References by L0
         """
         return self._coterminal_angle(self._poly(
             tc, (280.46646, 36000.76983, 0.0003032)))
@@ -816,8 +816,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p.166
-           Referenced by L
+           | Meeus--AA ch.25 p.166
+           | Referenced by L
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
         l0 = self._sigma((self._L0_A, self._L0_B, self._L0_C), func)
@@ -843,8 +843,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p.166
-           Referenced by B
+           | Meeus--AA ch.25 p.166
+           | Referenced by B
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
         b0 = self._sigma((self._B0_A, self._B0_B, self._B0_C), func)
@@ -865,8 +865,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p.166
-           Referenced by R
+           | Meeus--AA ch.25 p.166
+           | Referenced by R
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
         r0 = self._sigma((self._R0_A, self._R0_B, self._R0_C), func)

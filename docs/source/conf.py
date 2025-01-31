@@ -130,8 +130,10 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
+    'github_banner': True,
     'github_user': 'cnobile2012',
     'github_repo': 'bahai-calendar',
+    'fixed_sidebar': True,
     }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -155,14 +157,6 @@ html_sidebars = {
         'donate.html',
         ]
     }
-
-html_theme_options = {
-    'github_banner': True,
-    'github_user': 'cnobile2025',
-    'github_repo': 'bahai-calendar',
-    'fixed_sidebar': True,
-    }
-
 
 # -- Options for HTMLHelp output ------------------------------------------
 

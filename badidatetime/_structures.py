@@ -32,7 +32,7 @@ class ShortFormStruct(NamedTuple):
     @property
     def short(self):
         """
-        Indicates if this NamedTuple is a short or long form.
+        Indicates if this NamedTuple is a short or long form Badí' date.
         """
         return True
 
@@ -70,7 +70,7 @@ class LongFormStruct(NamedTuple):
     @property
     def short(self):
         """
-        Indicates if this NamedTuple is a short or long form.
+        Indicates if this NamedTuple is a short or long form Badí' date.
         """
         return False
 
