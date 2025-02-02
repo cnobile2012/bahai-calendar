@@ -62,7 +62,7 @@ tests	: clobber
 .PHONY	: flake8
 flake8	:
 	# Error on syntax errors or undefined names.
-	flake8 . --select=E9,F63,F7,F82 --show-source
+	flake8 . --select=E9,F7,F63,F82 --show-source
 	# Warn on everything else.
 	flake8 . --exit-zero
 
@@ -82,18 +82,18 @@ sphinx  : clean
 .PHONY	: build
 build	: export PR_TAG=$(TEST_TAG)
 build	: clean
-	python setup.py sdist
+	hatch build dist
 
 .PHONY	: upload
-upload	: clobber
-	python setup.py sdist
-	python setup.py bdist_wheel --universal
-	twine upload --repository pypi dist/*
+upload	: clobber build
+	hatch publish dist/$(PACKAGE_DIR).tar.gz --repo pypi
+#	twine upload --repository pypi dist/*
 
 .PHONY	: upload-test
+upload-test: export PR_TAG=$(TEST_TAG)
 upload-test: clobber build
-	python setup.py bdist_wheel --universal
-	twine upload --repository testpypi dist/*
+	hatch publish --repo testpypi dist/$(PACKAGE_DIR).tar.gz
+#	twine upload --repository testpypi dist/*
 
 #
 # Installation
@@ -120,6 +120,6 @@ clean	:
 	$(shell $(RM_CMD))
 
 clobber	: clean
-	@rm -rf build dist
+	@rm -rf build dist badidatetime.egg-info
 	@rm -rf $(DOCS_DIR)/htmlcov
 	@rm -rf $(DOCS_DIR)/build
