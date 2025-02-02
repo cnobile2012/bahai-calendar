@@ -6,7 +6,7 @@ include include.mk
 TODAY		= $(shell date +"%Y-%m-%dT%H:%M:%S.%N%:z")
 PREFIX		= $(shell pwd)
 BASE_DIR	= $(shell basename $(PREFIX))
-TEST_TAG	= # Define the rc<version>
+TEST_TAG	= # Define the rc<version>, this is done in include.mk
 PACKAGE_DIR	= $(BASE_DIR)-$(VERSION)$(TEST_TAG)
 APP_NAME	= bahai_calendar
 DOCS_DIR	= $(PREFIX)/docs
@@ -81,19 +81,20 @@ sphinx  : clean
 #
 .PHONY	: build
 build	: export PR_TAG=$(TEST_TAG)
-build	: clean
+build	: clobber
+	@./config.py
 	hatch build dist
 
 .PHONY	: upload
-upload	: clobber build
-	hatch publish dist/$(PACKAGE_DIR).tar.gz --repo pypi
-#	twine upload --repository pypi dist/*
+upload	: build
+	@./config.py
+	hatch publish --repo pypi dist/*
 
 .PHONY	: upload-test
 upload-test: export PR_TAG=$(TEST_TAG)
-upload-test: clobber build
-	hatch publish --repo testpypi dist/$(PACKAGE_DIR).tar.gz
-#	twine upload --repository testpypi dist/*
+upload-test: build
+	@./config.py
+	hatch publish --repo test dist/*
 
 #
 # Installation
@@ -120,6 +121,6 @@ clean	:
 	$(shell $(RM_CMD))
 
 clobber	: clean
-	@rm -rf build dist badidatetime.egg-info
+	@rm -rf dist badidatetime.egg-info
 	@rm -rf $(DOCS_DIR)/htmlcov
 	@rm -rf $(DOCS_DIR)/build

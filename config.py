@@ -11,7 +11,6 @@ import sys
 import re
 import os
 import tomlkit as tk
-from pprint import pprint
 
 
 class EditPyProject:
@@ -44,27 +43,28 @@ class EditPyProject:
         data['classifiers'] = status
         return data
 
-    def update_version(self, config, table, field, items, value):
+    def update_version(self, config, table, field, items, version):
         old_ver = config[table][field]
-        config[table][field] = value
-        items.append((f"Old version: {old_ver}"))
-        items.append((f"New version: {value}"))
 
-    def update_classifier_status(self, config, table, field, items, value):
+        if old_ver != version:
+            config[table][field] = version
+            items.append((f"Old version: {old_ver}"))
+            items.append((f"New version: {version}"))
+
+    def update_classifier_status(self, config, table, field, items, status):
         ser_str = 'Development Status :: '
-        classifiers = []
 
-        for classifier in config[table][field]:
+        for idx, classifier in enumerate(config[table][field]):
             if classifier.startswith(ser_str):
                 old_classifier = classifier
-                new_classifier = f"{ser_str}{value}"
-                classifiers.append(new_classifier)
-                items.append(f"Old classifier: {old_classifier}")
-                items.append(f"New classifier: {new_classifier}")
-            else:
-                classifiers.append(classifier)
+                new_classifier = f"{ser_str}{status}"
 
-        config[table][field] = classifiers
+                if old_classifier != new_classifier:
+                    items.append(f"Old classifier: {old_classifier}")
+                    items.append(f"New classifier: {new_classifier}")
+                    config[table][field][idx] = new_classifier
+
+                break
 
     __UPDATE_METHODS = {
         'version': update_version,
@@ -90,10 +90,24 @@ class EditPyProject:
 
         return data
 
+
 if __name__ == "__main__":
     epp = EditPyProject()
     ret = 0
     changes = epp.start()
-    print(f"Changes made to {EditPyProject.FILENAME}:")
-    pprint(changes)
+    chg_flag = [items for table, items in changes.items() if items] != []
+
+    if chg_flag:
+        print(f"Changes made to {EditPyProject.FILENAME}:")
+
+        for table, items in changes.items():
+            if items:
+                print(f"{table}:")
+
+                for idx, item in enumerate(items):
+                    print(f"{items[idx]}")
+    else:
+        print(f"There were no changes to {EditPyProject.FILENAME}")
+
+
     sys.exit(ret)
