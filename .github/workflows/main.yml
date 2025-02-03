@@ -44,12 +44,12 @@ jobs:
     - name: Test with pytest
       run: |
         make tests
-    - name: Set badge path
-      run: |
-        mkdir -p .github/badges
-        cp docs/badges/coverage-badge.svg .github/badges/
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: Coverage badge
-        path: .github/badges/coverage-badge.svg
+    # - name: Set badge path
+    #   run: |
+    #     mkdir -p .github/badges
+    #     cp docs/badges/coverage-badge.svg .github/badges/
+    # - name: Upload artifact
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: Coverage badge
+    #     path: .github/badges/coverage-badge.svg
