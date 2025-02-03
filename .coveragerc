@@ -17,3 +17,6 @@ exclude_lines =
 [html]
 title = Baha'i Calendar
 directory = docs/htmlcov
+
+[xml]
+output = docs/xmlcov/coverage.xml

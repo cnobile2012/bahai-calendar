@@ -2,13 +2,14 @@
 -r base.txt
 
 wheel
-#twine
 pytest
 coverage
 flake8
 ipython
 hatch
 tomlkit
+genbadge
+defusedxml
 
 Sphinx
 sphinx_rtd_theme

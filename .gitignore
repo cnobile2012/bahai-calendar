@@ -24,6 +24,7 @@ junk*
 poop*
 !contrib/charts/*.txt
 contrib/thirdparty/
+docs/xmlcov/
 
 # C extensions
 *.so

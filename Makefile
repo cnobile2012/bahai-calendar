@@ -57,6 +57,9 @@ tests	: clobber
          $(TEST_PATH)
 	@coverage report -m --rcfile=$(COVERAGE_FILE)
 	@coverage html --rcfile=$(COVERAGE_FILE)
+	@coverage xml --rcfile=$(COVERAGE_FILE)
+	@genbadge coverage -i docs/xmlcov/coverage.xml \
+                  -o docs/xmlcov/coverage-badge.svg
 	@echo $(TODAY)
 
 .PHONY	: flake8
@@ -123,4 +126,5 @@ clean	:
 clobber	: clean
 	@rm -rf dist badidatetime.egg-info
 	@rm -rf $(DOCS_DIR)/htmlcov
-	@rm -rf $(DOCS_DIR)/build
+	@rm -rf $(DOCS_DIR)/xmlcov
+	#@rm -rf $(DOCS_DIR)/build
