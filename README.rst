@@ -4,6 +4,17 @@
 Introduction to the Badí' Calendar API
 ***************************************
 
+.. image:: https://img.shields.io/badge/License-CC--3-blue.svg
+   :target: https://creativecommons.org/licenses/by-sa/3.0
+   :alt: License
+
+.. image:: https://github.com/cnobile2012/bahai-calendar/actions/workflows/main.yml/badge.svg
+   :target: https://github.com/cnobile2012/bahai-calendar/actions/workflows/main.yml
+   :alt: Build Status
+
+
+The MIT License (MIT)
+
 The objective of this API (Application Programming Interface) is to implement
 a library that provides date and time functionality similar to the standard
 Python datetime package, however for the Badí' Calendar this API is much more
@@ -36,3 +47,7 @@ Meeus and there are some code snippits from Calendrical Calculations -- The
 Ultimate Edition 4th Edition by Edward M. Reingold and Nachum Dershowitz.
 
 Feel free to contact me at: carl dot nobile at gmail dot com
+
+Complete Documentation can be found on
+`Read the Docs <https://readthedocs.org/>`_ at:
+`A Badí' Date and Time API <http://badidatetime.readthedocs.io/en/latest/>`_
