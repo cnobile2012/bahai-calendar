@@ -25,6 +25,7 @@ poop*
 !contrib/charts/*.txt
 contrib/thirdparty/
 docs/xmlcov/
+docs/badges/
 
 # C extensions
 *.so

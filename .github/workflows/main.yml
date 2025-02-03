@@ -3,7 +3,7 @@
 # For more information see:
 # https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: badidatetime package
+name: badidatetime
 
 on:
   push:
@@ -46,4 +46,10 @@ jobs:
         make tests
     - name: Set badge path
       run: |
-        echo "badge: 'docs/badges/coverage.svg'" >> $GITHUB_ENV
+        mkdir -p .github/badges
+        cp docs/badges/coverage-badge.svg .github/badges/
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge
+        path: .github/badges/coverage-badge.svg
