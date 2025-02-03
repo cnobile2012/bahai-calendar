@@ -109,5 +109,4 @@ if __name__ == "__main__":
     else:
         print(f"There were no changes to {EditPyProject.FILENAME}")
 
-
     sys.exit(ret)
