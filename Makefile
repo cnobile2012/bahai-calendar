@@ -108,16 +108,6 @@ upload-test: build
 install-dev:
 	pip install $(PIP_ARGS) -r requirements/development.txt
 
-# To add a pre-release candidate such as 'rc1' to a test package name an
-# environment variable needs to be set that setup.py can read.
-#
-# The command below will work with any package target below.
-# make build-deb TEST_TAG=rc1
-#
-# For example a deb file might look like 'nc-bookkeeper-0.10rc1-amd64.deb'.
-#
-
-
 #----------------------------------------------------------------------
 .PHONY	: clean clobber
 
@@ -129,4 +119,4 @@ clobber	: clean
 	@rm -rf $(DOCS_DIR)/htmlcov
 	@rm -rf $(DOCS_DIR)/xmlcov
 	@rm -rf $(DOCS_DIR)/badges
-	#@rm -rf $(DOCS_DIR)/build
+	@rm -rf $(DOCS_DIR)/build
