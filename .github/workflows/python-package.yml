@@ -44,3 +44,6 @@ jobs:
     - name: Test with pytest
       run: |
         make tests
+    - name: Set badge path
+      run: |
+        echo "badge: 'docs/badges/coverage.svg'" >> $GITHUB_ENV
