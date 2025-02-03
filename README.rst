@@ -8,7 +8,7 @@ Introduction to the Badí' Calendar API
    :target: https://creativecommons.org/licenses/by-sa/3.0
    :alt: License
 
-.. image:: https:github.com/cnobile2012/bahai-calendar/actions/workflows/main.yml/badge.svg?branch=main
+.. image:: https:github.com/cnobile2012/bahai-calendar/actions/workflows/python-package.yml/badge.svg?branch=main
    :target: https://github.com/cnobile2012/bahai-calendar/actions/workflows/main.yml
    :alt: Build Status
 
