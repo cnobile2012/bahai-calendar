@@ -9,7 +9,7 @@ Introduction to the Badí' Calendar API
    :alt: License
 
 .. image:: https:github.com/cnobile2012/bahai-calendar/actions/workflows/python-package.yml/badge.svg?branch=main
-   :target: https://github.com/cnobile2012/bahai-calendar/actions/workflows/main.yml
+   :target: https://github.com/cnobile2012/bahai-calendar/actions/workflows/python-package.yml
    :alt: Build Status
 
 
