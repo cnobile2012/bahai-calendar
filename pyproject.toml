@@ -24,7 +24,7 @@ only-include = ["badidatetime"]
 
 [project]
 name = "badidatetime"
-version = "0.1.0"
+version = "0.1.0rc2"
 description = "Badi Calendar Datetime API (badidatetime)"
 readme = "README.rst"
 authors = [

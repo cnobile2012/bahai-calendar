@@ -118,6 +118,6 @@ clean	:
 clobber	: clean
 	@rm -rf dist badidatetime.egg-info
 	@rm -rf $(DOCS_DIR)/htmlcov
-	@rm -rf $(DOCS_DIR)/xmlcov
-	@rm -rf $(DOCS_DIR)/badges
+	#@rm -rf $(DOCS_DIR)/xmlcov
+	#@rm -rf $(DOCS_DIR)/badges
 	@rm -rf $(DOCS_DIR)/build

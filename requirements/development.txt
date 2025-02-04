@@ -8,8 +8,8 @@ flake8
 ipython
 hatch
 tomlkit
-genbadge
-defusedxml
+#genbadge
+#defusedxml
 
 Sphinx
 sphinx_rtd_theme
