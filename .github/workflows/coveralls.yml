@@ -1,0 +1,36 @@
+name: Coveralls
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.13
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/development.txt
+      - name: Run tests with coverage
+        run: |
+          make tests
+      - name: Upload coverage report to Coveralls
+        uses: coverallsapp/github-action@v2
+
+      # - name: Set badge path
+      #   run: |
+      #     mkdir -p .github/badges
+      #     cp docs/badges/coverage-badge.svg .github/badges/
+      # - name: Upload artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: Coverage badge
+      #     path: .github/badges/coverage-badge.svg

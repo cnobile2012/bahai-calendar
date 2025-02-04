@@ -57,10 +57,10 @@ tests	: clobber
          $(TEST_PATH)
 	@coverage report -m --rcfile=$(COVERAGE_FILE)
 	@coverage html --rcfile=$(COVERAGE_FILE)
-	@coverage xml --rcfile=$(COVERAGE_FILE)
-	@mkdir docs/badges
-	@genbadge coverage -i docs/xmlcov/coverage.xml \
-                  -o docs/badges/coverage-badge.svg
+	#@coverage xml --rcfile=$(COVERAGE_FILE)
+	#@mkdir docs/badges
+	#@genbadge coverage -i docs/xmlcov/coverage.xml \
+#                  -o docs/badges/coverage-badge.svg
 	@echo $(TODAY)
 
 .PHONY	: flake8
@@ -106,7 +106,8 @@ upload-test: build
 
 .PHONY	: install-dev
 install-dev:
-	pip install $(PIP_ARGS) -r requirements/development.txt
+	@python -m pip install --upgrade pip
+	@pip install $(PIP_ARGS) -r requirements/development.txt
 
 #----------------------------------------------------------------------
 .PHONY	: clean clobber
