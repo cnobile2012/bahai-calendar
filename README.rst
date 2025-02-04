@@ -20,10 +20,11 @@ Introduction to the Badí' Calendar API
    :target: https://github.com/cnobile2012/bahai-calendar/actions/workflows/main.yml
    :alt: Build Status
 
-.. image:: https://github.com/cnobile2012/bahai-calendar/main/.github/badges/coverage.svg
-   :target: https://github.com/cnobile2012/bahai-calendar/actions
+.. image:: https://coveralls.io/repos/github/cnobile2012/bahai-calendar/badge.svg?branch=main
+   :target: https://coveralls.io/github/cnobile2012/bahai-calendar?branch=main
    :alt: Coverage
 
+|
 The objective of this API (Application Programming Interface) is to implement
 a library that provides date and time functionality similar to the standard
 Python datetime package, however for the Badí' Calendar this API is much more
