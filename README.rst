@@ -26,31 +26,33 @@ Introduction to the Badí' Calendar API
 
 |
 The objective of this API (Application Programming Interface) is to implement
-a library that provides date and time functionality similar to the standard
-Python datetime package, however for the Badí' Calendar this API is much more
-extensive than the standard package as it includes all the astronomical
-calculations to find the Vernal Equinox, sunset, and many other calculations
-that are needed to support how the Badí' Calendar works.
+a library that provides date and time functionality similar to that of the
+standard Python datetime package, however for the Badí' Calendar this API is
+much more extensive than the standard package as it includes all the
+astronomical calculations needed to find the Vernal Equinox, sunset, and many
+other astronomical events that are needed to support the Badí' Calendar.
 
-The Badí' Calendar is an Astronomical Self-correcting Solar Calendar. What that
-means is that the determination of leap years is based on the number of days
-from the sunset immediately preceding the Vernal Equinox to the sunset
-immediately preceding the next Vernal Equinox. Counting the days it will either
-be 365 an ordinary year or 366 a leap year. Since it uses the time of the
-Vernal Equinox and the only way to calculate this is by doing lots of
-astronomical calculations it's an Astronomical Calendar. It's self-correcting
-because there is no guess work since we know exactly when the Vernal Equinox
-occurs. It is solar because the Vernal Equinox has a direct relation to the
-Sun. The Badí' leap years are irregular and cannot be guess with a simple
-formula.
+The Badí' Calendar is an Astronomical Self-correcting Solar Calendar. Since
+astronomical calculations are needed it is obviously an astronomical calendar.
+It is self-correcting because the leap years are determined by calculating the
+number of days from the sunset immediately preceding the Vernal Equinox to the
+sunset immediately preceding the next Vernal Equinox. Counting the days it will
+either be 365 on ordinary years or 366 on leap years. The Vernal Equinox is
+when the sun is directly above the equator and the length of the day and night
+are nearly equal making it a solar calendar.
 
-In contrast the Gregorian Calendar is only a solar calendar. It uses an
-approximation formula--simple as it is--to essentially guess when the leap
+The Badí' leap years are irregular and cannot be guess with a simple formula as
+is done with Gregorian Calendar. Quite in contrast the Gregorian Calendar is
+only a solar calendar. It uses an approximation formula to guess when the leap
 years will be. This formula I call a 4/100/400 formula. In other words a leap
-year is every 4 years unless the year is divisible by 100 then it isn't a leap
-year unless it is also dividable by 400 then it is a leap year. So Gregorian
-leap years are on a 400 year cycle and can be predicted by the above formula
-thus making leap years fairly regular.
+year is every 4 years unless the year is divisible by 100 then it is not a leap
+year unless it is also dividable by 400 then it is a leap year. This means that
+the Gregorian leap years are on a 400 year cycle and can be predicted by the
+above formula thus making leap years fairly regular. 
+
+------------
+Attributions
+------------
 
 Much of the astronomical code is derived from Astronomical Algorithms by Jean
 Meeus and there are some code snippets from Calendrical Calculations -- The
