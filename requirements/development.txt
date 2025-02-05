@@ -7,9 +7,10 @@ coverage
 flake8
 ipython
 hatch
+hatchling
 tomlkit
-#genbadge
-#defusedxml
+# We only use for the pypi publishing, it works better than hatch and has better debugging.
+twine
 
 Sphinx
 sphinx_rtd_theme

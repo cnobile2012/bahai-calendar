@@ -57,10 +57,6 @@ tests	: clobber
          $(TEST_PATH)
 	@coverage report -m --rcfile=$(COVERAGE_FILE)
 	@coverage html --rcfile=$(COVERAGE_FILE)
-	#@coverage xml --rcfile=$(COVERAGE_FILE)
-	#@mkdir docs/badges
-	#@genbadge coverage -i docs/xmlcov/coverage.xml \
-#                  -o docs/badges/coverage-badge.svg
 	@echo $(TODAY)
 
 .PHONY	: flake8
@@ -92,13 +88,14 @@ build	: clobber
 .PHONY	: upload
 upload	: build
 	@./config.py
-	hatch publish --repo pypi dist/*
+	twine upload --repository pypi dist/*
 
 .PHONY	: upload-test
 upload-test: export PR_TAG=$(TEST_TAG)
 upload-test: build
 	@./config.py
 	hatch publish --repo test dist/*
+#	twine upload --verbose --repository testpypi dist/*
 
 #
 # Installation
@@ -118,6 +115,4 @@ clean	:
 clobber	: clean
 	@rm -rf dist badidatetime.egg-info
 	@rm -rf $(DOCS_DIR)/htmlcov
-	#@rm -rf $(DOCS_DIR)/xmlcov
-	#@rm -rf $(DOCS_DIR)/badges
 	@rm -rf $(DOCS_DIR)/build

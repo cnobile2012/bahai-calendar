@@ -24,7 +24,7 @@ Introduction to the Badí' Calendar API
    :target: https://coveralls.io/github/cnobile2012/bahai-calendar?branch=main
    :alt: Coverage
 
-|
+
 The objective of this API (Application Programming Interface) is to implement
 a library that provides date and time functionality similar to that of the
 standard Python datetime package, however for the Badí' Calendar this API is
