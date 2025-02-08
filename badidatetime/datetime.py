@@ -1157,14 +1157,26 @@ class time:
 
         raise TypeError('fromisoformat: argument must be str')
 
-    def strftime(self, format):
+    def strftime(self, format: str, tzinfo: tzinfo=None) -> str:
         """
-        Format using strftime().  The date part of the timestamp passed
-        to underlying strftime should not be used.
+        Format using strftime(). The date part of the timestamp passed to
+        underlying strftime should not be used.
+
+        .. note::
+
+           There is a different with this method as compared to the one in
+           the standard `datetime.time` class in that the added `tzinfo`
+           argument that would need to be passed in if you want a time
+           aware time object.
+
+        :param str format: The string format.
+        :param tzinfo tzinfo: A tzinfo object or None (default).
+        :return: An updated format string.
+        :rtype: str
         """
-        # We use the Badi epoch for the year, month and day.
+        # We use the Badí' epoch for the year, month and day.
         timetuple = (1, 1, 1, self._hour, self._minute, self._second, 0, 1, -1)
-        return _td_utils._wrap_strftime(self, format, timetuple)
+        return _td_utils._wrap_strftime(self, format, timetuple, tzinfo)
 
     def __format__(self, fmt):
         if isinstance(fmt, str):

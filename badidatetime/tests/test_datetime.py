@@ -1850,19 +1850,24 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the strftime method returns a correctly formatting string.
         """
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         data = (
-            ((1, 30, 30), '%X', '01:30:30'),
-            ((1, 30, 30), '%r', '01:30:30 AM'),
-            ((1, 30, 30), '%c', 'Jal Bah  1 01:30:30 0001'),
-            ((1, 30, 30, 500000), '%T.%f', '01:30:30.500000'),
-            ((1, 30, 30, 500000), 'T%H:%M:%S.%f', 'T01:30:30.500000'),
+            ((1, 30, 30), '%X', None, '01:30:30'),
+            ((1, 30, 30), '%r', None, '01:30:30 AM'),
+            ((1, 30, 30), '%c', None, 'Jal Bah  1 01:30:30 0001'),
+            ((1, 30, 30, 500000), '%T.%f', None, '01:30:30.500000'),
+            ((1, 30, 30, 500000), 'T%H:%M:%S.%f', None, 'T01:30:30.500000'),
+            ((1, 30, 30, 500000), '%z', tz0, '+034288.888888'),
+            ((1, 30, 30, 500000), '%Z', tz0, 'Asia/Tehran'),
+            ((1, 30, 30, 500000), '%%', None, '%'),
+            ((1, 30, 30, 500000), '%', None, ''),
             )
-        msg = "Expected {} with time {} and format {}, found {}."
+        msg = "Expected {} with time {}, format {}, and tz {} found {}."
 
-        for time, fmt, expected_result in data:
-            result = datetime.time(*time).strftime(fmt)
+        for time, fmt, tz, expected_result in data:
+            result = datetime.time(*time).strftime(fmt, tzinfo=tz)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, time, fmt, result))
+                expected_result, time, fmt, tz, result))
 
     #@unittest.skip("Temporarily skipped")
     def test___format__(self):

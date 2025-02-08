@@ -38,7 +38,7 @@ class TimeDateUtils(BahaiCalendar):
     """
     DAYS_BEFORE_1ST_YEAR = 77
     """
-    This keeps the Badi day count in par with the Gregorian day count.
+    This keeps the Badí' day count in par with the Gregorian day count.
     """
 
     def __init__(self):
@@ -109,7 +109,7 @@ class TimeDateUtils(BahaiCalendar):
         return f"%{h}{delim}%M{delim}%S"
 
     @property
-    def locale(self):
+    def locale(self):  # pragma: no cover
         """
         Returns the current locale.
         """
@@ -815,7 +815,7 @@ class TimeDateUtils(BahaiCalendar):
                        'z': z, 'Z': Z, '%': percent
                        }
 
-    def strftime(self, format: str, ttup: tuple) -> str:
+    def strftime(self, format: str, ttup: tuple, tzinfo=None) -> str:
         """
         Convert a struck_time object into a string according to a specified
         format.
@@ -823,6 +823,7 @@ class TimeDateUtils(BahaiCalendar):
         :param str format: A string format.
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
+        :param tzinfo tzinfo: A tzinfo object.
         :return: A struck_time object converted to a formated string.
         :rtype: str
         """
@@ -830,7 +831,7 @@ class TimeDateUtils(BahaiCalendar):
         self._checktm(ttup)
 
         if not isinstance(ttup, (ShortFormStruct, LongFormStruct)):
-            ttup = struct_time(ttup)
+            ttup = struct_time(ttup, tzinfo=tzinfo)
 
         idx, fmtlen = 0, len(format)
         strf = ""
@@ -1433,7 +1434,7 @@ class TimeDateUtils(BahaiCalendar):
             f"The fold argument '{fold}' must be either 0 or 1.")
 
     def _wrap_strftime(self, object, format: str,
-                       timetuple: tuple) -> str:
+                       timetuple: tuple, tzinfo=None) -> str:
         """
         Correctly substitute for %z and %Z escapes in strftime formats.
 
@@ -1447,8 +1448,6 @@ class TimeDateUtils(BahaiCalendar):
         from .datetime import timedelta
         # Don't call utcoffset() or tzname() unless actually needed.
         freplace = None  # the string to use for %f
-        zreplace = None  # the string to use for %z
-        Zreplace = None  # the string to use for %Z
 
         # Scan format for %z and %Z escapes, replacing as needed.
         newformat = []
@@ -1469,46 +1468,6 @@ class TimeDateUtils(BahaiCalendar):
                             freplace = f'{getattr(object, "microsecond", 0):06}'
 
                         push(freplace)
-                    elif ch == 'z':
-                        if zreplace is None:
-                            zreplace = ""
-
-                            if hasattr(object, "utcoffset"):
-                                offset = object.utcoffset()
-
-                                if offset is not None:
-                                    sign = '+'
-
-                                    if offset.days < 0:
-                                        offset = -offset
-                                        sign = '-'
-
-                                    h, rest = divmod(offset,
-                                                     timedelta(hours=1))
-                                    m, rest = divmod(rest,
-                                                     timedelta(minutes=1))
-                                    s = rest.seconds
-                                    u = offset.microseconds
-                                    zreplace = f'{sign}{h:02}{m:02}'
-
-                                    if u:
-                                        zreplace += f'{s:02}.{u:06}'
-                                    elif s:
-                                        zreplace += f'{s:02}'
-
-                        push(zreplace)
-                    elif ch == 'Z':
-                        if Zreplace is None:
-                            Zreplace = ""
-
-                            if hasattr(object, "tzname"):
-                                s = object.tzname()
-
-                                # strftime is going to have at this: escape %
-                                if s is not None:
-                                    Zreplace = s.replace('%', '%%')
-
-                        push(Zreplace)
                     else:
                         push('%')
                         push(ch)
@@ -1518,7 +1477,7 @@ class TimeDateUtils(BahaiCalendar):
                 push(ch)
 
         newformat = "".join(newformat)
-        return self.strftime(newformat, timetuple)
+        return self.strftime(newformat, timetuple, tzinfo=tzinfo)
 
 
 _td_utils = TimeDateUtils()

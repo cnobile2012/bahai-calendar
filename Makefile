@@ -88,6 +88,7 @@ build	: clobber
 .PHONY	: upload
 upload	: build
 	@./config.py
+#	hatch publish --repo pypi dist/*
 	twine upload --repository pypi dist/*
 
 .PHONY	: upload-test
