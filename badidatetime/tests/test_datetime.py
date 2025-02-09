@@ -264,13 +264,14 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
+        #tz3 = datetime.timezone(datetime.timedelta(hours=0))
         data = (
             ((181, 14, 11), tz0, 0, False, '0181-14-11T03:30:00+03:30'),
             ((181, 14, 11), tz1, 0, False, '0181-14-11T00:00:00+00:00'),
             ((181, 14, 11), tz2, 0, False, '0181-14-10T19:00:00-05:00'),
             ((), None, 0, True, err_msg0),
             ((181, 14, 9), None, 0, True, err_msg1),
-            #((181, 14, 10), datetime.UTC, 0, True, err_msg2),
+            #((181, 14, 10), tz3, 0, True, err_msg2),
             ((181, 14, 11), datetime.UTC, 0, True, err_msg3),
             #((181, 14, 12), tz1, 1, True, err_msg4),
             )
@@ -1865,7 +1866,7 @@ class TestBadiDatetime_time(unittest.TestCase):
         msg = "Expected {} with time {}, format {}, and tz {} found {}."
 
         for time, fmt, tz, expected_result in data:
-            result = datetime.time(*time).strftime(fmt, tzinfo=tz)
+            result = datetime.time(*time, tzinfo=tz).strftime(fmt)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, time, fmt, tz, result))
 
@@ -1874,18 +1875,22 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the __format__ method returns a correctly formatting string.
         """
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         err_msg0 = "Must be a str, not {}."
         data = (
-            ((1, 30, 30), '', False, '01:30:30'),
-            ((1, 30, 30), '%X', False, '01:30:30'),
-            ((1, 30, 30, 500000), '%T.%f', False, '01:30:30.500000'),
-            ((1, 30, 30, 500000), 'T%H:%M:%S.%f', False, 'T01:30:30.500000'),
-            ((1, 30, 30, 500000), 10, True, err_msg0.format('int')),
+            ((1, 30, 30), '', None, False, '01:30:30'),
+            ((1, 30, 30), '%X', None, False, '01:30:30'),
+            ((1, 30, 30, 500000), '%T.%f', None, False, '01:30:30.500000'),
+            ((1, 30, 30, 500000), 'T%H:%M:%S.%f', None, False,
+             'T01:30:30.500000'),
+            ((1, 30, 30, 500000), '%z', tz0, False, '+034288.888888'),
+            ((1, 30, 30, 500000), '%Z', tz0, False, 'Asia/Tehran'),
+            ((1, 30, 30, 500000), 10, None, True, err_msg0.format('int')),
             )
-        msg = "Expected {} with time {} and format {}, found {}."
+        msg = "Expected {} with time {}, format {}, and tzinfo {} found {}."
 
-        for time, fmt, validity, expected_result in data:
-            t = datetime.time(*time)
+        for time, fmt, tz, validity, expected_result in data:
+            t = datetime.time(*time, tzinfo=tz)
 
             if validity:
                 try:
@@ -1899,7 +1904,7 @@ class TestBadiDatetime_time(unittest.TestCase):
             else:
                 result = t.__format__(fmt)
                 self.assertEqual(expected_result, result, msg.format(
-                    expected_result, time, fmt, result))
+                    expected_result, time, fmt, tz, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_utcoffset(self):
@@ -2489,7 +2494,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test__mktime(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
@@ -2507,13 +2512,13 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # 0.5 - 0.166985 = 0.333015
             # (7, 59, 32.496) after sunset == 12 am 1970-01-01
             # I get 64594 off by 46594
-            ## ((126, 16, 2, None, None, 6, 47, 57.12), 0, 18000),
+            #((126, 16, 2, None, None, 6, 47, 57.12), 0, 18000),
             # Sunset exact JD 2460666.163238 (2024, 12, 23, 20, 28, 24)
             # 0.5 - 0.163238 = 0.336762
             # (8, 4, 56.2368) after sunset == 12 am 2024-12-23
             # (8, 4, 56.2368) + (20, 28, 24) ==
-            # I get 1735073211 off by 69507
-            ## ((181, 15, 14, None, None, 3, 21, 18.288), 0, 1735003704),
+            # I get 1735028051 off by 24347
+            #((181, 15, 14, None, None, 3, 21, 18.288), 0, 1735003704),
 
             )
         msg = "Expected {} with date {}, and fold {}, found {}."
@@ -2552,9 +2557,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((126, 16, 2, None, None, 5, 46, 8.9472), datetime.UTC, 0, 0),
             ((126, 16, 2, None, None, 5, 46, 8.9472), tz2, 0, 18000),
             # Local dates and times
-            # 2024-03-20T00:00:00 -> 1710907200
-            # 0.95098318518518518519 (22, 49, 24.9456) too higt
-            #((181, 1, 1, None, None, 5, 46, 8.9472), None, 0, 1710907200),
+            # 2024-03-19T18:15:57 -> 1742422557
+            #((181, 1, 1), tz2, 0, 1742422557),
             # 2024-12-10T12:40:00 -> 1733852400
             #((181, 15, 1), None, 0, 1733867535),
 

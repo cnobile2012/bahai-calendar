@@ -1453,6 +1453,7 @@ class TimeDateUtils(BahaiCalendar):
         newformat = []
         push = newformat.append
         i, n = 0, len(format)
+        tzinfo = object.tzinfo if hasattr(object, 'tzinfo') else None
 
         while i < n:
             ch = format[i]
