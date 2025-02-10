@@ -39,7 +39,7 @@ def _cmp(x, y):
     return 0 if x == y else 1 if x > y else -1
 
 
-def _divide_and_round(a: int, b: int):
+def _divide_and_round(a: int, b: int) -> int:
     """
     Divide a by b and round result to the nearest integer.
 
@@ -70,7 +70,6 @@ def _check_offset(name: str, offset: timedelta) -> None:
     :param str name: Name is the offset-producing method, `utcoffset`,
                      `badioffset`, or `dst`.
     :param timedelta offset: The timezone offset.
-    :return: If offset is None, returns None.
     :raises assert: If the name is not in a list of constants.
     :raises TypeError: If `offset` is not a `timedelta` object.
     :raises ValueError: If `offset` not greater than -1 and less than 1.
@@ -91,7 +90,7 @@ def _check_offset(name: str, offset: timedelta) -> None:
                     "-timedelta(hours=24) and timedelta(hours=24)")
 
 
-def _check_tzinfo_arg(tz: tzinfo):
+def _check_tzinfo_arg(tz: tzinfo) -> None:
     """
     Check that the `tz` argument is either `None` or a `tzinfo` subclass.
 
@@ -103,7 +102,7 @@ def _check_tzinfo_arg(tz: tzinfo):
                         f"subclass, found {tz!r}")
 
 
-def _cmperror(x, y):
+def _cmperror(x, y) -> None:
     """
     Test that `x` and `y` are the correct types to be compared.
 
@@ -186,7 +185,7 @@ def _format_offset(off: timedelta) -> str:
     return s
 
 
-def _check_tzname(name: str):
+def _check_tzname(name: str) -> None:
     """
     Check that the `name` argument is either `None` or a `str`.
 
@@ -205,8 +204,8 @@ def _fromutc(this: tzinfo, dt):
 
     .. note::
 
-       This function needs to be implemented outside the tzinfo class so
-       that the tzinfo class can be used with the zoneinfo class. Normally
+       This function needs to be implemented outside the `tzinfo` class so
+       that the `tzinfo` class can be used with the `zoneinfo` class. Normally
        the tzinfo class would just be overridden with this function added.
 
     :param tzinfo this: The tzinfo object.
@@ -267,27 +266,22 @@ class date(BahaiCalendar):
                  '_hashcode', '__date', '__short')
 
     def __new__(cls, a: int, b: int=None, c: int=None, d: int=None,
-                e: int=None) -> object:
+                e: int=None):
         """
         Instantiate the class.
 
-        :param cls: The class object.
-        :type cls: date class
-        :param a: Long form this value is the Kill-i-Shay and short form
-                  it's the year. If b and c are None then a becomes the
-                  pickle value that is parsed to the remaining values below.
-        :type a: int
-        :param b: Long form this value is the Váḥid and short form it's
-                  the month.
-        :type b: int
-        :param c: Long form this is the year and short form it's the day.
-        :type c: int
-        :param d: Long for this value is the month and in the short form
-                  it's not used.
-        :type d: int
-        :param e: Long form this value is the day and in the short form
-                  it's not used.
-        :type e: int
+        :param date cls: The class object.
+        :param int a: Long form this value is the Kill-i-Shay and short form
+                      it's the year. If b and c are None then a becomes the
+                      pickle value that is parsed to the remaining values
+                      below.
+        :param int b: Long form this value is the Váḥid and short form it's
+                      the month.
+        :param int c: Long form this is the year and short form it's the day.
+        :param int d: Long for this value is the month and in the short form
+                      it's not used.
+        :param int e: Long form this value is the day and in the short form
+                      it's not used.
         :return: The instantiated class.
         :rtype: date
         """
@@ -331,13 +325,10 @@ class date(BahaiCalendar):
         """
         Construct a date from a POSIX timestamp (like time.time()).
 
-        :param cls: The class object.
-        :type cls: date class
-        :param t: The POSIX timestamp.
-        :type t: float
-        :param short: If True the short for is returned. The default
-                      is False.
-        :type short: bool
+        :param date cls: The class object.
+        :param float t: The POSIX timestamp.
+        :param bool short: If True the short for is returned. The default
+                           is False.
         :return: The instantiated class.
         :rtype: date
         """
@@ -352,11 +343,9 @@ class date(BahaiCalendar):
         """
         Construct a date from time.time().
 
-        :param cls: The class object.
-        :type cls: date class
-        :param short: If True the short for is returned. The default
-                      is False.
-        :type short: bool
+        :param date cls: The class object.
+        :param bool short: If True the short for is returned. The default
+                           is False.
         :return: The instantiated class.
         :rtype: date
         """
@@ -370,13 +359,10 @@ class date(BahaiCalendar):
         Bahá 1 of year 1 is day 1. Only the year, month and day are
         non-zero in the result.
 
-        :param cls: The class object.
-        :type cls: date class
-        :param n:
-        :type n:
-        :param short: If True the short for is returned. The default
-                      is False.
-        :type short: bool
+        :param date cls: The class object.
+        :param int n: The ordinal value.
+        :param bool short: If True the short for is returned. The default
+                           is False.
         :return: The instantiated class.
         :rtype: date
         """
@@ -390,6 +376,12 @@ class date(BahaiCalendar):
         """
         Construct a date from a string in ISO 8601 format.
         We only can convert from short form Badi dates.
+
+        :param str date_string: A string representing the date.
+        :param bool short: If True the short for is returned. The default
+                           is False.
+        :return: The date object derived from the string representation.
+        :rtype: date
         """
         if not isinstance(date_string, str):
             raise TypeError("fromisoformat: argument must be a string.")
@@ -425,12 +417,9 @@ class date(BahaiCalendar):
 
         This is the inverse of the date.isocalendar() function.
 
-        :param year: The Badi year.
-        :type year: int
-        :param week: The number of the week in the year.
-        :type week: int
-        :param day: Badi day in week.
-        :type day: int
+        :param int year: The Badi year.
+        :param int week: The number of the week in the year.
+        :param int day: Badi day in week.
         :return: Returns an instantiated date object.
         :rtype: date
         """
@@ -443,13 +432,16 @@ class date(BahaiCalendar):
     # Conversions to string
     def __repr__(self):
         """
-        Convert to formal string, for repr().
+        Convert to formal a string, for repr().
 
-        >>> d = date(181, 1, 1)
-        >>> repr(d)
-        'datetime.date(181, 1, 1)'
+        :return: A string representing the date.
+        :rtype: str
 
-        Badi date 0181-01-01 is Gregorian date 2024-03-20
+        .. note::
+
+           >>> d = date(181, 1, 1)
+           >>> repr(d)
+           'datetime.date(181, 1, 1)'
         """
         msg = (f"{_module_name(self.__class__.__module__)}."
                f"{self.__class__.__qualname__}")
@@ -462,16 +454,26 @@ class date(BahaiCalendar):
 
         return msg
 
-    def _short_from_long_form(self, time=()):
+    def _short_from_long_form(self, time: tuple=()) -> tuple:
         """
-        Convert the long form Badi date to a short form Badi date.
+        Convert the long form Badi date to a short form Badi date and add
+        the time if it exists.
+
+        :param tuple time: A tuple representing the time. This is used by the
+                           datetime class.
+        :return: The short form date from a long for date with the possible
+                 time.
+        :rtype: tuple
         """
         return (self.b_date + time if self.is_short else
                 self.short_date_from_long_date(self.b_date + time))
 
-    def ctime(self):
+    def ctime(self) -> str:
         """
         Return ctime() style string in the short form Badi date.
+
+        :return: A string representing the weekday, month name, and year.
+        :rtype: str
         """
         date = self._short_from_long_form()
         weekday = _td_utils._day_of_week(*date[:3])
@@ -481,15 +483,29 @@ class date(BahaiCalendar):
         y_shim = 4 if year > -1 else 5
         return f"{wd_name} {m_name} {day:2d} 00:00:00 {year:0{y_shim}d}"
 
-    def strftime(self, fmt):
+    def strftime(self, fmt: str) -> str:
         """
-        Format using strftime().
+        Returns a string representing the date from a format string.
 
-        Example: '%d/%m/%Y, %H:%M:%S.%f'
+        :param str fmt:The format string.
+        :return: A string representing the date.
+        :rtype: str
+
+        .. note::
+
+           Example: '%d/%m/%Y'
         """
         return _td_utils._wrap_strftime(self, fmt, self.timetuple())
 
-    def __format__(self, fmt):
+    def __format__(self, fmt: str) -> str:
+        """
+        Returns the same as strftime above except if the strings length is zero
+        then __str__ is returned.
+
+        :param str fmt: The format string used for formatting the output.
+        :return: A string representation of the format.
+        :rtype: str
+        """
         if isinstance(fmt, str):
             if len(fmt) != 0:
                 ret = self.strftime(fmt)
@@ -501,24 +517,30 @@ class date(BahaiCalendar):
         raise TypeError(
             f"Must be a str, not a {type(fmt).__name__}")  # pragma: no cover
 
-    def isoformat(self):
+    def isoformat(self) -> str:
         """
         Return the date formatted according to ISO.
 
-        This is 'YYYY-MM-DD'.
+        :return: String of the year, month, and day.
+        :rtype: str
 
-        References:
-        - http://www.w3.org/TR/NOTE-datetime
-        - http://www.cl.cam.ac.uk/~mgk25/iso-time.html
+        .. note::
+
+           References:
+             - http://www.w3.org/TR/NOTE-datetime
+             - http://www.cl.cam.ac.uk/~mgk25/iso-time.html
         """
         year, month, day = self._short_from_long_form()[:3]
         return f"{year:04d}-{month:02d}-{day:02d}"
 
-    def _str_convertion(self):
+    def _str_convertion(self) -> str:
         """
         Return a string representation of the date. In the case of a short
-        from date the returned Badi date is in ISO format. There is no ISO
-        standard for the long form Badi date.
+        form date the returned Badí' date is in ISO format. There is no ISO
+        standard for the long form Badí' date.
+
+        :return: A string representation of the short or long form Badí' date.
+        :rtype: str
         """
         if self.is_short:
             ret = self.isoformat()
@@ -533,53 +555,106 @@ class date(BahaiCalendar):
 
     # Read-only field accessors
     @property
-    def kull_i_shay(self):
+    def kull_i_shay(self) -> int:
+        """
+        Get the Kull-i-Shay’.
+
+        :return: The value associated with the Kull-i-Shay’.
+        :rtype: int
+        """
         return self._kull_i_shay
 
     @property
-    def vahid(self):
+    def vahid(self) -> int:
+        """
+        Get the Váḥid.
+
+        :return: The value associated with the Váḥid.
+        :rtype: int
+        """
         return self._vahid
 
     @property
-    def year(self):
-        """year (1-9999)"""
+    def year(self) -> int:
+        """
+        Get the year.
+
+        .. note::
+
+           This value has a different meaning depending on if the date
+           object represents a long or short form date.
+
+        :return: The value associated with the year.
+        :rtype: int
+        """
         return self._year
 
     @property
-    def month(self):
-        """month (1-12)"""
+    def month(self) -> int:
+        """
+        Get the month where 1 - 19 represents the normal Badí' month and 0
+        represents Ayyám-i-Há.
+
+        :return: The value associated with the Ayyám-i-Há.
+        :rtype: int
+        """
         return self._month
 
     @property
-    def day(self):
-        """day (1-31)"""
+    def day(self) -> int:
+        """
+        Get the day of the month where 1 - 19 represents the normal Badí'
+        month and 1 - 4 or 5 represents Ayyám-i-Há.
+
+        :return: The value associated with the day of the month.
+        :rtype: int
+        """
         return self._day
 
     @property
-    def is_short(self):
+    def is_short(self) -> bool:
+        """
+        Returns `True` if the current object represents a short form Badí'
+        date or `False` if a long form Badí' date.
+
+        :return `True` if short form date or `False` is long form date.
+        :rtype: bool
+        """
         return self.__short
 
     @property
-    def b_date(self):
+    def b_date(self) -> tuple:
+        """
+        Returns the Badí' date as a tuple.
+
+        :return: The Badí' date.
+        :rtype: tuple
+        """
         return self.__date
 
     # Standard conversions, __eq__, __le__, __lt__, __ge__, __gt__,
     # __hash__ (and helpers)
 
-    def timetuple(self):
+    def timetuple(self) -> tuple:
         """
         Return local time tuple compatible with time.localtime().
+
+        :return: The short or long form date.
+        :rtype: NamedTuple
         """
         return _td_utils._build_struct_time(self.b_date + (0, 0, 0), -1,
                                             short_in=self.is_short)
 
-    def toordinal(self):
+    def toordinal(self) -> int:
         """
-        Return proleptic Badi ordinal for the year, month and day.
+        Return proleptic Badí' ordinal for the year, month and day.
 
-        Baha 1 of year -1842 is day 1. Only the year, month and day values
+        Bahá 1 of year -1842 is day 1. Only the year, month and day values
         contribute to the result. If this class provides the long form
-        Badi date it is converted to the short form before processing.
+        Badí' date it is converted to the short form before processing.
+
+        :return: The ordinal representing the year, month, and day.
+        :rtype: int
         """
         return _td_utils._ymd2ord(*self._short_from_long_form()[:3])
 
@@ -587,6 +662,14 @@ class date(BahaiCalendar):
                 month: int=None, day: int=None) -> object:
         """
         Return a new date with new values for the specified fields.
+
+        :param int kull_i_shay: A value representing the Kull-i-Shay’.
+        :param int vahid: A value representing the Váḥid.
+        :param int year: A value representing the year.
+        :param int month: A value representing the month.
+        :param int day: A value representing the day.
+        :return: A date object with replaced items.
+        :rtype: date
         """
         if self.is_short and (kull_i_shay or vahid):
             msg = "Cannot convert from a short to a long form date."
@@ -609,7 +692,20 @@ class date(BahaiCalendar):
                        microsecond: int=None, tzinfo: tzinfo=True,
                        fold: int=None) -> object:
         """
-        Replace any of the year, month, or day.
+        Replace any of the year, month, or day values.
+
+        :param int year: A value representing the year.
+        :param int month: A value representing the month.
+        :param int day: A value representing the day.
+        :param int hour: A value representing the hour.
+        :param int minute: A value representing the minute.
+        :param int second: A value representing the second.
+        :param int microsecond: A value representing the microsecond.
+        :param tzinfo tzinfo: A `tzinfo` object representing the timezone.
+        :param int fold: Either a 0 meaning not fold or a 1 indicating the
+                         date in in the fold.
+        :return: The short form date object with replaced items.
+        :rtype: date
         """
         if year is None:
             year = self.year
@@ -634,7 +730,22 @@ class date(BahaiCalendar):
                       microsecond: int=None, tzinfo=True,
                       fold: int=None) -> object:
         """
-        Replace any of the kull_i_shay, vahid, year, month, or day.
+        Replace any of the kull_i_shay, vahid, year, month, or day values.
+
+        :param int kull_i_shay: A value representing the Kull-i-Shay’.
+        :param int vahid: A value representing the Váḥid.
+        :param int year: A value representing the year.
+        :param int month: A value representing the month.
+        :param int day: A value representing the day.
+        :param int hour: A value representing the hour.
+        :param int minute: A value representing the minute.
+        :param int second: A value representing the second.
+        :param int microsecond: A value representing the microsecond.
+        :param tzinfo tzinfo: A `tzinfo` object representing the timezone.
+        :param int fold: Either a 0 meaning not fold or a 1 indicating the
+                         date in in the fold.
+        :return: The long form date object with replaced items.
+        :rtype: date
         """
         if kull_i_shay is None:
             kull_i_shay = self.kull_i_shay
@@ -661,27 +772,35 @@ class date(BahaiCalendar):
 
     # Comparisons of date objects with other.
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (self._cmp(other) == 0 if isinstance(other, date)
                 else NotImplemented)
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         return (self._cmp(other) <= 0 if isinstance(other, date)
                 else NotImplemented)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         return (self._cmp(other) < 0 if isinstance(other, date)
                 else NotImplemented)
 
-    def __ge__(self, other):
+    def __ge__(self, other) -> bool:
         return (self._cmp(other) >= 0 if isinstance(other, date)
                 else NotImplemented)
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         return (self._cmp(other) > 0 if isinstance(other, date)
                 else NotImplemented)
 
-    def _cmp(self, other):
+    def _cmp(self, other) -> int:
+        """
+        Returns an integer representation of >, ==, or < of two date objects.
+
+        :param date other: The other date object to compare to.
+        :return: If 0 then x == y, else if 1 then x > y else if -1 then x < y,
+                 where x is the `self` object and y is the `other` object.
+        :rtype: int
+        """
         assert isinstance(other, date)
 
         if self.is_short:
@@ -695,8 +814,13 @@ class date(BahaiCalendar):
 
         return _cmp(d0, d1)
 
-    def __hash__(self):
-        "Hash"
+    def __hash__(self) -> int:
+        """
+        Get the hash of the `self` object.
+
+        :return: The hash.
+        :rtype: int
+        """
         if self._hashcode == -1:
             self._hashcode = hash(self._getstate())
 
@@ -705,7 +829,13 @@ class date(BahaiCalendar):
     # Computations
 
     def __add__(self, other):
-        "Add a date to a timedelta."
+        """
+        Add a date to a timedelta.
+
+        :param date other: The other date object which is added to the
+                           `self` object.
+        :rtype: date
+        """
         if isinstance(other, timedelta):
             od = self.toordinal() + other.days
 
@@ -723,6 +853,10 @@ class date(BahaiCalendar):
     def __sub__(self, other):
         """
         Subtract two dates, or a date and a timedelta.
+
+        :param date other: The other date object which is subtracted from
+                           the `self` object.
+        :rtype: date
         """
         if isinstance(other, timedelta):
             ret = self + timedelta(-other.days)
@@ -735,27 +869,31 @@ class date(BahaiCalendar):
 
         return ret
 
-    def weekday(self):
+    def weekday(self) -> int:
         """
         Return day of the week, where Jalál (Saturday) == 0 ...
         Istiqlāl (Friday) == 6.
+
+        :return: The numerical (0 - 6) day-of-the-week.
+        :rtype: int
         """
         date = self._short_from_long_form()
         return _td_utils._day_of_week(*date[:3])
 
-    # Day-of-the-week and week-of-the-year, according to ISO
-
     def isoweekday(self):
         """
         Return day of the week, where Jalál (Saturday) == 1 ...
-        Istiqlāl (Friday) == 7.
+        Istiqlāl (Friday) == 7. This is the ISO standard.
+
+        :return: The numerical (1 - 7) day-of-the-week.
+        :rtype: int
         """
         date = self._short_from_long_form()[:3]
         return _td_utils._day_of_week(*date) + 1
 
     def isocalendar(self):
         """
-        Return a named tuple containing ISO year, week number, and weekday.
+        Return a `NamedTuple` containing ISO year, week number, and weekday.
 
         The first ISO week of the year is the (Jalál-Istiqlāl) week
         containing the year's first Fiḍāl; everything else derives
@@ -763,9 +901,14 @@ class date(BahaiCalendar):
 
         The first week is 1; Jalál is 1 ... Istiqlāl is 7.
 
-        ISO calendar algorithm taken from
-        http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
-        modified for the Badi Calendar.
+        :return: An ISO year, week, and day.
+        :rtype: _IsoCalendarDate
+
+        .. note::
+
+           ISO calendar algorithm taken from
+           http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
+           modified for the Badi Calendar.
         """
         y, m, d = self._short_from_long_form()[:3]
         year, week, day = _td_utils._year_week_day(y, m, d)
@@ -774,13 +917,13 @@ class date(BahaiCalendar):
     # Pickle support.
 
     @classmethod
-    def _is_pickle_data(cls, a, b):
+    def _is_pickle_data(cls, a, b) -> bool:
         """
         Check if the incoming date is pickle data or actual date information.
 
-        :param a: Pickle data, the kull_i_shay, or year.
-        :type a: int, str, or bypes
-        :param b: None, vahid, or month
+        :param a: Pickle data, the Kull-i-Shay’, or year.
+        :type a: int, str, or bytes
+        :param b: None, Váḥid, or month
         :type b: NoneType or int
         :return: A Boolean if a short or long Badi date derived from pickle
                  data. A None can be returned if a and b are real date
@@ -810,7 +953,13 @@ class date(BahaiCalendar):
 
         return short
 
-    def _getstate(self):
+    def _getstate(self) -> bytes:
+        """
+        Get the current state.
+
+        :return: The state of the current `self` object.
+        :rtype: bytes
+        """
         if self.is_short:
             yhi, ylo = divmod(self._year - MINYEAR, 256)
             state = (yhi, ylo, self._month, self._day)
@@ -827,7 +976,12 @@ class date(BahaiCalendar):
 
         return bytes(state),
 
-    def __setstate(self, bytes_str):
+    def __setstate(self, bytes_str: bytes) -> None:
+        """
+        Set the current state.
+
+        :param bytes bytes_str: The bytes string.
+        """
         if self.is_short:
             yhi, ylo, self._month, self._day = bytes_str
             self._year = yhi * 256 + MINYEAR + ylo
@@ -841,7 +995,13 @@ class date(BahaiCalendar):
             self._day = d
             self.__date = (self._kull_i_shay, v, y, m, d)
 
-    def __reduce__(self):
+    def __reduce__(self) -> tuple:
+        """
+        A tuple of the class name and current state.
+
+        :return: The class name and current state.
+        :rtype: tuple
+        """
         return (self.__class__, self._getstate())
 
 
@@ -858,27 +1018,69 @@ _tzinfo_class = tzinfo
 
 class _IsoCalendarDate(tuple):
 
-    def __new__(cls, year, week, weekday, /) -> object:
+    def __new__(cls, year: int, week: int, weekday: int, /) -> object:
+        """
+        This is a wrapper class around ISO year, week, and weekday.
+
+        :param int, year: The year of the date.
+        :param int, week: The week of the year.
+        :param int weekday: The day of the week.
+        :return: The ISO representation of the year, week, and weekday.
+        :rtype: _IsoCalendarDate
+        """
         return super().__new__(cls, (year, week, weekday))
 
     @property
-    def year(self):
+    def year(self) -> int:
+        """
+        Get the year.
+
+        :return: The year.
+        :rtype: int
+        """
         return self[0]
 
     @property
-    def week(self):
+    def week(self) -> int:
+        """
+        Get the week.
+
+        :return: The week.
+        :rtype: int
+        """
         return self[1]
 
     @property
-    def weekday(self):
+    def weekday(self) -> int:
+        """
+        Get the weekday.
+
+        :return: The weekday.
+        :rtype: int
+        """
         return self[2]
 
-    def __reduce__(self):
-        # This code is intended to pickle the object without making the
-        # class public. See https://bugs.python.org/msg352381
+    def __reduce__(self) -> tuple:
+        """
+        A tuple of the class name and current state.
+
+        :return: The class name and current state.
+        :rtype: tuple
+
+        .. note::
+
+           This code is intended to pickle the object without making the
+           class public. See https://bugs.python.org/msg352381
+        """
         return (tuple, (tuple(self),))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Convert to a formal string, for repr().
+
+        :return: A string representing the date.
+        :rtype: str
+        """
         return (f'{_module_name(self.__class__.__name__)}'
                 f'(year={self[0]}, week={self[1]}, weekday={self[2]})')
 
@@ -916,19 +1118,13 @@ class time:
         """
         Constructor.
 
-        :param hour: Hours (required)
-        :type hour: float
-        :param minute: Minutes (required)
-        :type minute: float
-        :param second: Seconds (default to zero)
-        :type second: float
-        :param microsecond: Microseconds (default to zero)
-        :type microsecond: int
-        :param tzinfo: Timezone information (default to None)
-        :type tzinfo: tzinfo
-        :param fold:  (keyword only, default to zero)
-        :type fold: int
-        :return: the instantiated object self.
+        :param float hour: Hours (required)
+        :param float minute: Minutes (required)
+        :param float second: Seconds (default to zero)
+        :param int microsecond: Microseconds (default to zero)
+        :param tzinfo tzinfo: Timezone information (default to None)
+        :param int fold:  (keyword only, default to zero)
+        :return: The instantiated object self.
         :rtype: time
         """
         if (isinstance(hour, (bytes, str)) and len(hour) == 6 and
@@ -964,32 +1160,65 @@ class time:
 
     # Read-only field accessors
     @property
-    def hour(self):
-        """hour (0-24)"""
+    def hour(self) -> float:
+        """
+        Get the hour.
+
+        :return: The hour.
+        :rtype: float
+        """
         return self._hour
 
     @property
-    def minute(self):
-        """minute (0-59)"""
+    def minute(self) -> float:
+        """
+        Get the minute.
+
+        :return: The minute.
+        :rtype: float
+        """
         return self._minute
 
     @property
-    def second(self):
-        """second (0-59)"""
+    def second(self) -> float:
+        """
+        Get the second.
+
+        :return: The second.
+        :rtype: float
+        """
         return self._second
 
     @property
-    def microsecond(self):
-        """microsecond (0-999999)"""
+    def microsecond(self) -> int:
+        """
+        Get the microsecond.
+
+        :return: The microsecond.
+        :rtype: int
+        """
         return self._microsecond
 
     @property
     def tzinfo(self):
-        """timezone info object"""
+        """
+        Get the timezone info object.
+
+        :return: The timezone info object.
+        :rtype: tzinfo
+        """
         return self._tzinfo
 
     @property
-    def fold(self):
+    def fold(self) -> int:
+        """
+        Get the time fold. This is in the Autumn when the time is set back
+        from daylight savings time to standard time and the same hour is
+        repeated.
+
+        :return: The time fold.
+        :rtype: int
+        """
         return self._fold
 
     # Comparisons of time objects with other.
@@ -1057,9 +1286,12 @@ class time:
 
     # Standard conversions, __hash__ (and helpers)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """
-        Hash the hour, minute, second and microsecond.
+        Get the hash of the `self` object.
+
+        :return: The hash.
+        :rtype: int
         """
         if self._hashcode == -1:
             if self.fold:
@@ -1089,16 +1321,22 @@ class time:
 
     # Conversion to string
 
-    def _tzstr(self):
+    def _tzstr(self) -> str:
         """
         Return a formatted timezone offset (+xx:xx) or an empty string.
+
+        :return: The formatted timezone offset.
+        :rtype: str
         """
         off = self.utcoffset()
         return _format_offset(off)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Convert to formal string, for repr().
+
+        :return: A string representing the current `self` object.
+        :rtype: str
         """
         if self._microsecond != 0:
             s = f", {self._second:d}, {self._microsecond:d}"
@@ -1121,7 +1359,7 @@ class time:
 
         return s
 
-    def isoformat(self, timespec='auto'):
+    def isoformat(self, timespec: str='auto') -> str:
         """
         Return the time formatted according to ISO.
 
@@ -1129,8 +1367,12 @@ class time:
         part is omitted if self.microsecond == 0.
 
         The optional argument timespec specifies the number of additional
-        terms of the time to include. Valid options are 'auto', 'hours',
-        'minutes', 'seconds', 'milliseconds' and 'microseconds'.
+        terms of the time to include. Valid options are `auto`, `hours`,
+        `minutes`, `seconds`, `milliseconds` and `microseconds`.
+
+        :param str timespec: The specification for the time.
+        :return: An ISO formatted string.
+        :rtype: str
         """
         s = _format_time(self._hour, self._minute, self._second,
                          self._microsecond, timespec)
@@ -1144,9 +1386,13 @@ class time:
     __str__ = isoformat
 
     @classmethod
-    def fromisoformat(cls, t_str):
+    def fromisoformat(cls, t_str: str):
         """
         Construct a time from a string in one of the ISO 8601 formats.
+
+        :param str t_str: An ISO formatted string.
+        :return: An instance of time.
+        :rtype: time
         """
         if isinstance(t_str, str):
             try:
@@ -1170,6 +1416,14 @@ class time:
         return _td_utils._wrap_strftime(self, format, timetuple)
 
     def __format__(self, fmt: str) -> str:
+        """
+        More or less the same as strftime, however, if `fmt` is 0 length,
+        then return `str(self)`.
+
+        :param str fmt: The format string.
+        :return: A string formatted as pre the `fmt` argument.
+        :rtype: str
+        """
         if isinstance(fmt, str):
             if len(fmt) != 0:
                 ret = self.strftime(fmt)
@@ -1182,10 +1436,12 @@ class time:
 
     # Timezone functions
 
-    def utcoffset(self):
+    def utcoffset(self) -> int:
         """
         Return the timezone offset as timedelta, positive east of UTC
         (negative west of UTC).
+
+        
         """
         if self.tzinfo is not None:
             offset = self.tzinfo.utcoffset(None)
@@ -2078,7 +2334,7 @@ class datetime(date):
         Check if the incoming date is pickle data or actual date information.
 
         :param a: Pickle data, the kull_i_shay, or year.
-        :type a: int, str, or bypes
+        :type a: int, str, or bytes
         :param b: None, vahid, or month
         :type b: NoneType or int
         :return: A Boolean if a short or long Badi date derived from pickle

@@ -20,7 +20,7 @@ Introduction to the Badí' Calendar API
    :target: https://github.com/cnobile2012/bahai-calendar/actions/workflows/main.yml
    :alt: Build Status
 
-.. image:: https://coveralls.io/repos/github/cnobile2012/bahai-calendar/badge.svg?branch=main
+.. image:: https://coveralls.io/repos/github/cnobile2012/bahai-calendar/badge.svg?branch=main?dummy=987654321
    :target: https://coveralls.io/github/cnobile2012/bahai-calendar?branch=main
    :alt: Coverage
 
