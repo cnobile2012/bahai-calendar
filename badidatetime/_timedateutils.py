@@ -1445,7 +1445,6 @@ class TimeDateUtils(BahaiCalendar):
         :return: A correctly formatted string.
         :rtype: str
         """
-        from .datetime import timedelta
         # Don't call utcoffset() or tzname() unless actually needed.
         freplace = None  # the string to use for %f
 

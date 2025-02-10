@@ -1436,22 +1436,26 @@ class time:
 
     # Timezone functions
 
-    def utcoffset(self) -> int:
+    def utcoffset(self) -> timedelta:
         """
         Return the timezone offset as timedelta, positive east of UTC
         (negative west of UTC).
 
-        
+        :return: The offset from UTC.
+        :rtype: timedelta
         """
         if self.tzinfo is not None:
             offset = self.tzinfo.utcoffset(None)
             _check_offset("utcoffset", offset)
             return offset
 
-    def badioffset(self):
+    def badioffset(self) -> timedelta:
         """
         Return the timezone offset as timedelta, positive east of Asia/Tehran
         (negative west of UTC).
+
+        :return: The offset from UTC.
+        :rtype: timedelta
         """
         if self.tzinfo is not None:
             offset = self.utcoffset()
@@ -1461,38 +1465,58 @@ class time:
 
             return offset
 
-    def tzname(self):
+    def tzname(self) -> str:
         """
         Return the timezone name.
 
-        Note that the name is 100% informational -- there's no requirement that
-        it mean anything in particular. For example, 'GMT', 'UTC', '-500',
-        '-5:00', 'EDT', 'US/Eastern', 'America/New York' are all valid replies.
+        :return: A name representing the time zone.
+        :rtype: str
+
+        .. note::
+
+           The name is 100% informational -- there's no requirement that
+           it mean anything in particular. For example, *GMT*, *UTC*, *-500*,
+           *-5:00*, *EDT*, *US/Eastern*, *America/New York* are all valid
+           responses.
         """
         if self.tzinfo is not None:
             name = self.tzinfo.tzname(None)
             _check_tzname(name)
             return name
 
-    def dst(self):
+    def dst(self) -> timedelta:
         """
         Return 0 if DST is not in effect, or the DST offset (as timedelta
         positive eastward) if DST is in effect.
 
-        This is purely informational; the DST offset has already been added to
-        the UTC offset returned by utcoffset() if applicable, so there's no
-        need to consult dst() unless you're interested in displaying the DST
-        info.
+        :return: The DST offset from UTC.
+        :rtype: timedelta
+
+        .. note::
+
+           This is purely informational; the DST offset has already been
+           added to the UTC offset returned by utcoffset() if applicable,
+           so there's no need to consult dst() unless you're interested in
+           displaying the DST info.
         """
         if self.tzinfo is not None:
             offset = self.tzinfo.dst(None)
             _check_offset("dst", offset)
             return offset
 
-    def replace(self, hour=None, minute=None, second=None, microsecond=None,
-                tzinfo=True, *, fold=None):
+    def replace(self, hour: float=None, minute: float=None, second: float=None,
+                microsecond: int=None, tzinfo: tzinfo=True, *, fold: int=None):
         """
         Return a new time with new values for the specified fields.
+
+        :param float hour: Hours (required)
+        :param float minute: Minutes (required)
+        :param float second: Seconds (default to zero)
+        :param int microsecond: Microseconds (default to zero)
+        :param tzinfo tzinfo: Timezone information (default to None)
+        :param int fold:  (keyword only, default to zero)
+        :return: A new time object updated with the provided information.
+        :rtype: time
         """
         if hour is None:
             hour = self.hour
@@ -1516,7 +1540,15 @@ class time:
 
     # Pickle support.
 
-    def _getstate(self, protocol=3):
+    def _getstate(self, protocol: int=3) -> tuple:
+        """
+        Get the state of the current time object.
+
+        :param int protocol: The protocol used to derive the state
+                             (default is 3).
+        :return: The current state of the `self` object.
+        :rtype: tuple
+        """
         us2, us3 = divmod(self._microsecond, 256)
         us1, us2 = divmod(us2, 256)
         h = self._hour
@@ -1528,7 +1560,14 @@ class time:
         else:
             return (basestate, self.tzinfo)
 
-    def __setstate(self, string, tzinfo):
+    def __setstate(self, string: str, tzinfo: tzinfo) -> None:
+        """
+        Set the current state of the `self` object.
+
+        :param str string: A byte string.
+        :param tzinfo, tzinfo: Time zone information.
+        :raises TypeError: If the `tzinfo` argument is not a `tzinfo` object.
+        """
         _check_tzinfo_arg(tzinfo)
         h, self._minute, self._second, us1, us2, us3 = string
 
@@ -1542,10 +1581,22 @@ class time:
         self._microsecond = (((us1 << 8) | us2) << 8) | us3
         self._tzinfo = tzinfo
 
-    def __reduce_ex__(self, protocol):
+    def __reduce_ex__(self, protocol: int) -> tuple:
+        """
+        Get the class name and the default protocol state.
+
+        :param int protocol: The protocol used to derive the state.
+        :rtype: tuple
+        """
         return (self.__class__, self._getstate(protocol))
 
-    def __reduce__(self):  # pragma: no cover
+    def __reduce__(self) -> tuple:  # pragma: no cover
+        """
+        Get the class name and the default protocol 2 state.
+
+        :return: The class name and the default protocol 2 state.
+        :rtype: tuple
+        """
         return self.__reduce_ex__(2)
 
 
