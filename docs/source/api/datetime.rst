@@ -61,3 +61,7 @@ Classes
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members:
+   :exclude-members: __slots__, __module__, __date, __short, _kull_i_shay,
+                     _vahid, _year, _month, _day, __annotations__, _tzinfo,
+                     _fold, _Omitted, __getinitargs__, __getattribute__

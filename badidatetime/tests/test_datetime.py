@@ -195,7 +195,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         """
         Test that the _format_offset returns the correct result.
         """
-        err_msg0 = "The off value '{}', must be a timedelta object or None."
+        err_msg0 = "The off value '{}', must be a timedelta instance or None."
         data = (
             (None, False, ''),
             (datetime.timedelta(hours=2), False, '+02:00'),
@@ -350,8 +350,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg2 = ("A full short or long form Badi date must be used, found "
                     "{} fields.")
         err_msg3 = ("Failed to encode latin1 string when unpickling a date or "
-                    "datetime object. pickle.load(data, encoding='latin1') is "
-                    "assumed.")
+                    "datetime instance. pickle.load(data, encoding='latin1') "
+                    "is assumed.")
         data = (
             ((1, 1, 1), False, '0001-01-01'),
             ((1, 1, 1, 1, 1), False, '01-01-01-01-01'),
@@ -1205,8 +1205,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         err_msg0 = "Invalid string {} had length of {} for pickle."
         err_msg1 = ("Failed to encode latin1 string when unpickling a date or "
-                    "datetime object. pickle.load(data, encoding='latin1') is "
-                    "assumed.")
+                    "datetime instance. pickle.load(data, encoding='latin1') "
+                    "is assumed.")
         data = (
             ((b'\x073\x01\x01', None), False, True),
             ((b'\x14\x01\x01\x01\x01', None), False, False),
@@ -1421,7 +1421,8 @@ class TestBadiDatetime_time(unittest.TestCase):
         object and a normal instantiation.
         """
         err_msg0 = ("Failed to encode latin1 string when unpickling a time "
-                    "object. pickle.load(data, encoding='latin1') is assumed.")
+                    "instance. pickle.load(data, encoding='latin1') is "
+                    "assumed.")
         data = (
             ((12, 30), None, 0, False, '12:30:00'),
             ((12, 30, 30), None, 0, False, '12:30:30'),
@@ -3282,7 +3283,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         if the current date is greater than the test date, and -1 if the
         inverse.
         """
-        err_msg0 = "The other must be a datetime object, found '{}'."
+        err_msg0 = "The other must be a datetime instance, found '{}'."
         err_msg1 = "Cannot compare naive and aware datetimes."
         tz0 = ZoneInfo('US/Pacific')
         data = (
@@ -3486,8 +3487,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         err_msg0 = "Invalid string {} had length of {} for pickle."
         err_msg1 = ("Failed to encode latin1 string when unpickling a date or "
-                    "datetime object. pickle.load(data, encoding='latin1') is "
-                    "assumed.")
+                    "datetime instance. pickle.load(data, encoding='latin1') "
+                    "is assumed.")
         data = (
             ((b'\x00\x00\x01\x01\x0c\x1e\x1e\x07\xa1 ', None), False, True),
             ((b'\x0e\x12\x01\x01\x01\x0c\x1e\x1e\x07\xa1 ', None), False,

@@ -71,7 +71,7 @@ def _check_offset(name: str, offset: timedelta) -> None:
                      `badioffset`, or `dst`.
     :param timedelta offset: The timezone offset.
     :raises assert: If the name is not in a list of constants.
-    :raises TypeError: If `offset` is not a `timedelta` object.
+    :raises TypeError: If `offset` is not a `timedelta` instance.
     :raises ValueError: If `offset` not greater than -1 and less than 1.
     """
     assert name in ('utcoffset', 'badioffset', 'dst'), (
@@ -94,7 +94,7 @@ def _check_tzinfo_arg(tz: tzinfo) -> None:
     """
     Check that the `tz` argument is either `None` or a `tzinfo` subclass.
 
-    :param tzinfo tz: A `tzinfo` object.
+    :param tzinfo tz: A `tzinfo` instance.
     :raises TypeError: If `tz is not `None` or a `tzinfo` subclass.
     """
     if tz is not None and not isinstance(tz, tzinfo):
@@ -154,13 +154,13 @@ def _format_offset(off: timedelta) -> str:
     """
     Format an ISO offset.
 
-    :param timedelta off: A `timedelta` object.
+    :param timedelta off: A `timedelta` instance.
     :return: A formatted ISO offset.
     :rtype: str
-    :raises TypeError: If `off` is not `None` or a `timedelta` object.
+    :raises TypeError: If `off` is not `None` or a `timedelta` instance.
     """
     if not isinstance(off, (timedelta, NoneType)):
-        raise TypeError(f"The off value '{off}', must be a timedelta object "
+        raise TypeError(f"The off value '{off}', must be a timedelta instance "
                         "or None.")
 
     s = ''
@@ -208,11 +208,11 @@ def _fromutc(this: tzinfo, dt):
        that the `tzinfo` class can be used with the `zoneinfo` class. Normally
        the tzinfo class would just be overridden with this function added.
 
-    :param tzinfo this: The tzinfo object.
-    :param datetime dt: A datetime object.
+    :param tzinfo this: The tzinfo instance.
+    :param datetime dt: A datetime instance.
     :returns: The adjusted datetime from the provided UTC datetime.
     :rtype: datetime
-    :raises TypeError: If `dt` is not a `datetime` object.
+    :raises TypeError: If `dt` is not a `datetime` instance.
     :raises ValueError: If dt.tzinfo is not self.
     :raises ValueError: If a `None` value returned from utcoffset().
     :raises ValueError: If a `None` value returned from dst().
@@ -380,7 +380,7 @@ class date(BahaiCalendar):
         :param str date_string: A string representing the date.
         :param bool short: If True the short for is returned. The default
                            is False.
-        :return: The date object derived from the string representation.
+        :return: The date instance derived from the string representation.
         :rtype: date
         """
         if not isinstance(date_string, str):
@@ -420,7 +420,7 @@ class date(BahaiCalendar):
         :param int year: The Badi year.
         :param int week: The number of the week in the year.
         :param int day: Badi day in week.
-        :return: Returns an instantiated date object.
+        :return: The date instance.
         :rtype: date
         """
         bc = BahaiCalendar()
@@ -582,7 +582,7 @@ class date(BahaiCalendar):
         .. note::
 
            This value has a different meaning depending on if the date
-           object represents a long or short form date.
+           instance represents a long or short form date.
 
         :return: The value associated with the year.
         :rtype: int
@@ -614,7 +614,7 @@ class date(BahaiCalendar):
     @property
     def is_short(self) -> bool:
         """
-        Returns `True` if the current object represents a short form Badí'
+        Get `True` if the current instance represents a short form Badí'
         date or `False` if a long form Badí' date.
 
         :return `True` if short form date or `False` is long form date.
@@ -625,7 +625,7 @@ class date(BahaiCalendar):
     @property
     def b_date(self) -> tuple:
         """
-        Returns the Badí' date as a tuple.
+        Get the Badí' date as a tuple.
 
         :return: The Badí' date.
         :rtype: tuple
@@ -668,7 +668,7 @@ class date(BahaiCalendar):
         :param int year: A value representing the year.
         :param int month: A value representing the month.
         :param int day: A value representing the day.
-        :return: A date object with replaced items.
+        :return: A date instance with replaced items.
         :rtype: date
         """
         if self.is_short and (kull_i_shay or vahid):
@@ -701,10 +701,10 @@ class date(BahaiCalendar):
         :param int minute: A value representing the minute.
         :param int second: A value representing the second.
         :param int microsecond: A value representing the microsecond.
-        :param tzinfo tzinfo: A `tzinfo` object representing the timezone.
+        :param tzinfo tzinfo: A `tzinfo` instance representing the timezone.
         :param int fold: Either a 0 meaning not fold or a 1 indicating the
                          date in in the fold.
-        :return: The short form date object with replaced items.
+        :return: The short form date instance with replaced items.
         :rtype: date
         """
         if year is None:
@@ -741,10 +741,10 @@ class date(BahaiCalendar):
         :param int minute: A value representing the minute.
         :param int second: A value representing the second.
         :param int microsecond: A value representing the microsecond.
-        :param tzinfo tzinfo: A `tzinfo` object representing the timezone.
+        :param tzinfo tzinfo: A `tzinfo` instance representing the timezone.
         :param int fold: Either a 0 meaning not fold or a 1 indicating the
                          date in in the fold.
-        :return: The long form date object with replaced items.
+        :return: The long form date instance with replaced items.
         :rtype: date
         """
         if kull_i_shay is None:
@@ -794,11 +794,11 @@ class date(BahaiCalendar):
 
     def _cmp(self, other) -> int:
         """
-        Returns an integer representation of >, ==, or < of two date objects.
+        Returns an integer representation of >, ==, or < of two date instances.
 
-        :param date other: The other date object to compare to.
+        :param date other: The other date instance to compare to.
         :return: If 0 then x == y, else if 1 then x > y else if -1 then x < y,
-                 where x is the `self` object and y is the `other` object.
+                 where x is the `self` instance and y is the `other` instance.
         :rtype: int
         """
         assert isinstance(other, date)
@@ -816,7 +816,7 @@ class date(BahaiCalendar):
 
     def __hash__(self) -> int:
         """
-        Get the hash of the `self` object.
+        Get the hash of the `self` instance.
 
         :return: The hash.
         :rtype: int
@@ -832,8 +832,8 @@ class date(BahaiCalendar):
         """
         Add a date to a timedelta.
 
-        :param date other: The other date object which is added to the
-                           `self` object.
+        :param date other: The other `date` instance which is added to the
+                           `self` instance.
         :rtype: date
         """
         if isinstance(other, timedelta):
@@ -854,8 +854,9 @@ class date(BahaiCalendar):
         """
         Subtract two dates, or a date and a timedelta.
 
-        :param date other: The other date object which is subtracted from
-                           the `self` object.
+        :param date other: The other date instance which is subtracted from
+                           the `self` instance.
+        :return: Subreacted date instances.
         :rtype: date
         """
         if isinstance(other, timedelta):
@@ -944,7 +945,7 @@ class date(BahaiCalendar):
                     except UnicodeEncodeError:
                         raise ValueError(
                             "Failed to encode latin1 string when unpickling "
-                            "a date or datetime object. "
+                            "a date or datetime instance. "
                             "pickle.load(data, encoding='latin1') is assumed.")
             else:
                 short = None
@@ -957,7 +958,7 @@ class date(BahaiCalendar):
         """
         Get the current state.
 
-        :return: The state of the current `self` object.
+        :return: The state of the current `self` instance.
         :rtype: bytes
         """
         if self.is_short:
@@ -1124,7 +1125,7 @@ class time:
         :param int microsecond: Microseconds (default to zero)
         :param tzinfo tzinfo: Timezone information (default to None)
         :param int fold:  (keyword only, default to zero)
-        :return: The instantiated object self.
+        :return: The `self` instance.
         :rtype: time
         """
         if (isinstance(hour, (bytes, str)) and len(hour) == 6 and
@@ -1137,7 +1138,7 @@ class time:
                     # More informative error message.
                     raise ValueError(
                         "Failed to encode latin1 string when unpickling "
-                        "a time object. "
+                        "a time instance. "
                         "pickle.load(data, encoding='latin1') is assumed.")
 
             self = object.__new__(cls)
@@ -1200,11 +1201,11 @@ class time:
         return self._microsecond
 
     @property
-    def tzinfo(self):
+    def tzinfo(self) -> tzinfo:
         """
-        Get the timezone info object.
+        Get the timezone info instance.
 
-        :return: The timezone info object.
+        :return: The timezone info instance.
         :rtype: tzinfo
         """
         return self._tzinfo
@@ -1247,7 +1248,7 @@ class time:
         """
         A low level time compare method.
 
-        :param time other: Another time object.
+        :param time other: Another time instance.
         :param bool allow_mixed: True if a naive and aware time objects are
                                  allowed else if False they are not allowed.
                                  Only the __eq__ method sets this to True.
@@ -1288,7 +1289,7 @@ class time:
 
     def __hash__(self) -> int:
         """
-        Get the hash of the `self` object.
+        Get the hash of the `self` instance.
 
         :return: The hash.
         :rtype: int
@@ -1335,7 +1336,7 @@ class time:
         """
         Convert to formal string, for repr().
 
-        :return: A string representing the current `self` object.
+        :return: A string representing the current `self` instance.
         :rtype: str
         """
         if self._microsecond != 0:
@@ -1515,7 +1516,7 @@ class time:
         :param int microsecond: Microseconds (default to zero)
         :param tzinfo tzinfo: Timezone information (default to None)
         :param int fold:  (keyword only, default to zero)
-        :return: A new time object updated with the provided information.
+        :return: A new time instance updated with the provided information.
         :rtype: time
         """
         if hour is None:
@@ -1542,11 +1543,11 @@ class time:
 
     def _getstate(self, protocol: int=3) -> tuple:
         """
-        Get the state of the current time object.
+        Get the state of the current time instance.
 
         :param int protocol: The protocol used to derive the state
                              (default is 3).
-        :return: The current state of the `self` object.
+        :return: The current state of the `self` instance.
         :rtype: tuple
         """
         us2, us3 = divmod(self._microsecond, 256)
@@ -1562,11 +1563,11 @@ class time:
 
     def __setstate(self, string: str, tzinfo: tzinfo) -> None:
         """
-        Set the current state of the `self` object.
+        Set the current state of the `self` instance.
 
         :param str string: A byte string.
         :param tzinfo, tzinfo: Time zone information.
-        :raises TypeError: If the `tzinfo` argument is not a `tzinfo` object.
+        :raises TypeError: If the `tzinfo` argument is not a `tzinfo` instance.
         """
         _check_tzinfo_arg(tzinfo)
         h, self._minute, self._second, us1, us2, us3 = string
@@ -1586,15 +1587,16 @@ class time:
         Get the class name and the default protocol state.
 
         :param int protocol: The protocol used to derive the state.
+        :return: The class name and current state.
         :rtype: tuple
         """
         return (self.__class__, self._getstate(protocol))
 
     def __reduce__(self) -> tuple:  # pragma: no cover
         """
-        Get the class name and the default protocol 2 state.
+        Get the class name and current state using protocol 2.
 
-        :return: The class name and the default protocol 2 state.
+        :return: The class name and current state.
         :rtype: tuple
         """
         return self.__reduce_ex__(2)
@@ -1621,6 +1623,33 @@ class datetime(date):
                 e: int=None, hour: float=0, minute: float=0, second: float=0,
                 microsecond: int=0, tzinfo: tzinfo=None, *,
                 fold: int=0) -> object:
+        """
+        Check if there is pickle data. If so parse and create the objcet. If
+        not pickle data create the instance from the incoming date data.
+
+        :param int a: If pickle data this is the bytes string. If not pickle
+                      data this could be the Kull-i-Shay’ if a long form date
+                      or the year if a short form date.
+        :param int b: If pickle data this is the `tzinfo` instance. If not
+                      pickle data this could be the Váḥid if a long form date
+                      or the month if a short form date.
+        :param int c: If a long form date this is the year or the day if a
+                      short form date is used.
+        :param int d: If a long form date this is the month, it is not used
+                      with a short form date.
+        :param int e: If a long form date this is the day, it is not used
+                      with a short form date.
+        :param float hour: The hour of the dat.
+        :param float minute: The minute of the hour.
+        :param float second: The second of the minute.
+        :param int microsecond: The microsecond.
+        :param tzinfo tzinfo: The time zone information.
+        :param int fold: If *0* there is no fold in time, this is the more
+                         common situation, however, if it is *1* there is a
+                         fold in time.
+        :return: The instance of the datetime class.
+        :rtype: datetime
+        """
         if (short := datetime._is_pickle_data(a, b)) is not None:
             self = object.__new__(cls)
             super().__init__(self)
@@ -1660,7 +1689,16 @@ class datetime(date):
         self._hashcode = -1
         return self
 
-    def _create_time(self, hour, minute, second, microsecond):
+    def _create_time(self, hour: float, minute: float, second: float,
+                     microsecond: int) -> None:
+        """
+        Create the time portion of the `datetime` instance.
+
+        :param float hour: The hour of the dat.
+        :param float minute: The minute of the hour.
+        :param float second: The second of the minute.
+        :param int microsecond: The microsecond.
+        """
         def fractionals(value, items):
             if value % 1 and any(items):
                 raise ValueError("A fractional value cannot be followed by "
@@ -1699,46 +1737,96 @@ class datetime(date):
 
     # Read-only field accessors
     @property
-    def hour(self):
-        """hour (0-23)"""
+    def hour(self) -> float:
+        """
+        Get the hour.
+
+        :return: The hour.
+        :rtype: float
+        """
         return self._hour
 
     @property
-    def minute(self):
-        """minute (0-59)"""
+    def minute(self) -> float:
+        """
+        Get the minute.
+
+        :return: The minute.
+        :rtype: float
+        """
         return self._minute
 
     @property
-    def second(self):
-        """second (0-59)"""
+    def second(self) -> float:
+        """
+        Get the second.
+
+        :return: The second.
+        :rtype: float
+        """
         return self._second
 
     @property
-    def microsecond(self):
-        """microsecond (0-999999)"""
+    def microsecond(self) -> int:
+        """
+        Get the microsecond.
+
+        :return: The microsecond.
+        :rtype: int
+        """
         return self._microsecond
 
     @property
-    def tzinfo(self):
+    def tzinfo(self) -> tzinfo:
         """
-        timezone info object
+        Get the timezone info instance.
+
+        :return: The timezone info instance.
+        :rtype: tzinfo
         """
         return self._tzinfo
 
     @property
-    def fold(self):
+    def fold(self) -> int:
+        """
+        Get the time fold. This is in the Autumn when the time is set back
+        from daylight savings time to standard time and the same hour is
+        repeated.
+
+        :return: The time fold.
+        :rtype: int
+        """
         return self._fold
 
     @property
-    def b_date(self):
+    def b_date(self) -> tuple:
+        """
+        Get the Badí' date as a tuple.
+
+        :return: The Badí' date.
+        :rtype: tuple
+        """
         return self.__date
 
     @property
-    def b_time(self):
+    def b_time(self) -> tuple:
+        """
+        Get the time as a tuple.
+
+        :return: The time.
+        :rtype: tuple
+        """
         return self.__time
 
     @property
-    def is_short(self):
+    def is_short(self) -> bool:
+        """
+        Get `True` if the current instance represents a short form Badí'
+        date or `False` if a long form Badí' date.
+
+        :return `True` if short form date or `False` is long form date.
+        :rtype: bool
+        """
         return self.__short
 
     @classmethod
@@ -1746,17 +1834,14 @@ class datetime(date):
         """
         Construct a datetime from a POSIX timestamp (like time.time()).
 
-        :param t: POSIX timestamp.
-        :type t: float
-        :param utc: If True then the result is relative to UTC time else
-                    if False it is relative to local time.
-        :type utc: bool
-        :param tz: A tzinfo object.
-        :type tz: tzinfo
-        :param short: If False (default) the result is in the long Badi form,
-                      else if True it is in the short form.
-        :returns: A datetime object set to the date derived from the
-                  POSIX timestamp.
+        :param float t: POSIX timestamp.
+        :param bool utc: If True then the result is relative to UTC time else
+                         if False it is relative to local time.
+        :param tzinfo tz: A tzinfo instance.
+        :param bool short: If False (default) the result is in the long Badi
+                           form, else if True it is in the short form.
+        :return: A datetime instance set to the date derived from the
+                 POSIX timestamp.
         :rtype: datetime.datetime
         """
         def _fix_short_date(date, short):
@@ -1810,6 +1895,13 @@ class datetime(date):
         """
         Construct a datetime from a POSIX timestamp representing local time
         (like time.time()).
+
+        :param float t: The timestamp.
+        :param tzinfo tz: The `tzinfo` instance.
+        :param bool short: If True the short for is returned. The default
+                           is False.
+        :return: A `datetime` instance.
+        :rtype: datetime
         """
         _check_tzinfo_arg(tz)
         return cls._fromtimestamp(t, tz is not None, tz, short=short)
@@ -1818,16 +1910,28 @@ class datetime(date):
     # https://docs.python.org/3/deprecations/index.html
 
     @classmethod
-    def now(cls, tz=None, short: bool=False):
+    def now(cls, tz: tzinfo=None, short: bool=False):
         """
         Construct a datetime from time.time() and optional time zone info.
+
+        :param tzinfo tz: The `timezone` instance.
+        :param bool short: If True the short for is returned. The default
+                           is False.
+        :return: A `datetime` instance.
+        :rtype: datetime
         """
         return cls.fromtimestamp(_time.time(), tz, short=short)
 
     @classmethod
-    def combine(cls, date: date, time: time, tzinfo: time.tzinfo=True):
+    def combine(cls, date: date, time: time, tzinfo: tzinfo=True):
         """
         Construct a datetime from a given date and a given time.
+
+        :param date date: A date instance.
+        :param time time: A time instance.
+        :param tzinfo tzinfo: A tzinfo instance.
+        :return: A `datetime` instance.
+        :rtype: datetime
         """
         if not isinstance(date, _date_class):
             raise TypeError("The date argument must be a date instance, "
@@ -1849,10 +1953,14 @@ class datetime(date):
                    microsecond=time.microsecond, tzinfo=tzinfo, fold=time.fold)
 
     @classmethod
-    def fromisoformat(cls, date_string):
+    def fromisoformat(cls, date_string: str):
         """
         Construct a datetime from a string in one of the ISO 8601 formats.
         This only works with short form dates.
+
+        :param str date_string: An ISO formatted string.
+        :return: A `datetime` instance.
+        :rtype: datetime
         """
         date, time, tz = _td_utils._parse_isoformat_date_time_timezone(
             date_string)
@@ -1866,14 +1974,27 @@ class datetime(date):
     def timetuple(self):
         """
         Return local time tuple compatible with time.localtime().
+
+        :return: A tuple of the date and time values.
+        :rtype: NamedTuple
         """
         date = self.b_date + self.b_time[:3]
         return _td_utils._build_struct_time(date, -1, tzinfo=self.tzinfo,
                                             short_in=self.is_short)
 
-    def _mktime(self):
+    def _mktime(self) -> float:
         """
         Return integer POSIX timestamp.
+
+        .. warning::
+
+           This method has issues and is not always acurate. This means that
+           any code derived from this method may also have issues. Also
+           effected are: `timestamp()`, `_local_timezone()`, and
+           `astimezone()`.
+
+        :return: The POSIX timestamp.
+        :rtype: float
         """
         def local(u):
             y, m, d, hh, mm, ss = _time.localtime(u)[:6]
@@ -1915,9 +2036,17 @@ class datetime(date):
         # a solution.  This means t is in the gap.
         return (max, min)[self.fold](u1, u2)
 
-    def timestamp(self):
+    def timestamp(self) -> float:
         """
         Return POSIX timestamp as float for the current datetime instance.
+
+        .. warning::
+
+           This method is derived from `_mktime()` and may have accuracy
+           issues.
+
+        :return: The POSIX timestamp.
+        :rtype: float
         """
         if self.tzinfo is None:
             s = self._mktime()
@@ -1925,15 +2054,21 @@ class datetime(date):
         else:
             return (self - _EPOCH).total_seconds()
 
-    def utctimetuple(self):
+    def utctimetuple(self) -> tuple:
         """
         Return UTC time tuple compatible with time.gmtime().
+
+        :return: The UTC time tuple.
+        :rtype: NamedTuple
         """
         return self._timetuple(self.utcoffset())
 
-    def _timetuple(self, offset):
+    def _timetuple(self, offset) -> tuple:
         """
         Return UTC or BADI time tuple compatible with time.gmtime().
+
+        :return: The UTC time tuple.
+        :rtype: NamedTuple
         """
         if offset:
             self -= offset
@@ -1941,31 +2076,55 @@ class datetime(date):
         date = self.b_date + (self.hour, self.minute, self.second)
         return _td_utils._build_struct_time(date, 0, short_in=self.is_short)
 
-    def date(self):
+    def date(self) -> date:
         """
-        Return the date part.
+        Return the date part of the `datetime` instance.
+
+        :return: The date part of the `datetime` instance.
+        :rtype: date
         """
         return date(self._year, self._month, self._day)
 
     def time(self):
         """
-        Return the time part, with tzinfo None.
+        Return the time part, with tzinfo None of the `datetime` instance.
+
+        :return: The time part of the `datetime` instance.
+        :rtype: time
         """
         return time(self.hour, self.minute, self.second, self.microsecond,
                     fold=self.fold)
 
-    def timetz(self):
+    def timetz(self) -> time:
         """
-        Return the time part, with same tzinfo.
+        Return the time part, with same tzinfo of the `datetime` instance.
+
+        :return: The time part of the `datetime` instance.
+        :rtype: time
         """
         return time(self.hour, self.minute, self.second, self.microsecond,
                     self.tzinfo, fold=self.fold)
 
-    def replace(self, kull_i_shay=None, vahid=None, year=None, month=None,
-                day=None, hour=None, minute=None, second=None,
-                microsecond=None, tzinfo=True, *, fold=None):
+    def replace(self, kull_i_shay: int=None, vahid: int =None, year: int =None,
+                month: int =None, day: int=None, hour: float=None,
+                minute: float=None, second: float=None, microsecond: int=None,
+                tzinfo: tzinfo=True, *, fold: int=None):
         """
         Return a new datetime with new values for the specified fields.
+
+        :param int kull_i_shay: The Kull-i-Shay’.
+        :param int vahid: The Váḥid.
+        :param int year: The year.
+        :param int month: The month.
+        :param int day: The day.
+        :param float hour: The hour.
+        :param float minute: The minute.
+        :param float second: The second.
+        :param int microsecond: The microsecond.
+        :param tzinfo tzinfo: A `tzinfo` instance.
+        :param int fold: The time fold.
+        :return: The updated `datetime` instance.
+        :rtype: datetime
         """
         if hour is None:
             hour = self.hour
@@ -2008,7 +2167,10 @@ class datetime(date):
 
     def _local_timezone(self):
         """
-        Always return the local time offset in a timezone object.
+        Always return the local time offset in a timezone instance.
+
+        :return: The local time zone.
+        :rtype: timezone
         """
         if self.tzinfo is None:
             ts = self._mktime()
@@ -2037,11 +2199,11 @@ class datetime(date):
 
     def astimezone(self, tz: tzinfo=None):
         """
-        Returns a datetime object with the provided tzinfo object attached.
+        Returns a datetime instance with the provided tzinfo instance attached.
 
-        :param tzinfo tz: A timezone object.
-        :return: A date time object with a tzinfo object attached.
-        :rtype: datetime.datetime
+        :param tzinfo tz: A timezone instance.
+        :return: A `datetime` instance with a tzinfo instance attached.
+        :rtype: datetime
         """
         if tz is None:
             tz = self._local_timezone()
@@ -2062,7 +2224,7 @@ class datetime(date):
                 myoffset = mytz.utcoffset(self)
 
         if tz is not mytz:
-            # Convert self to UTC, and attach the new time zone object.
+            # Convert self to UTC, and attach the new time zone instance.
             utc = (self - myoffset).replace(tzinfo=tz)
             # Convert from UTC to tz's local time.
             ret = tz.fromutc(utc)
@@ -2073,9 +2235,14 @@ class datetime(date):
 
     # Ways to produce a string.
 
-    def ctime(self):
+    def ctime(self) -> str:
         """
-        Return ctime() style string.
+        Return a string with weekday, month name, day, hour, minute, second,
+        and year.
+
+        :return: A string with weekday, month name, day, hour, minute, second,
+                 and year.
+        :rtype: str
         """
         if self.is_short:
             date = self.b_date + self.b_time
@@ -2090,22 +2257,29 @@ class datetime(date):
         return (f"{wd_name} {m_name} {day:2d} "
                 f"{hour:02d}:{minute:02d}:{second:02d} {year:0{y_shim}d}")
 
-    def isoformat(self, sep='T', timespec='auto'):
+    def isoformat(self, sep: str='T', timespec: str='auto') -> str:
         """
         Return the time formatted according to ISO.
 
         The full format looks like 'YYYY-MM-DDTHH:MM:SS.mmmmmm'.
         By default, the fractional part is omitted if self.microsecond == 0.
 
-        If self.tzinfo is not None, the UTC offset is also attached, giving
+        If `self.tzinfo` is not `None`, the UTC offset is also attached,
         giving a full format of 'YYYY-MM-DDTHH:MM:SS.mmmmmm+HH:MM'.
 
         Optional argument sep specifies the separator between date and
-        time, default ' '.
+        time, default 'T'.
 
         The optional argument timespec specifies the number of additional
         terms of the time to include. Valid options are 'auto', 'hours',
         'minutes', 'seconds', 'milliseconds' and 'microseconds'.
+
+        :param str sep: The ISO date and time seperator. The standard is to
+                        use *T*.
+        :param str timespec: A special string as stated above that will
+                             append additional data to the string.
+        :return: An ISO formatted string.
+        :rtype: str
         """
         s = (f"{self._year:04d}-{self._month:02d}-{self._day:02d}{sep}" +
              _format_time(self._hour, self._minute, self._second,
@@ -2119,9 +2293,12 @@ class datetime(date):
 
         return s
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Convert to formal string, for repr().
+
+        :return: A string representation of the `datetime` instance.
+        :rtype: str
         """
         L = [self._hour, self._minute, self._second, self._microsecond]
 
@@ -2150,7 +2327,15 @@ class datetime(date):
 
         return s
 
-    def _dt_str_conversion(self, sep='T'):
+    def _dt_str_conversion(self, sep='T') -> str:
+        """
+        A representation of the `datetime` instance.
+
+        :param str sep: The ISO date and time seperator. The standard is to
+                        use *T*.
+        :return: A representation of the `datetime` instance.
+        :rtype: str
+        """
         if self.is_short:
             ret = self.isoformat(sep=sep)
         else:
@@ -2168,12 +2353,17 @@ class datetime(date):
     __str__ = _dt_str_conversion
 
     @classmethod
-    def strptime(cls, date_string, format):
+    def strptime(cls, date_string: str, format: str) -> str:
         """
         String, format -> new datetime parsed from a string
         (like time.strptime()).
 
         *** TODO *** _strptime may need to be rewritten, bummer.
+
+        :param str date_string: A string representing the date.
+        :param str format: A format string
+        :return: A date and time string representing the `format` string.
+        :rtype: str
         """
         import _strptime
         return _strptime._strptime_datetime(cls, date_string, format)
@@ -2188,20 +2378,24 @@ class datetime(date):
             _check_offset("utcoffset", offset)
             return offset
 
-    def tzname(self):
+    def tzname(self) -> str:
         """
         Return the timezone name.
 
         Note that the name is 100% informational -- there's no requirement that
         it mean anything in particular. For example, 'GMT', 'UTC', '-500',
         '-5:00', 'EDT', 'US/Eastern', 'America/New_York' are all valid replies.
+
+        :return: The name of the time zone or `None` if not `tzinfo`
+                 instance was found.
+        :rtype: str
         """
         if self.tzinfo is not None:
             name = self.tzinfo.tzname(self)
             _check_tzname(name)
             return name
 
-    def dst(self):
+    def dst(self) -> int:
         """
         Return 0 if DST is not in effect, or the DST offset (as timedelta
         positive eastward) if DST is in effect.
@@ -2210,6 +2404,9 @@ class datetime(date):
         the UTC offset returned by utcoffset() if applicable, so there's no
         need to consult dst() unless you're interested in displaying the DST
         info.
+
+        :return: The value as described above.
+        :rtype: int
         """
         if self.tzinfo is not None:
             offset = self.tzinfo.dst(self)
@@ -2218,7 +2415,7 @@ class datetime(date):
 
     # Comparisons of datetime objects with other.
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if isinstance(other, datetime):
             return self._cmp(other, allow_mixed=True) == 0
         elif not isinstance(other, date):
@@ -2226,7 +2423,7 @@ class datetime(date):
         else:
             return False
 
-    def __le__(self, other):
+    def __le__(self, other) -> bool:
         if isinstance(other, datetime):
             return self._cmp(other) <= 0
         elif not isinstance(other, date):
@@ -2234,7 +2431,7 @@ class datetime(date):
         else:
             _cmperror(self, other)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         if isinstance(other, datetime):
             return self._cmp(other) < 0
         elif not isinstance(other, date):
@@ -2242,7 +2439,7 @@ class datetime(date):
         else:
             _cmperror(self, other)
 
-    def __ge__(self, other):
+    def __ge__(self, other) -> bool:
         if isinstance(other, datetime):
             return self._cmp(other) >= 0
         elif not isinstance(other, date):
@@ -2250,7 +2447,7 @@ class datetime(date):
         else:
             _cmperror(self, other)
 
-    def __gt__(self, other):
+    def __gt__(self, other) -> bool:
         if isinstance(other, datetime):
             return self._cmp(other) > 0
         elif not isinstance(other, date):
@@ -2258,9 +2455,19 @@ class datetime(date):
         else:
             _cmperror(self, other)
 
-    def _cmp(self, other, allow_mixed=False):
+    def _cmp(self, other, allow_mixed: bool=False) -> int:
+        """
+        Returns an integer representation of >, ==, or < of two date instances.
+
+        :param date other: The other date instance to compare to.
+        :param bool allow_mixed: An integer representation of two date
+                                 instances.
+        :return: If 0 then x == y, else if 1 then x > y else if -1 then x < y,
+                 where x is the `self` instance and y is the `other` instance.
+        :rtype: int
+        """
         assert isinstance(other, datetime), (
-            f"The other must be a datetime object, found '{type(other)}'.")
+            f"The other must be a datetime instance, found '{type(other)}'.")
         mytz = self.tzinfo
         ottz = other.tzinfo
         myoff = otoff = None
@@ -2304,7 +2511,11 @@ class datetime(date):
     def __add__(self, other):
         """
         Add a datetime and a timedelta.
-        """
+
+        :param datetime other: The other `datetime` instance which is added
+                               to the `self` instance.
+        :rtype: datetime
+         """
         if isinstance(other, timedelta):
             delta = timedelta(self.toordinal(),
                               hours=self._hour,
@@ -2327,9 +2538,15 @@ class datetime(date):
 
     __radd__ = __add__
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> object:
         """
         Subtract two datetimes, or a datetime and a timedelta.
+
+        :param date other: The other datetime instance which is subtracted
+                           from the `self` instance.
+        :return: Subtracted datetime instances.
+        :rtype: date
+
         """
         if not isinstance(other, datetime):
             if isinstance(other, timedelta):
@@ -2359,7 +2576,13 @@ class datetime(date):
 
         return base + otoff - myoff
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """
+        Get the hash of the `self` instance.
+
+        :return: The hash.
+        :rtype: int
+        """
         if self._hashcode == -1:
             if self.fold:
                 t = self.replace(fold=0)
@@ -2380,7 +2603,7 @@ class datetime(date):
     # Pickle support.
 
     @classmethod
-    def _is_pickle_data(cls, a, b):
+    def _is_pickle_data(cls, a, b) -> int:
         """
         Check if the incoming date is pickle data or actual date information.
 
@@ -2407,7 +2630,7 @@ class datetime(date):
                     except UnicodeEncodeError:
                         raise ValueError(
                             "Failed to encode latin1 string when unpickling "
-                            "a date or datetime object. "
+                            "a date or datetime instance. "
                             "pickle.load(data, encoding='latin1') is assumed.")
             else:
                 short = None
@@ -2416,7 +2639,14 @@ class datetime(date):
 
         return short
 
-    def _getstate(self, protocol=3):
+    def _getstate(self, protocol: int=3)-> tuple:
+        """
+        Get the current state.
+
+        :param int protocol: The pickle protocol to use defaults to 3.
+        :return: The state of the current `self` instance.
+        :rtype: tuple
+        """
         if self.is_short:
             yhi, ylo = divmod(self._year - MINYEAR, 256)
             state = (yhi, ylo)
@@ -2444,7 +2674,13 @@ class datetime(date):
         else:
             return (basestate, self.tzinfo)
 
-    def __setstate(self, bytes_str, tzinfo):
+    def __setstate(self, bytes_str, tzinfo) -> None:
+        """
+        Set the current state.
+
+        :param bytes bytes_str: The bytes string.
+        :param tzinfo tzinfo: A `tzinfo` instance.
+        """
         if tzinfo is not None and not isinstance(tzinfo, _tzinfo_class):
             raise TypeError("Bad tzinfo state arg.")
 
@@ -2475,10 +2711,23 @@ class datetime(date):
                        self._second, self._microsecond)
         self._tzinfo = tzinfo
 
-    def __reduce_ex__(self, protocol):
+    def __reduce_ex__(self, protocol: int) -> tuple:
+        """
+        A tuple of the class name and current state.
+
+        :param int protocol:  The protocol used to derive the state.
+        :return: The class name and current state.
+        :rtype: tuple
+        """
         return (self.__class__, self._getstate(protocol))
 
-    def __reduce__(self):  # pragma: no cover
+    def __reduce__(self) -> tuple:  # pragma: no cover
+        """
+        A tuple of the class name and current state using protocol 2.
+
+        :return: The class name and current state.
+        :rtype: tuple
+        """
         return self.__reduce_ex__(2)
 
 
@@ -2497,11 +2746,10 @@ class timezone(tzinfo):
         """
         Construct the constructor.
 
-        :param offset: A timedelta object representing the difference
-                       between the local time and UTC.
-        :type offset: timedelta
-        :param name: A string that will be used as the value returned by
-                     the datetime.tzname() method.
+        :param timedelta offset: A timedelta instance representing the
+                                 difference between the local time and UTC.
+        :param str name: A string that will be used as the value returned by
+                         the datetime.tzname() method.
         :returns: An instance of timezone.
         :rtype: timezone
         """
@@ -2523,7 +2771,17 @@ class timezone(tzinfo):
         return cls._create(offset, name)
 
     @classmethod
-    def _create(cls, offset: timedelta, name: str=None):
+    def _create(cls, offset: timedelta, name: str=None) -> object:
+        """
+        Creat an instance of `tzinfo`.
+
+        :param timedelta offset: A `timedelta` instance representing the
+                                 offset from UTC.
+        :param str name: An optional name indicating the time zone as an
+                         IANA name, however, it could just be UTC or UTC+0330.
+        :return: The `timezone` instance.
+        :rtype: timezone
+        """
         self = tzinfo.__new__(cls)
         self._offset = offset
         self._name = name
@@ -2535,16 +2793,21 @@ class timezone(tzinfo):
 
         return NotImplemented
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Convert to formal string, for repr().
 
-        >>> tz = timezone.utc
-        >>> repr(tz)
-        'datetime.timezone.utc'
-        >>> tz = timezone(timedelta(hours=-5), 'EST')
-        >>> repr(tz)
-        'datetime.timezone(datetime.timedelta(-1, 68400), 'EST')'
+        :return: A string representing the date.
+        :rtype: str
+
+        .. note::
+
+           >>> tz = timezone.utc
+           >>> repr(tz)
+           'datetime.timezone.utc'
+           >>> tz = timezone(timedelta(hours=-5), 'EST')
+           >>> repr(tz)
+           'datetime.timezone(datetime.timedelta(-1, 68400), 'EST')'
         """
         if self is self.utc:
             return 'datetime.timezone.utc'
@@ -2562,17 +2825,31 @@ class timezone(tzinfo):
         return (f"{_module_name(module)}.{self.__class__.__qualname__}"
                 f"({_module_name(offset_name)}, {self._name!r})")
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        A string representation of the current `timezone` instane.
+
+        :return: A string representation of the current `timezone` instane.
+        :rtype: str
+        """
         return self.tzname(None)
 
-    def utcoffset(self, dt: datetime):
+    def utcoffset(self, dt: datetime) -> timedelta:
+        """
+        Return the fixed value specified when the `timezone` instance is
+        constructed.
+
+        :return: The fixed value specified when the `timezone` instance is
+                 constructed.
+        :rtype: timedelta
+        """
         if isinstance(dt, datetime) or dt is None:
             return self._offset
 
         raise TypeError("utcoffset() argument must be a datetime instance "
                         "or None")
 
-    def badioffset(self, dt: datetime):
+    def badioffset(self, dt: datetime) -> timedelta:
         if isinstance(dt, datetime) or dt is None:
             return self._offset - timedelta(hours=BADI_COORD[2])
 

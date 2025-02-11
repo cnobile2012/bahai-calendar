@@ -16,12 +16,12 @@ tool which allows the creation of isolated python environments. So what do we
 get from isolated environments? Lets say you are developing a project that
 needs version 1 of some library. You install it globally on your computer. A
 while later you start work on another project that requires the same library,
-but version 2. If you install version 2 globally, as you did before, it will
-invalidate the first project you were working on. This is where virtual
-environments comes to the rescue, every project is in it's own isolated
-environment and you no longer need to install python packages as sudo (root)
-user. Which means the other advantage of virtual environments is that it's
-installed in your user account not in the root of the system.
+but version 2. If you install version 2 globally, as you did before, it may
+break the first project you were working on. This is where virtual environments
+comes to the rescue, every project is in it's own isolated environment and you
+no longer need to install python packages as sudo (root) user. Which means the
+other advantage of virtual environments is that it's installed in your user
+account not in the root of the system.
 
 This API was tested to work with Python versions 3.10 to 3.13. I strongly
 recommend writing any new code with the latest version of Python.

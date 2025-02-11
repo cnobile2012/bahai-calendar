@@ -34,8 +34,8 @@ on.
 
 However, I have come to the conclusion that the only thing the House of Justice
 could change is the latitude, longitude, and therefore the timezone of the
-location, which is easily fixable in my code, everything else has been outlined
-by Bahá’u’lláh. 
+location, which is easily fixable in my code, all other criteria have been
+outlined by Bahá’u’lláh as is seen below.
 
 Also from the letter from the Secretariat.
 
