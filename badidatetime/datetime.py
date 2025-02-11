@@ -2169,6 +2169,11 @@ class datetime(date):
         """
         Always return the local time offset in a timezone instance.
 
+        .. warning::
+
+           This method is derived from `_mktime()` and may have accuracy
+           issues.
+
         :return: The local time zone.
         :rtype: timezone
         """
@@ -2200,6 +2205,11 @@ class datetime(date):
     def astimezone(self, tz: tzinfo=None):
         """
         Returns a datetime instance with the provided tzinfo instance attached.
+
+        .. warning::
+
+           This method is derived from `_mktime()` and may have accuracy
+           issues.
 
         :param tzinfo tz: A timezone instance.
         :return: A `datetime` instance with a tzinfo instance attached.
