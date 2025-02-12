@@ -1,4 +1,5 @@
 .. -*-coding: utf-8-*-
+.. _rst Letter from The Universal House of Justice:
 
 ==========================================
 Letter from The Universal House of Justice

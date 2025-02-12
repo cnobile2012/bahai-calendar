@@ -62,7 +62,7 @@ Then add the following lines to the bottom of the ``.bashrc`` file.
     VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
     source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
 
-    $ . .bashrc
+    $ . .bashrc # 'source .bashrc' Works also
 
 Create a VE (Virtual Environment) for your project. The VE name can be
 whatever you want and does not need to match the actual project's name, but it
