@@ -785,9 +785,9 @@ class DateTests(BahaiCalendar):
            This file will be long so use `less filename.txt` to look at it.
            The last column will usually be -1, 0, or 1. The 0 values are
            already correct, the other two values means there is a difference
-           between the Gregorian and Badi Julian Period days. These are the
+           between the Gregorian and Badí' Julian Period days. These are the
            ones than need the coefficients to fix them.
-        2. The first argument is the current Badi year being processed
+        2. The first argument is the current Badí' year being processed
            subtracted from the end year argument.
         3. The second argument is the 1st coefficient corresponding to the
            (1, 34, 67, 100) numbers in the output from this method.
@@ -1122,7 +1122,7 @@ class DateTests(BahaiCalendar):
             offby = math.floor(diff)
             data.append((b_date, bjd, g_date, e_jd_ss, diff, offby))
         except Exception as e:
-            msg = f"Badi date {b_date} and Gregorian date {g_date}, {e}"
+            msg = f"Badí' date {b_date} and Gregorian date {g_date}, {e}"
             print(msg, file=sys.stderr)
 
     def _pre_process_vernal_equinoxs(self):
@@ -1153,7 +1153,7 @@ class DateTests(BahaiCalendar):
                                        lat: float=0, lon: float=0,
                                        zone: float=0) -> tuple:
         """
-        Get the Gregorian date from the Badi date.
+        Get the Gregorian date from the Badí' date.
         """
         jd = self._jd_from_badi_date(b_date, lat=lat, lon=lon, zone=zone,
                                      coeffon=options.coff)
@@ -1220,10 +1220,10 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description=("Test Badi date ranges."))
+        description=("Test Badí' date ranges."))
     parser.add_argument(
         '-a', '--analyze', action='store_true', default=False, dest='analyze',
-        help="Analyze Badi date errors when converting to jd.")
+        help="Analyze Badí' date errors when converting to jd.")
     parser.add_argument(
         '-c', '--ck-dates', action='store_true', default=False, dest='ck_dates',
         help="Check that long_date_from_short_date() works correctly.")
@@ -1235,10 +1235,10 @@ if __name__ == "__main__":
         dest='weekdays', help="Find weekdays between provided years.")
     parser.add_argument(
         '-g', '--g-dates', action='store_true', default=False, dest='g_dates',
-        help="Convert Badi to Gregorian dates.")
+        help="Convert Badí' to Gregorian dates.")
     parser.add_argument(
         '-l', '--list', action='store_true', default=False, dest='list',
-        help="Generate a list of Badi dates both long and short versions.")
+        help="Generate a list of Badí' dates both long and short versions.")
     parser.add_argument(
         '-p', '--precursor', action='store_true', default=False,
         dest='precursor',
@@ -1263,7 +1263,7 @@ if __name__ == "__main__":
         help="Turn off all coefficients during an analysis.")
     parser.add_argument(
         '-E', '--end', type=int, default=None, dest='end',
-        help="End Badi year of sequence.")
+        help="End Badí' year of sequence.")
     parser.add_argument(
         '-G', '--graph', action='store_true', default=False, dest='graph',
         help=("Turn off all coefficients and dump output appropriate for "
@@ -1274,13 +1274,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '-J', '--jd', action='store_true', default=False, dest='jd',
         help=("Test for consecutive Julian Period days between start and "
-              "end Badi years."))
+              "end Badí' years."))
     parser.add_argument(
         '-R', '--ref-day', type=str, default='Jalál', dest='ref_day',
         help="Change the referance day. Default is Jalál.")
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
-        help="Start Badi year of sequence.")
+        help="Start Badí' year of sequence.")
     parser.add_argument(
         '-X', '--exact', action='store_true', default=False, dest='exact',
         help=("Use the 4|100|400 or the 4|128 rules from Julian Calendar "
@@ -1327,8 +1327,8 @@ if __name__ == "__main__":
             [print(item) for item in items]
         else:
             data = dt.analyze_date_error(options)
-            print("Badi Date     Badi JD        Gregorian Date (Sunset)       "
-                  " Gregorian JD    Diff      Off By")
+            print("Badí' Date    Badi JD        Gregorian Date (Sunset)      "
+                  "  Gregorian JD    Diff      Off By")
             print('-'*92)
 
             for b_date, bjd, g_date, gjd, diff, offby in data:
@@ -1404,7 +1404,7 @@ if __name__ == "__main__":
             start_time = time.time()
             print(f"./contrib/misc/{basename} -eS{options.start} "
                   f"-E{options.end}")
-            print("Badi           Gregorian                          Week "
+            print("Badí'          Gregorian                          Week "
                   "Week Day      Month      Leap  Days Day in")
             print("Date           Date                               Num  "
                   "Day  Name     Name       Year  Year Year")
@@ -1492,9 +1492,9 @@ if __name__ == "__main__":
         else:
             print(f"./contrib/misc/{basename} -tS{options.start} "
                   f"-E{options.end}")
-            print("Badi Date         Gregorian Date        "
+            print("Badí' Date         Gregorian Date        "
                   "SS1 Frac SS2 Frac SS2-SS1  HMS Diff")
-            [print(f"{str(b_date):<17} "
+            [print(f"{str(b_date):<18} "
                    f"{str(g_date):<21} "
                    f"{fss0:<8} "
                    f"{fss1:<8} "
@@ -1504,7 +1504,7 @@ if __name__ == "__main__":
                           ss_diff, hms) in dt.twenty_four_hours(options)]
     elif options.leap_years:  # -y
         if options.start is None or options.end is None:
-            print("If option -w is used, -S and -E must also be used.",
+            print("If option -y is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
         else:

@@ -1,4 +1,5 @@
 .. -*-coding: utf-8-*-
+.. _rst badi_jd_tests:
 
 -------------
 badi_jd_tests
