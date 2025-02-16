@@ -4,7 +4,7 @@
 Some Ideas for the Future
 *************************
 
-The following are purely speculations into the future in no specific order.
+**The following are future speculations.**
 
 ====================
 Geographic Longitude
@@ -17,7 +17,7 @@ westward and positive eastward of the meridian of Greenwich, in direct
 contradiction to the standards used before and currently on all other planetary
 bodies.
 
-Since the Badí' Calendar relies heavily on where the latitude ans longitude is,
+Since the Badí' Calendar relies heavily on where the latitude and longitude is,
 to give a correct location for the sunset and Vernal Equinox, whether the
 longitude is negative or positive has serious implications. Meeus choose to not
 follow the IAU resolution, and keep the original definition the same as the
@@ -25,7 +25,8 @@ other planetary bodies. My work keeps with the IAU resolution as most software
 engineers using my code would not know why nothing was working correctly.
 
 As such in the future the Bahá'í World Center may choose to influence changes
-to the standard making everything the same.
+to the standard making everything the same. I could also invision that the
+meridian in Greenwich change to the Badí' origin location as explained below.
 
 ====================================================
 Location of the Origin for Astronomical Observations
@@ -46,15 +47,15 @@ However, most of the API code, with the one caveats below, will not be affected
 and its accuracy should also not be affected.
 
 In the class :ref:`rst Class` the methods that may break are
-`jd_from_badi_date` which then calls the `_get_coff`. These two methods
+``jd_from_badi_date`` which then calls the ``_get_coff``. These two methods
 together determine the Julian Period day for any date. This is done by finding
 the exact date and time for the first day, Bahá 1 at sunset at the origin point
 for each supported year. This is needed to determine many other things
-including which year is a leap year. So once this method is fixed for a change
-in origin point and the new latitude and longitude are set in the :ref:`rst
-Class` everything else should work as expected. To change the two methods
-mentioned above read the comments in the :ref:`rst badi_jd_tests` these methods
-are duplicated in this script, so they can be experimented with without
+including which years are a leap years. So once this method is fixed for a
+change in origin point and the new latitude and longitude are set in the
+:ref:`rst Class` everything else should work as expected. To change the two
+methods mentioned above read the comments in the :ref:`rst badi_jd_tests` these
+methods are duplicated in this script, so they can be experimented with without
 disturbing the actual code. Once a new algorithm is found the code must be
 copied to the actual API, but **DO NOT** copy everything verbatim, there are
 differences in how they work. The script should be run as shown below.
@@ -74,17 +75,17 @@ Greenwich standard. The real time zones are defined very simply. If you
 consider the Earth from any point on the Equator all the way around and back to
 that point you have 360° then divide it by 24 hours you get 15° per hour. As it
 stands now we need to know the IANA timezone to know what the offset is from
-Greenwich time. However, if you just use a simple formula we just need to
-longitude to know what the time offset is.
+Greenwich time. However, if you just use the simple formula below we just need
+to know the longitude to determine what the time offset is. 
 
 .. math::
 
    offset = longitude / 15°
 
-So if we use that formula for New York City during standard time where the
+So if we use this formula for New York City during standard time where the
 longitude is -73.935242, then the actual offset is -4.929016 hours not -5 hours
 which is the political time zone. It is close, but not as exact. The longitude
-that I use for Tehran Iran is 51.285817 if this is put into the formula above
+that I use for Tehran Iran is 51.285817, if this is put into the formula above
 we get 3.419055 hours, the political offset is 3.5 hours. A thirds example is
 in India, the eastern side has a longitude of 81.1875° giving it an offset of
 5.41 hours and the west side logitude is 71.5429687° giving it an offset of

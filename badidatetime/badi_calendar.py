@@ -71,7 +71,7 @@ class BahaiCalendar(BaseCalendar):
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The time zone.
-        :return: The hour, minute, and second of sunset based on the
+        :returns: The hour, minute, and second of sunset based on the
                  provided coordinates.
         :rtype: tuple
         """
@@ -91,7 +91,7 @@ class BahaiCalendar(BaseCalendar):
                          seconds as seperate fields. If False the day has a
                          decimal value indicating the hours, minutes, and
                          seconds.
-        :return: A Gregorian date.
+        :returns: A Gregorian date.
         :rtype: tuple
         """
         jd = self.jd_from_badi_date((year, 1, 1), lat, lon, zone)
@@ -115,7 +115,7 @@ class BahaiCalendar(BaseCalendar):
                          second as seperate fields. If False the day has a
                          decimal value indicating the hours, minutes, and
                          seconds.
-        :return: A Gregorian date.
+        :returns: A Gregorian date.
         :rtype: tuple
         """
         jd = self.jd_from_badi_date((year, 2, 13), lat, lon, zone)
@@ -136,7 +136,7 @@ class BahaiCalendar(BaseCalendar):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :return: The Julian Period day.
+        :returns: The Julian Period day.
         :rtype: float
         """
         year, month, day = self.date_from_kvymdhms(
@@ -180,7 +180,7 @@ class BahaiCalendar(BaseCalendar):
            Full range is -1842 to 1161.
 
         :param int year: The year to find a coefficient for.
-        :return: The coefficient.
+        :returns: The coefficient.
         :rtype: int
         """
         def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
@@ -287,7 +287,7 @@ class BahaiCalendar(BaseCalendar):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :return: The Badi date from a Julian Period day.
+        :returns: The Badi date from a Julian Period day.
         :rtype: tuple
         """
         def get_leap_year_info(year, _chk_on):
@@ -359,7 +359,7 @@ class BahaiCalendar(BaseCalendar):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :return: The short form Badi date.
+        :returns: The short form Badi date.
         :rtype: tuple
         """
         kull_i_shay, vahid, year, month, day = b_date[:5]
@@ -381,7 +381,7 @@ class BahaiCalendar(BaseCalendar):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :return: The long form Badi date.
+        :returns: The long form Badi date.
         :rtype: tuple
         """
         y, month, day = date[:3]
@@ -418,8 +418,8 @@ class BahaiCalendar(BaseCalendar):
                               else if False they are turned off. This is only
                               used internally. Do not use unless you know what
                               you are doing.
-        :return: The long or short form Badi date with hours, minutes,
-                 seconds, and microseconds if set.
+        :returns: The long or short form Badi date with hours, minutes,
+                  seconds, and microseconds if set.
         :rtype: tuple
         """
         _chk_on and self._check_valid_badi_date(b_date)
@@ -451,8 +451,8 @@ class BahaiCalendar(BaseCalendar):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :return: The long or short form Badi date with hours, minutes,
-                 seconds, and microseconds if set.
+        :returns: The long or short form Badi date with hours, minutes,
+                  seconds, and microseconds if set.
         :rtype: tuple
         """
         dlen = len(b_date)
@@ -510,7 +510,7 @@ class BahaiCalendar(BaseCalendar):
                             Default is True. This should generally be set to
                             True, a False value will give inaccurate results
                             and is used for testing only.
-        :return: A Badi date long or short form.
+        :returns: A Badi date long or short form.
         :rtype: tuple
         """
         jd = self._gc.jd_from_gregorian_date(g_date, exact=_exact)
@@ -536,7 +536,7 @@ class BahaiCalendar(BaseCalendar):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :return: The Gregorian date.
+        :returns: The Gregorian date.
         :rtype: tuple
         """
         jd = self.jd_from_badi_date(b_date, lat, lon, zone, _chk_on=_chk_on)
@@ -559,7 +559,7 @@ class BahaiCalendar(BaseCalendar):
         :param bool short: If True then parse for a short date else if False
                            (default) parse for a long date.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
-        :return: A Badi date long or short form.
+        :returns: A Badi date long or short form.
         :rtype: tuple
         """
         jd = t / 86400 + self._POSIX_EPOCH
@@ -578,7 +578,7 @@ class BahaiCalendar(BaseCalendar):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :return: Midday in hours, minutes, and seconds.
+        :returns: Midday in hours, minutes, and seconds.
         :rtype: tuple
         """
         if len(date) == 5:
@@ -616,8 +616,8 @@ class BahaiCalendar(BaseCalendar):
                would be left untouched.
 
         :param tuple hms: An hour, minute, and second object.
-        :return: An object with the lower order parts stripped off if
-                 they have a zero value.
+        :returns: An object with the lower order parts stripped off if
+                  they have a zero value.
         :rtype: tuple
         """
         items = []
@@ -643,7 +643,7 @@ class BahaiCalendar(BaseCalendar):
                               False parse for a long date. This is for
                               incoming dates not outgoing dates as in most
                               other uses of 'short'.
-        :return: Nothing
+        :returns: Nothing
         :rtype: None
         :raises AssertionError: When a date Váḥid, year, month, day, hour,
                                 minute, second, or microsecond are out of
@@ -705,7 +705,7 @@ class BahaiCalendar(BaseCalendar):
         :param float minute: Minutes
         :param float second: Seconds
         :param float us: Microseconds
-        :return: Nothing
+        :returns: Nothing
         :rtype: None
         :raises AssertionError: When an hour, minute, second, or microsecond
                                 are out of range.
@@ -730,7 +730,7 @@ class BahaiCalendar(BaseCalendar):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :return: A Boolean indicating if a leap year or not.
+        :returns: A Boolean indicating if a leap year or not.
         :rtype: bool
         """
         return self._days_in_year(year, _chk_on=_chk_on) == 366
@@ -744,7 +744,7 @@ class BahaiCalendar(BaseCalendar):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :return: The number of days.
+        :returns: The number of days.
         :rtype: int
         """
         jd_n0 = self.jd_from_badi_date((year, 1, 1), _chk_on=_chk_on)
@@ -764,7 +764,7 @@ class BahaiCalendar(BaseCalendar):
                               parse for a long date. This is for incoming dates
                               not outgoing dates as in most other uses of
                               'short'.
-        :return: The relevant hours, minutes, and seconds.
+        :returns: The relevant hours, minutes, and seconds.
         :rtype: tuple
         """
         t_len = len(date)
@@ -799,8 +799,8 @@ class BahaiCalendar(BaseCalendar):
         :param bool us: If True convert a fractional second to microseconds. If
                         False (default) output second with a fraction.
         :param bool rtd: Round to day.
-        :return: Returns the year, month, day, and depending on other
-                 arguments, the hour, minute, and second, and microsecond.
+        :returns: Returns the year, month, day, and depending on other
+                  arguments, the hour, minute, and second, and microsecond.
         :rtype: tuple
         """
         assert self._xor_boolean((fraction, us, rtd)), (
@@ -880,7 +880,7 @@ class BahaiCalendar(BaseCalendar):
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.
-        :return: The hour, minute, and second.
+        :returns: The hour, minute, and second.
         :rtype: tuple
         """
         jd0 = math.floor(jd)

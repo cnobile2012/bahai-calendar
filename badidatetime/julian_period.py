@@ -35,7 +35,7 @@ class JulianPeriod:
         Calculate the Julian centuries from the Julian day.
 
         :param float jde: The Julian Period day.
-        :return: The Julian century relative to the day.
+        :returns: The Julian century relative to the day.
         :rtype: float
         """
         return (jde - self._J2000) / 36525
@@ -45,7 +45,7 @@ class JulianPeriod:
         Calculate the Julian millennia from the Julian day.
 
         :param float jde: The Julian Period day.
-        :return: The Julian millennia relative to the day.
+        :returns: The Julian millennia relative to the day.
         :rtype: float
         """
         return (jde - self._J2000) / 365250

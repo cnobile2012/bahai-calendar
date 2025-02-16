@@ -78,7 +78,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float jd: Julian day.
         :param bool seconds: If True leave as seconds in a minute else convert
                              to seconds of a day.
-        :return: The delta t.
+        :returns: The delta t.
         :rtype: float
 
         .. note::
@@ -153,7 +153,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         being measured.
 
         :param float tc: Julian century.
-        :return: The mean sidereal time at Greenwich .
+        :returns: The mean sidereal time at Greenwich .
         :rtype: float
 
         .. note::
@@ -171,7 +171,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         sidereal time is being measured.
 
         :param float tc: Julian century.
-        :return: The apparent sidereal time at Greenwich.
+        :returns: The apparent sidereal time at Greenwich.
         :rtype: float
 
         .. note::
@@ -190,7 +190,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float delta: Declination in sidereal time.
         :param float lat: Geographic latitude.
         :param float h: Local hour angle.
-        :return: Altitude in degrees.
+        :returns: Altitude in degrees.
         :rtype: float
 
         .. note::
@@ -223,7 +223,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                              h0 = -0°50' = -0°8333 for the Sun.
                              Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                              also be used.
-        :return: The approximat local hour angle in degrees.
+        :returns: The approximat local hour angle in degrees.
         :rtype: float
 
         .. note::
@@ -256,7 +256,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param bool exact_tz: Derive the timezone from the longitude. The
                               'zone' parameter is not used if this is True,
                               Default is False.
-        :return:
+        :returns: The center point between sunrise and sunset.
         :rtype: float
 
         .. note::
@@ -289,7 +289,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float dt: The delta T of the JD.
         :param float lon: The longitude.
         :param float m: Times on day, expressed as fractions.
-        :return: The correction to the transit.
+        :returns: The correction to the transit.
         :rtype: float
         """
         srt = ast + 360.98564736629 * m
@@ -322,7 +322,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                             h0 = -0°50' = -0°8333 for the Sun.
                             Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                             also be used.
-        :return: The jd moments of the sunrise.
+        :returns: The jd moments of the sunrise.
         :rtype: float
 
         .. note::
@@ -353,7 +353,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                             h0 = -0°50' = -0°8333 for the Sun.
                             Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                             also be used.
-        :return: The jd moments of the sunset.
+        :returns: The jd moments of the sunset.
         :rtype: float
 
         .. note::
@@ -387,7 +387,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                              Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                              also be used.
         :param str sr_ss: If 'RISE' return the sunrise else return sunset.
-        :return: The offset that would be added to the currect date.
+        :returns: The offset that would be added to the currect date.
         :rtype: float
 
         .. note::
@@ -435,7 +435,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float lon: The longitude.
         :param float m: Times on day, expressed as fractions.
         :param float offset: Either `_SUN_OFFSET` or `_STARS_PLANET_OFFSET`.
-        :return: The correction to the sunrise or sunset.
+        :returns: The correction to the sunrise or sunset.
         :rtype: float
         """
         srt = ast + 360.98564736629 * m
@@ -461,7 +461,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float srt: Sidereal time.
         :param float lon: The Geographic longitude of the observer in degrees.
         :param float alpha: The apparent right ascensions.
-        :return: The local hour angle.
+        :returns: The local hour angle.
         :rtype: float
 
         .. note::
@@ -480,8 +480,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float tc: The Julian Period century.
         :param bool degrees: If `False` (default) return radians else if
                              `True` return degrees.
-        :return: Either the radians or degrees depending on the `degrees`
-                 argument.
+        :returns: Either the radians or degrees depending on the `degrees`
+                  argument.
         :rtype: float
         """
         tc_day, lon_sum, deg = self._nutation['lon']
@@ -501,7 +501,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float tc: The Julian Period century.
         :param bool degrees: If `False` (default) return radians else if
                              `True` return degrees.
-        :return: The nutation of obliquity.
+        :returns: The nutation of obliquity.
         :rtype: float
         """
         tc_day, obj_sum, deg = self._nutation['obl']
@@ -522,7 +522,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float tc: Time in Julian centuries.
         :param float degrees: If True units of degrees is returned, if False
                               units of radians is returned.
-        :return: Moon latitude.
+        :returns: Moon latitude.
         :rtype: float
 
         .. note::
@@ -568,7 +568,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         The position of the moon in its orbit around the Earth.
 
         :param float tc: Time in Julian centuries.
-        :return: Moon mean anomaly.
+        :returns: Moon mean anomaly.
         :rtype: float
 
         .. note::
@@ -584,7 +584,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         The position of the Earth in its orbit around the Sun.
 
         :param float tc: Time in Julian centuries.
-        :return: Sun and earth mean anomaly.
+        :returns: Sun and earth mean anomaly.
         :rtype: float
 
         .. note::
@@ -601,7 +601,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         longitude.
 
         :param float tc: Time in Julian centuries.
-        :return: Moon latitude.
+        :returns: Moon latitude.
         :rtype: float
 
         .. note::
@@ -616,7 +616,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
 
         :param float tc: Time in Julian centuries.
-        :return: Mean moon elongation.
+        :returns: Mean moon elongation.
         :rtype: float
 
         .. note::
@@ -633,7 +633,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         ecliptic, measured from the mean equinox of the date:
 
         :param float tc: Time in Julian centuries.
-        :return: Moon ascending node longitude.
+        :returns: Moon ascending node longitude.
         :rtype: float
 
         .. note::
@@ -650,7 +650,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         of rotation, is the angle between the equator and the ecliptic.
 
         :param float jde: Julian century.
-        :return: The obliquity of the ecliptic in degrees as a decimal.
+        :returns: The obliquity of the ecliptic in degrees as a decimal.
         :rtype: float
 
         .. note::
@@ -674,7 +674,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         equinox of the date.
 
         :param float tc: Time in Julian centuries.
-        :return: Mean longitude of the sun in degrees.
+        :returns: Mean longitude of the sun in degrees.
         :rtype: float
 
         .. note::
@@ -690,7 +690,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         The eccentricity of the earth's orbit.
 
         :param float tc: Time in Julian centuries.
-        :return: The eccentricity of the earth's orbit.
+        :returns: The eccentricity of the earth's orbit.
         :rtype: float
 
         .. note::
@@ -709,7 +709,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         motion of the Earth around the Sun.
 
         :param float tc: Time in Julian centuries.
-        :return: The Sun's equation of it's center.
+        :returns: The Sun's equation of it's center.
         :rtype: float
 
         .. note::
@@ -728,7 +728,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         calculation of geocentric planetary positions.
 
         :param float tc: Time in Julian centuries.
-        :return: The true geometric longitude.
+        :returns: The true geometric longitude.
         :rtype: float
 
         .. note::
@@ -746,7 +746,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Earth.
 
         :param float tc: Time in Julian centuries.
-        :return: The Sun’s apparent longitude.
+        :returns: The Sun’s apparent longitude.
         :rtype: float
 
         .. note::
@@ -767,7 +767,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         celestial equator.
 
         :param float tc: Julian century.
-        :return: The apparent declination of the sun in radians.
+        :returns: The apparent declination of the sun in radians.
         :rtype: float
 
         .. note::
@@ -790,7 +790,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param float tc: Julian century.
         :param bool app: If True the apparent declination is returned, if
-        :return: The apparent declination of the sun in radians.
+        :returns: The apparent declination of the sun in radians.
         :rtype: float
 
         .. note::
@@ -811,7 +811,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float tm: The moment in time referenced to J2000 millennia.
         :param bool degrees: The results if False are radians, else True
                              are degrees. Default is False.
-        :return: Longitude in degrees or radians.
+        :returns: Longitude in degrees or radians.
         :rtype: float
 
         .. note::
@@ -838,7 +838,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float tm: The moment in time referenced to J2000 millennia.
         :param bool degrees: The results if False are radians, else True
                              are degrees. Default is False.
-        :return: Latitude in degrees or radians.
+        :returns: Latitude in degrees or radians.
         :rtype: float
 
         .. note::
@@ -860,7 +860,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float tm: The moment in time referenced to J2000 millennia.
         :param bool degrees: The results if False are radians, else True
                              are degrees. Default is False.
-        :return: Radius vector in degrees or radians.
+        :returns: Radius vector in degrees or radians.
         :rtype: float
 
         .. note::
@@ -886,7 +886,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float jde: The Julian Period day.
         :param bool degrees: The results if False are radians, else True
                              are degrees. Default is False.
-        :return: The apparent solar longitude.
+        :returns: The apparent solar longitude.
         :rtype: float
 
         .. note::
@@ -916,7 +916,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float jde: The Julian Period day.
         :param bool degrees: The results if False are radians, else True
                              are degrees. Default is False.
-        :return: The apparent solar latitude.
+        :returns: The apparent solar latitude.
         :rtype: float
 
         .. note::
@@ -948,7 +948,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param bool fixed: If `True` (default) the results is to a fixed
                            reference frame, if `False` the result is
                            referenced to the mean equinox.
-        :return: The aberration of the date in degrees.
+        :returns: The aberration of the date in degrees.
         :rtype: float
 
         .. note::
@@ -982,7 +982,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param int g_year: The Gregorian year.
         :param int lam: The lamda, either `_SPRING` (default), `_SUMMER`,
                         `_AUTUMN`, or `_WINTER`.
-        :return: The approximate Julian day for the equinoxes or solstices.
+        :returns: The approximate Julian day for the equinoxes or solstices.
         :rtype: float
 
         .. note::
@@ -1036,7 +1036,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param int lam: The lamda, either `_SPRING` (default), `_SUMMER`,
                         `_AUTUMN`, or `_WINTER`.
         :param float zone: The time zone.
-        :return: The Julian day of the equinox or solstice.
+        :returns: The Julian day of the equinox or solstice.
         :rtype: float
 
         .. note::
@@ -1085,7 +1085,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param str direction: The direction part of the coordinate which can
                               be any of the following N, S, E, W in upper or
                               lower case.
-        :return: latitude and longitude
+        :returns: latitude and longitude
         :rtype: tuple
         '''
         dirs = ('N', 'S', 'E', 'W')
@@ -1105,8 +1105,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param str direction: The direction part of the coordinate which can
                               be any of the following N, S, E, W in upper or
                               lower case.
-        :return: The degree, minute, second, and direction for of the
-                 coordinate.
+        :returns: The degree, minute, second, and direction for of the
+                  coordinate.
         :rtype: tuple
         """
         dirs = ('LATITUDE', 'LONGITUDE')
@@ -1142,8 +1142,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param int h: The hour.
         :param int m: The minute.
         :param float s: The second.
-        :return: The degrees from the hours, minutes, and seconds of
-                 360 degrees.
+        :returns: The degrees from the hours, minutes, and seconds of
+                  360 degrees.
         :rtype: float
         """
         return 15 * h + 15 * m / 60 + 15 * s / 3600
@@ -1161,7 +1161,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param float deg: The degrees of the 360 degree curcomference of
                           the earth.
-        :return: The hours, minutes, and seconds.
+        :returns: The hours, minutes, and seconds.
         :rtype: tuple
         """
         h = math.floor(deg / 15)
@@ -1179,7 +1179,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param int minutes: The number of minutes.
         :param float seconds: The number of seconds with possible fraction.
         :param float zone: The timezone in degrees, defaults to 0 or GMT.
-        :return: The number of seconds.
+        :returns: The number of seconds.
         :rtype: float
         """
         return (days * 86400+ (hours + zone) * 3600 + minutes * 60
@@ -1192,7 +1192,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param float seconds: The number of seconds with possible fraction.
         :param float zone: The timezone in degrees, defaults to 0 or GMT.
-        :return: The days, hours, minutes, and seconds.
+        :returns: The days, hours, minutes, and seconds.
         :rtype: tuple
 
         .. note::
@@ -1227,7 +1227,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param int hours: Number of hours.
         :param int minutes: The number of minutes.
         :param float seconds: The number of seconds with possible fraction.
-        :return: A decimal number.
+        :returns: A decimal number.
         :rtype: int
 
         .. note::
@@ -1244,7 +1244,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         one revolution.
 
         :param float dec: A decimal number.
-        :return: The days, hours, minutes, and seconds of a time zone.
+        :returns: The days, hours, minutes, and seconds of a time zone.
         :rtype: tuple
 
         .. note::
@@ -1262,7 +1262,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float dec: A decimal number.
         :param bool us: If False (default) no seperate field for microseconds
                         is returned else return microseconds.
-        :return: A tuple representing the hour, minute, and seconds.
+        :returns: A tuple representing the hour, minute, and seconds.
         :rtype: tuple
 
         .. note::
@@ -1291,8 +1291,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param ine h: The hour.
         :param int m: The minute.
         :param float s: The second.
-        :return: A decimal value representing the day with a partial that
-                 indicates the hours, minutes, and seconds.
+        :returns: A decimal value representing the day with a partial that
+                  indicates the hours, minutes, and seconds.
         :rtype: float
         """
         return (h * 60 * 60 + m * 60 + s) / 86400
@@ -1303,7 +1303,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param float second: The second with a partial indicating the
                              microseconds.
-        :return: The second split between the second and microseconds.
+        :returns: The second split between the second and microseconds.
         :rtype: tuple
         """
         p = second % 1
@@ -1317,7 +1317,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Convert a value to sine in degrees.
 
         :param float thete: The value to convert to degrees.
-        :return: The degrees representing the value provided.
+        :returns: The degrees representing the value provided.
         :rtype: float
 
         .. rubric:: LISP code from  Reingold &  Dershowitz CC TUE p. 513
@@ -1335,7 +1335,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Convert a value to the cosine in degrees.
 
         :param float thete: The value to convert to degrees.
-        :return: The degrees representing the value provided.
+        :returns: The degrees representing the value provided.
         :rtype: float
 
         .. rubric:: LISP code from  Reingold &  Dershowitz CC TUE p. 513
@@ -1356,7 +1356,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param tuple lists: The list of values to sum.
         :param object func: The function that determins the summation
                             parameters.
-        :return: The summation.
+        :returns: The summation.
         :rtype: float
 
         .. rubric:: LISP code from  Reingold &  Dershowitz CC TUE p. 473
@@ -1392,7 +1392,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param float x: Power of number.
         :param list a: The list of numbers in polynomial.
-        :return: The polynomial result.
+        :returns: The polynomial result.
         :rtype: float
 
         .. rubric:: LISP code from  Reingold &  Dershowitz CC TUE p. 473
@@ -1414,7 +1414,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param int y: The year to count to.
         :param bool alt: If True use the 4|128 rule else if False use the
                          4|100|400 rule. The default is False.
-        :return: The count of days including year one to the given year.
+        :returns: The count of days including year one to the given year.
         :rtype: int
 
         .. note::
@@ -1443,7 +1443,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         a Meeus algorithm jd. This is added to the exact jd.
 
         :param float jd: Exact Julian Period day.
-        :return: The difference to subtract from an exact algorithm jd.
+        :returns: The difference to subtract from an exact algorithm jd.
         :rtype: int
         """
         jd_diff = (
@@ -1467,7 +1467,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         an exact algorithm jd. This is subtracted from the meeus jd.
 
         :param float jd: Meeus Julian Period day.
-        :return: The difference to subtract from a Meeus algorithm jd.
+        :returns: The difference to subtract from a Meeus algorithm jd.
         :rtype: int
          """
         jd_diff = (
@@ -1491,7 +1491,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         360 or less than 0.
 
         :param float value: The value that is more than 360 or less than 0.
-        :return: The adjusted angle to be between 0 and 360.
+        :returns: The adjusted angle to be between 0 and 360.
         :rtype: float
         """
         value = math.fmod(value, 360)
@@ -1508,7 +1508,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float n: The factor.
         :param bool mormalize: If `False' (default) no normalization is done
                                else if `True` normalize.
-        :return: The three factor interpolation.
+        :returns: The three factor interpolation.
         :rtype: float
         """
         a = y2 - y1
@@ -1532,7 +1532,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param int n: Number to truncate.
         :param int places: The number of places to truncate to.
-        :return: The truncated number.
+        :returns: The truncated number.
         :rtype: int
         """
         p = int('1' + '0' * places)
@@ -1544,8 +1544,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param tuple booleans: A tuple of booleans that cannot be used
                                together.
-        :return: True if only one of the booleans are True or if None are True
-                 else False.
+        :returns: True if only one of the booleans are True or if None are True
+                  else False.
         :rtype: bool
         """
         count = sum(booleans)
@@ -1559,7 +1559,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param bool _exact: If True (default) the incoming JD is the more
                             astronomically exact Julin Period day else it
                             is the historically correct (Meeus) JD.
-        :return: The ordinal number relating to the Julian Period day.
+        :returns: The ordinal number relating to the Julian Period day.
         :rtype: int
         """
         jd -= 0 if _exact else self._exact_from_meeus(jd)
@@ -1575,7 +1575,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param bool exact: If True (default) the outgoing Julian Period day is
                            the more astronomically exact Julin Period day else
                            if False it is the historically correct (Meeus) JD.
-        :return: The Julian Period day relating to the ordinal number.
+        :returns: The Julian Period day relating to the ordinal number.
         :rtype: float
         """
         # We subtract 1 because ordinal date representations satrt at 1 not 0.

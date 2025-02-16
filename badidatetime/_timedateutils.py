@@ -83,7 +83,7 @@ class TimeDateUtils(BahaiCalendar):
 
         :param str fmt: The string format to parse.
         :param str default: A default format if `fmt` is invalid.
-        :return: Data for processing date and time formats.
+        :returns: Data for processing date and time formats.
         :rtype: str
         """
         if len(fmt) != 8:
@@ -101,7 +101,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         Find the locale time delimiter and id 24 or 12 hour time is used.
 
-        :return: The time delimiter and 24 or 12 hour time.
+        :returns: The time delimiter and 24 or 12 hour time.
         :rtype: str
         """
         delim = time.strftime('%X')[2]
@@ -232,7 +232,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The abbreviated weekday.
+        :returns: The abbreviated weekday.
         :rtype: str
         """
         return self.DAYNAMES_ABV[ttup.tm_wday]
@@ -245,7 +245,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The full weekday.
+        :returns: The full weekday.
         :rtype: str
         """
         return self.DAYNAMES[ttup.tm_wday]
@@ -258,7 +258,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The abbreviated month name.
+        :returns: The abbreviated month name.
         :rtype: str
         """
         return self.MONTHNAMES_ABV[ttup.tm_mon]
@@ -271,7 +271,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The full month name.
+        :returns: The full month name.
         :rtype: str
         """
         return self.MONTHNAMES[ttup.tm_mon]
@@ -284,7 +284,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The locale specific date and time.
+        :returns: The locale specific date and time.
         :rtype: str
         """
         st = f"{self.DAYNAMES_ABV[ttup.tm_wday]} "
@@ -312,7 +312,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The century as a space-padded decimal number.
+        :returns: The century as a space-padded decimal number.
         :rtype: str
         """
         year = self._get_year(ttup)
@@ -327,7 +327,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The day of month as a zero-padded decimal number.
+        :returns: The day of month as a zero-padded decimal number.
         :rtype: str
         """
         if mod == '-':
@@ -354,7 +354,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The date where year is without century.
+        :returns: The date where year is without century.
         :rtype: str
         """
         year = self._get_year(ttup)
@@ -383,7 +383,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The Microseconds as a decimal number.
+        :returns: The Microseconds as a decimal number.
         :rtype: str
         """
         s, m = self._sec_microsec_from_seconds(ttup.tm_sec)
@@ -397,7 +397,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The ISO 8601 year with century as a zero-padded decimal
+        :returns: The ISO 8601 year with century as a zero-padded decimal
                  number.
         :rtype: str
         """
@@ -414,7 +414,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The hour (24-hour clock) as a decimal number.
+        :returns: The hour (24-hour clock) as a decimal number.
         :rtype: str
         """
         if mod == '-':  # %-H
@@ -445,7 +445,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The hour (12-hour clock) as a zero-padded decimal number.
+        :returns: The hour (12-hour clock) as a zero-padded decimal number.
         :rtype: str
          """
         midday_frac = self._find_midday(ttup)
@@ -475,7 +475,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The day of the year as a decimal number.
+        :returns: The day of the year as a decimal number.
         :rtype: str
         """
         return f"{ttup.tm_yday}" if mod == '-' else f"{ttup.tm_yday:03}"
@@ -492,7 +492,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The Kull-i-Shay as a decimal number.
+        :returns: The Kull-i-Shay as a decimal number.
         :rtype: str
         """
         st = ""
@@ -518,7 +518,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The month as a decimal number.
+        :returns: The month as a decimal number.
         :rtype: str
         """
         return f"{ttup.tm_mon}" if mod == '-' else f"{ttup.tm_mon:02}"
@@ -532,7 +532,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The minute as a zero-padded decimal number.
+        :returns: The minute as a zero-padded decimal number.
         :rtype: str
         """
         return f"{ttup.tm_min}" if mod == '-' else f"{ttup.tm_min:02}"
@@ -545,7 +545,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The newline character.
+        :returns: The newline character.
         :rtype: str
         """
         return "\n"
@@ -558,7 +558,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The locale defined AM and PM.
+        :returns: The locale defined AM and PM.
         :rtype: str
         """
         midday_frac = self._find_midday(ttup)
@@ -580,7 +580,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The locale defined 12-hour clock time.
+        :returns: The locale defined 12-hour clock time.
         :rtype: str
         """
         sec = math.floor(ttup.tm_sec)
@@ -603,7 +603,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The second as a decimal number.
+        :returns: The second as a decimal number.
         :rtype: str
         """
         return f"{ttup.tm_sec}" if mod == '-' else f"{ttup.tm_sec:02}"
@@ -616,7 +616,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The weekday as a decimal number.
+        :returns: The weekday as a decimal number.
         :rtype: str
         """
         return f"{ttup.tm_wday + 1}"
@@ -636,7 +636,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The week number of the year.
+        :returns: The week number of the year.
         :rtype: str
         """
         year = self._get_year(ttup)
@@ -654,7 +654,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The ISO 8601 week as a decimal number.
+        :returns: The ISO 8601 week as a decimal number.
         :rtype: str
         """
         if mod == ':':
@@ -680,7 +680,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The locale defined date representation.
+        :returns: The locale defined date representation.
         :rtype: str
         """
         delim = self.date_format[0]
@@ -699,7 +699,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The locale defined time representation.
+        :returns: The locale defined time representation.
         :rtype: str
          """
         delim = self.time_format[0]
@@ -719,7 +719,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The year without century as a decimal number.
+        :returns: The year without century as a decimal number.
         :rtype: str
         """
         year = self._get_year(ttup)
@@ -735,7 +735,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The year with century as a decimal number.
+        :returns: The year with century as a decimal number.
         :rtype: str
         """
         year = self._get_year(ttup)
@@ -759,7 +759,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The UTC offset in the form ±HHMM[SS[.ffffff]].
+        :returns: The UTC offset in the form ±HHMM[SS[.ffffff]].
         :rtype: str
         """
         st = ""
@@ -789,7 +789,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The time zone name.
+        :returns: The time zone name.
         :rtype: str
         """
         return f"{ttup.tm_zone}" if ttup.tm_zone else ""
@@ -802,7 +802,7 @@ class TimeDateUtils(BahaiCalendar):
         :type ttup: ShortFormStruct or LongFormStruct
         :param str, org: The original text code.
         :param str mod: Code modifier.
-        :return: The literal '%' character.
+        :returns: The literal '%' character.
         :rtype: str
         """
         return "%"
@@ -824,7 +824,7 @@ class TimeDateUtils(BahaiCalendar):
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
         :param tzinfo tzinfo: A tzinfo object.
-        :return: A struck_time object converted to a formated string.
+        :returns: A struck_time object converted to a formated string.
         :rtype: str
         """
         self._check_format(format)
@@ -887,7 +887,7 @@ class TimeDateUtils(BahaiCalendar):
 
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
-        :return: The Badí' midday.
+        :returns: The Badí' midday.
         :rtype: tuple
         """
         if ttup.short:
@@ -906,7 +906,7 @@ class TimeDateUtils(BahaiCalendar):
 
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
-        :return: The short form year converted if necessary.
+        :returns: The short form year converted if necessary.
         :rtype: int
         """
         return (ttup.tm_year if ttup.short else
@@ -922,7 +922,7 @@ class TimeDateUtils(BahaiCalendar):
         :param int, year: The year.
         :param int month: The month.
         :param int day: The day.
-        :return: The year, week, and day of the week.
+        :returns: The year, week, and day of the week.
         :rtype: tuple
         """
         week1jalal = self._isoweek1jalal(year)
@@ -947,8 +947,8 @@ class TimeDateUtils(BahaiCalendar):
         Get the number of days before the 1st of Bahá of the year.
 
         :param int year: Badí' year
-        :return: The number of days since (-1841, 19, 19) of the Badí'
-                 calendar.
+        :returns: The number of days since (-1841, 19, 19) of the Badí'
+                  calendar.
         :rtype: int
         """
         jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False)
@@ -961,7 +961,7 @@ class TimeDateUtils(BahaiCalendar):
 
         :param int year: Badí' year
         :param int month: Badí' month (0..19)
-        :return: The number of in the current month.
+        :returns: The number of in the current month.
         :rtype: int
         """
         return 4 + self._is_leap_year(year) if month == 0 else 19
@@ -972,7 +972,7 @@ class TimeDateUtils(BahaiCalendar):
 
         :param int year: Badí' year
         :param int month: Badí' month (0..19)
-        :return: The number in the year preceding the first day of month.
+        :returns: The number in the year preceding the first day of month.
         :rtype: int
         """
         month -= -18 if month < 2 else 1 if 1 < month < 19 else 19
@@ -993,7 +993,7 @@ class TimeDateUtils(BahaiCalendar):
         :param int year: Badí' year
         :param int month: Badí' month (0..19)
         :param int day: Badí' day
-        :return: The numerical day of the week.
+        :returns: The numerical day of the week.
         :rtype: int
         """
         # Since the usual start day is Monday (Kamál) a properly aligned
@@ -1010,8 +1010,8 @@ class TimeDateUtils(BahaiCalendar):
         :param int year: Badí' year
         :param int month: Badí' month [0, 19]
         :param int day: Badí' day
-        :return: The number of days since Badí' year -1842 including the
-                 current day.
+        :returns: The number of days since Badí' year -1842 including the
+                  current day.
         :rtype: int
         """
         dim = self._days_in_month(year, month)
@@ -1043,7 +1043,7 @@ class TimeDateUtils(BahaiCalendar):
         :param int n: The ordinal number of days from the MINYEAR.
         :param bool short: If True then parse for a short date else if False
                            parse for a long date.
-        :return: The Badí' date.
+        :returns: The Badí' date.
         :rtype: tuple
         """
         # We subtract 77 days from the total then add the value of n so that
@@ -1066,7 +1066,7 @@ class TimeDateUtils(BahaiCalendar):
                             and 0 when it is not. A value of -1 indicates
                             that this is not known.
         :param tzinfo tzinfo: If provided a tzinfo object.
-        :return: A struct_time object.
+        :returns: A struct_time object.
         :rtype: ShortFormStruct or LongFormStruct
         """
         if short_in:
@@ -1097,7 +1097,7 @@ class TimeDateUtils(BahaiCalendar):
         :param int day: Badí' day in week.
         :param bool short: If True then parse for a short date else if False
                            parse for a long date.
-        :return: A Badí' date.
+        :returns: A Badí' date.
         :rtype: tuple
         :raises AssertionError: If the week or weekday is out of range.
         """
@@ -1134,7 +1134,7 @@ class TimeDateUtils(BahaiCalendar):
         would be the first week with 4 or more days in the year in question.
 
         :param int year: Badí' year
-        :return: The number of the first Jalál in the Badí' year.
+        :returns: The number of the first Jalál in the Badí' year.
         :rtype: int
         """
         firstday = self._ymd2ord(year, 1, 1)
@@ -1153,7 +1153,7 @@ class TimeDateUtils(BahaiCalendar):
         date and time tuple.
 
         :param str dtstr: A ISO compliant time string.
-        :return: The date, time, and timezone.
+        :returns: The date, time, and timezone.
         :rtype: tuple, tuple, timezone
         """
         def find_index(string, lst):
@@ -1186,7 +1186,7 @@ class TimeDateUtils(BahaiCalendar):
         Parse a date ISO formatted string.
 
         :param str dtstr: A ISO compliant time string.
-        :return: The year, month, and day parsed from a ISO string.
+        :returns: The year, month, and day parsed from a ISO string.
         :rtype: tuple
         :raises AssertionError: Raised when the year is out of range or when
                                 too many hyphens are used.
@@ -1253,7 +1253,7 @@ class TimeDateUtils(BahaiCalendar):
         Parse a time ISO formatted string.
 
         :param str tmstr: A ISO compliant time string.
-        :return: The hour, minute, and second parsed from an ISO string.
+        :returns: The hour, minute, and second parsed from an ISO string.
         :rtype: tuple
         :raises AssertionError: Raised when there are invalid time designators,
                                 when to many colons used, or when too many dots
@@ -1339,7 +1339,7 @@ class TimeDateUtils(BahaiCalendar):
         Parse a timezone ISO formatted string.
 
         :param str tzstr: A ISO compliant time string.
-        :return: A timezone object indicating the offset from UTC.
+        :returns: A timezone object indicating the offset from UTC.
         :rtype: timezone
         :raises AssertionError: Raised when there are invalid timezone
                                 delimiters are found.
@@ -1404,7 +1404,7 @@ class TimeDateUtils(BahaiCalendar):
                               parse for a long date. This is for incoming dates
                               not outgoing dates as in most other uses of
                               'short'.
-        :return: Nothing
+        :returns: Nothing
         :rtype: None
         :raises AssertionError: If any of the date values are out of range.
         """
@@ -1442,7 +1442,7 @@ class TimeDateUtils(BahaiCalendar):
         :param str format: The formatted string.
         :param timetuple:
         :type ttup: ShortFormStruct or LongFormStruct
-        :return: A correctly formatted string.
+        :returns: A correctly formatted string.
         :rtype: str
         """
         # Don't call utcoffset() or tzname() unless actually needed.

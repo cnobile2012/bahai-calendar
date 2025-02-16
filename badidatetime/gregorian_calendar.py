@@ -40,7 +40,7 @@ class GregorianCalendar(BaseCalendar):
         :param bool alt: Use a more accurate leap year calculation, only valid
                          when the `exact` keyword is used, there is no effect
                          otherwise.
-        :return: A Julian day.
+        :returns: A Julian day.
         :rtype: float
 
         .. note::
@@ -100,7 +100,7 @@ class GregorianCalendar(BaseCalendar):
                            historically correct.
         :param bool alt: If True use the 4/128 algorithm for leap years else
                          use the 4/100/400 algorithm. The default is False.
-        :return: A Gregorian date in the (year, month, day) format.
+        :returns: A Gregorian date in the (year, month, day) format.
         :rtype: tuple
 
         .. note::
@@ -199,7 +199,7 @@ class GregorianCalendar(BaseCalendar):
         :param bool us: If True the seconds are split to seconds amd
                         microseconds else if False the seconds has a
                         fractional day as a decimal.
-        :return: The time of the day corrected for the timezone.
+        :returns: The time of the day corrected for the timezone.
         :rtype: tuple
         """
         t += zone * 3600
@@ -255,7 +255,7 @@ class GregorianCalendar(BaseCalendar):
         Find the Gregorian year from a Julian Period day.
 
         :param float jd: The Julian Period day.
-        :return: The year portion of the Julian day.
+        :returns: The year portion of the Julian day.
         :rtype: int
         """
         return self.gregorian_date_from_jd(jd)[0]
@@ -266,7 +266,7 @@ class GregorianCalendar(BaseCalendar):
         (year, month, day.fractional) date.
 
         :param tuple date: A six part date (y, m, d, hh, mm, ss).
-        :return: The three part (y, m, d.nnn).
+        :returns: The three part (y, m, d.nnn).
         :rtype: tuple
         """
         self._check_valid_gregorian_month_day(date)
@@ -288,9 +288,9 @@ class GregorianCalendar(BaseCalendar):
 
         :param tuple date: A three part date (y, m, d.nnn).
         :param bool us: If True return microseconds as seperate field from
-                   seconds else return seconds with fractional seconds.
-                   Default is False.
-        :return: A six part date (y, m, d, hh, mm, ss).
+                        seconds else return seconds with fractional seconds.
+                        Default is False.
+        :returns: A six part date (y, m, d, hh, mm, ss).
         :rtype: tuple
         """
         self._check_valid_gregorian_month_day(date)
@@ -315,7 +315,7 @@ class GregorianCalendar(BaseCalendar):
 
         :param tuple g_date: The date to check.
         :param bool historical: If True use the Julian leap year before 1883.
-        :return: Nothing
+        :returns: Nothing
         :rtype: None
         """
         t_len = len(g_date)

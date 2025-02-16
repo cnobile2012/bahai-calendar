@@ -34,7 +34,7 @@ def _cmp(x, y):
 
     :param object x: Item one.
     :param object y: Item two.
-    :return: If 0 then x == y, else if 1 then x > y else if -1 then x < y.
+    :returns: If 0 then x == y, else if 1 then x > y else if -1 then x < y.
     """
     return 0 if x == y else 1 if x > y else -1
 
@@ -48,7 +48,7 @@ def _divide_and_round(a: int, b: int) -> int:
 
     :param int a: numerator
     :param int b: denomerator
-    :return: Resultant value.
+    :returns: Resultant value.
     :rtype: int
     """
     # Based on the reference implementation for divmod_near
@@ -123,7 +123,7 @@ def _format_time(hh: int, mm: int, ss: int, us: int, timespec: str='auto'
     :param int mm: The minute.
     :param int ss: The second.
     :param int us: The microsecond.
-    :return: A formatted string.
+    :returns: A formatted string.
     :rtype: str
     """
     specs = {
@@ -155,7 +155,7 @@ def _format_offset(off: timedelta) -> str:
     Format an ISO offset.
 
     :param timedelta off: A `timedelta` instance.
-    :return: A formatted ISO offset.
+    :returns: A formatted ISO offset.
     :rtype: str
     :raises TypeError: If `off` is not `None` or a `timedelta` instance.
     """
@@ -251,7 +251,7 @@ def _module_name(module: str) -> str:
     Find the package name without the first directory.
 
     :param str module: The module name including it path information.
-    :return: The name of the module.
+    :returns: The name of the module.
     """
     idx = module.find('.')
     dt_true = True if module[:idx] == 'datetime' else False
@@ -282,7 +282,7 @@ class date(BahaiCalendar):
                       it's not used.
         :param int e: Long form this value is the day and in the short form
                       it's not used.
-        :return: The instantiated class.
+        :returns: The instantiated class.
         :rtype: date
         """
         # Pickle support
@@ -329,7 +329,7 @@ class date(BahaiCalendar):
         :param float t: The POSIX timestamp.
         :param bool short: If True the short for is returned. The default
                            is False.
-        :return: The instantiated class.
+        :returns: The instantiated class.
         :rtype: date
         """
         bc = BahaiCalendar()
@@ -346,7 +346,7 @@ class date(BahaiCalendar):
         :param date cls: The class object.
         :param bool short: If True the short for is returned. The default
                            is False.
-        :return: The instantiated class.
+        :returns: The instantiated class.
         :rtype: date
         """
         return cls.fromtimestamp(_time.time(), short=short)
@@ -363,7 +363,7 @@ class date(BahaiCalendar):
         :param int n: The ordinal value.
         :param bool short: If True the short for is returned. The default
                            is False.
-        :return: The instantiated class.
+        :returns: The instantiated class.
         :rtype: date
         """
         bc = BahaiCalendar()
@@ -380,7 +380,7 @@ class date(BahaiCalendar):
         :param str date_string: A string representing the date.
         :param bool short: If True the short for is returned. The default
                            is False.
-        :return: The date instance derived from the string representation.
+        :returns: The date instance derived from the string representation.
         :rtype: date
         """
         if not isinstance(date_string, str):
@@ -420,7 +420,7 @@ class date(BahaiCalendar):
         :param int year: The Badi year.
         :param int week: The number of the week in the year.
         :param int day: Badi day in week.
-        :return: The date instance.
+        :returns: The date instance.
         :rtype: date
         """
         bc = BahaiCalendar()
@@ -434,7 +434,7 @@ class date(BahaiCalendar):
         """
         Convert to formal a string, for repr().
 
-        :return: A string representing the date.
+        :returns: A string representing the date.
         :rtype: str
 
         .. note::
@@ -461,7 +461,7 @@ class date(BahaiCalendar):
 
         :param tuple time: A tuple representing the time. This is used by the
                            datetime class.
-        :return: The short form date from a long for date with the possible
+        :returns: The short form date from a long for date with the possible
                  time.
         :rtype: tuple
         """
@@ -472,7 +472,7 @@ class date(BahaiCalendar):
         """
         Return ctime() style string in the short form Badi date.
 
-        :return: A string representing the weekday, month name, and year.
+        :returns: A string representing the weekday, month name, and year.
         :rtype: str
         """
         date = self._short_from_long_form()
@@ -488,7 +488,7 @@ class date(BahaiCalendar):
         Returns a string representing the date from a format string.
 
         :param str fmt:The format string.
-        :return: A string representing the date.
+        :returns: A string representing the date.
         :rtype: str
 
         .. note::
@@ -503,7 +503,7 @@ class date(BahaiCalendar):
         then __str__ is returned.
 
         :param str fmt: The format string used for formatting the output.
-        :return: A string representation of the format.
+        :returns: A string representation of the format.
         :rtype: str
         """
         if isinstance(fmt, str):
@@ -521,7 +521,7 @@ class date(BahaiCalendar):
         """
         Return the date formatted according to ISO.
 
-        :return: String of the year, month, and day.
+        :returns: String of the year, month, and day.
         :rtype: str
 
         .. note::
@@ -539,7 +539,7 @@ class date(BahaiCalendar):
         form date the returned Badí' date is in ISO format. There is no ISO
         standard for the long form Badí' date.
 
-        :return: A string representation of the short or long form Badí' date.
+        :returns: A string representation of the short or long form Badí' date.
         :rtype: str
         """
         if self.is_short:
@@ -559,7 +559,7 @@ class date(BahaiCalendar):
         """
         Get the Kull-i-Shay’.
 
-        :return: The value associated with the Kull-i-Shay’.
+        :returns: The value associated with the Kull-i-Shay’.
         :rtype: int
         """
         return self._kull_i_shay
@@ -569,7 +569,7 @@ class date(BahaiCalendar):
         """
         Get the Váḥid.
 
-        :return: The value associated with the Váḥid.
+        :returns: The value associated with the Váḥid.
         :rtype: int
         """
         return self._vahid
@@ -584,7 +584,7 @@ class date(BahaiCalendar):
            This value has a different meaning depending on if the date
            instance represents a long or short form date.
 
-        :return: The value associated with the year.
+        :returns: The value associated with the year.
         :rtype: int
         """
         return self._year
@@ -595,7 +595,7 @@ class date(BahaiCalendar):
         Get the month where 1 - 19 represents the normal Badí' month and 0
         represents Ayyám-i-Há.
 
-        :return: The value associated with the Ayyám-i-Há.
+        :returns: The value associated with the Ayyám-i-Há.
         :rtype: int
         """
         return self._month
@@ -606,7 +606,7 @@ class date(BahaiCalendar):
         Get the day of the month where 1 - 19 represents the normal Badí'
         month and 1 - 4 or 5 represents Ayyám-i-Há.
 
-        :return: The value associated with the day of the month.
+        :returns: The value associated with the day of the month.
         :rtype: int
         """
         return self._day
@@ -627,7 +627,7 @@ class date(BahaiCalendar):
         """
         Get the Badí' date as a tuple.
 
-        :return: The Badí' date.
+        :returns: The Badí' date.
         :rtype: tuple
         """
         return self.__date
@@ -639,7 +639,7 @@ class date(BahaiCalendar):
         """
         Return local time tuple compatible with time.localtime().
 
-        :return: The short or long form date.
+        :returns: The short or long form date.
         :rtype: NamedTuple
         """
         return _td_utils._build_struct_time(self.b_date + (0, 0, 0), -1,
@@ -653,7 +653,7 @@ class date(BahaiCalendar):
         contribute to the result. If this class provides the long form
         Badí' date it is converted to the short form before processing.
 
-        :return: The ordinal representing the year, month, and day.
+        :returns: The ordinal representing the year, month, and day.
         :rtype: int
         """
         return _td_utils._ymd2ord(*self._short_from_long_form()[:3])
@@ -668,7 +668,7 @@ class date(BahaiCalendar):
         :param int year: A value representing the year.
         :param int month: A value representing the month.
         :param int day: A value representing the day.
-        :return: A date instance with replaced items.
+        :returns: A date instance with replaced items.
         :rtype: date
         """
         if self.is_short and (kull_i_shay or vahid):
@@ -704,7 +704,7 @@ class date(BahaiCalendar):
         :param tzinfo tzinfo: A `tzinfo` instance representing the timezone.
         :param int fold: Either a 0 meaning not fold or a 1 indicating the
                          date in in the fold.
-        :return: The short form date instance with replaced items.
+        :returns: The short form date instance with replaced items.
         :rtype: date
         """
         if year is None:
@@ -744,7 +744,7 @@ class date(BahaiCalendar):
         :param tzinfo tzinfo: A `tzinfo` instance representing the timezone.
         :param int fold: Either a 0 meaning not fold or a 1 indicating the
                          date in in the fold.
-        :return: The long form date instance with replaced items.
+        :returns: The long form date instance with replaced items.
         :rtype: date
         """
         if kull_i_shay is None:
@@ -797,8 +797,8 @@ class date(BahaiCalendar):
         Returns an integer representation of >, ==, or < of two date instances.
 
         :param date other: The other date instance to compare to.
-        :return: If 0 then x == y, else if 1 then x > y else if -1 then x < y,
-                 where x is the `self` instance and y is the `other` instance.
+        :returns: If 0 then x == y, else if 1 then x > y else if -1 then x < y,
+                  where x is the `self` instance and y is the `other` instance.
         :rtype: int
         """
         assert isinstance(other, date)
@@ -818,7 +818,7 @@ class date(BahaiCalendar):
         """
         Get the hash of the `self` instance.
 
-        :return: The hash.
+        :returns: The hash.
         :rtype: int
         """
         if self._hashcode == -1:
@@ -856,7 +856,7 @@ class date(BahaiCalendar):
 
         :param date other: The other date instance which is subtracted from
                            the `self` instance.
-        :return: Subreacted date instances.
+        :returns: Subreacted date instances.
         :rtype: date
         """
         if isinstance(other, timedelta):
@@ -875,7 +875,7 @@ class date(BahaiCalendar):
         Return day of the week, where Jalál (Saturday) == 0 ...
         Istiqlāl (Friday) == 6.
 
-        :return: The numerical (0 - 6) day-of-the-week.
+        :returns: The numerical (0 - 6) day-of-the-week.
         :rtype: int
         """
         date = self._short_from_long_form()
@@ -886,7 +886,7 @@ class date(BahaiCalendar):
         Return day of the week, where Jalál (Saturday) == 1 ...
         Istiqlāl (Friday) == 7. This is the ISO standard.
 
-        :return: The numerical (1 - 7) day-of-the-week.
+        :returns: The numerical (1 - 7) day-of-the-week.
         :rtype: int
         """
         date = self._short_from_long_form()[:3]
@@ -902,7 +902,7 @@ class date(BahaiCalendar):
 
         The first week is 1; Jalál is 1 ... Istiqlāl is 7.
 
-        :return: An ISO year, week, and day.
+        :returns: An ISO year, week, and day.
         :rtype: _IsoCalendarDate
 
         .. note::
@@ -926,9 +926,9 @@ class date(BahaiCalendar):
         :type a: int, str, or bytes
         :param b: None, Váḥid, or month
         :type b: NoneType or int
-        :return: A Boolean if a short or long Badi date derived from pickle
-                 data. A None can be returned if a and b are real date
-                 information.
+        :returns: A Boolean if a short or long Badi date derived from pickle
+                  data. A None can be returned if a and b are real date
+                  information.
         :rtype: bool or NoneType
         """
         if isinstance(b, NoneType) and isinstance(a, (bytes, str)):
@@ -958,7 +958,7 @@ class date(BahaiCalendar):
         """
         Get the current state.
 
-        :return: The state of the current `self` instance.
+        :returns: The state of the current `self` instance.
         :rtype: bytes
         """
         if self.is_short:
@@ -1000,7 +1000,7 @@ class date(BahaiCalendar):
         """
         A tuple of the class name and current state.
 
-        :return: The class name and current state.
+        :returns: The class name and current state.
         :rtype: tuple
         """
         return (self.__class__, self._getstate())
@@ -1026,7 +1026,7 @@ class _IsoCalendarDate(tuple):
         :param int, year: The year of the date.
         :param int, week: The week of the year.
         :param int weekday: The day of the week.
-        :return: The ISO representation of the year, week, and weekday.
+        :returns: The ISO representation of the year, week, and weekday.
         :rtype: _IsoCalendarDate
         """
         return super().__new__(cls, (year, week, weekday))
@@ -1036,7 +1036,7 @@ class _IsoCalendarDate(tuple):
         """
         Get the year.
 
-        :return: The year.
+        :returns: The year.
         :rtype: int
         """
         return self[0]
@@ -1046,7 +1046,7 @@ class _IsoCalendarDate(tuple):
         """
         Get the week.
 
-        :return: The week.
+        :returns: The week.
         :rtype: int
         """
         return self[1]
@@ -1056,7 +1056,7 @@ class _IsoCalendarDate(tuple):
         """
         Get the weekday.
 
-        :return: The weekday.
+        :returns: The weekday.
         :rtype: int
         """
         return self[2]
@@ -1065,7 +1065,7 @@ class _IsoCalendarDate(tuple):
         """
         A tuple of the class name and current state.
 
-        :return: The class name and current state.
+        :returns: The class name and current state.
         :rtype: tuple
 
         .. note::
@@ -1079,7 +1079,7 @@ class _IsoCalendarDate(tuple):
         """
         Convert to a formal string, for repr().
 
-        :return: A string representing the date.
+        :returns: A string representing the date.
         :rtype: str
         """
         return (f'{_module_name(self.__class__.__name__)}'
@@ -1125,7 +1125,7 @@ class time:
         :param int microsecond: Microseconds (default to zero)
         :param tzinfo tzinfo: Timezone information (default to None)
         :param int fold:  (keyword only, default to zero)
-        :return: The `self` instance.
+        :returns: The `self` instance.
         :rtype: time
         """
         if (isinstance(hour, (bytes, str)) and len(hour) == 6 and
@@ -1165,7 +1165,7 @@ class time:
         """
         Get the hour.
 
-        :return: The hour.
+        :returns: The hour.
         :rtype: float
         """
         return self._hour
@@ -1175,7 +1175,7 @@ class time:
         """
         Get the minute.
 
-        :return: The minute.
+        :returns: The minute.
         :rtype: float
         """
         return self._minute
@@ -1185,7 +1185,7 @@ class time:
         """
         Get the second.
 
-        :return: The second.
+        :returns: The second.
         :rtype: float
         """
         return self._second
@@ -1195,7 +1195,7 @@ class time:
         """
         Get the microsecond.
 
-        :return: The microsecond.
+        :returns: The microsecond.
         :rtype: int
         """
         return self._microsecond
@@ -1205,7 +1205,7 @@ class time:
         """
         Get the timezone info instance.
 
-        :return: The timezone info instance.
+        :returns: The timezone info instance.
         :rtype: tzinfo
         """
         return self._tzinfo
@@ -1217,7 +1217,7 @@ class time:
         from daylight savings time to standard time and the same hour is
         repeated.
 
-        :return: The time fold.
+        :returns: The time fold.
         :rtype: int
         """
         return self._fold
@@ -1252,8 +1252,8 @@ class time:
         :param bool allow_mixed: True if a naive and aware time objects are
                                  allowed else if False they are not allowed.
                                  Only the __eq__ method sets this to True.
-        :return: 0 if self and other are equal, 1 if self > other, and -1
-                 self < other.
+        :returns: 0 if self and other are equal, 1 if self > other, and -1
+                  self < other.
         :rtype: int
         """
         assert isinstance(other, time), f"Invalid time module, found {other}."
@@ -1291,7 +1291,7 @@ class time:
         """
         Get the hash of the `self` instance.
 
-        :return: The hash.
+        :returns: The hash.
         :rtype: int
         """
         if self._hashcode == -1:
@@ -1326,7 +1326,7 @@ class time:
         """
         Return a formatted timezone offset (+xx:xx) or an empty string.
 
-        :return: The formatted timezone offset.
+        :returns: The formatted timezone offset.
         :rtype: str
         """
         off = self.utcoffset()
@@ -1336,7 +1336,7 @@ class time:
         """
         Convert to formal string, for repr().
 
-        :return: A string representing the current `self` instance.
+        :returns: A string representing the current `self` instance.
         :rtype: str
         """
         if self._microsecond != 0:
@@ -1372,7 +1372,7 @@ class time:
         `minutes`, `seconds`, `milliseconds` and `microseconds`.
 
         :param str timespec: The specification for the time.
-        :return: An ISO formatted string.
+        :returns: An ISO formatted string.
         :rtype: str
         """
         s = _format_time(self._hour, self._minute, self._second,
@@ -1392,7 +1392,7 @@ class time:
         Construct a time from a string in one of the ISO 8601 formats.
 
         :param str t_str: An ISO formatted string.
-        :return: An instance of time.
+        :returns: An instance of time.
         :rtype: time
         """
         if isinstance(t_str, str):
@@ -1409,7 +1409,7 @@ class time:
         underlying strftime should not be used.
 
         :param str format: The string format.
-        :return: An updated format string.
+        :returns: An updated format string.
         :rtype: str
         """
         # We use the Badí' epoch for the year, month and day.
@@ -1422,7 +1422,7 @@ class time:
         then return `str(self)`.
 
         :param str fmt: The format string.
-        :return: A string formatted as pre the `fmt` argument.
+        :returns: A string formatted as pre the `fmt` argument.
         :rtype: str
         """
         if isinstance(fmt, str):
@@ -1442,7 +1442,7 @@ class time:
         Return the timezone offset as timedelta, positive east of UTC
         (negative west of UTC).
 
-        :return: The offset from UTC.
+        :returns: The offset from UTC.
         :rtype: timedelta
         """
         if self.tzinfo is not None:
@@ -1455,7 +1455,7 @@ class time:
         Return the timezone offset as timedelta, positive east of Asia/Tehran
         (negative west of UTC).
 
-        :return: The offset from UTC.
+        :returns: The offset from UTC.
         :rtype: timedelta
         """
         if self.tzinfo is not None:
@@ -1470,7 +1470,7 @@ class time:
         """
         Return the timezone name.
 
-        :return: A name representing the time zone.
+        :returns: A name representing the time zone.
         :rtype: str
 
         .. note::
@@ -1490,7 +1490,7 @@ class time:
         Return 0 if DST is not in effect, or the DST offset (as timedelta
         positive eastward) if DST is in effect.
 
-        :return: The DST offset from UTC.
+        :returns: The DST offset from UTC.
         :rtype: timedelta
 
         .. note::
@@ -1516,7 +1516,7 @@ class time:
         :param int microsecond: Microseconds (default to zero)
         :param tzinfo tzinfo: Timezone information (default to None)
         :param int fold:  (keyword only, default to zero)
-        :return: A new time instance updated with the provided information.
+        :returns: A new time instance updated with the provided information.
         :rtype: time
         """
         if hour is None:
@@ -1547,7 +1547,7 @@ class time:
 
         :param int protocol: The protocol used to derive the state
                              (default is 3).
-        :return: The current state of the `self` instance.
+        :returns: The current state of the `self` instance.
         :rtype: tuple
         """
         us2, us3 = divmod(self._microsecond, 256)
@@ -1587,7 +1587,7 @@ class time:
         Get the class name and the default protocol state.
 
         :param int protocol: The protocol used to derive the state.
-        :return: The class name and current state.
+        :returns: The class name and current state.
         :rtype: tuple
         """
         return (self.__class__, self._getstate(protocol))
@@ -1596,7 +1596,7 @@ class time:
         """
         Get the class name and current state using protocol 2.
 
-        :return: The class name and current state.
+        :returns: The class name and current state.
         :rtype: tuple
         """
         return self.__reduce_ex__(2)
@@ -1647,7 +1647,7 @@ class datetime(date):
         :param int fold: If *0* there is no fold in time, this is the more
                          common situation, however, if it is *1* there is a
                          fold in time.
-        :return: The instance of the datetime class.
+        :returns: The instance of the datetime class.
         :rtype: datetime
         """
         if (short := datetime._is_pickle_data(a, b)) is not None:
@@ -1741,7 +1741,7 @@ class datetime(date):
         """
         Get the hour.
 
-        :return: The hour.
+        :returns: The hour.
         :rtype: float
         """
         return self._hour
@@ -1751,7 +1751,7 @@ class datetime(date):
         """
         Get the minute.
 
-        :return: The minute.
+        :returns: The minute.
         :rtype: float
         """
         return self._minute
@@ -1761,7 +1761,7 @@ class datetime(date):
         """
         Get the second.
 
-        :return: The second.
+        :returns: The second.
         :rtype: float
         """
         return self._second
@@ -1771,7 +1771,7 @@ class datetime(date):
         """
         Get the microsecond.
 
-        :return: The microsecond.
+        :returns: The microsecond.
         :rtype: int
         """
         return self._microsecond
@@ -1781,7 +1781,7 @@ class datetime(date):
         """
         Get the timezone info instance.
 
-        :return: The timezone info instance.
+        :returns: The timezone info instance.
         :rtype: tzinfo
         """
         return self._tzinfo
@@ -1793,7 +1793,7 @@ class datetime(date):
         from daylight savings time to standard time and the same hour is
         repeated.
 
-        :return: The time fold.
+        :returns: The time fold.
         :rtype: int
         """
         return self._fold
@@ -1803,7 +1803,7 @@ class datetime(date):
         """
         Get the Badí' date as a tuple.
 
-        :return: The Badí' date.
+        :returns: The Badí' date.
         :rtype: tuple
         """
         return self.__date
@@ -1813,7 +1813,7 @@ class datetime(date):
         """
         Get the time as a tuple.
 
-        :return: The time.
+        :returns: The time.
         :rtype: tuple
         """
         return self.__time
@@ -1840,8 +1840,8 @@ class datetime(date):
         :param tzinfo tz: A tzinfo instance.
         :param bool short: If False (default) the result is in the long Badi
                            form, else if True it is in the short form.
-        :return: A datetime instance set to the date derived from the
-                 POSIX timestamp.
+        :returns: A datetime instance set to the date derived from the
+                  POSIX timestamp.
         :rtype: datetime.datetime
         """
         def _fix_short_date(date, short):
@@ -1900,7 +1900,7 @@ class datetime(date):
         :param tzinfo tz: The `tzinfo` instance.
         :param bool short: If True the short for is returned. The default
                            is False.
-        :return: A `datetime` instance.
+        :returns: A `datetime` instance.
         :rtype: datetime
         """
         _check_tzinfo_arg(tz)
@@ -1917,7 +1917,7 @@ class datetime(date):
         :param tzinfo tz: The `timezone` instance.
         :param bool short: If True the short for is returned. The default
                            is False.
-        :return: A `datetime` instance.
+        :returns: A `datetime` instance.
         :rtype: datetime
         """
         return cls.fromtimestamp(_time.time(), tz, short=short)
@@ -1930,7 +1930,7 @@ class datetime(date):
         :param date date: A date instance.
         :param time time: A time instance.
         :param tzinfo tzinfo: A tzinfo instance.
-        :return: A `datetime` instance.
+        :returns: A `datetime` instance.
         :rtype: datetime
         """
         if not isinstance(date, _date_class):
@@ -1959,7 +1959,7 @@ class datetime(date):
         This only works with short form dates.
 
         :param str date_string: An ISO formatted string.
-        :return: A `datetime` instance.
+        :returns: A `datetime` instance.
         :rtype: datetime
         """
         date, time, tz = _td_utils._parse_isoformat_date_time_timezone(
@@ -1975,7 +1975,7 @@ class datetime(date):
         """
         Return local time tuple compatible with time.localtime().
 
-        :return: A tuple of the date and time values.
+        :returns: A tuple of the date and time values.
         :rtype: NamedTuple
         """
         date = self.b_date + self.b_time[:3]
@@ -1993,7 +1993,7 @@ class datetime(date):
            effected are: `timestamp()`, `_local_timezone()`, and
            `astimezone()`.
 
-        :return: The POSIX timestamp.
+        :returns: The POSIX timestamp.
         :rtype: float
         """
         def local(u):
@@ -2045,7 +2045,7 @@ class datetime(date):
            This method is derived from `_mktime()` and may have accuracy
            issues.
 
-        :return: The POSIX timestamp.
+        :returns: The POSIX timestamp.
         :rtype: float
         """
         if self.tzinfo is None:
@@ -2058,7 +2058,7 @@ class datetime(date):
         """
         Return UTC time tuple compatible with time.gmtime().
 
-        :return: The UTC time tuple.
+        :returns: The UTC time tuple.
         :rtype: NamedTuple
         """
         return self._timetuple(self.utcoffset())
@@ -2067,7 +2067,7 @@ class datetime(date):
         """
         Return UTC or BADI time tuple compatible with time.gmtime().
 
-        :return: The UTC time tuple.
+        :returns: The UTC time tuple.
         :rtype: NamedTuple
         """
         if offset:
@@ -2080,7 +2080,7 @@ class datetime(date):
         """
         Return the date part of the `datetime` instance.
 
-        :return: The date part of the `datetime` instance.
+        :returns: The date part of the `datetime` instance.
         :rtype: date
         """
         return date(self._year, self._month, self._day)
@@ -2089,7 +2089,7 @@ class datetime(date):
         """
         Return the time part, with tzinfo None of the `datetime` instance.
 
-        :return: The time part of the `datetime` instance.
+        :returns: The time part of the `datetime` instance.
         :rtype: time
         """
         return time(self.hour, self.minute, self.second, self.microsecond,
@@ -2099,7 +2099,7 @@ class datetime(date):
         """
         Return the time part, with same tzinfo of the `datetime` instance.
 
-        :return: The time part of the `datetime` instance.
+        :returns: The time part of the `datetime` instance.
         :rtype: time
         """
         return time(self.hour, self.minute, self.second, self.microsecond,
@@ -2123,7 +2123,7 @@ class datetime(date):
         :param int microsecond: The microsecond.
         :param tzinfo tzinfo: A `tzinfo` instance.
         :param int fold: The time fold.
-        :return: The updated `datetime` instance.
+        :returns: The updated `datetime` instance.
         :rtype: datetime
         """
         if hour is None:
@@ -2174,7 +2174,7 @@ class datetime(date):
            This method is derived from `_mktime()` and may have accuracy
            issues.
 
-        :return: The local time zone.
+        :returns: The local time zone.
         :rtype: timezone
         """
         if self.tzinfo is None:
@@ -2212,7 +2212,7 @@ class datetime(date):
            issues.
 
         :param tzinfo tz: A timezone instance.
-        :return: A `datetime` instance with a tzinfo instance attached.
+        :returns: A `datetime` instance with a tzinfo instance attached.
         :rtype: datetime
         """
         if tz is None:
@@ -2250,8 +2250,8 @@ class datetime(date):
         Return a string with weekday, month name, day, hour, minute, second,
         and year.
 
-        :return: A string with weekday, month name, day, hour, minute, second,
-                 and year.
+        :returns: A string with weekday, month name, day, hour, minute, second,
+                  and year.
         :rtype: str
         """
         if self.is_short:
@@ -2288,7 +2288,7 @@ class datetime(date):
                         use *T*.
         :param str timespec: A special string as stated above that will
                              append additional data to the string.
-        :return: An ISO formatted string.
+        :returns: An ISO formatted string.
         :rtype: str
         """
         s = (f"{self._year:04d}-{self._month:02d}-{self._day:02d}{sep}" +
@@ -2307,7 +2307,7 @@ class datetime(date):
         """
         Convert to formal string, for repr().
 
-        :return: A string representation of the `datetime` instance.
+        :returns: A string representation of the `datetime` instance.
         :rtype: str
         """
         L = [self._hour, self._minute, self._second, self._microsecond]
@@ -2343,7 +2343,7 @@ class datetime(date):
 
         :param str sep: The ISO date and time seperator. The standard is to
                         use *T*.
-        :return: A representation of the `datetime` instance.
+        :returns: A representation of the `datetime` instance.
         :rtype: str
         """
         if self.is_short:
@@ -2372,7 +2372,7 @@ class datetime(date):
 
         :param str date_string: A string representing the date.
         :param str format: A format string
-        :return: A date and time string representing the `format` string.
+        :returns: A date and time string representing the `format` string.
         :rtype: str
         """
         import _strptime
@@ -2396,8 +2396,8 @@ class datetime(date):
         it mean anything in particular. For example, 'GMT', 'UTC', '-500',
         '-5:00', 'EDT', 'US/Eastern', 'America/New_York' are all valid replies.
 
-        :return: The name of the time zone or `None` if not `tzinfo`
-                 instance was found.
+        :returns: The name of the time zone or `None` if not `tzinfo`
+                  instance was found.
         :rtype: str
         """
         if self.tzinfo is not None:
@@ -2415,7 +2415,7 @@ class datetime(date):
         need to consult dst() unless you're interested in displaying the DST
         info.
 
-        :return: The value as described above.
+        :returns: The value as described above.
         :rtype: int
         """
         if self.tzinfo is not None:
@@ -2472,8 +2472,8 @@ class datetime(date):
         :param date other: The other date instance to compare to.
         :param bool allow_mixed: An integer representation of two date
                                  instances.
-        :return: If 0 then x == y, else if 1 then x > y else if -1 then x < y,
-                 where x is the `self` instance and y is the `other` instance.
+        :returns: If 0 then x == y, else if 1 then x > y else if -1 then x < y,
+                  where x is the `self` instance and y is the `other` instance.
         :rtype: int
         """
         assert isinstance(other, datetime), (
@@ -2554,7 +2554,7 @@ class datetime(date):
 
         :param date other: The other datetime instance which is subtracted
                            from the `self` instance.
-        :return: Subtracted datetime instances.
+        :returns: Subtracted datetime instances.
         :rtype: date
 
         """
@@ -2590,7 +2590,7 @@ class datetime(date):
         """
         Get the hash of the `self` instance.
 
-        :return: The hash.
+        :returns: The hash.
         :rtype: int
         """
         if self._hashcode == -1:
@@ -2621,9 +2621,9 @@ class datetime(date):
         :type a: int, str, or bytes
         :param b: None, vahid, or month
         :type b: NoneType or int
-        :return: A Boolean if a short or long Badi date derived from pickle
-                 data. A None can be returned if a and b are real date
-                 information.
+        :returns: A Boolean if a short or long Badi date derived from pickle
+                  data. A None can be returned if a and b are real date
+                  information.
         :rtype: bool or NoneType
         """
         if isinstance(b, (NoneType, tzinfo)) and isinstance(a, (bytes, str)):
@@ -2654,7 +2654,7 @@ class datetime(date):
         Get the current state.
 
         :param int protocol: The pickle protocol to use defaults to 3.
-        :return: The state of the current `self` instance.
+        :returns: The state of the current `self` instance.
         :rtype: tuple
         """
         if self.is_short:
@@ -2726,7 +2726,7 @@ class datetime(date):
         A tuple of the class name and current state.
 
         :param int protocol:  The protocol used to derive the state.
-        :return: The class name and current state.
+        :returns: The class name and current state.
         :rtype: tuple
         """
         return (self.__class__, self._getstate(protocol))
@@ -2735,7 +2735,7 @@ class datetime(date):
         """
         A tuple of the class name and current state using protocol 2.
 
-        :return: The class name and current state.
+        :returns: The class name and current state.
         :rtype: tuple
         """
         return self.__reduce_ex__(2)
@@ -2789,7 +2789,7 @@ class timezone(tzinfo):
                                  offset from UTC.
         :param str name: An optional name indicating the time zone as an
                          IANA name, however, it could just be UTC or UTC+0330.
-        :return: The `timezone` instance.
+        :returns: The `timezone` instance.
         :rtype: timezone
         """
         self = tzinfo.__new__(cls)
@@ -2807,7 +2807,7 @@ class timezone(tzinfo):
         """
         Convert to formal string, for repr().
 
-        :return: A string representing the date.
+        :returns: A string representing the date.
         :rtype: str
 
         .. note::
@@ -2839,7 +2839,7 @@ class timezone(tzinfo):
         """
         A string representation of the current `timezone` instane.
 
-        :return: A string representation of the current `timezone` instane.
+        :returns: A string representation of the current `timezone` instane.
         :rtype: str
         """
         return self.tzname(None)
@@ -2849,8 +2849,8 @@ class timezone(tzinfo):
         Return the fixed value specified when the `timezone` instance is
         constructed.
 
-        :return: The fixed value specified when the `timezone` instance is
-                 constructed.
+        :returns: The fixed value specified when the `timezone` instance is
+                  constructed.
         :rtype: timedelta
         """
         if isinstance(dt, datetime) or dt is None:

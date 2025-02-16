@@ -96,7 +96,7 @@ class struct_time:
         :param tuple date: A tuple containing the data needed to create
                            a NamedTuple.
         :param tzinfo tzinfo: Timezone information or None.
-        :return: Instance object
+        :returns: Instance object
         :rtype: ShortFormStruct or LongFormStruct
         """
         self = object.__new__(cls)
@@ -123,9 +123,9 @@ class struct_time:
         Determines if the date tuple contains short or long form data.
 
         :param tuple date: The date tuple to be processed.
-        :return: If `True` then the date tuple represents a short form Badí'
-                 date and time, if `False` date tuple represents a long form
-                 Badí' date and time.
+        :returns: If `True` then the date tuple represents a short form Badí'
+                  date and time, if `False` date tuple represents a long form
+                  Badí' date and time.
         :rtype: bool
         :raises TypeError: Wrong tuple sequence size.
         """
@@ -151,7 +151,7 @@ class struct_time:
         :param bool short: If `True` then the date tuple represents a short
                            form Badí' date and time, if `False` date tuple
                            represents a long form Badí' date and time.
-        :return: The updated date tuple.
+        :returns: The updated date tuple.
         :rtype: tuple
         """
         datetime = importlib.import_module('badidatetime.datetime')
