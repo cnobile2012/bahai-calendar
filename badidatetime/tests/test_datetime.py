@@ -2297,17 +2297,17 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             # Latitude and Longitude dependent
             # 1969-12-31T19:00:00+00:00 -> 0126-16-02T01:46:33.168000+00:00
-            (-18000, False, tz1, True, '0126-16-02T01:50:45.340800+00:00'),
+            (-18000, False, tz1, True, '0126-16-02T01:50:45.369600+00:00'),
             # Assume UTC as starting point.
             (0, True, tz1, True, '0126-16-02T08:03:07.718400+00:00'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz0, True, '0126-16-02T05:20:45.340800+03:30'),
+            (-18000, False, tz0, True, '0126-16-02T05:20:45.369600+03:30'),
             # Assume UTC as starting point.
             (0, True, tz0, True, '0126-16-02T11:33:07.718400+03:30'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz2, True, '0126-16-01T20:50:45.340800-05:00'),
+            (-18000, False, tz2, True, '0126-16-01T20:50:45.369600-05:00'),
             )
         msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
                "and short {}, found {}.")
@@ -2347,8 +2347,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # that only God knows what coordinates are used for IANA time
             # zones to arrive at the correct time. Off by 03:54:10.915200 hrs.
             # Latitude and Longitude dependent
-            (1733016253.327577, None, True, '0181-14-10T08:21:17.532000'),
-            (1733016253.327577, tz2, True, '0181-14-10T04:27:06.616800-05:00'),
+            (1733016253.327577, None, True, '0181-14-10T08:21:17.568000'),
+            (1733016253.327577, tz2, True, '0181-14-10T04:27:06.652800-05:00'),
             # Some long form datetimes.
             # Latitude and Longitude dependent
             (0, None, False, '01-07-12-16-02T06:50:45.340800'),

@@ -562,9 +562,7 @@ class BahaiCalendar(BaseCalendar):
         :return: A Badi date long or short form.
         :rtype: tuple
         """
-        days = math.floor(t / 86400)
-        jd = days + self._POSIX_EPOCH
-        jd += t % 86400 / 86400
+        jd = t / 86400 + self._POSIX_EPOCH
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim)
 
@@ -786,8 +784,9 @@ class BahaiCalendar(BaseCalendar):
 
         .. warning::
 
-           This method will give disasterous results if the jd and and ymd
-           arguments are off by more than a day.
+           This method will give disasterous results if the jd and ymd
+           arguments are off by more than a day. As of now this method does
+           not work with a JD after noon on the following day.
 
         :param float jd: Exact Julian Period day.
         :param tuple ymd: The year month, and day.
@@ -809,17 +808,17 @@ class BahaiCalendar(BaseCalendar):
         year, month, day = ymd
         jd0 = math.floor(jd)  # So we always get the sunset on the current day.
         mjd0 = jd0 - self._meeus_from_exact(jd0)  # Current day
-        jd_frac = jd % 1
         # Current day sunset
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
-        ss_frac = ss0 % 1
+        ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)
+        jd_frac = round(jd % 1, self._ROUNDING_PLACES)
 
-        if jd_frac < ss_frac:
-            # Previous day sunset
+        if jd_frac < ss_frac:  # Previous day before sunset.
             jd1 = jd0 - 1
             mjd1 = jd1 - self._meeus_from_exact(jd1)
             ss1 = self._sun_setting(mjd1, lat, lon, zone)
-            frac = abs(0.5 - ss1 % 1 + jd_frac)
+            ss1_frac = round(ss1 % 1, self._ROUNDING_PLACES)
+            frac = abs(0.5 - ss1_frac + jd_frac)
             day -= 1
 
             if day == 0:
@@ -840,9 +839,15 @@ class BahaiCalendar(BaseCalendar):
                     month = 18
                     day = 19
                     # print('Stage 4', jd, ymd, jd_frac, ss_frac, ss1 % 1)
-        else:  # Stage 5
-            frac = abs(jd_frac - ss_frac)
+        elif jd_frac <= 0.5:  # Same Badi day before or equal to UTC midnight.
+            frac = jd_frac - ss_frac
             # print('Stage 5', jd, ymd, jd_frac, ss_frac)
+        elif 0.5 < jd_frac:  # Same Badi day after UTC midnight -- Stage 6
+            frac = 0.5 - ss_frac + (jd_frac - 0.5)
+            # print('Stage 6', jd, ymd, ss_frac, jd_frac)
+        else:  # pragma: no cover -- Stage 7
+            assert False, (f"Should never happen--jd: {jd}, ymd: {ymd}, "
+                           f"jd_frac: {jd_frac}, ss_frac: {ss_frac}")
 
         if fraction:
             day = round(day + frac, self._ROUNDING_PLACES)

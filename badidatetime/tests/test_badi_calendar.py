@@ -601,23 +601,23 @@ class TestBadiCalendar(unittest.TestCase):
              (1, 7, 12, 16, 2, 8, 3, 7.7184)),
             # 1969-12-31T23:59:59 This is one second before the POSIX epoch
             (-1, 51.477928, -0.001545, 0, False, True, True,
-             (126, 16, 2, 8, 3, 6.7176)),
+             (126, 16, 2, 8, 3, 6.6816)),
             (-1, 51.477928, -0.001545, 0, True, True, True,
-             (126, 16, 2, 8, 3, 6, 717600)),
+             (126, 16, 2, 8, 3, 6, 681600)),
             # 2024-08-21T14:33:46.246101 -- Locality in NC USA
             # The h, m, & s are counted from the beginning of the Badi day
             # which would be the previous Gregorian day.
             (1724265226.246101, *local_coords, False, True, True,
-             (181, 9, 3, 11, 31, 14.9304)),
+             (181, 9, 3, 11, 31, 14.9376)),
             # Just after sunset US/Eastern on (2024, 1, 12, 17, 34, 1, 290939)
             (1736721241.2909386, *local_coords, True, True, False,
-             (181, 16, 15, 5, 14, 54, 790800)),
+             (181, 16, 15, 5, 14, 54, 816000)),
             # Test with zone 3.5 (Tehran Iran) 2024-08-28T00:59:58.549010+3:30
             (1724794198.5490103, *epoch_coords, False, True, True,
-             (181, 9, 10, 2, 47, 14.7156)),
+             (181, 9, 10, 2, 47, 14.7552)),
             # 2024-08-07T14:04:24-0500
             (1723057467.0619307, *local_coords, False, True, True,
-             (181, 8, 8, 11, 46, 47.2512)),
+             (181, 8, 8, 11, 46, 47.28)),
             )
         msg = "Expected {} for timestamp {}, found {}"
 
@@ -923,6 +923,12 @@ class TestBadiCalendar(unittest.TestCase):
             # JD from jd_from_gregorian_date() Stage 5
             (2460387.26108, (181, 1, 1), *epoch_coords, False, True, False,
              False, (181, 1, 1, 0, 2, 32, 236800)),
+            # JD is exactly UTC midnight.
+            (2460387.5, (181, 1, 1), *epoch_coords, False, True, False,
+             False, (181, 1, 1, 5, 46, 34, 924800)),
+            # JD is after UTC midnight
+            (2460387.6, (181, 1, 1), *epoch_coords, False, True, False,
+             False, (181, 1, 1, 8, 10, 34, 924800)),
             # Error conditions
             (2460733.2, (181, 19, 1), *local_coords, True, True, False, True,
              err_msg0),

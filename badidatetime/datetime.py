@@ -1988,7 +1988,7 @@ class datetime(date):
 
         .. warning::
 
-           This method has issues and is not always acurate. This means that
+           This method has issues and is not always accurate. This means that
            any code derived from this method may also have issues. Also
            effected are: `timestamp()`, `_local_timezone()`, and
            `astimezone()`.
