@@ -275,6 +275,7 @@ class TestBadiCalendar(unittest.TestCase):
               correct day, but are sumtimes not as accurate as the latter.
         """
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
+        local_coords = (35.5894, -78.7792, -5.0)
         data = (
             # 0001-03-19T18:14:32.5536 -> 1721501.260099
             (1721501.261143, *epoch_coords, False, True, True, False, False,
@@ -316,6 +317,9 @@ class TestBadiCalendar(unittest.TestCase):
              (0, 19, 19)),
             (2394643.5, *epoch_coords, False, True, True, False, True,
              (1, 1, 1)),
+            # 1969-12-31T17:12:00-05:00
+            (2440585.216667, *local_coords, True, True, True, False, False,
+             (126, 16, 2, 0, 2, 45, 369600)),  # Time should be: 0, 0, 0
             # 1970-01-01T:00:00:00Z -> 2440585.5
             (self._bc._POSIX_EPOCH, 51.477928, -0.001545, 0, False, True, True,
              False, False, (126, 16, 2, 8, 3, 7.7184)),

@@ -2033,7 +2033,7 @@ class datetime(date):
             return u1
 
         # We have found both offsets a and b, but neither t - a nor t - b is
-        # a solution.  This means t is in the gap.
+        # a solution. This means t is in the gap.
         return (max, min)[self.fold](u1, u2)
 
     def timestamp(self) -> float:
@@ -2247,8 +2247,7 @@ class datetime(date):
 
     def ctime(self) -> str:
         """
-        Return a string with weekday, month name, day, hour, minute, second,
-        and year.
+        Return a `ctime` formatted string.
 
         :returns: A string with weekday, month name, day, hour, minute, second,
                   and year.
