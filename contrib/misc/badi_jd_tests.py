@@ -1117,7 +1117,7 @@ class DateTests(BahaiCalendar):
                 jd_ss))  # Sunset before VE
             bjd = self._jd_from_badi_date(b_date, coeffon=options.coff)
             e_jd_ss = jd_ss - self._exact_from_meeus(jd_ss)
-            # This must be round to 5 (See Badi year 128)
+            # This must be rounded to 5 (See Badí' year 128)
             diff = round(bjd - e_jd_ss, 5)
             offby = math.floor(diff)
             data.append((b_date, bjd, g_date, e_jd_ss, diff, offby))
