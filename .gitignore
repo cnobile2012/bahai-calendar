@@ -16,6 +16,7 @@ docs/api
 docs/htmlcov
 docs/source/install.rst
 tmp/*
+txt/*
 !docs/*.pdf
 logs
 package

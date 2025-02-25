@@ -6,6 +6,7 @@ exclude =
     old,
     build,
     dist
+    txt
 
 per-file-ignores =
     badidatetime/__init__.py: F401

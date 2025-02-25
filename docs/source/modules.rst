@@ -16,3 +16,4 @@ API Documentation
    api/astronomical_terms
    api/structures
    api/timedateutils
+   api/coefficients

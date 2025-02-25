@@ -6,6 +6,9 @@ __docformat__ = "restructuredtext en"
 
 
 class AstronomicalTerms:
+    """
+    Provides various terms used in the Astronomical code.
+    """
 
     # Planet's heliocentric ecliptical longitude L
     _L0_A = (175347046, 3341656, 34894, 3497, 3418, 3136, 2676, 2343, 1324,
