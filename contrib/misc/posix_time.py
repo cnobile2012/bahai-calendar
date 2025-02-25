@@ -367,6 +367,11 @@ class PosixTests(BahaiCalendar, Coefficients):
         return date
 
     def _get_badi_hms(self, year, rd=False):
+        """
+        Find the correct hour and minute of the day based on the coordinents.
+
+        This is the last value returned, the first two are only for testing.
+        """
         MIN = 1440
         jd = self.jd_from_badi_date((year, 16, 2), *self.DEFAULT_COORD)
         mjd = jd + self._meeus_from_exact(jd)
@@ -432,10 +437,10 @@ if __name__ == "__main__":
         help="Test the _mktime() method for accuracy.")
     parser.add_argument(
         '-p', '--modula', action='store_true', default=False, dest='modula',
-        help="Find the modula for determining coefficients.")
+        help="Find the modula for determining coefficients (NOT USED).")
     parser.add_argument(
         '-q', '--coeff', action='store_true', default=False, dest='coeff',
-        help="Dump data for determining coefficients.")
+        help="Dump data for determining coefficients (NOT USED).")
     parser.add_argument(
         '-s', '--sunset', action='store_true', default=False, dest='sunset',
         help="Find the sunset for given years.")

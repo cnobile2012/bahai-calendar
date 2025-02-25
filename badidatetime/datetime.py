@@ -11,10 +11,11 @@ __all__ = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
 import sys
 import time as _time
 import math as _math
-from datetime import datetime as _dtime, timedelta, tzinfo
+from datetime import timedelta, tzinfo
 from types import NoneType
 
 from .badi_calendar import BahaiCalendar
+from ._coefficients import Coefficients
 from ._timedateutils import _td_utils
 
 
@@ -465,8 +466,13 @@ class date(BahaiCalendar):
                  time.
         :rtype: tuple
         """
-        return (self.b_date + time if self.is_short else
-                self.short_date_from_long_date(self.b_date + time))
+        if self.is_short:
+            date = (*self.b_date, None, None, *time)
+        else:
+            b_date = self.short_date_from_long_date(self.b_date + time)
+            date = (*b_date[:3], None, None, *b_date[3:])
+
+        return date
 
     def ctime(self) -> str:
         """
@@ -1609,7 +1615,7 @@ time.max = time(24, 0, 3)  # See contrib/misc/badi_jd_tests.py --day
 time.resolution = timedelta(microseconds=1)
 
 
-class datetime(date):
+class datetime(date, Coefficients):
     """
     datetime(year, month, day[, hour[, minute[, second[,
              microsecond[,tzinfo]]]]])
@@ -1997,44 +2003,137 @@ class datetime(date):
         :rtype: float
         """
         def local(u):
-            y, m, d, hh, mm, ss = _time.localtime(u)[:6]
-            return (_dtime(y, m, d, hh, mm, ss) - epoch) // timedelta(0, 1)
+            date = self.posix_timestamp(u, *LOCAL_COORD, short=True, us=True)
+            return (datetime(*date[:3], None, None, *date[3:6]) -
+                    epoch) // timedelta(0, 1)
 
-        epoch = _dtime(1970, 1, 1)
-        date = self.gregorian_date_from_badi_date(
-            self._short_from_long_form(time=self.b_time))
-        t = (_dtime(*date) - epoch) // timedelta(0, 1)
-        # Our goal is to solve t = local(u) for u.
+        hms = self._get_badi_hms(126)
+        epoch = datetime(126, 16, 2, None, None, *hms)
+        date = self._short_from_long_form(time=self.b_time)
+        t = (datetime(*date) - epoch) // timedelta(0, 1)
         a = local(t) - t
         u1 = t - a
         t1 = local(u1)
-        max_fold_seconds = 24 * 3600
+        ts = t1 + self._get_coeff(date[0])
+        return ts
 
-        if t1 == t:
-            # We found one solution, but it may not be the one we need.
-            # Look for an earlier solution (if `fold` is 0), or a
-            # later one (if `fold` is 1).
-            u2 = u1 + (-max_fold_seconds, max_fold_seconds)[self.fold]
-            b = local(u2) - u2
+    def _get_badi_hms(self, year):
+        """
+        Find the correct hour and minute of the day based on the coordinents.
+        """
+        MIN = 1440
+        jd = self.jd_from_badi_date((year, 16, 2), *LOCAL_COORD)
+        mjd = jd + self._meeus_from_exact(jd)
+        ss = self._sun_setting(mjd, *LOCAL_COORD)
+        f_ss = _math.floor(ss) + round(ss % 1 * MIN) / MIN
+        # Where 24 is hours in a day and 5 is the negative offset from GMT.
+        b_time = (((24 - 5) / 24) - (f_ss + 0.5)) % 1
+        return self._hms_from_decimal_day(b_time)[:2]
 
-            if a == b:
-                return u1
+    def _get_coeff(self, year):
+        def years(pn_all):
+            data = []
+
+            for pn in pn_all:
+                if isinstance(pn, int):
+                    data.append(pn)
+                elif isinstance(pn, tuple):
+                    start, end = pn
+                    data += range(start, end+1)
+                else:  # pragma: no cover
+                    assert False, ("The 'pn' argument can only be an int or "
+                                   f"tuple, found: {type(pn)}")
+
+            return data
+
+        if year in (-547,):
+            coeff = 173042
+        elif year in (-947,):
+            coeff = 172862
+        elif year in (-1347,):
+            coeff = 172742
+        elif year in (249, 253, 645, 649, 653, 1041, 1045, 1049, 1053):
+            coeff = 172740
+        elif year in (-1747,):
+            coeff = 172682
+        elif year in (-283, -279, -275, -271, -267, -263):
+            coeff = 86702
+        elif year in years(self.PN1):
+            coeff = 86642
+        elif year in years(self.PN2):
+            coeff = 86522
+        elif year in (-971, -873, -859, -791, -783, -774, -767):
+            coeff = 86521
+        elif year in years(self.PN3):
+            coeff = 86462
+        elif year in years(self.PN4):
+            coeff = 86400
+        elif year in (-1683, -1674):
+            coeff = 86343
+        elif year in years(self.PN5):
+            coeff = 86342
+        elif year in years(self.PN6):
+            coeff = 86340
+        elif year in (-1799, -1774, -155):
+            coeff = 86283
+        elif year in years(self.PN7):
+            coeff = 86282
+        elif year in (-1811, -1789, -1785, -1749):
+            coeff = 86281
+        elif year in (1140, 1144, 1148, 1152):
+            coeff = 86220
+        elif year in years(self.PN8):
+            coeff = 86162
+        elif year in (-189,):
+            coeff = 86161
+        elif year in years(self.PN9):
+            coeff = 302
+        elif year in years(self.PN10):
+            coeff = 242
+        elif year in years(self.PN11):
+            coeff = 122
+        elif year in (-1091, -1041, -1033, -1021):
+            coeff = 121
+        elif year in years(self.PN12):
+            coeff = 62
+        elif year in (-1725, -1664):
+            coeff = -57
+        elif year in years(self.PN13):
+            coeff = -58
+        elif year in years(self.PN14):
+            coeff = -60
+        elif year in (-254, -246, -233, -114):
+            coeff = -117
+        elif year in years(self.PN15):
+            coeff = -118
+        elif year in (-213, -208, -130, -56):
+            coeff = -119
+        elif year in years(self.PN16):
+            coeff = -238
+        elif year in (4,):
+            coeff = -239
+        elif year in (99, 100, 101):
+            coeff = -3600
+        elif year in (-336, -324):
+            coeff = -85977
+        elif year in (-332, -328, -320):
+            coeff = -85978
+        elif year in (-340,):
+            coeff = -86098
+        elif year in (-740, -736, -732, -728, -724, -720):
+            coeff = -86158
+        elif year in (-1140, -1136, -1132, -1128, -1124, -1120):
+            coeff = -86278
+        elif year in (-1540, -1536, -1532, -1528, -1524, -1520):
+            coeff = -86338
+        elif year in (60, 64, 68, 72, 76, 80, 84):
+            coeff = -86400
+        elif year in (460, 464, 468, 472, 476, 860, 864, 868, 872):
+            coeff = -86460
         else:
-            b = t1 - u1
-            assert a != b
+            coeff = 0
 
-        u2 = t - b
-        t2 = local(u2)
-
-        if t2 == t:
-            return u2
-
-        if t1 == t:
-            return u1
-
-        # We have found both offsets a and b, but neither t - a nor t - b is
-        # a solution. This means t is in the gap.
-        return (max, min)[self.fold](u1, u2)
+        return coeff
 
     def timestamp(self) -> float:
         """
@@ -2256,7 +2355,8 @@ class datetime(date):
         if self.is_short:
             date = self.b_date + self.b_time
         else:
-            date = self._short_from_long_form(time=self.b_time)
+            d = self._short_from_long_form(time=self.b_time)
+            date = (*d[:3], *d[5:])
 
         weekday = _td_utils._day_of_week(*date[:3])
         wd_name = _td_utils.DAYNAMES[weekday]

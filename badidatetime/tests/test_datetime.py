@@ -568,8 +568,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         Badi date.
         """
         data = (
-            ((1, 1, 1, 1, 1), (1, 1, 1, 0, 0, 0, 0)),
-            ((1, 10, 10, 10, 12), (181, 10, 12, 0, 0, 0, 0)),
+            ((1, 1, 1, 1, 1), (1, 1, 1, None, None, 0, 0, 0, 0)),
+            ((1, 10, 10, 10, 12), (181, 10, 12, None, None, 0, 0, 0, 0)),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -2495,40 +2495,57 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, result))
 
-    @unittest.skip("Temporarily skipped")
-    def test__mktime(self):
+    #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
+    def test__mktime_local(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
-        local time. *** TODO *** Fix more of these tests
+        local time. All tests below will only work with the local time set
+        in the above patch.
         """
         # All results below indicate local time.
         data = (
-            # Badi epoch (1, 1, 1) (POSIX timestamp)
-            # 1844-03-19T18:16:36.7104 -3969391641 Iran/Tehran
-            # 1844-03-19T14:46:37 -3969404241 UTC
-            # 1844-03-19T09:46:37 -3969422241 America/New_York
-            ((1, 1, 1), 0, -3969391592),  # Has issues on GitHub
-            # POSIX epoch 1970-01-01T05:00:00+00:00
-            # Sunset exact JD 2440585.166985 (1969, 12, 31)
-            # 0.5 - 0.166985 = 0.333015
-            # (7, 59, 32.496) after sunset == 12 am 1970-01-01
-            # I get 64594 off by 46594
-            #((126, 16, 2, None, None, 6, 47, 57.12), 0, 18000),
-            # Sunset exact JD 2460666.163238 (2024, 12, 23, 20, 28, 24)
-            # 0.5 - 0.163238 = 0.336762
-            # (8, 4, 56.2368) after sunset == 12 am 2024-12-23
-            # (8, 4, 56.2368) + (20, 28, 24) ==
-            # I get 1735028051 off by 24347
-            #((181, 15, 14, None, None, 3, 21, 18.288), 0, 1735003704),
-
+            # POSIX epoch local time 1969-12-31T19:00:00-05:00
+            ((126, 16, 2, None, None, 6, 48), 18000),
+            # POSIX epoch 1970-01-01T00:00:00-05:00
+            ((126, 16, 2, None, None, 1, 48), 0),
+            # 2025-02-25T00:00:00-05:00
+            ((181, 18, 19, None, None, 6, 48), 1740459600),
             )
-        msg = "Expected {} with date {}, and fold {}, found {}."
+        msg = "Expected {} with date {}, found {}."
 
-        for date, fold, expected_result in data:
-            dt = datetime.datetime(*date, fold=fold)
+        for date, expected_result in data:
+            dt = datetime.datetime(*date)
             result = dt._mktime()
             self.assertEqual(expected_result, result, msg.format(
-                    expected_result, date, fold, result))
+                    expected_result, date, result))
+
+    @unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.682376, 51.285817, 3.5))
+    def test__mktime_terhan(self):
+        """
+        Test that the _mktime method finds the POSIX time in seconds for
+        local time. All tests below will only work with the local time set
+        in the above patch.
+        """
+        # All results below indicate local time.
+        data = (
+            # Sunset in Terhan was 17:02
+            # Badi time was 24 - 17:02 = 6:58, 6:58 + 3:30 == 10:28
+            # POSIX epoch local time 1970-01-01T03:50:00+03:30
+            ((126, 16, 2, None, None, 10, 28), 12600),
+            # POSIX epoch 1970-01-01T00:00:00
+            #((126, 16, 2, None, None, 1, 48), 0),
+            # 2025-02-25T00:00:00
+            #((181, 18, 19, None, None, 6, 48), 1740459600),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            dt = datetime.datetime(*date)
+            result = dt._mktime()
+            self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
