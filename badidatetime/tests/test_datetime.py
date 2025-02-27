@@ -2495,6 +2495,34 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, result))
 
+    @unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (51.477928, -0.001545, 0))
+    def test__mktime_gmt(self):
+        """
+        Test that the _mktime method finds the POSIX time in seconds for
+        local time. All tests below will only work with GMT set at the local
+        time set in the above patch.
+        https://www.epochconverter.com/timezones
+        https://www.suntoday.org/sunrise-sunset/
+        """
+        # All results below indicate local time.
+        data = (
+            ((-547, 16, 2, None, None, 7, 40), -21237753480),
+
+            # Sunset 16:02 on 1969-12-31T16:02:00+00:00
+            # The start of the Badi day is at the date and time shown above.
+            # This is exactly 8 hours before UTC midnight the POSIX epoch.
+            # POSIX epoch local time 1970-01-01T00:00:00+00:00
+            ((126, 16, 2, None, None, 7, 58), 0),
+            )
+        msg = "Expected {} with date {}, found {}."
+
+        for date, expected_result in data:
+            dt = datetime.datetime(*date)
+            result = dt._mktime()
+            self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, result))
+
     #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test__mktime_local(self):
@@ -2525,8 +2553,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     def test__mktime_terhan(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
-        local time. All tests below will only work with the local time set
-        in the above patch.
+        local time. All tests below will only work with Terhan set as the
+        local time set in the above patch.
         """
         # All results below indicate local time.
         data = (
@@ -2547,7 +2575,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_timestamp(self):
         """

@@ -2007,27 +2007,26 @@ class datetime(date, Coefficients):
             return (datetime(*date[:3], None, None, *date[3:6]) -
                     epoch) // timedelta(0, 1)
 
-        hms = self._get_badi_hms(126)
+        hms = self._get_badi_hms(126, LOCAL_COORD[-1])
         epoch = datetime(126, 16, 2, None, None, *hms)
         date = self._short_from_long_form(time=self.b_time)
         t = (datetime(*date) - epoch) // timedelta(0, 1)
         a = local(t) - t
         u1 = t - a
         t1 = local(u1)
-        ts = t1 + self._get_coeff(date[0])
+        ts = t1 - self._get_coeff(date[0])
         return ts
 
-    def _get_badi_hms(self, year):
+    def _get_badi_hms(self, year, offset):
         """
         Find the correct hour and minute of the day based on the coordinents.
         """
-        MIN = 1440
         jd = self.jd_from_badi_date((year, 16, 2), *LOCAL_COORD)
         mjd = jd + self._meeus_from_exact(jd)
         ss = self._sun_setting(mjd, *LOCAL_COORD)
-        f_ss = _math.floor(ss) + round(ss % 1 * MIN) / MIN
-        # Where 24 is hours in a day and 5 is the negative offset from GMT.
-        b_time = (((24 - 5) / 24) - (f_ss + 0.5)) % 1
+        f_ss = _math.floor(ss) + round(ss % 1 * 1440) / 1440
+        # Where 24 is hours in a day and offset from GMT.
+        b_time = (((24 + offset) / 24) - (f_ss + 0.5)) % 1
         return self._hms_from_decimal_day(b_time)[:2]
 
     def _get_coeff(self, year):
@@ -2047,89 +2046,89 @@ class datetime(date, Coefficients):
             return data
 
         if year in (-547,):
-            coeff = 173042
+            coeff = -173042
         elif year in (-947,):
-            coeff = 172862
+            coeff = -172862
         elif year in (-1347,):
-            coeff = 172742
+            coeff = -172742
         elif year in (249, 253, 645, 649, 653, 1041, 1045, 1049, 1053):
-            coeff = 172740
+            coeff = -172740
         elif year in (-1747,):
-            coeff = 172682
+            coeff = -172682
         elif year in (-283, -279, -275, -271, -267, -263):
-            coeff = 86702
-        elif year in years(self.PN1):
-            coeff = 86642
-        elif year in years(self.PN2):
-            coeff = 86522
+            coeff = -86702
+        elif year in years(self._PN1):
+            coeff = -86642
+        elif year in years(self._PN2):
+            coeff = -86522
         elif year in (-971, -873, -859, -791, -783, -774, -767):
-            coeff = 86521
-        elif year in years(self.PN3):
-            coeff = 86462
-        elif year in years(self.PN4):
-            coeff = 86400
-        elif year in (-1683, -1674):
-            coeff = 86343
-        elif year in years(self.PN5):
-            coeff = 86342
-        elif year in years(self.PN6):
-            coeff = 86340
-        elif year in (-1799, -1774, -155):
-            coeff = 86283
-        elif year in years(self.PN7):
-            coeff = 86282
-        elif year in (-1811, -1789, -1785, -1749):
-            coeff = 86281
-        elif year in (1140, 1144, 1148, 1152):
-            coeff = 86220
-        elif year in years(self.PN8):
-            coeff = 86162
-        elif year in (-189,):
-            coeff = 86161
-        elif year in years(self.PN9):
-            coeff = 302
-        elif year in years(self.PN10):
-            coeff = 242
-        elif year in years(self.PN11):
-            coeff = 122
-        elif year in (-1091, -1041, -1033, -1021):
-            coeff = 121
-        elif year in years(self.PN12):
-            coeff = 62
-        elif year in (-1725, -1664):
-            coeff = -57
-        elif year in years(self.PN13):
-            coeff = -58
-        elif year in years(self.PN14):
-            coeff = -60
-        elif year in (-254, -246, -233, -114):
-            coeff = -117
-        elif year in years(self.PN15):
-            coeff = -118
-        elif year in (-213, -208, -130, -56):
-            coeff = -119
-        elif year in years(self.PN16):
-            coeff = -238
-        elif year in (4,):
-            coeff = -239
-        elif year in (99, 100, 101):
-            coeff = -3600
-        elif year in (-336, -324):
-            coeff = -85977
-        elif year in (-332, -328, -320):
-            coeff = -85978
-        elif year in (-340,):
-            coeff = -86098
-        elif year in (-740, -736, -732, -728, -724, -720):
-            coeff = -86158
-        elif year in (-1140, -1136, -1132, -1128, -1124, -1120):
-            coeff = -86278
-        elif year in (-1540, -1536, -1532, -1528, -1524, -1520):
-            coeff = -86338
-        elif year in (60, 64, 68, 72, 76, 80, 84):
+            coeff = -86521
+        elif year in years(self._PN3):
+            coeff = -86462
+        elif year in years(self._PN4):
             coeff = -86400
+        elif year in (-1683, -1674):
+            coeff = -86343
+        elif year in years(self._PN5):
+            coeff = -86342
+        elif year in years(self._PN6):
+            coeff = -86340
+        elif year in (-1799, -1774, -155):
+            coeff = -86283
+        elif year in years(self._PN7):
+            coeff = -86282
+        elif year in (-1811, -1789, -1785, -1749):
+            coeff = -86281
+        elif year in (1140, 1144, 1148, 1152):
+            coeff = -86220
+        elif year in years(self._PN8):
+            coeff = -86162
+        elif year in (-189,):
+            coeff = -86161
+        elif year in years(self._PN9):
+            coeff = -302
+        elif year in years(self._PN10):
+            coeff = -242
+        elif year in years(self._PN11):
+            coeff = -122
+        elif year in (-1091, -1041, -1033, -1021):
+            coeff = -121
+        elif year in years(self._PN12):
+            coeff = -62
+        elif year in (-1725, -1664):
+            coeff = 57
+        elif year in years(self._PN13):
+            coeff = 58
+        elif year in years(self._PN14):
+            coeff = 60
+        elif year in (-254, -246, -233, -114):
+            coeff = 117
+        elif year in years(self._PN15):
+            coeff = 118
+        elif year in (-213, -208, -130, -56):
+            coeff = 119
+        elif year in years(self._PN16):
+            coeff = 238
+        elif year in (4,):
+            coeff = 239
+        elif year in (99, 100, 101):
+            coeff = 3600
+        elif year in (-336, -324):
+            coeff = 85977
+        elif year in (-332, -328, -320):
+            coeff = 85978
+        elif year in (-340,):
+            coeff = 86098
+        elif year in (-740, -736, -732, -728, -724, -720):
+            coeff = 86158
+        elif year in (-1140, -1136, -1132, -1128, -1124, -1120):
+            coeff = 86278
+        elif year in (-1540, -1536, -1532, -1528, -1524, -1520):
+            coeff = 86338
+        elif year in (60, 64, 68, 72, 76, 80, 84):
+            coeff = 86400
         elif year in (460, 464, 468, 472, 476, 860, 864, 868, 872):
-            coeff = -86460
+            coeff = 86460
         else:
             coeff = 0
 
@@ -3036,4 +3035,5 @@ BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-_EPOCH = datetime(126, 16, 2, None, None, 5, 46, 8.9472, tzinfo=timezone.utc)
+_EPOCH = datetime(126, 16, 2, None, None, 8, tzinfo=timezone.utc)
+# _EPOCH = datetime(126, 16, 2, None, None, 5, 46, 8.9472, tzinfo=timezone.utc)
