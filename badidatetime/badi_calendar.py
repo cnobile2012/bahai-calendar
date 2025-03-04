@@ -8,11 +8,12 @@ import math
 
 from badidatetime.base_calendar import BaseCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
+from badidatetime._coefficients import Coefficients
 
 __all__ = ('BahaiCalendar',)
 
 
-class BahaiCalendar(BaseCalendar):
+class BahaiCalendar(BaseCalendar, Coefficients):
     """
     Implementation of the Baha'i (Badi) Calendar.
 
@@ -161,9 +162,10 @@ class BahaiCalendar(BaseCalendar):
         # affected.
         diff = self._meeus_from_exact(jd)
         ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
-        return round(jd + ss_a + self._get_coff(year), self._ROUNDING_PLACES)
+        return round(jd + ss_a + self._get_jd_coeff(year),
+                     self._ROUNDING_PLACES)
 
-    def _get_coff(self, year: int) -> int:
+    def _get_jd_coeff(self, year: int) -> int:
         """
         Generate the coefficients for correcting Badí' vernal equinox dates.
 
@@ -185,82 +187,54 @@ class BahaiCalendar(BaseCalendar):
         """
         def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
             func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
-            coff = 0
+            coeff = 0
 
             if a and func(y, onoff0):    # Whatever is passed in onoff0.
-                coff = a
+                coeff = a
             elif b and func(y, onoff1):  # Whatever is passed in onoff1.
-                coff = b
+                coeff = b
 
-            return coff
+            return coeff
 
         def process_segments(year, pn, a=0, onoff0=(), b=0, onoff1=()):
-            coff = 0
+            coeff = 0
 
             for start, end in pn:
                 if year in range(start, end):
                     # Start to end (range -S start -E end)
-                    coff0 = process_segment(end - year, a=a, onoff0=onoff0)
-                    coff1 = process_segment(end - year, b=b, onoff1=onoff1)
-                    coff = coff0 if coff0 != 0 else coff1
+                    coeff0 = process_segment(end - year, a=a, onoff0=onoff0)
+                    coeff1 = process_segment(end - year, b=b, onoff1=onoff1)
+                    coeff = coeff0 if coeff0 != 0 else coeff1
 
-            return coff
+            return coeff
 
-        p1 = ((-1783, -1747), (-1651, -1615), (-1499, -1483), (-1383, -1347),
-              (-1251, -1215), (-1099, -1083), (-983, -947), (-851, -815),
-              (-699, -683), (-583, -547), (-451, -415), (-299, -283),
-              (-179, -143), (-47, -11), (101, 117), (213, 249), (345, 381),
-              (501, 513), (609, 645), (741, 777), (901, 909), (1005, 1041),
-              (1137, 1162))
-        p1100 = ((-1699, -1683), (-1299, -1283), (-899, -883), (-499, -483),
-                 (-99, -79), (301, 313), (701, 709), (1101, 1105))
-        p1110 = ((-1799, -1783), (-1683, -1651), (-1399, -1383),
-                 (-1283, -1251), (-999, -983), (-883, -851), (-599, -583),
-                 (-483, -451), (-199, -179), (-79, -47), (201, 213),
-                 (313, 345), (601, 609), (709, 741), (1001, 1005),
-                 (1105, 1137))
-        p2 = ((-1519, -1499), (-1119, -1099), (-319, -299), (-719, -699),
-              (85, 101), (477, 501), (873, 901))
-        p2111 = ((-1747, -1715), (-1615, -1583), (-1483, -1451),
-                 (-1347, -1315), (-1327, -1315), (-1215, -1183),
-                 (-1083, -1051), (-947, -915), (-815, -783), (-683, -651),
-                 (-547, -515), (-415, -383), (-283, -243), (-143, -111),
-                 (-11, 21), (117, 149), (249, 281), (381, 413), (513, 545),
-                 (645, 677), (777, 809), (909, 941), (1041, 1073))
-        p2211 = ((-1843, -1815), (-1715, -1699), (-1583, -1551),
-                 (-1451, -1435), (-1435, -1415), (-1315, -1299),
-                 (-1183, -1151), (-1051, -1019), (-915, -899), (-783, -751),
-                 (-651, -619), (-515, -499), (-383, -351), (-243, -211),
-                 (-111, -99), (21, 53), (149, 185), (281, 301), (413, 445),
-                 (545, 577), (677, 701), (809, 841), (941, 973), (1073, 1101))
-        p2221 = ((-1815, -1799), (-1551, -1519), (-1415, -1399),
-                 (-1151, -1119), (-1019, -999), (-751, -719), (-619, -599),
-                 (-351, -319), (-211, -199), (53, 85), (185, 201), (445, 477),
-                 (577, 601), (841, 873), (973, 1001))
-        coff = 0
+        coeff = 0
 
-        if not coff:
-            coff = process_segments(year, p1, -1, (0, 1, 2, 3))
+        if not coeff:
+            coeff = process_segments(year, self._P1, -1, (0, 1, 2, 3))
 
-        if not coff:
-            coff = process_segments(year, p1100, -1, (0, 3))
+        if not coeff:
+            coeff = process_segments(year, self._P1100, -1, (0, 3))
 
-        if not coff:
-            coff = process_segments(year, p1110, -1, (0, 2, 3))
+        if not coeff:
+            coeff = process_segments(year, self._P1110, -1, (0, 2, 3))
 
-        if not coff:
-            coff = process_segments(year, p2, -2, (0, 1, 2, 3))
+        if not coeff:
+            coeff = process_segments(year, self._P2, -2, (0, 1, 2, 3))
 
-        if not coff:
-            coff = process_segments(year, p2111, -2, (0,), -1, (1, 2, 3))
+        if not coeff:
+            coeff = process_segments(year, self._P2111, -2, (0,), -1,
+                                     (1, 2, 3))
 
-        if not coff:
-            coff = process_segments(year, p2211, -2, (0, 3), -1, (1, 2))
+        if not coeff:
+            coeff = process_segments(year, self._P2211, -2, (0, 3), -1,
+                                     (1, 2))
 
-        if not coff:
-            coff = process_segments(year, p2221, -2, (0, 2, 3), -1, (1,))
+        if not coeff:
+            coeff = process_segments(year, self._P2221, -2, (0, 2, 3), -1,
+                                     (1,))
 
-        return coff
+        return coeff
 
     def badi_date_from_jd(self, jd: float, lat: float=None, lon: float=None,
                           zone: float=None, *, us: bool=False,

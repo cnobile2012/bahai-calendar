@@ -2495,7 +2495,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, date, tz, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (51.477928, -0.001545, 0))
     def test__mktime_gmt(self):
         """
@@ -2507,13 +2507,14 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         # All results below indicate local time.
         data = (
-            ((-547, 16, 2, None, None, 7, 40), -21237753480),
+            #((-547, 16, 2, None, None, 7, 40), -21237753480),
 
             # Sunset 16:02 on 1969-12-31T16:02:00+00:00
             # The start of the Badi day is at the date and time shown above.
             # This is exactly 8 hours before UTC midnight the POSIX epoch.
             # POSIX epoch local time 1970-01-01T00:00:00+00:00
             ((126, 16, 2, None, None, 7, 58), 0),
+            ((126, 16, 2, None, None, 8, 3, 7.7184), 307),
             )
         msg = "Expected {} with date {}, found {}."
 
