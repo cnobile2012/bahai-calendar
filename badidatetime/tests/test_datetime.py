@@ -2297,17 +2297,17 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             # Latitude and Longitude dependent
             # 1969-12-31T19:00:00+00:00 -> 0126-16-02T01:46:33.168000+00:00
-            (-18000, False, tz1, True, '0126-16-02T01:50:45.369600+00:00'),
+            (-18000, False, tz1, True, '0126-16-02T01:47:57.148800+00:00'),
             # Assume UTC as starting point.
-            (0, True, tz1, True, '0126-16-02T08:03:07.718400+00:00'),
+            (0, True, tz1, True, '0126-16-02T07:59:32.496000+00:00'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz0, True, '0126-16-02T05:20:45.369600+03:30'),
+            (-18000, False, tz0, True, '0126-16-02T05:17:57.148800+03:30'),
             # Assume UTC as starting point.
-            (0, True, tz0, True, '0126-16-02T11:33:07.718400+03:30'),
+            (0, True, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz2, True, '0126-16-01T20:50:45.369600-05:00'),
+            (-18000, False, tz2, True, '0126-16-01T20:47:57.148800-05:00'),
             )
         msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
                "and short {}, found {}.")
@@ -2334,26 +2334,26 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Latitude and Longitude dependent
             # Assume local time as starting point.
             # 1970-01-01 -> Badi date and time relative to naive local time.
-            (0, None, True, '0126-16-02T06:50:45.340800'),
+            (0, None, True, '0126-16-02T06:47:57.120000'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to UTC
-            (0, tz1, True, '0126-16-02T08:03:07.718400+00:00'),
+            (0, tz1, True, '0126-16-02T07:59:32.496000+00:00'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to +03:30
-            (0, tz0, True, '0126-16-02T11:33:07.718400+03:30'),
+            (0, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
             # Local time (2024, 11, 30, 20, 24, 13, 327577)
             # *** TODO *** There is a problem with the two results below, both
             # should be the same. Checked with tz is correct. This could be
             # that only God knows what coordinates are used for IANA time
             # zones to arrive at the correct time. Off by 03:54:10.915200 hrs.
             # Latitude and Longitude dependent
-            (1733016253.327577, None, True, '0181-14-10T08:21:17.568000'),
-            (1733016253.327577, tz2, True, '0181-14-10T04:27:06.652800-05:00'),
+            (1733016253.327577, None, True, '0181-14-10T08:22:10.099200'),
+            (1733016253.327577, tz2, True, '0181-14-10T04:29:56.342400-05:00'),
             # Some long form datetimes.
             # Latitude and Longitude dependent
-            (0, None, False, '01-07-12-16-02T06:50:45.340800'),
-            (0, tz1, False, '01-07-12-16-02T08:03:07.718400+00:00'),
-            (0, tz0, False, '01-07-12-16-02T11:33:07.718400+03:30'),
+            (0, None, False, '01-07-12-16-02T06:47:57.120000'),
+            (0, tz1, False, '01-07-12-16-02T07:59:32.496000+00:00'),
+            (0, tz0, False, '01-07-12-16-02T11:29:32.496000+03:30'),
             )
         msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
                "found {}.")
@@ -2507,8 +2507,56 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         # All results below indicate local time.
         data = (
-            #((-547, 16, 2, None, None, 7, 40), -21237753480),
-
+            ((-547, 16, 2, None, None, 7, 58), -21237724260),
+            ((60, 16, 2, None, None, 7, 58), -2082844800),
+            ((-1540, 16, 2, None, None, 7, 54), -52573968000),
+            ((-1140, 16, 2, None, None, 7, 52), -39951187200),
+            ((-740, 16, 2, None, None, 7, 49), -27328406400),
+            ((-732, 16, 2, None, None, 7, 48), -27075945600),
+            ((-340, 16, 2, None, None, 7, 45), -14705625600),
+            ((876, 16, 2, None, None, 8, 1), 23667638400),
+            ((660, 16, 2, None, None, 8, 0), 16851369600),
+            ((360, 16, 2, None, None, 8, 0), 7384262400),
+            ((475, 16, 2, None, None, 8, 0), 11013321600),
+            ((52, 16, 2, None, None, 7, 58), -2335219200),
+            ((-1841, 16, 2, None, None, 7, 57), -62072524800),
+            ((-1742, 16, 2, None, None, 7, 55), -58948387200),
+            ((-1617, 16, 2, None, None, 7, 55), -55003795200),
+            ((-1491, 16, 2, None, None, 7, 54), -51027580800),
+            ((-1242, 16, 2, None, None, 7, 52), -43169932800),
+            ((-1243, 16, 2, None, None, 7, 52), -43201468800),
+            ((-864, 16, 2, None, None, 7, 51), -31241376000),
+            ((-942, 16, 2, None, None, 7, 51), -33702825600),
+            ((-843, 16, 2, None, None, 7, 49), -30578688000),
+            ((-691, 16, 2, None, None, 7, 48), -25782019200),
+            ((-534, 16, 2, None, None, 7, 46), -20827584000),
+            ((-434, 16, 2, None, None, 7, 46), -17671910400),
+            ((-335, 16, 2, None, None, 7, 45), -14547772800),
+            ((810, 16, 2, None, None, 8, 1), 21584966400),
+            ((381, 16, 2, None, None, 8, 0), 8047036800),
+            ((216, 16, 2, None, None, 8, 0), 2840140800),
+            ((521, 16, 2, None, None, 8, 0), 12465014400),
+            ((-1842, 16, 2, None, None, 7, 58), -62104060800),
+            ((-1822, 16, 2, None, None, 7, 58), -61472908800),
+            ((-1819, 16, 2, None, None, 7, 57), -61378214400),
+            ((-1615, 16, 2, None, None, 7, 55), -54940636800),
+            ((-1475, 16, 2, None, None, 7, 55), -50522659200),
+            ((-1335, 16, 2, None, None, 7, 54), -46104681600),
+            ((-1050, 16, 2, None, None, 7, 52), -37110960000),
+            ((-1187, 16, 2, None, None, 7, 52), -41434243200),
+            ((-887, 16, 2, None, None, 7, 51), -31967136000),
+            ((-911, 16, 2, None, None, 7, 51), -32724518400),
+            ((-779, 16, 2, None, None, 7, 49), -28559001600),
+            ((-527, 16, 2, None, None, 7, 48), -20606659200),
+            ((-407, 16, 2, None, None, 7, 46), -16819833600),
+            ((-370, 16, 2, None, None, 7, 46), -15652224000),
+            ((1041, 16, 2, None, None, 8, 1), 28874707200),
+            ((645, 16, 2, None, None, 8, 0), 16378156800),
+            ((249, 16, 2, None, None, 8, 0), 3881606400),
+            ((-1747, 16, 2, None, None, 7, 58), -59106067200),
+            ((-1347, 16, 2, None, None, 7, 55), -46483286400),
+            ((-947, 16, 2, None, None, 7, 52), -33860505600),
+            ((-547, 16, 2, None, None, 7, 49), -21237724800),
             # Sunset 16:02 on 1969-12-31T16:02:00+00:00
             # The start of the Badi day is at the date and time shown above.
             # This is exactly 8 hours before UTC midnight the POSIX epoch.
@@ -2539,7 +2587,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # POSIX epoch 1970-01-01T00:00:00-05:00
             ((126, 16, 2, None, None, 1, 48), 0),
             # 2025-02-25T00:00:00-05:00
-            ((181, 18, 19, None, None, 6, 48), 1740459600),
+            ((181, 18, 19, None, None, 6, 48), 1740459601),
             )
         msg = "Expected {} with date {}, found {}."
 

@@ -95,11 +95,14 @@ class GregorianCalendar(BaseCalendar):
         :param float jd: A Julian period day. This value should be an
                          historical JD if exact is False and an astronomical
                          JD if exact is True.
-        :param bool exact: Julian days as if the Gregorian calendar started on
-                           year 1. This is astronomically correct but not
-                           historically correct.
-        :param bool alt: If True use the 4/128 algorithm for leap years else
-                         use the 4/100/400 algorithm. The default is False.
+        :param bool exact: If `False` (default) Meeus' historically algorithm
+                           is used, else if `True` the more astronomically
+                           correct algorithm is used.
+        :param bool alt: If `False` (default) the more common 4|100|400
+                         algorithm for leap years is used else if `True` the
+                         less common 4|128 algorithm for leap years is used.
+                         This argument only has an effect if the `exact`
+                         argument is also used.
         :returns: A Gregorian date in the (year, month, day) format.
         :rtype: tuple
 
@@ -108,7 +111,7 @@ class GregorianCalendar(BaseCalendar):
            See Astronomical Formulae for Calculators Enlarged & Revised,
            by Jean Meeus ch3 p26-29
         """
-        if exact:  # An astronomically correct algorithm
+        if exact:  # An astronomically correct algorithm.
             GLY = (self._GREGORIAN_LEAP_YEAR_ALT if alt
                    else self._GREGORIAN_LEAP_YEAR)
             # Get the number of days since the Gregorian epoch.
@@ -148,7 +151,7 @@ class GregorianCalendar(BaseCalendar):
                 year -= 1 if month == 12 else 0
 
             date = (year, month, round(day, self._ROUNDING_PLACES))
-        else:  # Meeus algorithm
+        else:  # Meeus' historically correct algorithm.
             j_day = jd + 0.5
             z = math.floor(j_day)
             f = j_day % 1

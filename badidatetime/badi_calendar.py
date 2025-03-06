@@ -781,7 +781,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             "Cannot set more than one of fraction, us, or rtd to True.")
         year, month, day = ymd
         jd0 = math.floor(jd)  # So we always get the sunset on the current day.
-        mjd0 = jd0 - self._meeus_from_exact(jd0)  # Current day
+        mjd0 = jd0 + self._meeus_from_exact(jd0)  # Current day
         # Current day sunset
         ss0 = self._sun_setting(mjd0, lat, lon, zone)
         ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)
@@ -789,7 +789,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         if jd_frac < ss_frac:  # Previous day before sunset.
             jd1 = jd0 - 1
-            mjd1 = jd1 - self._meeus_from_exact(jd1)
+            mjd1 = jd1 + self._meeus_from_exact(jd1)
             ss1 = self._sun_setting(mjd1, lat, lon, zone)
             ss1_frac = round(ss1 % 1, self._ROUNDING_PLACES)
             frac = abs(0.5 - ss1_frac + jd_frac)

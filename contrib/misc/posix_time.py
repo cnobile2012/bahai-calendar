@@ -32,7 +32,7 @@ class PosixTests(BahaiCalendar, Coefficients):
     | Out[19]: datetime.datetime(1970, 1, 1, 0, 0)
     """
     #BADI_COORD = (35.682376, 51.285817, 3.5)
-    #LOCAL_COORD = (35.5894, -78.7792, -5.0)
+    #FQ_COORD = (35.5894, -78.7792, -5.0)
     GMT_COORD = (51.477928, -0.001545, 0)
 
     # Modula for determining coefficients.
@@ -43,22 +43,22 @@ class PosixTests(BahaiCalendar, Coefficients):
 
     def __init__(self):
         super().__init__()
-        self.DEFAULT_COORD = None
+        self.LOCAL_COORD = None
         self.gc = GregorianCalendar()
 
-    def mktime(self, options):
+    def mktime(self, options) -> list:
         """
         Test that the _mktime method produces the correct local time.
 
-        -m with -C, -S, and -E
+        -m or --mktime with -C, -S, and -E
 
         Total range -1842 through 1161
         """
         start = options.start
         end = options.end
-        self.DEFAULT_COORD = options.coord
+        self.LOCAL_COORD = options.coord
         data = []
-        offset = int(self.DEFAULT_COORD[-1] * 3600)
+        offset = int(self.LOCAL_COORD[-1] * 3600)
 
         for b_year in range(start, end):
             g_year = b_year + self.TRAN_COFF
@@ -80,7 +80,7 @@ class PosixTests(BahaiCalendar, Coefficients):
 
         return data
 
-    def find_coefficents_modula(self, options):
+    def find_coefficents_modula(self, options) -> list:
         """
         -p or --precursor
         -S and -E must be Badí' dates.
@@ -93,19 +93,19 @@ class PosixTests(BahaiCalendar, Coefficients):
 
         return data
 
-    def find_coefficents(self, options):
+    def find_coefficents(self, options) -> list:
         """
         -q or --coeff and -S and -E
         """
         start = options.start
         end = options.end
-        self.DEFAULT_COORD = options.coord
+        self.LOCAL_COORD = options.coord
         cp = {by: m for gy, by, m in self.find_coefficents_modula(options)}
         items = []
 
         for b_year in range(start, end):
             month, day = 16, 2
-            h, m = self._get_badi_hms(b_year, self.DEFAULT_COORD[-1])[-1]
+            h, m = self._get_badi_hms(b_year)[-1]
             dt = datetime.datetime(b_year, month, day, None, None, h, m)
             t1 = self._mktime(dt)
             msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
@@ -120,24 +120,30 @@ class PosixTests(BahaiCalendar, Coefficients):
 
         return items
 
-    def sunset(self, options):
+    def sunset(self, options) -> list:
         """
         Find the sunset for given years.
 
-        -s
+        -s or --sunset with -S and -E
         """
-        self.DEFAULT_COORD = options.coord
+        self.LOCAL_COORD = options.coord
+        start = options.start
+        end = options.end
         data = []
 
-        for year in range(self.MINYEAR, self.MAXYEAR+1):
-            ss, g_hms, b_hms = self._get_badi_hms(year, self.DEFAULT_COORD[-1])
+        for year in range(start, end):
+            ss, g_hms, b_hms = self._get_badi_hms(year)
             data.append((year, ss, g_hms, b_hms))
 
         return data
 
     # Supporting methods
 
-    def _get_ts_coeff(self, year):
+    def _get_ts_coeff(self, year: int) -> int:
+        """
+        Determine the coefficients needed to adjust the POSIX timestamp of
+        the Badí' dates to the Gregorian dates.
+        """
         def years(pn_all):
             data = []
 
@@ -193,78 +199,72 @@ class PosixTests(BahaiCalendar, Coefficients):
             coeff = -419
         elif year in years(self._PN20):
             coeff = -420
-        elif year in self._PN21:
-            coeff = -421
-        elif year in years(self._PN22):
+        elif year in years(self._PN21):
             coeff = -540
-        elif year in self._PN23:
-            coeff = -541
-        elif year in years(self._PN24):
+        elif year in years(self._PN22):
             coeff = -600
-        elif year in years(self._PN25):
+        elif year in years(self._PN23):
             coeff = -720
-        elif year in self._PN26:
+        elif year in self._PN24:
             coeff = -721
-        elif year in self._PN27:
+        elif year in self._PN25:
             coeff = -780
-        elif year in self._PN28:
-            coeff = -86219
-        elif year in self._PN29:
+        elif year in self._PN26:
             coeff = -86220
-        elif year in self._PN30:
+        elif year in self._PN27:
             coeff = -86279
-        elif year in years(self._PN31):
+        elif year in years(self._PN28):
             coeff = -86280
-        elif year in self._PN32:
+        elif year in self._PN29:
             coeff = -86281
-        elif year in years(self._PN33):
+        elif year in years(self._PN30):
             coeff = -86400
-        elif year in self._PN34:
+        elif year in self._PN31:
             coeff = -86401
-        elif year in years(self._PN35):
+        elif year in years(self._PN32):
             coeff = -86460
-        elif year in years(self._PN36):
+        elif year in years(self._PN33):
             coeff = -86580
-        elif year in self._PN37:
+        elif year in self._PN34:
             coeff = -86581
-        elif year in self._PN38:
+        elif year in self._PN35:
             coeff = -86640
-        elif year in self._PN39:
+        elif year in self._PN36:
             coeff = -86759
-        elif year in years(self._PN40):
+        elif year in years(self._PN37):
             coeff = -86760
-        elif year in self._PN41:
+        elif year in self._PN38:
+            coeff = -86819
+        elif year in self._PN39:
             coeff = -86820
-        elif year in self._PN42:
-            coeff = -86821
-        elif year in years(self._PN43):
+        elif year in years(self._PN40):
             coeff = -86940
-        elif year in self._PN44:
-            coeff = -86941
-        elif year in self._PN45:
+        elif year in self._PN41:
             coeff = -87000
-        elif year in self._PN46:
+        elif year in self._PN42:
             coeff = -87120
-        elif year in self._PN47:
+        elif year in self._PN43:
             coeff = -87121
-        elif year in self._PN48:
+        elif year in self._PN44:
             coeff = -172620
-        elif year in self._PN49:
+        elif year in self._PN45:
+            coeff = -172679
+        elif year in self._PN46:
             coeff = -172680
-        elif year in self._PN50:
+        elif year in self._PN47:
             coeff = -172800
-        elif year in self._PN51:
+        elif year in self._PN48:
             coeff = -172980
-        elif year in self._PN52:
+        elif year in self._PN49:
             coeff = -173160
-        elif year in self._PN53:
+        elif year in self._PN50:
             coeff = -173340
         else:
             coeff = 0
 
         return coeff
 
-    def _mktime(self, dt) -> float:
+    def _mktime(self, dt: datetime.datetime) -> float:
         """
         This is the inverse function of localtime(). Its argument is the
         struct_time or full 9-tuple (since the dst flag is needed; use -1 as
@@ -274,9 +274,6 @@ class PosixTests(BahaiCalendar, Coefficients):
         either OverflowError or ValueError will be raised (which depends on
         whether the invalid value is caught by Python or the underlying C
         libraries).
-
-        posix_timestamp -> (126, 16, 2, 8, 3, 7.7184)
-        Sunset on (126, 16, 2, 2, 58) so the above should be (126, 16, 2, 7, 58)
         """
         def gmt(u):
             date = self.posix_timestamp(u, *self.GMT_COORD, short=True,
@@ -293,7 +290,11 @@ class PosixTests(BahaiCalendar, Coefficients):
         t1 = gmt(u1)
         return t1
 
-    def _short_from_long_form(self, dt, time: tuple=()) -> tuple:
+    def _short_from_long_form(self, dt: datetime.datetime,
+                              time: tuple=()) -> tuple:
+        """
+        Convert the long form Badí' date to the short form Badí' date.
+        """
         if dt.is_short:
             date = (*dt.b_date, None, None, *time)
         else:
@@ -302,24 +303,31 @@ class PosixTests(BahaiCalendar, Coefficients):
 
         return date
 
-    def _get_badi_hms(self, year, offset=0):
+    def _get_badi_hms(self, year: int) -> tuple:
         """
         Find the correct hour and minute of the day based on the coordinents.
 
         This is the last value returned, the first two are only for testing.
         """
-        jd = self.jd_from_badi_date((year, 16, 2), *self.DEFAULT_COORD)
+        jd = self.jd_from_badi_date((year, 16, 2), *self.LOCAL_COORD)
         mjd = jd + self._meeus_from_exact(jd)
-        ss = self._sun_setting(mjd, *self.DEFAULT_COORD)
+        ss = self._sun_setting(mjd, *self.LOCAL_COORD)
         f_ss = math.floor(ss) + round(ss % 1 * 1440) / 1440
         hms = self._hms_from_decimal_day(f_ss + 0.5)
         # Where 24 is hours in a day and the GMT offset.
-        b_time = (((24 + offset) / 24) - (f_ss + 0.5)) % 1
+        b_time = (((24 + self.LOCAL_COORD[-1]) / 24) - (f_ss + 0.5)) % 1
         #print(year, f_ss, b_time, file=sys.stderr)
-        return ss, hms, self._hms_from_decimal_day(b_time)[:2]
+        return ss, hms, self._hms_from_decimal_day(b_time)[:2]  # hh & mm only
 
 
-def _group_sequences(lst):
+def _group_sequences(lst: list) -> list:
+    """
+    This function combines all years into a tuple. If there is a spread of
+    years they the first and last year is placed in a tuple which is then
+    placed in the outer tupple.
+
+    Thanks to ChatGPT for deriving this algorithm.
+    """
     grouped = []
     start = lst[0]  # Start of a potential sequence
     prev = lst[0]   # Previous number in sequence
@@ -464,13 +472,18 @@ if __name__ == "__main__":
                   f"-E{options.end}")
             [print(item) for item in pt.find_coefficents(options)]
     elif options.sunset:  # -s
-        print(f"./contrib/misc/{basename} -s")
-        print("Year  Sunset JD", " "*4, "UTC HMS", " "*9, "Badí' HMS")
-        [print(f"{year:>5} "
-               f"{ss:14.6f} "
-               f"{str(g_hms):17} "
-               f"{str(b_hms):17}"
-               ) for year, ss, g_hms, b_hms in pt.sunset(options)]
+        if options.start is None or options.end is None:
+            print("If option -s is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            print(f"./contrib/misc/{basename} -s")
+            print("Year  Sunset JD", " "*4, "UTC HMS", " "*9, "Badí' HMS")
+            [print(f"{year:>5} "
+                   f"{ss:14.6f} "
+                   f"{str(g_hms):17} "
+                   f"{str(b_hms):17}"
+                   ) for year, ss, g_hms, b_hms in pt.sunset(options)]
     else:
         parser.print_help()
 

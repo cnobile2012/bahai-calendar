@@ -2007,7 +2007,7 @@ class datetime(date, Coefficients):
             return (datetime(*date[:3], None, None, *date[3:6]) -
                     epoch) // timedelta(0, 1)
 
-        hms = self._get_badi_hms(126, LOCAL_COORD[-1])
+        hms = self._get_badi_hms(126)
         epoch = datetime(126, 16, 2, None, None, *hms)
         date = self._short_from_long_form(time=self.b_time)
         t = (datetime(*date) - epoch) // timedelta(0, 1)
@@ -2017,7 +2017,7 @@ class datetime(date, Coefficients):
         ts = t1 - self._get_ts_coeff(date[0])
         return ts
 
-    def _get_badi_hms(self, year: int, offset: float):
+    def _get_badi_hms(self, year: int):
         """
         Find the correct hour and minute of the day based on the coordinents.
         """
@@ -2026,8 +2026,8 @@ class datetime(date, Coefficients):
         ss = self._sun_setting(mjd, *LOCAL_COORD)
         f_ss = _math.floor(ss) + round(ss % 1 * 1440) / 1440
         # Where 24 is hours in a day and offset from GMT.
-        b_time = (((24 + offset) / 24) - (f_ss + 0.5)) % 1
-        return self._hms_from_decimal_day(b_time)[:2]
+        b_time = (((24 + LOCAL_COORD[-1]) / 24) - (f_ss + 0.5)) % 1
+        return self._hms_from_decimal_day(b_time)[:2]  # hh & mm only
 
     def _get_ts_coeff(self, year: int) -> int:
         def years(pn_all):
@@ -2085,71 +2085,65 @@ class datetime(date, Coefficients):
             coeff = -419
         elif year in years(self._PN20):
             coeff = -420
-        elif year in self._PN21:
-            coeff = -421
-        elif year in years(self._PN22):
+        elif year in years(self._PN21):
             coeff = -540
-        elif year in self._PN23:
-            coeff = -541
-        elif year in years(self._PN24):
+        elif year in years(self._PN22):
             coeff = -600
-        elif year in years(self._PN25):
+        elif year in years(self._PN23):
             coeff = -720
-        elif year in self._PN26:
+        elif year in self._PN24:
             coeff = -721
-        elif year in self._PN27:
+        elif year in self._PN25:
             coeff = -780
-        elif year in self._PN28:
-            coeff = -86219
-        elif year in self._PN29:
+        elif year in self._PN26:
             coeff = -86220
-        elif year in self._PN30:
+        elif year in self._PN27:
             coeff = -86279
-        elif year in years(self._PN31):
+        elif year in years(self._PN28):
             coeff = -86280
-        elif year in self._PN32:
+        elif year in self._PN29:
             coeff = -86281
-        elif year in years(self._PN33):
+        elif year in years(self._PN30):
             coeff = -86400
-        elif year in self._PN34:
+        elif year in self._PN31:
             coeff = -86401
-        elif year in years(self._PN35):
+        elif year in years(self._PN32):
             coeff = -86460
-        elif year in years(self._PN36):
+        elif year in years(self._PN33):
             coeff = -86580
-        elif year in self._PN37:
+        elif year in self._PN34:
             coeff = -86581
-        elif year in self._PN38:
+        elif year in self._PN35:
             coeff = -86640
-        elif year in self._PN39:
+        elif year in self._PN36:
             coeff = -86759
-        elif year in years(self._PN40):
+        elif year in years(self._PN37):
             coeff = -86760
-        elif year in self._PN41:
+        elif year in self._PN38:
+            coeff = -86819
+        elif year in self._PN39:
             coeff = -86820
-        elif year in self._PN42:
-            coeff = -86821
-        elif year in years(self._PN43):
+        elif year in years(self._PN40):
             coeff = -86940
-        elif year in self._PN44:
-            coeff = -86941
-        elif year in self._PN45:
+        elif year in self._PN41:
             coeff = -87000
-        elif year in self._PN46:
+        elif year in self._PN42:
             coeff = -87120
-        elif year in self._PN47:
+        elif year in self._PN43:
             coeff = -87121
-        elif year in self._PN48:
+        elif year in self._PN44:
             coeff = -172620
-        elif year in self._PN49:
+        elif year in self._PN45:
+            coeff = -172679
+        elif year in self._PN46:
             coeff = -172680
-        elif year in self._PN50:
+        elif year in self._PN47:
             coeff = -172800
-        elif year in self._PN51:
+        elif year in self._PN48:
             coeff = -172980
-        elif year in self._PN52:
+        elif year in self._PN49:
             coeff = -173160
-        elif year in self._PN53:
+        elif year in self._PN50:
             coeff = -173340
         else:
             coeff = 0
