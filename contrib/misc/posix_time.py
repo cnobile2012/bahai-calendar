@@ -70,7 +70,10 @@ class PosixTests(BahaiCalendar, Coefficients):
             t1 = self._mktime(dt)
 
             if not options.kill_coeff:
-                t1 -= self._get_ts_coeff(date[0])
+                if options.coeff1:
+                    t1 -= self._get_ts_coeff1(date[0])
+                else:
+                    t1 -= self._get_ts_coeff0(date[0])
 
             g_leap = self.gc._GREGORIAN_LEAP_YEAR(g_year)
             b_leap = self._is_leap_year(b_date[0])
@@ -104,16 +107,17 @@ class PosixTests(BahaiCalendar, Coefficients):
         items = []
 
         for b_year in range(start, end):
+            g_year = b_year + self.TRAN_COFF
             month, day = 16, 2
             h, m = self._get_badi_hms(b_year)[-1]
             dt = datetime.datetime(b_year, month, day, None, None, h, m)
             t1 = self._mktime(dt)
             msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
                    f"00 {t1:12} ")
-            g_year = b_year + self.TRAN_COFF
-            utc_ts = int(dtime.datetime(g_year, 12, 31, 19).timestamp())
-            msg += (f"{g_year:4} {utc_ts:12} ")
-            diff = t1 - utc_ts
+            gmt_ts = int(dtime.datetime(g_year + 1, 1, 1,
+                tzinfo=dtime.timezone.utc).timestamp())
+            msg += (f"{g_year:4} {gmt_ts:12} ")
+            diff = gmt_ts - t1
             msg += f"{diff:7} "
             msg += f"{cp.get(b_year)}"
             items.append(msg)
@@ -139,7 +143,7 @@ class PosixTests(BahaiCalendar, Coefficients):
 
     # Supporting methods
 
-    def _get_ts_coeff(self, year: int) -> int:
+    def _get_ts_coeff0(self, year: int) -> int:
         """
         Determine the coefficients needed to adjust the POSIX timestamp of
         the Badí' dates to the Gregorian dates.
@@ -264,6 +268,254 @@ class PosixTests(BahaiCalendar, Coefficients):
 
         return coeff
 
+    def _get_ts_coeff1(self, year: int) -> int:
+        """
+        An alternative algorithm for applying coefficients to the timestamp.
+        There is a much shorter list of years, but the code itself is much
+        more complicated, so it's not used. The total coefficients were not
+        completely derived.
+        """
+        def years(pn_all):
+            data = []
+
+            for pn in pn_all:
+                data += range(*pn)
+
+            return data
+
+        def process_segment(y, a=0, onoff0=(), b=0, onoff1=(), c=0, onoff2=(),
+                            d=0, onoff3=()):
+            func = lambda y, onoff: 0 < y < 100 and y % self._MODULA in onoff
+            coeff = 0
+
+            if a and func(y, onoff0):    # Whatever is passed in onoff0.
+                coeff = a
+            elif b and func(y, onoff1):  # Whatever is passed in onoff1.
+                coeff = b
+            elif c and func(y, onoff2):  # Whatever is passed in onoff2.
+                coeff = c
+            elif d and func(y, onoff3):  # Whatever is passed in onoff3.
+                coeff = d
+
+            return coeff
+
+        def process_segments(year, pn, a=0, onoff0=(), b=0, onoff1=(),
+                             c=0, onoff2=(), d=0, onoff3=()):
+            coeff = 0
+
+            for start, end in pn:
+                if year in range(start, end):
+                    # start to end (range -S start -E end)
+                    coeff0 = process_segment(end - year, a=a, onoff0=onoff0)
+                    coeff1 = process_segment(end - year, b=b, onoff1=onoff1)
+                    coeff2 = process_segment(end - year, c=c, onoff2=onoff2)
+                    coeff3 = process_segment(end - year, d=d, onoff3=onoff3)
+                    coeff = [
+                        coeff for coeff in (coeff0, coeff1, coeff2, coeff3)
+                        if coeff != 0]
+                    assert len(coeff) == 1, f"Invalid len of {coeff} must be 1"
+                    coeff = coeff[0]
+
+            return coeff
+
+        pn1 = ((-1842, -1814),)  # 86400, 60, 60, 86400
+        pn2 = ((-1814, -1782),)  # 86400, 86400, 60, 86400
+        pn3 = ((-1782, -1742),)  # 86400, 86400, 86400, 86460
+        pn4 = ((-1742, -1715),)  # 180, 60, 60, 86460
+        pn5 = ((-1715, -1683),)  # 86460, 86460, 180, 60
+        pn6 = ((-1683, -1651),)  # 86460, 86460, 86460, 180
+        pn7 = ((-1651, -1643),)  # 86460, 86460, 86460, 86460
+        pn8 = ((-1643, -1615), (-1519, -1483))  # 180, 180, 180, 180
+        pn9 = ((-1615, -1583), (-1483, -1451),)  # 86580, 180, 180, 180
+        pn10 = ((-1583, -1551), (-1451, -1415),)  # 86580, 86580, 180, 180
+        pn11 = ((-1551, -1543), (-1415, -1383), )  # 86580, 86580, 86580, 180
+        pn12 = ((-1543, -1519),)  # 180, 180, 180, -86160
+        pn13 = ((-1383, -1343),)  # 86580, 86580, 86580, 86580
+        pn14 = ((-1343, -1315),)  # 86580, 240, 240, 240
+        pn15 = ((-1315, -1283),)  # 86640, 86580, 240, 240
+        pn16 = ((-1283, -1251),)  # 86640, 86640, 86580, 240
+        pn17 = ((-1251, -1243),)  # 86640, 86640, 86580, 86580
+        pn18 = ((-1243, -1215), (-1119, -1083),)  # 360, 360, 360, 360
+        pn19 = ((-1215, -1183),)  # 86640, 360, 360, 360
+        pn20 = ((-1183, -1151),)  # 86760, 86640, , 360, 360
+        pn21 = ((-1151, -1143),)  # 86760, 86640, 86640, 360
+        pn22 = ((-1143, -1119),)  # 360, 360, 360, -86040
+        pn23 = ((-1083, -1051),)  # 86760, 360, 360, 360
+        pn24 = ((-1051, -1019),)  # 86760, 86760, 360, 360
+        pn25 = ((-1019, -983),)  # 86760, 86760, 86760, 360
+        pn26 = ((-983, -942),)  # 86760, 86760, 86760, 86760
+        pn27 = ((-942, -914),)  # 420, 420, 420, 86760
+        pn28 = ((-914, -882),)  # 86760, 420, 420, 86820
+        pn29 = ((-882, -850),)  # 86760, 86760, 420, 86820
+        pn30 = ((-850, -843),)  # 86820, 86760, 86760, 86820
+        pn31 = ((-843, -815),)  # 540, 540, 540, 420
+        pn32 = ((-815, -783),)  # 86820, 540, 540, 540
+        pn33 = ((-783, -751),)  # 86940, 86820, 540, 540
+        pn34 = ((-751, -743),)  # 86940, 86820, 86820, 540
+        pn35 = ((-743, -719),)  # 540, 540, 540, -85800
+        pn36 = ((-719, -683),)  # 540, 540, 540, 540
+        pn37 = ((-683, -651),)  # 86940, 540, 540, 540
+        pn38 = ((-651, -619),)  # 86940, 86940, 540, 540
+        pn39 = ((-619, -583),)  # 86940, 86940, 86940, 540
+        pn40 = ((-583, -543),)  # 86940, 86940, 86940, 86940
+        pn41 = ((-543, -515),)  # 86940, 720, 600, 600
+        # pn42 = ((),)  #
+        # pn43 = ((),)  #
+        # pn44 = ((),)  #
+        # pn45 = ((),)  #
+        # pn46 = ((),)  #
+        # pn47 = ((),)  #
+        # pn48 = ((),)  #
+        # pn49 = ((),)  #
+        # pn50 = ((),)  #
+
+        if year in years(pn1):
+            coeff = process_segments(year, pn1, -86400, (0, 1), -60, (2, 3))
+        elif year in years(pn2):
+            coeff = process_segments(year, pn2, -86400, (0, 1, 3), -60, (2,))
+        elif year in years(pn3):
+            coeff = process_segments(year, pn3, -86400, (0, 2, 3),
+                -86460, (1,))
+        elif year in years(pn4):
+            coeff = process_segments(year, pn4, -86460, (0,), -60, (1, 2),
+                -180, (3,))
+        elif year in years(pn5):
+            coeff = process_segments(year, pn5, -86460, (0, 3), -180, (2,),
+                -60, (1,))
+        elif year in years(pn6):
+            coeff = process_segments(year, pn6, -86460, (0, 2, 3), -180, (1,))
+        elif year in years(pn7):
+            coeff = process_segments(year, pn7, -86460, (0, 1, 2, 3))
+        elif year in years(pn8):
+            coeff = process_segments(year, pn8, -180, (0, 1, 2, 3))
+        elif year in years(pn9):
+            coeff = process_segments(year, pn9, -86580, (0,), -180, (1, 2, 3))
+        elif year in years(pn10):
+            coeff = process_segments(year, pn10, -86580, (0, 3), -180, (1, 2))
+        elif year in years(pn11):
+            coeff = process_segments(year, pn11, -86580, (0, 2, 3), -180, (1,))
+        elif year in years(pn12):
+            coeff = process_segments(year, pn12, -180, (0, 2, 3), 86160, (1,))
+        elif year in years(pn13):
+            coeff = process_segments(year, pn13, -86580, (0, 1, 2, 3))
+        elif year in years(pn14):
+            coeff = process_segments(year, pn14, -86580, (0,), -240, (1, 2, 3))
+        elif year in years(pn15):
+            coeff = process_segments(year, pn15, -86640, (0,), -240, (1, 2),
+                -86580, (3,))
+        elif year in years(pn16):
+            coeff = process_segments(year, pn16, -86640, (0, 3), -86640, (2,),
+                -240, (1,))
+        elif year in years(pn17):
+            coeff = process_segments(year, pn17, -86640, (0, 3),
+                -86580, (1, 2))
+        elif year in years(pn18):
+            coeff = process_segments(year, pn18, -360, (0, 1, 2, 3))
+        elif year in years(pn19):
+            coeff = process_segments(year, pn19, -86640, (0,), -360, (1, 2, 3))
+        elif year in years(pn20):
+            coeff = process_segments(year, pn20, -86760, (0,), -360, (1, 2),
+                -86640, (3,))
+        elif year in years(pn21):
+            coeff = process_segments(year, pn21, -86760, (0,), -360, (1,),
+                -86640, (2, 3))
+        elif year in years(pn22):
+            coeff = process_segments(year, pn22, -360, (0, 2, 3), 86040, (1,))
+        elif year in years(pn23):
+            coeff = process_segments(year, pn23, -86760, (0,), -360, (1, 2, 3))
+        elif year in years(pn24):
+            coeff = process_segments(year, pn24, -86760, (0, 3), -360, (1, 2))
+        elif year in years(pn25):
+            coeff = process_segments(year, pn25, -86760, (0, 2, 3), -360, (1,))
+        elif year in years(pn26):
+            coeff = process_segments(year, pn26, -86760, (0, 1, 2, 3))
+        elif year in years(pn27):
+            coeff = process_segments(year, pn27, -86760, (1,), -420, (0, 2, 3))
+        elif year in years(pn28):
+            coeff = process_segments(year, pn28, -86760, (0,), -86820, (1,),
+                -420, (2, 3))
+        elif year in years(pn29):
+            coeff = process_segments(year, pn29, -86760, (0, 3), -86820, (1,),
+                -420, (2,))
+        elif year in years(pn30):
+            coeff = process_segments(year, pn30, -86820, (0, 3), -86760,
+                (1, 2))
+        elif year in years(pn31):
+            coeff = process_segments(year, pn31, -540, (0, 2, 3), -420, (1,))
+        elif year in years(pn32):
+            coeff = process_segments(year, pn32, -86820, (0,), -540, (1, 2, 3))
+        elif year in years(pn33):
+            coeff = process_segments(year, pn33, -86940, (0,), -540, (1, 2),
+                -86820, (3,))
+        elif year in years(pn34):
+            coeff = process_segments(year, pn34, -86940, (0,), -540, (1,),
+                -86820, (2, 3))
+        elif year in years(pn35):
+            coeff = process_segments(year, pn35, -540, (0, 2, 3), 85800, (1,))
+        elif year in years(pn36):
+            coeff = process_segments(year, pn36, -540, (0, 1, 2, 3))
+        elif year in years(pn37):
+            coeff = process_segments(year, pn37, -86940, (0,), -540, (1, 2, 3))
+        elif year in years(pn38):
+            coeff = process_segments(year, pn38, -86940, (0, 3), -540, (1, 2))
+        elif year in years(pn39):
+            coeff = process_segments(year, pn39, -86940, (0, 2, 3), -540, (1,))
+        elif year in years(pn40):
+            coeff = process_segments(year, pn40, -86940, (0, 1, 2, 3))
+        elif year in years(pn41):
+            coeff = process_segments(year, pn41, -86940, (0,), -600, (1, 2),
+                -720, (3,))
+        # elif year in years(pn42):
+        #     coeff = process_segments(year, pn42, )
+        # elif year in years(pn43):
+        #     coeff = process_segments(year, pn43, )
+        # elif year in years(pn44):
+        #     coeff = process_segments(year, pn44, )
+        # elif year in years(pn45):
+        #     coeff = process_segments(year, pn45, )
+        # elif year in years(pn46):
+        #     coeff = process_segments(year, pn46, )
+        # elif year in years(pn47):
+        #     coeff = process_segments(year, pn47, )
+        # elif year in years(pn48):
+        #     coeff = process_segments(year, pn48, )
+        # elif year in years(pn49):
+        #     coeff = process_segments(year, pn49, )
+        # elif year in years(pn50):
+        #     coeff = process_segments(year, pn50, )
+        else:
+            coeff = 0
+
+        if year in (-1822, -1790, -1617, -1580, -1572, -1529, -1513, -1511,
+                    -1510, -1507, -1494, -1484, -1475, -1473, -1462, -1457,
+                    -1438, -1427, -1424, -1401, -1400, -1398, -1380, -1376,
+                    -1363, -1354, ):
+            coeff += -1
+        elif year in (-1819, -1807, -1803, -1799, -1795, -1791, -1787, -1783,
+                      -1766, -1762, -1758, -1754, -1750, -1746, -1491, -1487,
+                      -1454, -1335, -1323, -1319, -1286, -1245, -870, -866,
+                      -862, -858, -854, -691, -687, -527, -523, -519, ):
+            coeff += -60
+        elif year in (-1729, -1725, -1721, -1717, -1688, -1187, -820, -816):
+            coeff += -120
+        elif year in (-1747, ):
+            coeff += -86340
+        elif year in (-1347, -947, -547, ):
+            coeff += -86400
+        elif year in ( -1281, -1273, -1269, -1265, -1261, -1257, -1253, -740,
+                      -736):
+            coeff += 60
+        elif year in (-1277,):
+            coeff += 59
+        elif year in (-1242, -1050, -887, -864):
+            coeff += 1
+        elif year in (-1240, -1236, -1232, -542, -538, ):
+            coeff += 120
+        elif year in (-783, ):
+            coeff += 121
+
+        return coeff
+
     def _mktime(self, dt: datetime.datetime) -> float:
         """
         This is the inverse function of localtime(). Its argument is the
@@ -362,6 +614,15 @@ if __name__ == "__main__":
     import argparse
     import pprint
 
+    def convert_to_float(value):
+        values = value.split()
+
+        if len(values) != 3:
+            raise argparse.ArgumentError("Must have three arguments, found "
+                                         f"{len(values)}.")
+
+        return tuple(map(float, values))
+
     parser = argparse.ArgumentParser(
         description=("Test POSIX dates and times."))
     parser.add_argument(
@@ -377,9 +638,16 @@ if __name__ == "__main__":
         '-s', '--sunset', action='store_true', default=False, dest='sunset',
         help="Find the sunset for given years.")
     parser.add_argument(
-        '-C', '--coord', type=float, nargs=3, metavar=('lat', 'lon', 'offset'),
-        default=(51.477928, -0.001545, 0), dest='coord',
-        help="The coordinates with GMT offset in hours.")
+        '-C', '--coord', type=convert_to_float, action='store',
+        default=(51.477928, -0.001545, 0.0), dest='coord',
+        help="The coordinates with GMT offset in hours. Defalult is GMT.")
+    parser.add_argument(
+        '-D', '--debug', action='store_true', default=False, dest='debug',
+        help="Run in debug mode.")
+    parser.add_argument(
+        '-1', '--coeff1',action='store_true', default=False, dest='coeff1',
+        help=("Test the _mktime() method for accuracy using coefficients 1 "
+              "(NOT USED).)"))
     parser.add_argument(
         '-E', '--end', type=int, default=None, dest='end',
         help="End Badí' year of sequence.")
@@ -395,6 +663,9 @@ if __name__ == "__main__":
     ret = 0
     basename = os.path.basename(__file__)
 
+    if options.debug:
+        sys.stderr.write("DEBUG--options: {}\n".format(options))
+
     if options.mktime:  # -m
         if options.start is None or options.end is None:
             print("If option -m is used, -S and -E must also be used.",
@@ -405,12 +676,13 @@ if __name__ == "__main__":
             data = pt.mktime(options)
             k = '-K ' if options.kill_coeff else ''
             coord = ' '.join([str(coord) for coord in options.coord])
-            print(f"./contrib/misc/{basename} -mC {coord} {k}"
+            alt = '1' if options.coeff1 else ''
+            print(f"./contrib/misc/{basename} -m{alt}C \"{coord}\" {k}"
                   f"-S{options.start} -E{options.end}")
-            print("Badí'", " "*28, "Gregorian ", " "*12, "Badí'", "diff")
-            print("Date", " "*16, "timestamp", " "*2, "timestamp", " "*2,
+            print("Badí'", " "*29, "Gregorian ", " "*12, "Badí'", "diff")
+            print("Date", " "*17, "timestamp", " "*2, "timestamp", " "*2,
                   "Leap", " "*0, "Year", "Leap")
-            [print(f"{str(b_date):21} "
+            [print(f"{str(b_date):22} "
                    f"{t1:12} "
                    f"{gmt_ts:12} "
                    f"{str(g_leap):5} "
@@ -431,10 +703,15 @@ if __name__ == "__main__":
                 elif item[6] < 0:
                     n += 1
 
-            print(f"Total: {len(data)}\nPositive Errors: {p}\n"
+            print(f"Total Years Analyzed: {len(data)}\nPositive Errors: {p}\n"
                   f"Negative Errors: {n}\n   Total Errors: {len(diffs)}")
             set_items = set([diff for diff, year in diffs])
             items = []
+
+            if set_items:
+                min_max = set([abs(v) for v in set_items])
+                print(f"Maximum deviation: {max(min_max)}\n"
+                      f"Minimum deviation: {min(min_max)}")
 
             for diff in sorted(set_items):
                 years = [y for d, y in diffs if d == diff]
@@ -459,8 +736,7 @@ if __name__ == "__main__":
             print(f"./contrib/misc/{basename} -pS{options.start} "
                   f"-E{options.end}")
             data = pt.find_coefficents_modula(options)
-            [print(f"{gy:> 5} {by:> 5}, {n:<1} {a:>2}")
-             for gy, by, n, a in data]
+            [print(f"{gy:> 5} {by:> 5}, {n:<1}") for gy, by, n in data]
             print(f"Total years: {len(data)}")
     elif options.coeff:  # -q
         if options.start is None or options.end is None:
