@@ -1994,10 +1994,11 @@ class datetime(date, Coefficients):
 
         .. warning::
 
-           This method has issues and is not always accurate. This means that
-           any code derived from this method may also have issues. Also
-           effected are: `timestamp()`, `_local_timezone()`, and
-           `astimezone()`.
+           Because of the nature of the Badí' calendar the resulting
+           timestamps will have a deviation from -241 to 121 seconds with
+           regards to the GMT timestamp. This means that any code derived
+           from this method may also have issues. Also effected are:
+           `timestamp()`, `_local_timezone()`, and `astimezone()`.
 
         :returns: The POSIX timestamp.
         :rtype: float
@@ -2014,8 +2015,7 @@ class datetime(date, Coefficients):
         a = gmt(t) - t
         u1 = t - a
         t1 = gmt(u1)
-        ts = t1 - self._get_ts_coeff(date[0])
-        return ts
+        return t1 - self._get_ts_coeff(date[0])
 
     def _get_badi_hms(self, year: int):
         """
@@ -3051,5 +3051,4 @@ BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-_EPOCH = datetime(126, 16, 2, None, None, 8, tzinfo=timezone.utc)
-# _EPOCH = datetime(126, 16, 2, None, None, 5, 46, 8.9472, tzinfo=timezone.utc)
+_EPOCH = datetime(126, 16, 2, None, None, 7, 58, tzinfo=timezone.utc)

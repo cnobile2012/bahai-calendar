@@ -2507,6 +2507,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         # All results below indicate local time.
         data = (
+            ((860, 16, 2, None, None, 8, 0), 23162716800),
             ((-547, 16, 2, None, None, 7, 58), -21237724260),
             ((60, 16, 2, None, None, 7, 58), -2082844800),
             ((-1540, 16, 2, None, None, 7, 54), -52573968000),
@@ -2624,7 +2625,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_timestamp(self):
         """
@@ -2638,24 +2639,23 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
-            # 2024-03-20T07:30:00+03:30 -> 1710907200
-            # 2460387.262245 = sunset on 0181-01-01T00:00:00
+            # 2024-03-19T18:17:38 -> 1710886658
+            # 2460387.262245 = sunset on 0181-01-01T00:00:00+03:30
             # 0.3125 = T07:30:00
             # 0.550255 = 0.5 - 0.262245 + 0.3125 = T13:12:22.032
-            ((181, 1, 1, None, None, 13, 16, 8.9472), tz0, 0, 1710907200),
+            ((181, 1, 1), tz0, 0, 1710851520),
             # 2024-03-20T04:00:00+00:00 -> 1710907200
-            ((181, 1, 1, None, None, 9, 46, 8.9472), tz1, 0, 1710907200),
-            # 2024-03-20T00:00:00-05:00 -> 1710907200
-            ((181, 1, 1, None, None, 5, 46, 8.9472), tz2, 0, 1710907200),
+            ((181, 1, 1), tz1, 0, 1710864120),
+            # 2024-03-20T00:00:00-04:00 -> 1710907200
+            ((181, 1, 1), tz2, 0, 1710878520),
             # POSIX epoch
-            ((126, 16, 2, None, None, 5, 46, 8.9472), tz0, 0, -12600),
-            ((126, 16, 2, None, None, 5, 46, 8.9472), datetime.UTC, 0, 0),
-            ((126, 16, 2, None, None, 5, 46, 8.9472), tz2, 0, 18000),
+            ((126, 16, 2, None, None, 11, 28), tz0, 0, 0),
+            ((126, 16, 2, None, None, 7, 58), tz1, 0, 0),
+            ((126, 16, 2, None, None, 7, 58), datetime.UTC, 0, 0),
+            ((126, 16, 2, None, None, 2, 58), tz2, 0, 0),
             # Local dates and times
-            # 2024-03-19T18:15:57 -> 1742422557
-            #((181, 1, 1), tz2, 0, 1742422557),
-            # 2024-12-10T12:40:00 -> 1733852400
-            #((181, 15, 1), None, 0, 1733867535),
+            ((181, 16, 2, None, None, 1, 48), tz2, 0, 1735599000), #1735671600
+            ((181, 16, 2, None, None, 1, 48), None, 0, 1735689600),
 
             #((126, 16, 2, None, None, 5, 46, 8.9472), None, 0, 18000),
             #((1, 1, 1), None, 0, -7938830703.0),

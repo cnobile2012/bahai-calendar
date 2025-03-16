@@ -709,7 +709,7 @@ if __name__ == "__main__":
             items = []
 
             if set_items:
-                min_max = set([abs(v) for v in set_items])
+                min_max = set(set_items)
                 print(f"Maximum deviation: {max(min_max)}\n"
                       f"Minimum deviation: {min(min_max)}")
 
