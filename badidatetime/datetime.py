@@ -2008,14 +2008,14 @@ class datetime(date, Coefficients):
             return (datetime(*date[:3], None, None, *date[3:6]) -
                     epoch) // timedelta(0, 1)
 
-        hms = self._get_badi_hms(126)
-        epoch = datetime(126, 16, 2, None, None, *hms)
+        epoch = datetime(126, 16, 2, None, None, *self._get_badi_hms(126))
         date = self._short_from_long_form(time=self.b_time)
         t = (datetime(*date) - epoch) // timedelta(0, 1)
         a = gmt(t) - t
         u1 = t - a
         t1 = gmt(u1)
-        return t1 - self._get_ts_coeff(date[0])
+        coeff = self._get_ts_coeff(date[0])
+        return t1 - coeff
 
     def _get_badi_hms(self, year: int):
         """
@@ -2024,6 +2024,7 @@ class datetime(date, Coefficients):
         jd = self.jd_from_badi_date((year, 16, 2), *LOCAL_COORD)
         mjd = jd + self._meeus_from_exact(jd)
         ss = self._sun_setting(mjd, *LOCAL_COORD)
+        # Round to the nearest minute.
         f_ss = _math.floor(ss) + round(ss % 1 * 1440) / 1440
         # Where 24 is hours in a day and offset from GMT.
         b_time = (((24 + LOCAL_COORD[-1]) / 24) - (f_ss + 0.5)) % 1
@@ -2152,7 +2153,7 @@ class datetime(date, Coefficients):
 
     def timestamp(self) -> float:
         """
-        Return POSIX timestamp as float for the current datetime instance.
+        Return POSIX timestamp for the current datetime instance.
 
         .. warning::
 
@@ -2163,8 +2164,7 @@ class datetime(date, Coefficients):
         :rtype: float
         """
         if self.tzinfo is None:
-            s = self._mktime()
-            return s + self.microsecond / 1e6
+            return self._mktime() + self.microsecond / 1e6
         else:
             return (self - _EPOCH).total_seconds()
 

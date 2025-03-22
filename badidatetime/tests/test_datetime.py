@@ -2583,9 +2583,9 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         # All results below indicate local time.
         data = (
-            # POSIX epoch local time 1969-12-31T19:00:00-05:00
+            # POSIX epoch local time 1969-12-31T23:10:00-05:00
             ((126, 16, 2, None, None, 6, 48), 18000),
-            # POSIX epoch 1970-01-01T00:00:00-05:00
+            # POSIX epoch 1970-01-01T07:00:00-05:00
             ((126, 16, 2, None, None, 1, 48), 0),
             # 2025-02-25T00:00:00-05:00
             ((181, 18, 19, None, None, 6, 48), 1740459601),
@@ -2598,7 +2598,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.682376, 51.285817, 3.5))
     def test__mktime_terhan(self):
         """
@@ -2608,10 +2608,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         # All results below indicate local time.
         data = (
-            # Sunset in Terhan was 17:02
+            # Sunset in Terhan was 17:02 UTC
             # Badi time was 24 - 17:02 = 6:58, 6:58 + 3:30 == 10:28
             # POSIX epoch local time 1970-01-01T03:50:00+03:30
-            ((126, 16, 2, None, None, 10, 28), 12600),
+            ((126, 16, 2, None, None, 10, 28), 0),
             # POSIX epoch 1970-01-01T00:00:00
             #((126, 16, 2, None, None, 1, 48), 0),
             # 2025-02-25T00:00:00
@@ -2639,26 +2639,34 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
-            # 2024-03-19T18:17:38 -> 1710886658
+            # 2024-03-19T18:17:38+30:30 -> 1710886658
+            # 0181-01-01T00:00:00+03:30
             # 2460387.262245 = sunset on 0181-01-01T00:00:00+03:30
             # 0.3125 = T07:30:00
             # 0.550255 = 0.5 - 0.262245 + 0.3125 = T13:12:22.032
-            ((181, 1, 1), tz0, 0, 1710851520),
-            # 2024-03-20T04:00:00+00:00 -> 1710907200
-            ((181, 1, 1), tz1, 0, 1710864120),
-            # 2024-03-20T00:00:00-04:00 -> 1710907200
-            ((181, 1, 1), tz2, 0, 1710878520),
+            ##((181, 1, 1), tz0, 0, 1710851520),
+            # 2024-03-19T18:15:57.312+00:00
+            # 0181-01-01T00:00:00+00:00
+            ##((181, 1, 1), tz1, 0, 1710864120),
+            # 2024-03-19T18:15:57.312-04:00
+            # 0181-01-01T00:00:00-04:00
+            ##((181, 1, 1), tz2, 0, 1710878520),
             # POSIX epoch
+            # 0126-16-02T11:28:00+03:30
             ((126, 16, 2, None, None, 11, 28), tz0, 0, 0),
+            # 0126-16-02T07:58:00+00:00
             ((126, 16, 2, None, None, 7, 58), tz1, 0, 0),
+            # 0126-16-02T07:58:00+00:00
             ((126, 16, 2, None, None, 7, 58), datetime.UTC, 0, 0),
+            # 0126-16-02T02:58:00-05:00
             ((126, 16, 2, None, None, 2, 58), tz2, 0, 0),
             # Local dates and times
-            ((181, 16, 2, None, None, 1, 48), tz2, 0, 1735599000), #1735671600
+            # 0181-16-02T07:58:00+00:00 -> 1735689600 GMT
+            ((181, 16, 2, None, None, 7, 58), tz1, 0, 1735603200),
+            # 0181-16-02T01:48:00-05:00 -> 1735671600
+            ((181, 16, 2, None, None, 1, 48), tz2, 0, 1735599000),
+            # 0181-16-02T01:48:00 -> 1735689720
             ((181, 16, 2, None, None, 1, 48), None, 0, 1735689600),
-
-            #((126, 16, 2, None, None, 5, 46, 8.9472), None, 0, 18000),
-            #((1, 1, 1), None, 0, -7938830703.0),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 

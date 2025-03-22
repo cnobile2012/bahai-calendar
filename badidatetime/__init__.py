@@ -52,13 +52,13 @@ def _get_local_coordinates():
 
 def enable_geocoder(enable=True):
     """
-    Enable or disable the geocode query to find the local latitude,
-    longitude, and zone. If this function is never run then the geocoder
-    is nor run the the defaults for datetime.LOCAL_COORD and datetime.LOCAL
-    as set to be local in Tehran Iran.
+    Enable or disable the geocode query to find the local latitude, longitude,
+    and zone. If this function is never run then the geocoder is nor run the
+    the defaults for `datetime.LOCAL_COORD` and `datetime.LOCAL` as set to be
+    local in Tehran Iran.
 
-    :param bool enable: If True (default) geocoder is run else if False it
-                        is not run.
+    :param bool enable: If True (default) geocoder is run else if False it is
+                        not run.
     """
     badidt = importlib.import_module('badidatetime.datetime')
 

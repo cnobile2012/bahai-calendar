@@ -564,11 +564,11 @@ class PosixTests(BahaiCalendar, Coefficients):
         jd = self.jd_from_badi_date((year, 16, 2), *self.LOCAL_COORD)
         mjd = jd + self._meeus_from_exact(jd)
         ss = self._sun_setting(mjd, *self.LOCAL_COORD)
+        # Round to the nearest minute.
         f_ss = math.floor(ss) + round(ss % 1 * 1440) / 1440
         hms = self._hms_from_decimal_day(f_ss + 0.5)
         # Where 24 is hours in a day and the GMT offset.
         b_time = (((24 + self.LOCAL_COORD[-1]) / 24) - (f_ss + 0.5)) % 1
-        #print(year, f_ss, b_time, file=sys.stderr)
         return ss, hms, self._hms_from_decimal_day(b_time)[:2]  # hh & mm only
 
 

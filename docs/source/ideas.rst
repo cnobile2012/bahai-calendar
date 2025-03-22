@@ -102,23 +102,22 @@ DST is very arbitrary, it creates a fold in time when going from DST to ST
 (Standard Time) which needs to be disambiguated and a gap in time when going in
 the other direction. I see no value to it at all within the Badí' Calendar,
 however, I have kept it in the code. In the future I may start to remove
-it. This should make things work muck cleaner and with less confusion.
+it. This should make things work much cleaner and with less confusion.
 
 ==================
 Julian Period Days
 ==================
 
 The most commonly used algorithm to convert to-and-from different Calendars is
-to use the JD (Julian period Day). You take your date from some calendar feed
-it into a function then out pops a JD. Then take that day and feed it into the
-reverse function for a different calendar and out pops the date that is
-equivalent to the date of the first calendar. Essentially the JD is a
-continuous count of days from the Gregorian/Julian calendar year -4712:01:01 at
-noon. Jean Meeus in his book "Astronomical Algorithms" has a formula for doing
-this conversion. This formula is historically correct meaning that all
-historical Astronomical calculations for-the-most-part use it. The USNO has an
-`online calculator <https://aa.usno.navy.mil/data/JulianDate>`_ for this
-formula.
+the JD (Julian period Day). You take your date from some calendar feed it into
+a function then out pops a JD. Then take that day and feed it into the  reverse
+function for a different calendar and out pops the date that is equivalent to
+the date of the first calendar. Essentially the JD is a continuous count of
+days from the Gregorian/Julian calendar year -4712:01:01 at noon. Jean Meeus in
+his book "Astronomical Algorithms" has a formula for doing this
+conversion. This formula is historically correct meaning that all historical
+Astronomical calculations for-the-most-part use it. The USNO has an `online
+calculator <https://aa.usno.navy.mil/data/JulianDate>`_ for this formula.
 
 Now I said "for-the-most-part" above because the formula mentioned above is
 astronomically inaccurate for all dates before Gregorian year 1582 October 15
@@ -131,19 +130,22 @@ days to this day.
 
 Since the API that I have written is for the Badí' calendar the Vernal Equinox
 calculations needed to be correct. This presented a few problems. I needed to
-find an algorithm that was correct or write one myself. I know that both NASA
-and the USNO have an Astronomically correct formula, but I was not able to find
+find an algorithm that was Astronomically correct or write one myself. I know
+that both NASA and the USNO have an Astronomically correct formula, because
+they both have tables of the correct Vernal Eqinox, but I was not able to find
 it and if I did find it, it would only be for the Gregorian calendar. So as
-such I had to write my own formulas for both the Gregorian and Badí'
-calendars. This required both to-and-from formulas or four formulas in total.
+such I had to write my own formulas for both the Gregorian and Badí' calendars.
+This required both to-and-from formulas or four formulas in total.
 
 As mentioned elsewhere the Gregorian calendar uses a guestimation formula to
-determine the leap years so figuring out the leap years is rather easy. The
-Badí' calendar uses the sunset before the Vernal Equinox to determine the start
-of the year. There is no regularity in this at all, so determining leap years
-was a much bigger task therefore the formula for the Badí' calendar needed
-coefficients to get it in line with a proper representation of the JD when
-checking against the Gregorian calendar.
+determine the leap years so figuring out the leap years is rather easy. It is
+both consistant and regular. The Badí' calendar uses the sunset before the
+Vernal Equinox to determine the start of the year. There is no regularity in
+this at all, so determining leap years was a much bigger task, therefore the
+formula for the Badí' calendar needed coefficients to get it in line with a
+proper representation of the JD when checking against the Gregorian calendar.
+In my code I refer the Astronomically formula with the `exact` keyword being
+either `True` or `False`.
 
 ================
 POSIX Timestamps
