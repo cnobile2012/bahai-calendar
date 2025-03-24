@@ -8,6 +8,7 @@ Essential Reading
    :maxdepth: 2
 
    uhj_letters
+   documentation
    ideas
    attributions
    credits
