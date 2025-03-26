@@ -116,13 +116,10 @@ class TestTimeDateUtils(unittest.TestCase):
                 expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
-    @patch('badidatetime._timedateutils.TimeDateUtils.date_format',
-           new_callable=PropertyMock)
-    def test_date_format(self, mock_property):
+    def test_date_format(self):
         """
         Test that the date_format property is set correctly
         """
-        mock_property.return_value = ['/', 'm', 'd', 'Y']
         data = (
             ['/', 'm', 'd', 'Y'],
             )

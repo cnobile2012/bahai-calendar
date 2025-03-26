@@ -1,8 +1,8 @@
 .. -*-coding: utf-8-*-
 
-*************
-Documentation
-*************
+************************
+Additional Documentation
+************************
 
 
 ==================
@@ -71,81 +71,87 @@ that the standard library don't support.
 
 .. code::
 
-   %a  Abbreviated weekday name                           Jal
-   %A  Full weekday name                                  Jalál
-   %b  Abbreviated month name                             Bah
-   %B  Full month name                                    Bahá
-   %c  Locale specific date and time. Equivilent to
-       "%a %b %e %H:%M:%S %Y"                             Jal Bah 01 22:30:45 181
-   %C  Century as a space-padded decimal number. (The
-       year divided by 100 then truncated to an
-       integer.)                                          15 or ' 1' 
-   %d  Day of month as a zero-padded decimal number.      09
-   %-d Day of month as a decimal number.                  9
-   %D  Date where year is without century. Equivilent to
-       a localized %m/%d/%y.                              19/01/81
-   %e  Day of the month as a space-padded decimal number. 15 or ' 1'
-   %f  Microseconds as a decimal number.                  000000 - 999999
+   %a  Abbreviated weekday name                     Jal
+   %A  Full weekday name                            Jalál
+   %b  Abbreviated month name                       Bah
+   %B  Full month name                              Bahá
+   %c  Locale specific date and time. Equivilent
+       to "%a %b %e %H:%M:%S %Y"                    Jal Bah 01 22:30:45 181
+   %C  Century as a space-padded decimal number.
+       (The year divided by 100 then truncated
+       to an integer.)                              15 or ' 1'
+   %d  Day of month as a zero-padded decimal
+       number.                                      09
+   %-d Day of month as a decimal number.            9
+   %D  Date where year is without century.
+       Equivilent to a localized %m/%d/%y.          19/01/81
+   %e  Day of the month as a space-padded decimal
+       number.                                      15 or ' 1'
+   %f  Microseconds as a decimal number.            000000 - 999999
    %G  ISO 8601 year with century as a zero-padded
-       decimal number.                                    0181
-   %h  Abbreviated month name (Same as %b).               Bah
-   %H  Hour (24-hour clock) as a zero-padded decimal
-       number.                                            00, 01, ..., 23
-   %-H Hour (24-hour clock) as a decimal number.          0, 1, ..., 23
-   %I  Hour (12-hour clock) as a zero-padded decimal
-       number.                                            01, 02, ..., 12
-   %j  Day of the year as a zero-padded decimal number.   001, 002, ..., 366
-   %-j Day of the year as a decimal number.               1, 2, ..., 366
-   %k  Hour (24-hour clock) as a space-padded decimal
-       number.                                            0 to 23
-   %:K Kull-i-Shay as a negative or positive decimal
-       number.                                            -5 to 4
-   %l  Hour (12-hour clock) as a space-padded decimal
-       number.                                            ' 1' to 12
-   %-l Hour (12-hour clock) as a decimal number.          1 to 12
-   %m  Month as a zero-padded decimal number.             01 - 19
-   %-m Month as a decimal number.                         1 - 19
-   %M  Minute as a zero-padded decimal number.            00, 01, ..., 59
-   %-M Minute as a decimal number.                        0, 1, ..., 59
-   %n  Newline character.                                 \n
-   %p  Locale defined AM and PM.                          am or pm
-   %r  Locale defined 12-hour clock time (am/pm).         3:30:45 PM
-   %S  Second as a zero-padded decimal number.            00, 01, ..., 59
-   %-S Second as a decimal number.                        0, 1, ..., 59
-   %T  Locale defined 24-hour clock time.                 15:30:45
-   %u  Weekday as a decimal number. With Jalál as 1.      1 - 7
-   %U  Week number of the year (Jalál as the first day
-       of the week) as a zero-padded decimal number. All
-       days in a new year preceding the first `Idāl are
-       considered to be in week 0.                        00, 01, ..., 53
-   %V  ISO 8601 week as a zero-padded decimal number
-       with Jalál as the first day of the week. Week 01
-       is the week containing the 4th of Bahá.            01, 02, ..., 53
-   %:V Váḥid as a zero-padded decimal number.             01 - 19
-   %w  Weekday as a decimal number [0(Saturday), 6].      0 - 6
-   %W  Week number of the year (Jalál as the first day
-       of the week) as a zero-padded decimal number. All
-       days in a new year preceding the first Jalál are
-       considered to be in week 0. It make no sense to
-       start a week on different day in the Badi
-       Calendar. So this format is the same as %U.        00, 01, ..., 53
-   %x  Locale defined date representation.                08/16/81 (None);
-                                                          08/16/181 (en_US);
-                                                          16.08.181 (de_DE)
-   %X  Locale defined time representation.                21:30:00 (en_US);
-                                                          21:30:00 (de_DE)
-   %y  Year without century as a zero-padded decimal
-       number.                                            00, 01, ..., 99
-   %-y Year without century as a decimal number.          0, 1, ..., 99
-   %Y  Year with century as a zero-padded decimal number. 0001, 0002, ..., 1161
-   %z  UTC offset in the form ±HHMM[SS[.ffffff]] (empty
-       string if the object is naive).                    (empty), +0000, -0400,
-                                                          +1030, +063415,
-                                                          -030712.345216
-   %:z UTC offset in the form ±HH:MM[:SS[.ffffff]]        (empty string if the
-                                                          object is naive).
-   %Z  Time zone name (empty string if the object is
-       naive).                                            (empty), UTC, GMT
-   %%  A literal '%' character.                           %
-
-
+       decimal number.                              0181
+   %h  Abbreviated month name (Same as %b).         Bah
+   %H  Hour (24-hour clock) as a zero-padded
+       decimal number.                              00, 01, ..., 23
+   %-H Hour (24-hour clock) as a decimal number.    0, 1, ..., 23
+   %I  Hour (12-hour clock) as a zero-padded
+       decimal number.                              01, 02, ..., 12
+   %j  Day of the year as a zero-padded decimal
+       number.                                      001, 002, ..., 366
+   %-j Day of the year as a decimal number.         1, 2, ..., 366
+   %k  Hour (24-hour clock) as a space-padded
+       decimal number.                              0 to 23
+   %:K Kull-i-Shay as a negative or positive
+       decimal number.                              -5 to 4
+   %l  Hour (12-hour clock) as a space-padded
+       decimal number.                              ' 1' to 12
+   %-l Hour (12-hour clock) as a decimal number.    1 to 12
+   %m  Month as a zero-padded decimal number.       01 - 19
+   %-m Month as a decimal number.                   1 - 19
+   %M  Minute as a zero-padded decimal number.      00, 01, ..., 59
+   %-M Minute as a decimal number.                  0, 1, ..., 59
+   %n  Newline character.                           \n
+   %p  Locale defined AM and PM.                    am or pm
+   %r  Locale defined 12-hour clock time (am/pm).   3:30:45 PM
+   %S  Second as a zero-padded decimal number.      00, 01, ..., 59
+   %-S Second as a decimal number.                  0, 1, ..., 59
+   %T  Locale defined 24-hour clock time.           15:30:45
+   %u  Weekday as a decimal number. With Jalál
+       as 1.                                        1 - 7
+   %U  Week number of the year (Jalál as the first
+       day of the week) as a zero-padded decimal
+       number. All days in a new year preceding
+       the first `Idāl are considered to be in
+       week 0.                                      00, 01, ..., 52
+   %V  ISO 8601 week as a zero-padded decimal
+       number with Jalál as the first day of the
+       week. Week 01 is the week containing the
+       4th of Bahá.                                 01, 02, ..., 52
+   %:V Váḥid as a zero-padded decimal number.       01 - 19
+   %w  Weekday as a decimal number [0(Saturday), 6] 0 - 6
+   %W  Week number of the year (Jalál as the first
+       day of the week) as a zero-padded decimal
+       number. All days in a new year preceding
+       the first Jalál are considered to be in
+       week 0. It make no sense to start a week
+       on different day in the Badi Calendar. So
+       this format is the same as %U.               00, 01, ..., 52
+   %x  Locale defined date representation.          08/16/81 (None);
+                                                    08/16/181 (en_US);
+                                                    16.08.181 (de_DE)
+   %X  Locale defined time representation.          21:30:00 (en_US);
+                                                    21:30:00 (de_DE)
+   %y  Year without century as a zero-padded
+       decimal number.                              00, 01, ..., 99
+   %-y Year without century as a decimal number.    0, 1, ..., 99
+   %Y  Year with century as a zero-padded decimal
+       number.                                      0001, 0002, ..., 1161
+   %z  UTC offset in the form ±HHMM[SS[.ffffff]]
+       (empty string if the object is naive).       (empty), +0000, -0400,
+                                                    +1030, +063415,
+                                                    -030712.345216
+   %:z UTC offset in the form ±HH:MM[:SS[.ffffff]]  (empty string if the
+                                                     object is naive).
+   %Z  Time zone name (empty string if the object
+       is naive).                                   (empty), UTC, GMT
+   %%  A literal '%' character.                     %

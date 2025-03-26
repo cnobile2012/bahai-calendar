@@ -695,11 +695,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             f"Invalid microseconds '{us}', it must be in the range of "
             "[0, 999999].")
 
-    def _is_leap_year(self, year: tuple, _chk_on: bool=True) -> bool:
+    def _is_leap_year(self, year: int, _chk_on: bool=True) -> bool:
         """
-        Return a Boolean True if a Badi leap year, False if not.
+        Return a Boolean True if a Badí' leap year, False if not.
 
-        :param int year: This value must be a Badi short form year.
+        :param int year: This value must be a Badí' short form year.
         :param bool _chk_on: If True (default) all date checks are enforced
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what

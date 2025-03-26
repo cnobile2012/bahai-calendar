@@ -43,7 +43,7 @@ Also from the letter from the Secretariat.
    In number 35 of “Questions and Answers”, which is supplementary to the
    Kitáb-i-Aqdas, Bahá’u’lláh responds to a question concerning Naw-Rúz and
    states: “The Festival of Naw-Rúz falleth on the day that the sun entereth
-   the sign of Aries”. This phenomenon coincides with the moment of the verbal
+   the sign of Aries”. This phenomenon coincides with the moment of the vernal
    equinox in the northern hemisphere. Thus, the Festival of Naw Rúz falls on
    the day on which the vernal equinox occurs, and that day, 1 Bahá, according
    to the Badí‘ calendar, starts at subset on 19 ‘Alá’ and ends at the

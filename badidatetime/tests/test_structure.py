@@ -8,7 +8,6 @@ import unittest
 import importlib
 
 from .._structures import struct_time
-#from badidatetime import datetime
 from zoneinfo import ZoneInfo
 
 datetime = importlib.import_module('badidatetime.datetime')

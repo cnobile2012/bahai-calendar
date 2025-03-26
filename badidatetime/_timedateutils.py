@@ -619,7 +619,8 @@ class TimeDateUtils(BahaiCalendar):
         :returns: The weekday as a decimal number.
         :rtype: str
         """
-        return f"{ttup.tm_wday + 1}"
+        wday = ttup.tm_wday + (0 if org == 'w' else 1)
+        return f"{wday}"
 
     def U(self, ttup, org, mod):
         r"""
@@ -811,8 +812,8 @@ class TimeDateUtils(BahaiCalendar):
                        'D': D, 'e': d, 'f': f, 'G': G, 'h': b, 'H': H, 'I': I,
                        'j': j, 'k': H, 'K': K, 'l': I, 'm': m, 'M': M, 'm': m,
                        'M': M, 'n': n, 'p': p, 'r': r, 'S': S, 'T': r, 'u': u,
-                       'U': U, 'V': V, 'W': U, 'x': x, 'X': X, 'y': y, 'Y': Y,
-                       'z': z, 'Z': Z, '%': percent
+                       'U': U, 'V': V, 'w': u, 'W': U, 'x': x, 'X': X, 'y': y,
+                       'Y': Y, 'z': z, 'Z': Z, '%': percent
                        }
 
     def strftime(self, format: str, ttup: tuple, tzinfo=None) -> str:
@@ -1072,6 +1073,7 @@ class TimeDateUtils(BahaiCalendar):
         if short_in:
             y, m, d, hh, mm, ss = date
         else:
+            # Mircosecond (ms) is not used.
             y, m, d, hh, mm, ss, ms = self.short_date_from_long_date(
                 date, _chk_on=False)
 
