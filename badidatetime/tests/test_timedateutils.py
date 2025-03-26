@@ -34,6 +34,7 @@ class TestTimeDateUtils(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         os.environ['LC_ALL'] = 'en_US.UTF-8'
+        locale.setlocale(locale.LC_TIME, 'C')  # Reset to default
         locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
 
     #@unittest.skip("Temporarily skipped")
@@ -125,7 +126,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ['/', 'm', 'd', 'Y'],
             )
         msg = "Expected {}, found {}."
-        print(locale.getlocale())
+        locale.D_FMT = '%m/%d/%Y'
 
         for expected_result in data:
             result = _td_utils.date_format
