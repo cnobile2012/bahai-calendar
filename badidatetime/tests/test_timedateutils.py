@@ -33,7 +33,8 @@ class TestTimeDateUtils(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        os.environ['LC_ALL'] = 'en_US.UTF-8'
+        locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
 
     #@unittest.skip("Temporarily skipped")
     def test__order_format(self):
