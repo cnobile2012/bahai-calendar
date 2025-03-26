@@ -15,7 +15,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from .._timedateutils import _td_utils
+from .._timedateutils import TimeDateUtils, _td_utils
 
 datetime = importlib.import_module('badidatetime.datetime')
 
@@ -35,7 +35,7 @@ class TestTimeDateUtils(unittest.TestCase):
     def setUpClass(cls):
         os.environ['LC_TIME'] = 'en_US.UTF-8'
         locale.setlocale(locale.LC_TIME, '')
-        print(locale.nl_langinfo(locale.D_FMT))
+        #print(locale.nl_langinfo(locale.D_FMT))
 
     #@unittest.skip("Temporarily skipped")
     def test__order_format(self):
@@ -118,6 +118,7 @@ class TestTimeDateUtils(unittest.TestCase):
                 expected_result, result))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(TimeDateUtils, 'date_format', new=['/', 'm', 'd', 'Y'])
     def test_date_format(self):
         """
         Test that the date_format property is set correctly
