@@ -125,6 +125,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ['/', 'm', 'd', 'Y'],
             )
         msg = "Expected {}, found {}."
+        print(locale.getlocale())
 
         for expected_result in data:
             result = _td_utils.date_format
