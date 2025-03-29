@@ -382,11 +382,13 @@ class _StrpTime:
                 dot_dict.fraction, dot_dict.gmtoff_fraction)
 
     def _clear_cache(self):
+        global _regex_cache
         _regex_cache.clear()
 
     def _find_regex(self):
+        global _TimeRE_cache, _regex_cache
+
         with _cache_lock:
-            global _TimeRE_cache, _regex_cache
             locale_time = _TimeRE_cache.locale_time
 
             if (_getlang() != locale_time.lang or

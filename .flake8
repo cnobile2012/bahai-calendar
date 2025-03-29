@@ -10,7 +10,7 @@ exclude =
 
 per-file-ignores =
     badidatetime/__init__.py: F401
-    badidatetime/*: E129, E201, E225, E252, E501, E701, E731, E741, E743, F821, F822, C901
+    badidatetime/*: E129, E201, E225, E252, E501, E701, E731, E741, E743, F821, F822, F824, C901
     badidatetime/tests/test_*: E122, E201, E261, E265, E266, E402, E501, E731, F402
     contrib/charts/combine.py: E402, E265
     contrib/misc/*: C901, E128, E201, E231, E252, E265, E266, E402, E501, E731, E701, E741
