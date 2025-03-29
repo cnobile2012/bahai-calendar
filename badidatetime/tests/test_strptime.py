@@ -443,7 +443,6 @@ class TestStrptime__StrpTime(unittest.TestCase):
             ('iso_year', None, 'julian', None, 'iso_week', '1',
              'weekday', '1', 'year', '182', True, err_msg3),
             )
-        msg = "Expected {}, with data_str {}, found {}"
 
         for cnt, (var0, value0, var1, value1, var2, value2, var3, value3,
                   var4, value4, validity, expected_result) in enumerate(data):
@@ -504,7 +503,6 @@ class TestStrptime__StrpTime(unittest.TestCase):
                 result = getattr(dd, var)
                 self.assertEqual(expected, result, msg.format(
                     expected, var, result))
-
 
 
 """
