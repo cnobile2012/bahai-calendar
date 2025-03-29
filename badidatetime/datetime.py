@@ -2482,14 +2482,12 @@ class datetime(date, Coefficients):
         String, format -> new datetime parsed from a string
         (like time.strptime()).
 
-        *** TODO *** _strptime may need to be rewritten, bummer.
-
         :param str date_string: A string representing the date.
         :param str format: A format string
         :returns: A date and time string representing the `format` string.
         :rtype: str
         """
-        import _strptime
+        from badidatetime import _strptime
         return _strptime._strptime_datetime(cls, date_string, format)
 
     def utcoffset(self):

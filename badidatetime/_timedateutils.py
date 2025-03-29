@@ -18,7 +18,7 @@ class TimeDateUtils(BahaiCalendar):
     This class provides utility functionality to the datetime package. Its
     use is through a pre-instantiated object _td_utils.
     """
-    # Badi additions are %:K for Kull-i-Shay and %:V for Váḥid
+    # Badi additions are %:K for Kull-i-Shay and %:V for Váḥid.
     VALID_FORMAT_CHRS = 'aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%'
     DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl', '`Idāl',
                 'Istijlāl', 'Istiqlāl')
@@ -130,7 +130,7 @@ class TimeDateUtils(BahaiCalendar):
         return self._locale_data['pm']
 
     @property
-    def date_format(self):
+    def date_format(self):  # pragma: no cover
         """
         Returns the locale's date format.
         """

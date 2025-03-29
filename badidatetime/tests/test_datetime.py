@@ -4,6 +4,7 @@
 #
 __docformat__ = "restructuredtext en"
 
+import os
 import re
 import locale
 import time
@@ -26,7 +27,8 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        os.environ['LC_ALL'] = 'en_US.UTF-8'
+        locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
 
     def setUp(self):
         self._bc = BahaiCalendar()
@@ -336,7 +338,8 @@ class TestBadiDatetime_date(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        os.environ['LC_ALL'] = 'en_US.UTF-8'
+        locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
 
     #@unittest.skip("Temporarily skipped")
     def test___new__(self):
@@ -1412,7 +1415,8 @@ class TestBadiDatetime_time(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+        os.environ['LC_ALL'] = 'en_US.UTF-8'
+        locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
 
     #@unittest.skip("Temporarily skipped")
     def test___new__(self):
@@ -3061,10 +3065,20 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     @unittest.skip("Temporarily skipped")
     def test_strptime(self):
         """
-        Test that the strptime method parses a date from a string.
-
-        NOTE: This may need a rewrite of the entire _strptime package.
+        Test that the strptime method parses a date from a string and
+        returns a datetime class object.
         """
+        data = (
+            ("0001-01-01", "%Y-%m-%d", ''),
+            )
+        msg = "Expected {} with str_date {} and format {}, found {}."
+
+        for str_date, fmt, expected_result in data:
+            dt = datetime.datetime.strptime(str_date, fmt)
+            result = str(dt)
+            print(result)
+            self.assertEqual(expected_result, result, msg.format(
+                    expected_result, str_date, fmt, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_utcoffset(self):

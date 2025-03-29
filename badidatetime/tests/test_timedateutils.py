@@ -286,8 +286,8 @@ class TestTimeDateUtils(unittest.TestCase):
                 else:
                     # Raise an error when an AssertionError is not raised.
                     raise AssertionError(
-                        f"With date {date} an error was not raised,")
-            else: # Valid tests (Nothing to assert)
+                        f"With date {date} an error was not raised.")
+            else:  # Valid tests (Nothing to assert)
                 ttup = make_ttup(t_type)
                 _td_utils._checktm(ttup)
 

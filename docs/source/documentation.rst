@@ -116,8 +116,7 @@ that the standard library don't support.
    %S  Second as a zero-padded decimal number.      00, 01, ..., 59
    %-S Second as a decimal number.                  0, 1, ..., 59
    %T  Locale defined 24-hour clock time.           15:30:45
-   %u  Weekday as a decimal number. With Jalál
-       as 1.                                        1 - 7
+   %u  Weekday as a decimal number. [1(Jalál), 7]   1 - 7
    %U  Week number of the year (Jalál as the first
        day of the week) as a zero-padded decimal
        number. All days in a new year preceding
@@ -128,7 +127,7 @@ that the standard library don't support.
        week. Week 01 is the week containing the
        4th of Bahá.                                 01, 02, ..., 52
    %:V Váḥid as a zero-padded decimal number.       01 - 19
-   %w  Weekday as a decimal number [0(Saturday), 6] 0 - 6
+   %w  Weekday as a decimal number. [0(Jalál), 6]   0 - 6
    %W  Week number of the year (Jalál as the first
        day of the week) as a zero-padded decimal
        number. All days in a new year preceding
