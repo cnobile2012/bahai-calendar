@@ -130,7 +130,7 @@ class TimeDateUtils(BahaiCalendar):
         return self._locale_data['pm']
 
     @property
-    def date_format(self):  # pragma: no cover
+    def date_format(self):
         """
         Returns the locale's date format.
         """

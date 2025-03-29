@@ -15,7 +15,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from .._timedateutils import TimeDateUtils, _td_utils
+from .._timedateutils import TimeDateUtils
 
 datetime = importlib.import_module('badidatetime.datetime')
 
@@ -31,13 +31,30 @@ class TestTimeDateUtils(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
-    @classmethod
-    def setUpClass(cls):
-        os.environ['LC_TIME'] = 'en_US.UTF-8'
-        locale.setlocale(locale.LC_TIME, '')
-        #print(locale.nl_langinfo(locale.D_FMT))
+    def setUp(self):
+        self.locale_patcher = patch(
+            'badidatetime._timedateutils.locale.nl_langinfo')
+        self.mock_nl_langinfo = self.locale_patcher.start()
 
-    #@unittest.skip("Temporarily skipped")
+        def side_effect(item):
+            if item == locale.LC_TIME:
+                return 'en_US.UTF-8'
+            elif item == locale.AM_STR:
+                return 'AM'
+            elif item == locale.PM_STR:
+                return 'PM'
+            elif item == locale.D_FMT:
+                return '%m/%d/%Y'
+            else:
+                return 'Default Value'
+
+        self.mock_nl_langinfo.side_effect = side_effect
+        self._tdu = TimeDateUtils()
+
+    def tearDown(self):
+        self.locale_patcher.stop()
+
+        #@unittest.skip("Temporarily skipped")
     def test__order_format(self):
         """
         Test that the _order_format returns a correctly parsed date or
@@ -51,102 +68,69 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {}, with format {} and default {}, found {}."
 
         for fmt, default, expected_result in data:
-            result = _td_utils._order_format(fmt, default)
+            result = self._tdu._order_format(fmt, default)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, fmt, default, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__find_time_order(self):
         """
+        Test that the _find_time_order method parses the time format properly.
         """
-        data = (
-            '%I:%M:%S',
-            )
-        msg = "Expected {}, found {}."
-
-        for expected_result in data:
-            result = _td_utils._find_time_order()
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, result))
+        expected = '%I:%M:%S'
+        result = self._tdu._find_time_order()
+        msg = f"Expected {expected}, found {result}."
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    @patch('badidatetime._timedateutils.TimeDateUtils.locale',
-           new_callable=PropertyMock)
-    def test_locale(self, mock_property):
+    def test_locale(self):
         """
         Test that the locale property is set correctly.
         """
-        mock_property.return_value = 'en_US.UTF-8'
-        data = (
-            "{}.{}".format(*locale.getlocale()),
-            )
-        msg = "Expected {}, found {}."
-
-        for expected_result in data:
-            result = _td_utils.locale
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, result))
+        expected = "en_US.UTF-8"
+        result = self._tdu.locale
+        msg = f"Expected {expected}, found {result}."
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_am(self):
         """
         Test that the am property is set correctly
         """
-        data = (
-            locale.nl_langinfo(locale.AM_STR),
-            )
-        msg = "Expected {}, found {}."
-
-        for expected_result in data:
-            result = _td_utils.am
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, result))
+        expected = 'AM'
+        result = self._tdu.am
+        msg = f"Expected {expected}, found {result}."
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_pm(self):
         """
         Test that the pm property is set correctly
         """
-        data = (
-            locale.nl_langinfo(locale.PM_STR),
-            )
-        msg = "Expected {}, found {}."
-
-        for expected_result in data:
-            result = _td_utils.pm
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, result))
+        expected = 'PM'
+        result = self._tdu.pm
+        msg = f"Expected {expected}, found {result}."
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
-    @patch.object(TimeDateUtils, 'date_format', new=['/', 'm', 'd', 'Y'])
     def test_date_format(self):
         """
         Test that the date_format property is set correctly
         """
-        data = (
-            ['/', 'm', 'd', 'Y'],
-            )
-        msg = "Expected {}, found {}."
-
-        for expected_result in data:
-            result = _td_utils.date_format
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, result))
+        expected = ['/', 'm', 'd', 'Y']
+        result = self._tdu.date_format
+        msg = f"Expected {expected}, found {result}."
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_time_format(self):
         """
         Test that the time_format property is set correctly
         """
-        data = (
-            [':', 'I', 'M', 'S'],
-            )
-        msg = "Expected {}, found {}."
-
-        for expected_result in data:
-            result = _td_utils.time_format
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, result))
+        expected = [':', 'I', 'M', 'S']
+        result = self._tdu.time_format
+        msg = f"Expected {expected}, found {result}."
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test__checktm(self):
@@ -160,19 +144,19 @@ class TestTimeDateUtils(unittest.TestCase):
             if t_type == bad_t:
                 ttup = date
             elif t_type == ttup_l:
-                ttup = _td_utils._build_struct_time(date, dstflag)
+                ttup = self._tdu._build_struct_time(date, dstflag)
             elif t_type == ttup_s:
-                ttup = _td_utils._build_struct_time(date, dstflag,
+                ttup = self._tdu._build_struct_time(date, dstflag,
                                                     short_in=True)
             else: # ttup_tl and ttup_ts
                 ttup = date + (dstflag,)
 
             return ttup
 
-        MIN_K = _td_utils.KULL_I_SHAY_MIN
-        MAX_K = _td_utils.KULL_I_SHAY_MAX
-        MIN_Y = _td_utils.MINYEAR
-        MAX_Y = _td_utils.MAXYEAR
+        MIN_K = self._tdu.KULL_I_SHAY_MIN
+        MAX_K = self._tdu.KULL_I_SHAY_MAX
+        MIN_Y = self._tdu.MINYEAR
+        MAX_Y = self._tdu.MAXYEAR
         err_msg0 = ("Invalid kull-i-shay {}, it must be in the range "
                     f"of [{MIN_K}, {MAX_K}].")
         err_msg1 = ("Invalid Váḥids '{}' in a Kull-i-Shay’, it must be in "
@@ -280,7 +264,7 @@ class TestTimeDateUtils(unittest.TestCase):
             if validity: # Invalid tests
                 try:
                     ttup = make_ttup(t_type)
-                    _td_utils._checktm(ttup)
+                    self._tdu._checktm(ttup)
                 except (AssertionError, TypeError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -289,7 +273,7 @@ class TestTimeDateUtils(unittest.TestCase):
                         f"With date {date} an error was not raised.")
             else:  # Valid tests (Nothing to assert)
                 ttup = make_ttup(t_type)
-                _td_utils._checktm(ttup)
+                self._tdu._checktm(ttup)
 
     #@unittest.skip("Temporarily skipped")
     @patch('badidatetime._timedateutils.TimeDateUtils.date_format',
@@ -318,7 +302,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%e', (181, 1, 9, 0, 0, 0, 1, 1), -1, ttup_ts, None, ' 9'),
             ('%f', (1, 10, 10, 1, 1, 0, 0, 60.025), -1, ttup_l, None, '025000'),
             ('%G', (181, 1, 1, 0, 0, 0), -1, ttup_s, None, '0181'),
-            ('%G', (_td_utils.MINYEAR, 1, 1, 0, 0, 0), -1, ttup_s, None,
+            ('%G', (self._tdu.MINYEAR, 1, 1, 0, 0, 0), -1, ttup_s, None,
              '-1842'),
             ('%h', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, None, 'Jal'),
             ('%H', (181, 1, 1, 3, 0, 0, 1, 1), -1, ttup_ts, None, '03'),
@@ -376,14 +360,14 @@ class TestTimeDateUtils(unittest.TestCase):
 
         for fmt, date, dstflag, t_type, tz, expected_result in data:
             if t_type == ttup_l:
-                ttup = _td_utils._build_struct_time(date, dstflag, tzinfo=tz)
+                ttup = self._tdu._build_struct_time(date, dstflag, tzinfo=tz)
             elif t_type == ttup_s:
-                ttup = _td_utils._build_struct_time(date, dstflag, tzinfo=tz,
+                ttup = self._tdu._build_struct_time(date, dstflag, tzinfo=tz,
                                                     short_in=True)
             else: # ttup_tl and ttup_ts
                 ttup = date + (dstflag,)
 
-            result = _td_utils.strftime(fmt, ttup)
+            result = self._tdu.strftime(fmt, ttup)
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, fmt, date, result))
 
@@ -408,7 +392,7 @@ class TestTimeDateUtils(unittest.TestCase):
         for fmt, validity, expected_result in data:
             if validity:
                 try:
-                    result = _td_utils._check_format(fmt)
+                    result = self._tdu._check_format(fmt)
                 except ValueError as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -416,7 +400,7 @@ class TestTimeDateUtils(unittest.TestCase):
                     raise AssertionError(f"With '{fmt}' an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = _td_utils._check_format(fmt)
+                result = self._tdu._check_format(fmt)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, fmt, result))
 
@@ -435,12 +419,12 @@ class TestTimeDateUtils(unittest.TestCase):
 
         for date, dstflag, t_type, expected_result in data:
             if t_type == ttup_l:
-                ttup = _td_utils._build_struct_time(date, dstflag)
+                ttup = self._tdu._build_struct_time(date, dstflag)
             else: # t_type == ttup_s
-                ttup = _td_utils._build_struct_time(date, dstflag,
+                ttup = self._tdu._build_struct_time(date, dstflag,
                                                     short_in=True)
 
-            result = _td_utils._find_midday(ttup)
+            result = self._tdu._find_midday(ttup)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, result))
 
@@ -459,12 +443,12 @@ class TestTimeDateUtils(unittest.TestCase):
 
         for date, dstflag, t_type, expected_result in data:
             if t_type == ttup_l:
-                ttup = _td_utils._build_struct_time(date, dstflag)
+                ttup = self._tdu._build_struct_time(date, dstflag)
             else: # t_type == ttup_s
-                ttup = _td_utils._build_struct_time(date, dstflag,
+                ttup = self._tdu._build_struct_time(date, dstflag,
                                                     short_in=True)
 
-            result = _td_utils._get_year(ttup)
+            result = self._tdu._get_year(ttup)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, result))
 
@@ -492,7 +476,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with date {}, found {}."
 
         for date, expected_result in data:
-            result = _td_utils._year_week_day(*date)
+            result = self._tdu._year_week_day(*date)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, result))
 
@@ -511,7 +495,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with year {}, found {}."
 
         for year, expected_result in data:
-            result = _td_utils._days_before_year(year)
+            result = self._tdu._days_before_year(year)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, result))
 
@@ -547,7 +531,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with year {} and month {}, found {}."
 
         for year, month, expected_result in data:
-            result = _td_utils._days_in_month(year, month)
+            result = self._tdu._days_in_month(year, month)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, month, result))
 
@@ -584,7 +568,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with year {} and month {}, found {}."
 
         for year, month, expected_result in data:
-            result = _td_utils._days_before_month(year, month)
+            result = self._tdu._days_before_month(year, month)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, year, month, result))
 
@@ -609,7 +593,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with date {}, found {}."
 
         for date, expected_result in data:
-            result = _td_utils._day_of_week(*date)
+            result = self._tdu._day_of_week(*date)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, date, result))
 
@@ -638,7 +622,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with date {}, found {}."
 
         for date, expected_result in data:
-            result = _td_utils._ymd2ord(*date)
+            result = self._tdu._ymd2ord(*date)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, result))
 
@@ -668,7 +652,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with ordinal {} and short {}, found {}."
 
         for ordinal, short, expected_result in data:
-            result = _td_utils._ord2ymd(ordinal, short=short)
+            result = self._tdu._ord2ymd(ordinal, short=short)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, ordinal, short, result))
 
@@ -699,7 +683,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg1 = "Expected {}, found {}."
 
         for dt, dst, tz, short_in, expected_result in data:
-            result = _td_utils._build_struct_time(dt, dst, tzinfo=tz,
+            result = self._tdu._build_struct_time(dt, dst, tzinfo=tz,
                                                   short_in=short_in)
             self.assertEqual(expected_result[0], str(result), msg0.format(
                 expected_result, dt, dst, tz, result))
@@ -752,12 +736,12 @@ class TestTimeDateUtils(unittest.TestCase):
         for item, short, validity, expected_result in data:
             if validity:
                 with self.assertRaises(AssertionError) as cm:
-                    _td_utils._isoweek_to_badi(*item)
+                    self._tdu._isoweek_to_badi(*item)
 
                 message = str(cm.exception)
                 self.assertEqual(expected_result, message)
             else:
-                result = _td_utils._isoweek_to_badi(*item, short=short)
+                result = self._tdu._isoweek_to_badi(*item, short=short)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, item, result))
 
@@ -776,7 +760,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with year {}, found {}."
 
         for year, expected_result in data:
-            result = _td_utils._isoweek1jalal(year)
+            result = self._tdu._isoweek1jalal(year)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, year, result))
 
@@ -803,7 +787,7 @@ class TestTimeDateUtils(unittest.TestCase):
         msg = "Expected {} with dtstr {}, found {}."
 
         for dtstr, expected_result0, expected_result1 in data:
-            date, time, tz = _td_utils._parse_isoformat_date_time_timezone(
+            date, time, tz = self._tdu._parse_isoformat_date_time_timezone(
                 dtstr)
             self.assertEqual(expected_result0, date + time, msg.format(
                 expected_result0, dtstr, date + time))
@@ -858,10 +842,10 @@ class TestTimeDateUtils(unittest.TestCase):
             ('0182-366', False, (182, 19, 19)),
             ('0001/01/01', True, err_msg0.format("'/'")),
             ('015s', True, err_msg0.format("'s'")),
-            ('-1843-01', True, err_msg1.format(-1843, _td_utils.MINYEAR,
-                                               _td_utils.MAXYEAR)),
-            ('1162-01', True, err_msg1.format(1162, _td_utils.MINYEAR,
-                                              _td_utils.MAXYEAR)),
+            ('-1843-01', True, err_msg1.format(-1843, self._tdu.MINYEAR,
+                                               self._tdu.MAXYEAR)),
+            ('1162-01', True, err_msg1.format(1162, self._tdu.MINYEAR,
+                                              self._tdu.MAXYEAR)),
             ('0181-01-01-', True, err_msg2),
             ('0181-W10-1-', True, err_msg2),
             ('0181-W101', True, err_msg3.format('0181-W101')),
@@ -871,7 +855,7 @@ class TestTimeDateUtils(unittest.TestCase):
         for date, validity, expected_result in data:
             if validity:
                 try:
-                    result = _td_utils._parse_isoformat_date(date)
+                    result = self._tdu._parse_isoformat_date(date)
                 except (AssertionError, ValueError, IndexError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -879,7 +863,7 @@ class TestTimeDateUtils(unittest.TestCase):
                     raise AssertionError(f"With '{date}' an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = _td_utils._parse_isoformat_date(date)
+                result = self._tdu._parse_isoformat_date(date)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, result))
 
@@ -924,7 +908,7 @@ class TestTimeDateUtils(unittest.TestCase):
         for time, validity, expected_result in data:
             if validity:
                 try:
-                    result = _td_utils._parse_isoformat_time(time)
+                    result = self._tdu._parse_isoformat_time(time)
                 except (AssertionError, ValueError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -932,7 +916,7 @@ class TestTimeDateUtils(unittest.TestCase):
                     raise AssertionError(f"With {time} an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = _td_utils._parse_isoformat_time(time)
+                result = self._tdu._parse_isoformat_time(time)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, time, result))
 
@@ -964,7 +948,7 @@ class TestTimeDateUtils(unittest.TestCase):
         for timezone, validity, expected_result in data:
             if validity:
                 try:
-                    result = _td_utils._parse_isoformat_timezone(timezone)
+                    result = self._tdu._parse_isoformat_timezone(timezone)
                 except (AssertionError, ValueError) as e:
                     self.assertEqual(expected_result, str(e))
                 else:
@@ -972,7 +956,7 @@ class TestTimeDateUtils(unittest.TestCase):
                     raise AssertionError(f"With {timezone} an error is not "
                                          f"raised, with result {result}.")
             else:
-                result = _td_utils._parse_isoformat_timezone(timezone)
+                result = self._tdu._parse_isoformat_timezone(timezone)
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, timezone, result))
 
@@ -993,8 +977,8 @@ class TestTimeDateUtils(unittest.TestCase):
                     "range of [1, {}].")
         data = (
             # Valid short form Badi dates
-            ((_td_utils.MINYEAR, 1, 1), False, ''),
-            ((_td_utils.MAXYEAR, 1, 1), False, ''),
+            ((self._tdu.MINYEAR, 1, 1), False, ''),
+            ((self._tdu.MAXYEAR, 1, 1), False, ''),
             # Invalid Váḥid
             ((1, 0, 1, 1, 1), True, err_msg0.format(0)),
             ((1, 20, 1, 1, 1), True, err_msg0.format(20)),
@@ -1019,13 +1003,13 @@ class TestTimeDateUtils(unittest.TestCase):
 
             if validity:
                 try:
-                    _td_utils._check_date_fields(*date, short_in=short_in)
+                    self._tdu._check_date_fields(*date, short_in=short_in)
                 except AssertionError as e:
                     self.assertEqual(err_msg, str(e))
                 else:
                     raise AssertionError(f"date {date}")
             else:
-                _td_utils._check_date_fields(*date, short_in=short_in)
+                self._tdu._check_date_fields(*date, short_in=short_in)
 
     #@unittest.skip("Temporarily skipped")
     def test__check_time_fields(self):
@@ -1056,13 +1040,13 @@ class TestTimeDateUtils(unittest.TestCase):
         for time, validity, err_msg in data:
             if validity:
                 try:
-                    _td_utils._check_time_fields(*time)
+                    self._tdu._check_time_fields(*time)
                 except AssertionError as e:
                     self.assertEqual(err_msg, str(e))
                 else:
                     raise AssertionError(f"time {time}")
             else:
-                _td_utils._check_time_fields(*time)
+                self._tdu._check_time_fields(*time)
 
     #@unittest.skip("Temporarily skipped")
     def test__wrap_strftime(self):
@@ -1085,6 +1069,6 @@ class TestTimeDateUtils(unittest.TestCase):
                 d = datetime(*date)
 
             tt = d.timetuple()
-            result = _td_utils._wrap_strftime(date, fmt, tt)
+            result = self._tdu._wrap_strftime(date, fmt, tt)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, format, result))

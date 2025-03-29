@@ -9,6 +9,7 @@ import re
 import unittest
 import importlib
 import locale
+from unittest.mock import patch
 
 from .._timedateutils import _td_utils
 from .._strptime import (_getlang, LocaleTime, _calc_julian_from_U_or_W,
@@ -248,11 +249,27 @@ class TestStrptime__StrpTime(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
-    @classmethod
-    def setUpClass(cls):
-        # So we can test actual values.
-        os.environ['LC_ALL'] = 'en_US.UTF-8'
-        locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
+    def setUp(self):
+        self.locale_patcher = patch(
+            'badidatetime._timedateutils.locale.nl_langinfo')
+        self.mock_nl_langinfo = self.locale_patcher.start()
+
+        def side_effect(item):
+            if item == locale.LC_TIME:
+                return 'en_US.UTF-8'
+            elif item == locale.AM_STR:
+                return 'AM'
+            elif item == locale.PM_STR:
+                return 'PM'
+            elif item == locale.D_FMT:
+                return '%m/%d/%Y'
+            else:
+                return 'Default Value'
+
+        self.mock_nl_langinfo.side_effect = side_effect
+
+    def tearDown(self):
+        self.locale_patcher.stop()
 
     #@unittest.skip("Temporarily skipped")
     def test_constructor_exception(self):
