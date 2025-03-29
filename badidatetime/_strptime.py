@@ -132,24 +132,24 @@ class LocaleTime:
         # Set self.date_time, self.date, & self.time by using
         # time.strftime().
 
-        # Use (1, 1, 1, 22, 44, 55, 2,76,0) for magic date because the amount of
-        # overloaded numbers is minimized. The order in which searches for
-        # values within the format string is very important; it eliminates
-        # possible ambiguity for what something represents.
-        time_tuple = _td_utils._build_struct_time((199, 1, 1, 22, 44, 55), 0,
+        # Use (199, 3, 17, 22, 44, 55, 4, 1, 0) for magic date because the
+        # amount of overloaded numbers is minimized. The order in which
+        # searches for values within the format string is very important;
+        # it eliminates possible ambiguity for what something represents.
+        time_tuple = _td_utils._build_struct_time((199, 3, 17, 22, 4, 30), 0,
                                                   short_in=True)
         date_time = [None, None, None]
         date_time[0] = _td_utils.strftime("%c", time_tuple).lower()
         date_time[1] = _td_utils.strftime("%x", time_tuple).lower()
         date_time[2] = _td_utils.strftime("%X", time_tuple).lower()
+        # date_time = ['kam jam  17 22:44:30 0199', '03/17/0199', '10:44:30']
         replacement_pairs = [('%', '%%'), (self.f_weekday[2], '%A'),
                              (self.f_month[3], '%B'), (self.a_weekday[2], '%a'),
                              (self.a_month[3], '%b'), (self.am_pm[1], '%p'),
-                             ('199', '%Y'), ('99', '%y'), ('22', '%H'),
-                             ('44', '%M'), ('55', '%S'), ('1', '%j'),
-                             ('01', '%d'), ('01', '%m'), ('1', '%m'),
-                             # ('1', '%m') needed for when no leading zero.
-                             ('0', '%w'), ('10', '%I')]
+                             ('0199', '%Y'), ('99', '%y'), ('22', '%H'),
+                             ('04', '%M'), ('4', '%-M'), ('30', '%S'),
+                             ('55', '%j'), ('17', '%d'), ('03', '%m'),
+                             ('3', '%-m'), ('2', '%w'), ('10', '%I')]
         replacement_pairs.extend([(tz, "%Z") for tz_values in self.timezone
                                   for tz in tz_values])
 
