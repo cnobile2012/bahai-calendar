@@ -4,7 +4,6 @@
 #
 __docformat__ = "restructuredtext en"
 
-import os
 import re
 import unittest
 import importlib
@@ -187,14 +186,11 @@ class TestStrptime_TimeRE(unittest.TestCase):
     def __init__(self, name):
         super().__init__(name)
 
-    @classmethod
-    def setUpClass(cls):
-        # So we can test actual values.
-        os.environ['LC_ALL'] = 'en_US.UTF-8'
-        locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')
-
     def setUp(self):
         self._tre = TimeRE()
+        # self._tre.locale_time.LC_date_time = 'kam jam  17 22:44:30 0199'
+        self._tre.locale_time.LC_date = '%m/%d/%Y'
+        self._tre.locale_time.LC_time = '%I:%M:%S'
 
     #@unittest.skip("Temporarily skipped")
     def test_regex_set_from_constructor(self):
