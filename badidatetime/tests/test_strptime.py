@@ -4,6 +4,7 @@
 #
 __docformat__ = "restructuredtext en"
 
+import os
 import re
 import unittest
 import importlib
@@ -84,6 +85,7 @@ class TestStrptime_LocaleTime(unittest.TestCase):
         super().__init__(name)
 
     def setUp(self):
+        os.environ['TZ'] = 'EST+05EDT,M4.1.0,M10.5.0'
         self._lt = LocaleTime()
         self._lt.LC_date_time = 'kam jam  17 22:44:30 0199'
         self._lt.LC_date = '%m/%d/%Y'
@@ -94,41 +96,40 @@ class TestStrptime_LocaleTime(unittest.TestCase):
         """
         Test that the abbreviated weekdays exist ard are in the correct order.
         """
-        abv_weekdays = [_td_utils.DAYNAMES_ABV[i].lower() for i in range(7)]
+        expected = [_td_utils.DAYNAMES_ABV[i].lower() for i in range(7)]
         result = self._lt.a_weekday
-        msg = "Expected {}, found {}"
-        self.assertEqual(abv_weekdays, result, msg.format(
-            abv_weekdays, result))
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_f_weekday(self):
         """
         Test that the full weekdays exist ard are in the correct order.
         """
-        weekdays = [_td_utils.DAYNAMES[i].lower() for i in range(7)]
+        expected = [_td_utils.DAYNAMES[i].lower() for i in range(7)]
         result = self._lt.f_weekday
-        msg = "Expected {}, found {}"
-        self.assertEqual(weekdays, result, msg.format(weekdays, result))
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_a_month(self):
         """
         Test that the abbreviated months exist ard are in the correct order.
         """
-        abv_month = [_td_utils.MONTHNAMES_ABV[i].lower() for i in range(20)]
+        expected = [_td_utils.MONTHNAMES_ABV[i].lower() for i in range(20)]
         result = self._lt.a_month
-        msg = "Expected {}, found {}"
-        self.assertEqual(abv_month, result, msg.format(abv_month, result))
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_f_month(self):
         """
         Test that the full months exist ard are in the correct order.
         """
-        month = [_td_utils.MONTHNAMES[i].lower() for i in range(20)]
+        expected = [_td_utils.MONTHNAMES[i].lower() for i in range(20)]
         result = self._lt.f_month
-        msg = "Expected {}, found {}"
-        self.assertEqual(month, result, msg.format(month, result))
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_am_pm(self):
@@ -137,8 +138,8 @@ class TestStrptime_LocaleTime(unittest.TestCase):
         """
         expected = ['am', 'pm']
         result = self._lt.am_pm
-        msg = "Expected {}, found {}"
-        self.assertEqual(expected, result, msg.format(expected, result))
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_LC_date_time(self):
@@ -147,8 +148,8 @@ class TestStrptime_LocaleTime(unittest.TestCase):
         """
         expected = 'kam jam  17 22:44:30 0199'
         result = self._lt.LC_date_time
-        msg = "Expected {}, found {}"
-        self.assertEqual(expected, result, msg.format(expected, result))
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_LC_date(self):
@@ -157,8 +158,8 @@ class TestStrptime_LocaleTime(unittest.TestCase):
         """
         expected = '%m/%d/%Y'
         result = self._lt.LC_date
-        msg = "Expected {}, found {}"
-        self.assertEqual(expected, result, msg.format(expected, result))
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_LC_time(self):
@@ -167,8 +168,8 @@ class TestStrptime_LocaleTime(unittest.TestCase):
         """
         expected = '%I:%M:%S'
         result = self._lt.LC_time
-        msg = "Expected {}, found {}"
-        self.assertEqual(expected, result, msg.format(expected, result))
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test_timezone(self):
@@ -177,8 +178,8 @@ class TestStrptime_LocaleTime(unittest.TestCase):
         """
         expected = (frozenset({'gmt', 'est', 'utc'}), frozenset({'edt'}))
         result = self._lt.timezone
-        msg = "Expected {}, found {}"
-        self.assertEqual(expected, result, msg.format(expected, result))
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
 
 class TestStrptime_TimeRE(unittest.TestCase):
