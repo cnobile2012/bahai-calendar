@@ -15,6 +15,7 @@ sys.path.append(BASE_DIR)
 
 from badidatetime import BahaiCalendar, GregorianCalendar
 from badidatetime._timedateutils import _td_utils
+from badidatetime import date as ddate
 
 
 class DateTests(BahaiCalendar):
@@ -702,6 +703,7 @@ class DateTests(BahaiCalendar):
     def find_weekdays(self, options):
         """
         -e and -S and -E
+        -C to not use coefficients.
 
         Find all the leap years between -1842 and 1161.
         """
@@ -719,14 +721,14 @@ class DateTests(BahaiCalendar):
             doy = 0
 
             for month in self.MONTHS:
-                dm = 19 if month != 0 else 4 + is_leap
+                dim = 19 if month != 0 else 4 + is_leap
 
-                for day in range(1, dm + 1):
+                for day in range(1, dim + 1):
                     date = (year, month, day)
                     g_date = self.gregorian_date_from_badi_date(date)
                     # week, weekday, wd_name, m_name
                     doy += 1
-                    weektuple = self._day_of_week(*date, doy)
+                    weektuple = self._day_of_week(*date, doy, options)
                     data.append((date, g_date, *weektuple,
                                  is_leap, days, doy))
 
@@ -1167,50 +1169,61 @@ class DateTests(BahaiCalendar):
         for d in reversed(range(1, days)):
             data.append(((k, v, y, m, d), (year, m, d)))
 
-    def _day_of_week(self, year, month, day, doy):
+    def _day_of_week(self, year, month, day, doy, options):
         # The weekday starts at 0 and ends at 6. We need to add one below
         # to make it ISO compatible.
         weekday = _td_utils._day_of_week(year, month, day)
         wd_name = _td_utils.DAYNAMES[weekday]
         m_name = _td_utils.MONTHNAMES[month]
         weekday += 1
-        week = self._week_of_year(year, month, day, weekday, doy)
+        week = (doy - (weekday - 1)) // 7 + 1
+
+        if not options.coff:
+            week = self._week_of_year(year, month, day, weekday, week)
+
         return week, weekday, wd_name, m_name
 
-    _REL = {0: 0, -1: -2, -2: -4, -3: -6, -4: -8, -5: -10, -6: -12,
-            13: 7, 14: 9, 15: 11, 16: 13, 17: 15, 18: 17, 19: 19}
+    _OFFSETS = {(1, 7, False): 1, (1, 7, True): 1,      # 01 & 02
+                (1, 6, False): 2, (1, 6, True): 2,      # 03 & 04
+                (1, 5, False): 3, (1, 5, True): 3,      # 05 & 06
+                (2, 6, False): 2, (2, 6, True): 2,      # 07 & 08
+                (2, 5, False): 3, (2, 5, True): 3,      # 09 & 10
+                (3, 5, False): 3, (3, 5, True): 3,      # 11 & 12
+                (17, 2, True): -3, (17, 3, False): -3,  # 13 & 14
+                (18, 2, True): -3, (18, 3, False): -3,  # 15 & 16
+                (18, 2, False): -2, (18, 1, True): -2,  # 17 & 18
+                (19, 2, True): -3, (19, 3, False): -3,  # 19 & 20
+                (19, 2, False): -2, (19, 1, True): -2,  # 21 & 22
+                (19, 1, False): -1, (19, 7, True): -1}  # 23 & 24
 
-    def _week_of_year(self, year, month, day, weekday, doy):
-        def _off(m, day, num):
-            if (m == 19 and 14 <= day <= 19) or (m == 1 and 1 <= day <= 7):
-                off = day - num
-                offset = (off - self._REL[off] if off in self._REL else -1)
-            else:
-                offset = -1
+    def _week_of_year(self, year, month, day, weekday, week):
+        def _offset(year, day):
+            leap = self._is_leap_year(year)
+            fwd = ddate(year, 1, 1).weekday() + 1  # Weekday on 1st of year.
+            return self._OFFSETS.get((day, fwd, leap), 0)
 
-            return offset
-
-        def _fix_2_3(year):
-            off = _off(1, 1, _td_utils._day_of_week(year, 1, 1) + 1)
-            return 1 if off in (2, 3) else 0
-
-        week = (doy - (weekday - 1)) // 7 + 1
-        offset = _off(month, day, weekday)
+        def _last_year_day(doy, day):
+            wd = _td_utils._day_of_week(year-1, 19, day)
+            return (doy - (wd - 1)) // 7 + 1
 
         if month == 19:
-            if offset in (6, 5, 4):
-                week = 52
-            elif offset in (3, 2, 1):
+            if _offset(year, day) in (-1, -2, -3):  # Make all the 1st week
                 week = 1
+            else:  # Catch any weeks in a year where all weeks are off by one.
+                week += 1 if _offset(year-1, 18) in (-2, -3) else 0
         elif month == 1:
-            if offset in (6, 5, 4):
-                week = 52
-            elif offset in (3, 2, 1):
+            if _offset(year, day) in (1, 2, 3):  # Fix 52 and 53 weeks
+                doy = 19 * 19 + 4 + self._is_leap_year(year)
+                # OK, this is confusing, what we need to do is look back 2
+                # years to see if the previous year was an off-by-one year,
+                # then set the current week correctly for this year.
+                week = 52 + (1 if _offset(year-2, 18) in (-2, -3) else 0)
+            elif week == 0:  # If week is 0 make it 1
                 week = 1
-            else:
-                week += _fix_2_3(year)
-        elif month in range(2, 19):
-            week += _fix_2_3(year)
+            else:  # Catch any weeks in a year where all weeks are off by one.
+                week += 1 if _offset(year-1, 18) in (-2, -3) else 0
+        else:  # Catch any weeks in a year where all weeks are off by one.
+            week += 1 if _offset(year-1, 18) in (-2, -3) else 0
 
         return week
 
@@ -1300,7 +1313,8 @@ if __name__ == "__main__":
             options.end = 3005  # Gregorian year 3005
 
         G = 'G' if options.graph else ''
-        print(f"./contrib/misc/{basename} -a{G}S{options.start} "
+        C = 'C' if options.coff else ''
+        print(f"./contrib/misc/{basename} -a{C}{G}S{options.start} "
               f"-E{options.end}")
 
         if options.graph:  # -G
@@ -1402,7 +1416,9 @@ if __name__ == "__main__":
             ret = 1
         else:
             start_time = time.time()
-            print(f"./contrib/misc/{basename} -eS{options.start} "
+            data = dt.find_weekdays(options)
+            C = 'C' if options.coff else ''
+            print(f"./contrib/misc/{basename} -e{C}S{options.start} "
                   f"-E{options.end}")
             print("Badí'          Gregorian                          Week "
                   "Week Day      Month      Leap  Days Day in")
@@ -1419,10 +1435,26 @@ if __name__ == "__main__":
                    f"{days:<3}  "
                    f"{total:>03}"
                    ) for (date, g_date, week, weekday, wd_name, m_name,
-                          leap, days, total) in dt.find_weekdays(options)]
+                          leap, days, total) in data]
             end_time = time.time()
             days, hours, minutes, seconds = dt._dhms_from_seconds(
                 end_time - start_time)
+            prev_week = 0
+            week_errors = []
+
+            for items in data:
+                woy = items[2]
+                dow = items[3]
+
+                if prev_week != 0 and 1 < dow <= 7 and woy != prev_week:
+                    week_errors.append((items[0], woy, dow, items[6]))
+
+                prev_week = woy
+
+            print(f"\n{len(week_errors)} Week of year errors:")
+            # woy = Week of year, dow = day of week
+            print("   date      woy dow  leap")
+            pprint.pp(week_errors, width=30)
             print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
                   f"{round(seconds, 6):02.6} seconds.")
     elif options.g_dates:  # -g
