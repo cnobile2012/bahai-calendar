@@ -73,12 +73,60 @@ class TestStrptime_Functions(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, year, woy, dow, result))
 
+    #@unittest.skip("Temporarily skipped")
+    def test__strptime_time(self):
+        """
+        Test that the _strptime_time function returns the correct time struct
+        depending on the format data.
+        """
+        data = (
+            ('Jal Bah 05 12:30:30 1', '',
+             'structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=5, '
+             'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=0, tm_yday=5, '
+             'tm_isdst=0)'),
+            ('0182-01-16', '%Y-%m-%d',
+             'structures.ShortFormStruct(tm_year=182, tm_mon=1, tm_mday=16, '
+             'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=5, tm_yday=16, '
+             'tm_isdst=0)'),
+            )
+        msg = "Expected {}, found {}"
+
+        for data_string, fmt, expected_result in data:
+            if fmt == '':
+                result = _strptime_time(data_string)
+            else:
+                result = _strptime_time(data_string, fmt)
+
+            self.assertEqual(expected_result, str(result), msg.format(
+                expected_result, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__strptime_datetime(self):
+        """
+        Test that the _strptime_datetime function returns an instance of
+        the supplyed datetime class object.
+        """
+        data = (
+            ('Jal Bah 05 12:30:30 1', '', '0001-01-05T12:30:30'),
+            ('0182-01-16', '%Y-%m-%d', '0182-01-16T00:00:00'),
+            )
+        msg = "Expected {}, found {}"
+
+        for data_string, fmt, expected_result in data:
+            if fmt == '':
+                result = _strptime_datetime(datetime.datetime, data_string)
+            else:
+                result = _strptime_datetime(datetime.datetime, data_string, fmt)
+
+            self.assertEqual(expected_result, str(result), msg.format(
+                expected_result, result))
+
 
 class TestStrptime_LocaleTime(unittest.TestCase):
     """
     This test is a bit different than most test. Since all the methods in
     the class are called in the constructor we need to test the results of
-    each of the method.
+    each of the methods.
     """
 
     def __init__(self, name):
@@ -226,10 +274,10 @@ class TestStrptime_TimeRE(unittest.TestCase):
              r"aẓa|núr|raḥ|kal|kam|asm|izz|mas|ilm|qud|qaw|mas|sha|sul|mul|"
              r"alá)\s+(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])\s+(?P<H>2[0-3]|[0-1]"
              r"\d|\d):(?P<M>[0-5]\d|\d):(?P<S>6[0-1]|[0-5]\d|\d)\s+(?P<Y>-?"
-             r"\d\d\d\d)"),
+             r"\d{1,4})"),
             (self._tre.locale_time.LC_date,
              r"(?P<m>1[0-9]|0[0-9]|[0-9])/(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])"
-             r"/(?P<Y>-?\d\d\d\d)"),
+             r"/(?P<Y>-?\d{1,4})"),
             (self._tre.locale_time.LC_time,
              r"(?P<I>1[0-2]|0[1-9]|[1-9]):(?P<M>[0-5]\d|\d):(?P<S>6[0-1]|"
              r"[0-5]\d|\d)"),
@@ -240,6 +288,55 @@ class TestStrptime_TimeRE(unittest.TestCase):
             result = self._tre.pattern(fmt)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, result))
+
+
+class TestStrptime_DotDict(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    def setUp(self):
+        aritrary_dict = {1: 1, 'a': 'a'}
+        self._dd = DotDict(aritrary_dict)
+
+    def test_get(self):
+        """
+        Test that the get method returns the correct object from the
+        dictionary.
+        """
+        err_msg0 = "No such attribute: {}"
+        data = (
+            (1, False, 1),
+            ('a', False, 'a'),
+            ('b', True, err_msg0.format('b')),
+            )
+        msg = "Expected {}, found {}"
+
+        for key, validity, expected_result in data:
+            if validity:
+                try:
+                    result = getattr(self._dd, key)
+                except AttributeError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    # Raise an error when an AssertionError is not raised.
+                    raise AssertionError(f"With key '{key}' an error was not "
+                                         f"raised, returned {result}.")
+            else:
+                result = self._dd.get(key)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, result))
+
+    def test_set(self):
+        """
+        Test that the set method creates a new object in the dictionary.
+        """
+        key = 'c'
+        expected = 'c'
+        self._dd[key] = 'c'
+        result = getattr(self._dd, key)
+        msg = f"Expected {expected}, found {result}"
+        self.assertEqual(expected, result, msg)
 
 
 class TestStrptime__StrpTime(unittest.TestCase):
@@ -295,7 +392,9 @@ class TestStrptime__StrpTime(unittest.TestCase):
         data = (
             # The default format does not work in my code or the standard
             # Python code.
-            #('Jal Bah 01 06:12:30 182', '%a %b %d %H:%M:%S %Y', ""),
+            ('Jal Bah 01 06:12:30 182', '%a %b %d %H:%M:%S %Y', False,
+             "<re.Match object; span=(0, 23), match='Jal Bah "
+             "01 06:12:30 182'>"),
             ('06:12:30', '%H:%M:%S', False,
              "<re.Match object; span=(0, 8), match='06:12:30'>"),
             ('1', '%U', False, "<re.Match object; span=(0, 1), match='1'>"),
@@ -321,7 +420,6 @@ class TestStrptime__StrpTime(unittest.TestCase):
                     # Raise an error when an AssertionError is not raised.
                     raise AssertionError(f"With data_str {data_str} an error "
                                          "was not raised.")
-
             else:
                 result = st._find_regex()
                 self.assertEqual(expected_result, str(result[0]), msg.format(
@@ -357,8 +455,8 @@ class TestStrptime__StrpTime(unittest.TestCase):
             (r"(?P<H>2[0-3]|[0-1]\d|\d)", 'hour', '23', 23),
             (r"(?P<H>2[0-3]|[0-1]\d|\d)", 'hour', '02', 2),
             (r"(?P<H>2[0-3]|[0-1]\d|\d)", 'hour', '2', 2),
-            # Need to set am and pm or these will fail depending on the
-            # time of the day.
+            # For %I, we need to set am and pm or these will fail depending
+            # on the time of the day.
             (r"(?P<I>1[0-2]|0[1-9]|[1-9])", 'hour', '12', 0),  # am
             (r"(?P<I>1[0-2]|0[1-9]|[1-9])", 'hour', '02', 2),
             (r"(?P<I>1[0-2]|0[1-9]|[1-9])", 'hour', '2', 2),
@@ -490,8 +588,8 @@ class TestStrptime__StrpTime(unittest.TestCase):
             ({'julian': None, 'weekday': 4, 'week_of_year': 0, 'year': 182},
              {'julian': 1}),
             # Updating the julian day (day of the year).
-            # ({'julian': None, 'weekday': 6, 'week_of_year': 0, 'year': 182,
-            #   'iso_year': None, 'iso_week': None}, {'julian': 6}),
+            ({'julian': None, 'weekday': 6, 'week_of_year': 0, 'year': 182,
+              'iso_year': None, 'iso_week': None}, {'julian': 3}),
             # Setting the year, month, day, and julian
             ({'julian': None, 'weekday': 4, 'week_of_year': None, 'year': None,
               'month': None, 'iso_year': 182, 'iso_week': 1},
@@ -502,6 +600,8 @@ class TestStrptime__StrpTime(unittest.TestCase):
             # Test for leap year when Ayyám-i-Há 5 is given.
             ({'julian': None, 'weekday': None, 'year': None, 'month': 0,
               'day': 5}, {'year': 1}),
+            ({'julian': None, 'weekday': 0, 'week_of_year': -1, 'year': 182},
+             {'julian': 355, 'year': 181}),  # 0181-19-09
             )
         msg = "Expected {}, with variable '{}', found {}"
 

@@ -1213,7 +1213,6 @@ class DateTests(BahaiCalendar):
                 week += 1 if _offset(year-1, 18) in (-2, -3) else 0
         elif month == 1:
             if _offset(year, day) in (1, 2, 3):  # Fix 52 and 53 weeks
-                doy = 19 * 19 + 4 + self._is_leap_year(year)
                 # OK, this is confusing, what we need to do is look back 2
                 # years to see if the previous year was an off-by-one year,
                 # then set the current week correctly for this year.
@@ -1451,7 +1450,7 @@ if __name__ == "__main__":
 
                 prev_week = woy
 
-            print(f"\n{len(week_errors)} Week of year errors:")
+            print(f"\n{len(week_errors)} Week-of-Year errors:")
             # woy = Week of year, dow = day of week
             print("   date      woy dow  leap")
             pprint.pp(week_errors, width=30)

@@ -230,7 +230,7 @@ class TimeRE(dict):
             'y': r"(?P<y>\d\d)",
             # XXX: Does 'Y' need to worry about having less or more than
             #     4 digits?
-            'Y': r"(?P<Y>-?\d\d\d\d)",
+            'Y': r"(?P<Y>-?\d{1,4})",
             'z': r"(?P<z>[+-]\d\d:?[0-5]\d(:?[0-5]\d(\.\d{1,6})?)?|(?-i:Z))",
             'A': self.__seqToRE(self.locale_time.f_weekday, 'A'),
             'a': self.__seqToRE(self.locale_time.a_weekday, 'a'),
@@ -283,11 +283,11 @@ class TimeRE(dict):
         format = whitespace_replacement.sub(r'\\s+', format)
 
         while '%' in format:
-            directive_index = format.index('%')+1
+            directive_index = format.index('%') + 1
             processed_format = (f"{processed_format}"
-                                f"{format[:directive_index-1]}"
+                                f"{format[:directive_index - 1]}"
                                 f"{self[format[directive_index]]}")
-            format = format[directive_index+1:]
+            format = format[directive_index + 1:]
 
         return f"{processed_format}{format}"
 
@@ -374,8 +374,8 @@ class _StrpTime:
         dot_dict = self._parse_found_dict(found, locale_time)
         self._check_iso_week(dot_dict)
         self._miscellaneous(dot_dict)
-        # Always returns a short form Badi date.
-        return ((dot_dict.year, dot_dict.month, dot_dict.day, None, None,
+        # Always returns a short form Badi date--for now.
+        return ((dot_dict.year, dot_dict.month, dot_dict.day,
                  dot_dict.hour, dot_dict.minute, dot_dict.second,
                  dot_dict.weekday, dot_dict.julian, dot_dict.tz,
                  dot_dict.tzname, dot_dict.gmtoff),
@@ -610,7 +610,6 @@ class _StrpTime:
                     dot_dict.year, dot_dict.week_of_year, dot_dict.weekday)
 
                 if dot_dict.julian is not None and dot_dict.julian <= 0:
-                    # print('POOP0', dot_dict.julian)
                     bc = BahaiCalendar()
                     dot_dict.year -= 1
                     yday = 365 + bc._is_leap_year(dot_dict.year)
@@ -658,8 +657,9 @@ def _strptime_time(data_string, format="%a %b %d %H:%M:%S %Y"):
     """
     Return a time struct based on the input string and the format string.
     """
-    tt = _strptime(data_string, format)[0]
-    return time.struct_time(tt[:time._STRUCT_TM_ITEMS])
+    tt = _StrpTime(data_string, format).start()[0]
+    return _td_utils._build_struct_time(tt[:_td_utils._SHORT_STRUCT_TM_ITEMS],
+                                        0, short_in=True)
 
 
 def _strptime_datetime(cls, data_string, format="%a %b %d %H:%M:%S %Y"):
@@ -667,9 +667,10 @@ def _strptime_datetime(cls, data_string, format="%a %b %d %H:%M:%S %Y"):
     Return a class cls instance based on the input string and the format
     string.
     """
-    tt, fraction, gmtoff_fraction = _strptime(data_string, format)
+    tt, fraction, gmtoff_fraction = _StrpTime(data_string, format).start()
+    # *** TODO *** The below needs to be fixed when log date are implimented.
     tzname, gmtoff = tt[-2:]
-    args = tt[:6] + (fraction,)
+    args = (*tt[:3], None, None, *tt[3: 6]) + (fraction,)
 
     if gmtoff is not None:
         tzdelta = datetime_timedelta(seconds=gmtoff,
@@ -682,5 +683,4 @@ def _strptime_datetime(cls, data_string, format="%a %b %d %H:%M:%S %Y"):
 
         args += (tz,)
 
-    print(args)
     return cls(*args)

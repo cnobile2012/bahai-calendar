@@ -2134,7 +2134,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         # err_msg0 = ("A full short or long form Badi date must be used, found "
         #             "{} fields.")
-        err_msg1 = ("A fractional value cannot be followed by a less "
+        err_msg1 = ("A fractional value cannot be followed by a least "
                     "significant value.")
         data = (
             ((1, 1, 1, None, None, 12, 30, 30), None, 0, False,

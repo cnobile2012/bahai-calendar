@@ -1708,7 +1708,7 @@ class datetime(date, Coefficients):
         def fractionals(value, items):
             if value % 1 and any(items):
                 raise ValueError("A fractional value cannot be followed by "
-                                 "a less significant value.")
+                                 "a least significant value.")
 
         fractionals(hour, (minute, second, microsecond))
         fractionals(minute, (second, microsecond))

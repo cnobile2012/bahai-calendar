@@ -19,26 +19,51 @@ class TimeDateUtils(BahaiCalendar):
     use is through a pre-instantiated object _td_utils.
     """
     # Badi additions are %:K for Kull-i-Shay and %:V for Váḥid.
-    VALID_FORMAT_CHRS = 'aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%'
+    _VALID_FORMAT_CHRS = 'aAbBcCdDefGhHIjkKlmMnprSTuUVWxXyYzZ%'
+    """
+    str: A list of all the format characters.
+    """
     DAYNAMES = ('Jalál', 'Jamál', 'Kamál', 'Fiḍāl', '`Idāl',
                 'Istijlāl', 'Istiqlāl')
+    """
+    tuple: The full day names.
+    """
     DAYNAMES_ABV = ('Jal', 'Jam', 'Kam', 'Fiḍ', 'Idā', 'Isj', 'Isq')
+    """
+    tuple: The abreviated day names.
+    """
     MONTHNAMES = {1: 'Bahá', 2: 'Jalál', 3: 'Jamál', 4: "'Aẓamat", 5: 'Núr',
                   6: 'Raḥmat', 7: 'Kalimát', 8: 'Kamál', 9: "Asmá'",
                   10: "'Izzat", 11: 'Mashíyyat', 12: "'Ilm", 13: 'Qudrat',
                   14: 'Qawl', 15: 'Masá’il', 16: 'Sharaf', 17: 'Sulṭán',
                   18: 'Mulk', 0: 'Ayyám-i-Há', 19: "'Alá'"}
+    """
+    dict: The full month names.
+    """
     MONTHNAMES_ABV = {1: 'Bah', 2: 'Jal', 3: 'Jam', 4: 'Aẓa', 5: 'Núr',
                       6: 'Raḥ', 7: 'Kal', 8: 'Kam', 9: 'Asm', 10: 'Izz',
                       11: 'Mas', 12: 'Ilm', 13: 'Qud', 14: 'Qaw', 15: 'Mas',
                       16: 'Sha', 17: 'Sul', 18: 'Mul', 0: 'Ayy', 19: 'Alá'}
+    """
+    dict: The abreviated month names.
+    """
     FIRST_YEAR_EPOCH = 1721501.261143
     """
-    The first day that we start our count Julian year 1, March 19th.
+    float: The first day that we start our count, Julian year 1, March 19th.
     """
     DAYS_BEFORE_1ST_YEAR = 77
     """
-    This keeps the Badí' day count in par with the Gregorian day count.
+    int: Keeps the Badí' day count in par with the Gregorian day count.
+    """
+    _SHORT_STRUCT_TM_ITEMS = 6
+    """
+    int: Length of the short form Badí' date and time portion of the
+    struct time.
+    """
+    _LONG_STRUCT_TM_ITEMS = 8
+    """
+    int: Length of the long form Badí' date and time portion of the
+    struct time.
     """
 
     def __init__(self):
@@ -278,7 +303,7 @@ class TimeDateUtils(BahaiCalendar):
 
     def c(self, ttup, org, mod):
         """
-        Locale specific date and time. Equivilent to "%a %b %e %H:%M:%S %Y".
+        Locale specific date and time. Equivalent to "%a %b %e %H:%M:%S %Y".
 
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
@@ -340,7 +365,7 @@ class TimeDateUtils(BahaiCalendar):
 
     def D(self, ttup, org, mod):
         """
-        Date where year is without century. Equivilent to a localized %m/%d/%y.
+        Date where year is without century. Equivalent to a localized %m/%d/%y.
 
         .. note::
 
@@ -630,7 +655,7 @@ class TimeDateUtils(BahaiCalendar):
 
         .. note::
 
-           It make no sense to start a week on different day in the Badí'
+           It makes no sense to start a week on different day in the Badí'
            Calendar. So the %W format is the same as %U.
 
         :param ttup: A struct_time object.
@@ -815,17 +840,20 @@ class TimeDateUtils(BahaiCalendar):
                        'U': U, 'V': V, 'w': u, 'W': U, 'x': x, 'X': X, 'y': y,
                        'Y': Y, 'z': z, 'Z': Z, '%': percent
                        }
+    """
+    dict: An internal list of the format methods.
+    """
 
     def strftime(self, format: str, ttup: tuple, tzinfo=None) -> str:
         """
-        Convert a struck_time object into a string according to a specified
+        Convert a struct_time object into a string according to a specified
         format.
 
         :param str format: A string format.
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
         :param tzinfo tzinfo: A tzinfo object.
-        :returns: A struck_time object converted to a formated string.
+        :returns: A struck_time object converted to a formatted string.
         :rtype: str
         """
         self._check_format(format)
@@ -870,7 +898,7 @@ class TimeDateUtils(BahaiCalendar):
                 i = 2 if ch0 in '-:' else 1
                 ch1 = format[idx+i]
 
-                if ((ch1 not in self.VALID_FORMAT_CHRS) or
+                if ((ch1 not in self._VALID_FORMAT_CHRS) or
                     (ch0 == '-' and ch1 not in 'dHjlmMSy') or
                     (ch0 == ':' and ch1 not in 'KVz')):
                     raise ValueError(
@@ -1073,7 +1101,7 @@ class TimeDateUtils(BahaiCalendar):
         if short_in:
             y, m, d, hh, mm, ss = date
         else:
-            # Mircosecond (ms) is not used.
+            # Microsecond (ms) is not used.
             y, m, d, hh, mm, ss, ms = self.short_date_from_long_date(
                 date, _chk_on=False)
 
