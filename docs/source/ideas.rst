@@ -103,3 +103,12 @@ DST is very arbitrary, it creates a fold in time when going from DST to ST
 the other direction. I see no value to it at all within the Badí' Calendar,
 however, I have kept it in the code. In the future I may start to remove
 it. This should make things work much cleaner and with less confusion.
+
+=========
+AM and PM
+=========
+
+I have implemented time for **AM** and **PM**, however, I'm not sure it is
+valid in the Badí' Calendar, because the day starts as sunset. Would we call
+two hours after sunset **AM**? I'm not sure this would feel right, maybe in the
+future there would be different designators for this situation.

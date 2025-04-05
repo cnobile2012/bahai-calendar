@@ -45,6 +45,8 @@ class TestTimeDateUtils(unittest.TestCase):
                 return 'PM'
             elif item == locale.D_FMT:
                 return '%m/%d/%Y'
+            elif item == locale.T_FMT:
+                return '%H:%M:%S'
             else:
                 return 'Default Value'
 

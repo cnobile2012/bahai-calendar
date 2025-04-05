@@ -11,11 +11,12 @@ CLASSES:
     LocaleTime -- Discovers and stores locale-specific time information
     TimeRE -- Creates regexes for pattern matching a string of text containing
                 time information
+    StrpTime -- Calculates the time struct represented by the passed-in string
 
 FUNCTIONS:
     _getlang -- Figure out what language is being used for the locale
-    strptime -- Calculates the time struct represented by the passed-in string
 """
+
 import time
 import locale
 from re import compile as re_compile
@@ -353,7 +354,7 @@ class DotDict(dict):
         self[key] = value
 
 
-class _StrpTime:
+class StrpTime:
     """
     Return a 2-tuple consisting of a time struct and an int containing
     the number of microseconds based on the input string and the
@@ -536,18 +537,19 @@ class _StrpTime:
                     dot_dict.hours = int(z[1:3])
                     dot_dict.minutes = int(z[3:5])
                     dot_dict.seconds = int(z[5:7] or 0)
-                    dot_dict.gmtoff = ((hours * 60 * 60) + (minutes * 60) +
-                                       seconds)
-                    dot_dict.gmtoff_remainder = z[8:]
+                    dot_dict.gmtoff = ((dot_dict.hours * 60 * 60) +
+                                       (dot_dict.minutes * 60) +
+                                       dot_dict.seconds)
+                    gmtoff_remainder = z[8:]
                     # Pad to always return microseconds.
-                    dot_dict.gmtoff_remainder_padding = (
+                    gmtoff_remainder_padding = (
                         "0" * (6 - len(gmtoff_remainder)))
                     dot_dict.gmtoff_fraction = int(gmtoff_remainder +
                                                    gmtoff_remainder_padding)
 
                     if z.startswith("-"):
-                        dot_dict.gmtoff = -gmtoff
-                        dot_dict.gmtoff_fraction = -gmtoff_fraction
+                        dot_dict.gmtoff = -dot_dict.gmtoff
+                        dot_dict.gmtoff_fraction = -dot_dict.gmtoff_fraction
             elif group_key == 'Z':
                 # Since -1 is default value only need to worry about setting
                 # tz if it can be something other than -1.
@@ -593,13 +595,11 @@ class _StrpTime:
                                  "year '%G' instead.")
 
     def _miscellaneous(self, dot_dict):
-        leap_year_fix = False
-
-        if dot_dict.year is None:
+        if dot_dict.year is None:  # We need to make our best guess.
             if dot_dict.month == 0 and dot_dict.day == 5:
                 dot_dict.year = 1  # 1 is first leap year of 1th century
-                leap_year_fix = True
             else:
+                # Year 2 is not a leap year and is picked arbitrarily.
                 dot_dict.year = 2
 
         # If we know the week of the year and what day of that week, we can
@@ -646,29 +646,23 @@ class _StrpTime:
             dot_dict.weekday = datetime_date(dot_dict.year, dot_dict.month,
                                              dot_dict.day).weekday()
 
-        # if leap_year_fix:
-        #     # The caller didn't supply a year but asked for Feb 29th. We
-        #     # couldn't use the default of 1900 for computations. We set it
-        #     # back to ensure that February 29th is smaller than March 1st.
-        #     year = 1900
-
 
 def _strptime_time(data_string, format="%a %b %d %H:%M:%S %Y"):
     """
     Return a time struct based on the input string and the format string.
     """
-    tt = _StrpTime(data_string, format).start()[0]
+    tt = StrpTime(data_string, format).start()[0]
     return _td_utils._build_struct_time(tt[:_td_utils._SHORT_STRUCT_TM_ITEMS],
                                         0, short_in=True)
 
 
 def _strptime_datetime(cls, data_string, format="%a %b %d %H:%M:%S %Y"):
     """
-    Return a class cls instance based on the input string and the format
-    string.
+    Return a datetime class cls instance based on the input string and the
+    format string. (cls will always be a datetime class object)
     """
-    tt, fraction, gmtoff_fraction = _StrpTime(data_string, format).start()
-    # *** TODO *** The below needs to be fixed when log date are implimented.
+    tt, fraction, gmtoff_fraction = StrpTime(data_string, format).start()
+    # *** TODO *** The below needs to be fixed when long date are implemented.
     tzname, gmtoff = tt[-2:]
     args = (*tt[:3], None, None, *tt[3: 6]) + (fraction,)
 

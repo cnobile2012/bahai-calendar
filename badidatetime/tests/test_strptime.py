@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 from .._timedateutils import _td_utils
 from .._strptime import (_getlang, LocaleTime, _calc_julian_from_U_or_W,
-                         DotDict, _StrpTime, TimeRE, _strptime_time,
+                         DotDict, StrpTime, TimeRE, _strptime_time,
                          _strptime_datetime)
 
 datetime = importlib.import_module('badidatetime.datetime')
@@ -109,6 +109,14 @@ class TestStrptime_Functions(unittest.TestCase):
         data = (
             ('Jal Bah 05 12:30:30 1', '', '0001-01-05T12:30:30'),
             ('0182-01-16', '%Y-%m-%d', '0182-01-16T00:00:00'),
+            ('0 5 12:30:30', '%m %d %H:%M:%S', '0001-00-05T12:30:30'),
+            ('12:30:30', '%H:%M:%S', '0002-01-01T12:30:30'),
+            ('182-01-16T12:30:30-05:00', '%Y-%m-%dT%H:%M:%S%z',
+             '0182-01-16T12:30:30-05:00'),
+            ('182-01-16T12:30:30 EST', '%Y-%m-%dT%H:%M:%S %Z',
+             '0182-01-16T12:30:30'),
+            ('182-01-16T12:30:30-0500 EST', '%Y-%m-%dT%H:%M:%S%z %Z',
+             '0182-01-16T12:30:30-05:00'),
             )
         msg = "Expected {}, found {}"
 
@@ -237,7 +245,7 @@ class TestStrptime_TimeRE(unittest.TestCase):
 
     def setUp(self):
         self._tre = TimeRE()
-        # self._tre.locale_time.LC_date_time = 'kam jam  17 22:44:30 0199'
+        self._tre.locale_time.LC_date_time = '%a %b  %d %H:%M:%S %Y'
         self._tre.locale_time.LC_date = '%m/%d/%Y'
         self._tre.locale_time.LC_time = '%I:%M:%S'
 
@@ -339,7 +347,7 @@ class TestStrptime_DotDict(unittest.TestCase):
         self.assertEqual(expected, result, msg)
 
 
-class TestStrptime__StrpTime(unittest.TestCase):
+class TestStrptime_StrpTime(unittest.TestCase):
 
     def __init__(self, name):
         super().__init__(name)
@@ -358,6 +366,8 @@ class TestStrptime__StrpTime(unittest.TestCase):
                 return 'PM'
             elif item == locale.D_FMT:
                 return '%m/%d/%Y'
+            elif item == locale.T_FMT:
+                return '%H:%M:%S'
             else:
                 return 'Default Value'
 
@@ -371,7 +381,7 @@ class TestStrptime__StrpTime(unittest.TestCase):
         """
         """
         with self.assertRaises(TypeError) as cm:
-            _StrpTime(100)
+            StrpTime(100)
 
         message = str(cm.exception)
         err_msg = "strptime() argument 0 must be str, not <class 'int'>."
@@ -408,7 +418,7 @@ class TestStrptime__StrpTime(unittest.TestCase):
         msg = "Expected {}, found {}"
 
         for data_str, fmt, validity, expected_result in data:
-            st = _StrpTime(data_str, fmt)
+            st = StrpTime(data_str, fmt)
             st._clear_cache()
 
             if validity:
@@ -431,97 +441,135 @@ class TestStrptime__StrpTime(unittest.TestCase):
         Test that the _parse_found_dict method correctly parses the arguments
         using the correct regex.
         """
+        err_msg0 = "Inconsistent use of : in {}"
         data = (
-            (r"(?P<y>\d\d)", 'year', '42', 42),
-            (r"(?P<Y>-?\d\d\d\d)", 'year', '0042', 42),
-            (r"(?P<G>-?\d\d\d\d)", 'iso_year', '0181', 181),
-            (r"(?P<G>-?\d\d\d\d)", 'iso_year', '-1842', -1842),
-            (r"(?P<m>1[0-9]|0[1-9]|[1-9])", 'month', '19', 19),
-            (r"(?P<m>1[0-9]|0[1-9]|[1-9])", 'month', '09', 9),
-            (r"(?P<m>1[0-9]|0[1-9]|[1-9])", 'month', '9', 9),
-            (r"(?P<m>1[0-9]|0[0-9]|[0-9])", 'month', '00', 0),
+            (r"(?P<y>\d\d)", 'year', '42', False, 42),
+            (r"(?P<Y>-?\d\d\d\d)", 'year', '0042', False, 42),
+            (r"(?P<G>-?\d\d\d\d)", 'iso_year', '0181', False, 181),
+            (r"(?P<G>-?\d\d\d\d)", 'iso_year', '-1842', False, -1842),
+            (r"(?P<m>1[0-9]|0[1-9]|[1-9])", 'month', '19', False, 19),
+            (r"(?P<m>1[0-9]|0[1-9]|[1-9])", 'month', '09', False, 9),
+            (r"(?P<m>1[0-9]|0[1-9]|[1-9])", 'month', '9', False, 9),
+            (r"(?P<m>1[0-9]|0[0-9]|[0-9])", 'month', '00', False, 0),
             (r"(?P<B>ayyám\-i\-há|mashíyyat|'aẓamat|kalimát|masá’il|raḥmat|"
              r"'izzat|qudrat|sharaf|sulṭán|jalál|jamál|kamál|asmá'|'alá'|bahá|"
-             r"'ilm|qawl|mulk|núr)", 'month', 'Bahá', 1),
+             r"'ilm|qawl|mulk|núr)", 'month', 'Bahá', False, 1),
             (r"(?P<B>ayyám-i-há|mashíyyat|'aẓamat|kalimát|masá’il|raḥmat|"
              r"'izzat|qudrat|sharaf|sulṭán|jalál|jamál|kamál|asmá'|'alá'|bahá|"
-             r"'ilm|qawl|mulk|núr)", 'month', 'Ayyám-i-Há', 0),
+             r"'ilm|qawl|mulk|núr)", 'month', 'Ayyám-i-Há', False, 0),
             (r"(?P<b>ayy|bah|jal|jam|aẓa|núr|raḥ|kal|kam|asm|izz|mas|ilm|qud|"
-             r"qaw|mas|sha|sul|mul|alá)", 'month', 'Alá', 19),
-            (r"(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])", 'day', '09', 9),
-            (r"(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])", 'day', '9', 9),
-            (r"(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])", 'day', ' 9', 9),
-            (r"(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])", 'day', '19', 19),
-            (r"(?P<H>2[0-3]|[0-1]\d|\d)", 'hour', '23', 23),
-            (r"(?P<H>2[0-3]|[0-1]\d|\d)", 'hour', '02', 2),
-            (r"(?P<H>2[0-3]|[0-1]\d|\d)", 'hour', '2', 2),
-            # For %I, we need to set am and pm or these will fail depending
-            # on the time of the day.
-            (r"(?P<I>1[0-2]|0[1-9]|[1-9])", 'hour', '12', 0),  # am
-            (r"(?P<I>1[0-2]|0[1-9]|[1-9])", 'hour', '02', 2),
-            (r"(?P<I>1[0-2]|0[1-9]|[1-9])", 'hour', '2', 2),
-            (r"(?P<M>[0-5]\d|\d)", 'minute', '00', 0),
-            (r"(?P<M>[0-5]\d|\d)", 'minute', '9', 9),
-            (r"(?P<S>6[0-1]|[0-5]\d|\d)", 'second', '60', 60),
-            (r"(?P<S>6[0-1]|[0-5]\d|\d)", 'second', '59', 59),
-            (r"(?P<S>6[0-1]|[0-5]\d|\d)", 'second', '9', 9),
-            (r"(?P<f>[0-9]{1,6})", 'fraction', '09', 90000),
+             r"qaw|mas|sha|sul|mul|alá)", 'month', 'Alá', False, 19),
+            (r"(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])", 'day', '09', False, 9),
+            (r"(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])", 'day', '9', False, 9),
+            (r"(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])", 'day', ' 9', False, 9),
+            (r"(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])", 'day', '19', False, 19),
+            (r"(?P<H>2[0-3]|[0-1]\d|\d)", 'hour', '23', False, 23),
+            (r"(?P<H>2[0-3]|[0-1]\d|\d)", 'hour', '02', False, 2),
+            (r"(?P<H>2[0-3]|[0-1]\d|\d)", 'hour', '2', False, 2),
+            (r"(?P<I>1[0-2]|0[1-9]|[1-9])", 'hour', '12', False, 0),  # am
+            (r"(?P<I>1[0-2]|0[1-9]|[1-9])", 'hour', '02', False, 2),
+            (r"(?P<I>1[0-2]|0[1-9]|[1-9])", 'hour', '2', False, 2),
+            (r"(?P<M>[0-5]\d|\d)", 'minute', '00', False, 0),
+            (r"(?P<M>[0-5]\d|\d)", 'minute', '9', False, 9),
+            (r"(?P<S>6[0-1]|[0-5]\d|\d)", 'second', '60', False, 60),
+            (r"(?P<S>6[0-1]|[0-5]\d|\d)", 'second', '59', False, 59),
+            (r"(?P<S>6[0-1]|[0-5]\d|\d)", 'second', '9', False, 9),
+            (r"(?P<f>[0-9]{1,6})", 'fraction', '09', False, 90000),
             (r"(?P<A>istijlāl|istiqlāl|jalál|jamál|kamál|fiḍāl|`idāl)",
-             'weekday', 'Jalál', 0),
+             'weekday', 'Jalál', False, 0),
             (r"(?P<A>istijlāl|istiqlāl|jalál|jamál|kamál|fiḍāl|`idāl)",
-             'weekday', '`Idāl', 4),
-            (r"(?P<a>jal|jam|kam|fiḍ|idā|isj|isq)", 'weekday', 'Jal', 0),
-            (r"(?P<a>jal|jam|kam|fiḍ|idā|isj|isq)", 'weekday', 'Idā', 4),
-            (r"(?P<w>[0-6])", 'weekday', '6', 6),
-            (r"(?P<u>[1-7])", 'weekday', '7', 7),
+             'weekday', '`Idāl', False, 4),
+            (r"(?P<a>jal|jam|kam|fiḍ|idā|isj|isq)", 'weekday', 'Jal', False, 0),
+            (r"(?P<a>jal|jam|kam|fiḍ|idā|isj|isq)", 'weekday', 'Idā', False, 4),
+            (r"(?P<w>[0-6])", 'weekday', '6', False, 6),
+            (r"(?P<u>[1-7])", 'weekday', '7', False, 7),
             (r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|"
-             r"0[1-9]|[1-9])", 'julian', '365', 365),
+             r"0[1-9]|[1-9])", 'julian', '365', False, 365),
             (r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|"
-             r"0[1-9]|[1-9])", 'julian', '350', 350),
+             r"0[1-9]|[1-9])", 'julian', '350', False, 350),
             (r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|"
-             r"0[1-9]|[1-9])", 'julian', '250', 250),
+             r"0[1-9]|[1-9])", 'julian', '250', False, 250),
             (r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|"
-             r"0[1-9]|[1-9])", 'julian', '090', 90),
+             r"0[1-9]|[1-9])", 'julian', '090', False, 90),
             (r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|"
-             r"0[1-9]|[1-9])", 'julian', '009', 9),
+             r"0[1-9]|[1-9])", 'julian', '009', False, 9),
             (r"(?P<j>36[0-6]|3[0-5]\d|[1-2]\d\d|0[1-9]\d|00[1-9]|[1-9]\d|"
-             r"0[1-9]|[1-9])", 'julian', '9', 9),
-            (r"(?P<U>5[0-2]|[0-4]\d|\d)", 'week_of_year', '52', 52),
-            (r"(?P<U>5[0-2]|[0-4]\d|\d)", 'week_of_year', '40', 40),
-            (r"(?P<U>5[0-2]|[0-4]\d|\d)", 'week_of_year', '01', 1),
-            (r"(?P<W>5[0-2]|[0-4]\d|\d)", 'week_of_year', '52', 52),
-            (r"(?P<W>5[0-2]|[0-4]\d|\d)", 'week_of_year', '40', 40),
-            (r"(?P<W>5[0-2]|[0-4]\d|\d)", 'week_of_year', '01', 1),
-            (r"(?P<V>5[0-3]|0[1-9]|[1-4]\d|\d)", 'iso_week', '52', 52),
-            (r"(?P<Z>gmt|est|utc|edt)", 'tz', 'GMT', 0),
+             r"0[1-9]|[1-9])", 'julian', '9', False, 9),
+            (r"(?P<U>5[0-2]|[0-4]\d|\d)", 'week_of_year', '52', False, 52),
+            (r"(?P<U>5[0-2]|[0-4]\d|\d)", 'week_of_year', '40', False, 40),
+            (r"(?P<U>5[0-2]|[0-4]\d|\d)", 'week_of_year', '01', False, 1),
+            (r"(?P<W>5[0-2]|[0-4]\d|\d)", 'week_of_year', '52', False, 52),
+            (r"(?P<W>5[0-2]|[0-4]\d|\d)", 'week_of_year', '40', False, 40),
+            (r"(?P<W>5[0-2]|[0-4]\d|\d)", 'week_of_year', '01', False, 1),
+            (r"(?P<V>5[0-3]|0[1-9]|[1-4]\d|\d)", 'iso_week', '52', False, 52),
+            (r"(?P<Z>gmt|est|utc|edt)", 'tz', 'GMT', False, 0),
+            (r"(?P<z>[+-]\d\d:?[0-5]\d(:?[0-5]\d(\.\d{1,6})?)?|(?-i:Z))",
+             'gmtoff', '-0500', False, -18000),
+            (r"(?P<z>[+-]\d\d:?[0-5]\d(:?[0-5]\d(\.\d{1,6})?)?|(?-i:Z))",
+             'gmtoff', '-05:00:00', False, -18000),
+            (r"(?P<z>[+-]\d\d:?[0-5]\d(:?[0-5]\d(\.\d{1,6})?)?|(?-i:Z))",
+             'gmtoff', 'Z', False, 0),  # Zulu or GMT
+            (r"(?P<z>[+-]\d\d:?[0-5]\d(:?[0-5]\d(\.\d{1,6})?)?|(?-i:Z))",
+             'gmtoff', '-03:3015', True, err_msg0.format('-03:3015')),
             )
-        msg = "Expected {}, with data_str {}, found {}"
+        msg = "Expected {}, with cnt {} and data_str {}, found {}"
 
-        for regex, variable, data_str, expected_result in data:
-            st = _StrpTime(data_str)
+        for cnt, (regex, variable, data_str, validity,
+                  expected_result) in enumerate(data):
+            st = StrpTime(data_str)
+            locale_time = LocaleTime()
+            cmp_regex = re.compile(regex, re.IGNORECASE)
+            found = cmp_regex.match(data_str)
+
+            if validity:
+                try:
+                    st._parse_found_dict(found, locale_time)
+                except ValueError as e:
+                    self.assertEqual(expected_result, str(e))
+                else:
+                    # Raise an error when an AssertionError is not raised.
+                    raise AssertionError(f"With count test {cnt} an error "
+                                         "was not raised.")
+            else:
+                dot_dict = st._parse_found_dict(found, locale_time)
+                result = getattr(dot_dict, variable)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, cnt, data_str, result))
+
+    @unittest.skip("Temporarily skipped")
+    def test_multi_char_formats(self):
+        """
+        Test that the _parse_found_dict method correctly parses multi
+        character formats using the correct regex.
+        """
+        data = (
+            (r"(?P<I>1[0-2]|0[1-9]|[1-9])\s+(?P<p>am|pm)", '2 pm',
+             {'hour': 14, }),
+            (r"(?P<y>\d\d) %", '01 %', {'year': 1, }),
+            (r"(?P<a>jal|jam|kam|fiḍ|idā|isj|isq)\s+(?P<b>ayy|bah|jal|jam|"
+             r"aẓa|núr|raḥ|kal|kam|asm|izz|mas|ilm|qud|qaw|mas|sha|sul|mul|"
+             r"alá)\s+(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])\s+(?P<H>2[0-3]|"
+             r"[0-1]\d|\d):(?P<M>[0-5]\d|\d):(?P<S>6[0-1]|[0-5]\d|\d)"
+             r"\s+(?P<Y>-?\\d{1,4})", '', {'': 0, }),
+            (r"(?P<m>1[0-9]|0[0-9]|[0-9])/(?P<d>1[0-9]|0[1-9]|[1-9]|"
+             r" [1-9])/(?P<Y>-?\\d{1,4})", '', {'': 0, }),
+            (r"(?P<I>1[0-2]|0[1-9]|[1-9]):(?P<M>[0-5]\d|\d):(?P<S>6[0-1]|"
+             r"[0-5]\d|\d)", '', {'': 0, }),
+            )
+        msg = "Expected {}, with cnt {} and data_str {}, found {}"
+
+        for cnt, (regex, data_str, expected_result) in enumerate(data):
+            st = StrpTime(data_str)
             locale_time = LocaleTime()
             cmp_regex = re.compile(regex, re.IGNORECASE)
             found = cmp_regex.match(data_str)
             dot_dict = st._parse_found_dict(found, locale_time)
-            #print(found_dict)
-            result = getattr(dot_dict, variable)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, data_str, result))
 
-    # @unittest.skip("Temporarily skipped")
-    # def test__parse_found_dict_alt(self):
-    #             """
-    #     Test that the _parse_found_dict_alt method correctly parses multiple
-    #     arguments using the correct regexs.
-    #     """
-    #     data = (
-    #         (r"(?P<z>[+-]\d\d:?[0-5]\d(:?[0-5]\d(\.\d{1,6})?)?|(?-i:Z))",
-    #          'gmtoff', '', ),
-    #         #(),
-    #         )
-    #     msg = "Expected {}, with data_str {}, found {}"
-
-    #     for regexs, variables, data_str, expected_result in data:
+            for key, value in expected_result.items():
+                expected = None
+                result = getattr(dot_dict, key)
+                self.assertEqual(expected, result, msg.format(
+                    expected_result, cnt, data_str, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__check_iso_week(self):
@@ -559,7 +607,7 @@ class TestStrptime__StrpTime(unittest.TestCase):
 
         for cnt, (var0, value0, var1, value1, var2, value2, var3, value3,
                   var4, value4, validity, expected_result) in enumerate(data):
-            st = _StrpTime("")
+            st = StrpTime("")
             dot_dict = DotDict({var0: value0, var1: value1,
                                 var2: value2, var3: value3, var4: value4})
 
@@ -607,7 +655,7 @@ class TestStrptime__StrpTime(unittest.TestCase):
 
         for cnt, (items, expected_result) in enumerate(data):
             dd = DotDict(items)
-            st = _StrpTime("")
+            st = StrpTime("")
 
             try:
                 st._miscellaneous(dd)
@@ -618,15 +666,3 @@ class TestStrptime__StrpTime(unittest.TestCase):
                 result = getattr(dd, var)
                 self.assertEqual(expected, result, msg.format(
                     expected, var, result))
-
-
-"""
-{
- 'z': '(?P<z>[+-]\\d\\d:?[0-5]\\d(:?[0-5]\\d(\\.\\d{1,6})?)?|(?-i:Z))',
- 'p': '(?P<p>am|pm)',
- '%': '%',
- 'c': 'idā\\s+bah\\s+(?P<j>36[0-6]|3[0-5]\\d|[1-2]\\d\\d|0[1-9]\\d|00[1-9]|[1-9]\\d|0[1-9]|[1-9])\\s+(?P<H>2[0-3]|[0-1]\\d|\\d):(?P<M>[0-5]\\d|\\d):(?P<S>6[0-1]|[0-5]\\d|\\d)\\s+(?P<w>[0-6])(?P<Y>-?\\d\\d\\d\\d)',
- 'x': '(?P<w>[0-6])(?P<j>36[0-6]|3[0-5]\\d|[1-2]\\d\\d|0[1-9]\\d|00[1-9]|[1-9]\\d|0[1-9]|[1-9])/(?P<w>[0-6])(?P<j>36[0-6]|3[0-5]\\d|[1-2]\\d\\d|0[1-9]\\d|00[1-9]|[1-9]\\d|0[1-9]|[1-9])/(?P<w>[0-6])(?P<Y>-?\\d\\d\\d\\d)',
- 'X': '(?P<j>36[0-6]|3[0-5]\\d|[1-2]\\d\\d|0[1-9]\\d|00[1-9]|[1-9]\\d|0[1-9]|[1-9])(?P<w>[0-6]):(?P<M>[0-5]\\d|\\d):(?P<S>6[0-1]|[0-5]\\d|\\d)'
-}
-"""
