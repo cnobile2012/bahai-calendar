@@ -303,7 +303,7 @@ class TimeDateUtils(BahaiCalendar):
 
     def c(self, ttup, org, mod):
         """
-        Locale specific date and time. Equivalent to "%a %b %e %H:%M:%S %Y".
+        Locale specific date and time. Equivalent to "%a %b %d %H:%M:%S %Y".
 
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
@@ -314,7 +314,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         st = f"{self.DAYNAMES_ABV[ttup.tm_wday]} "
         st += f"{self.MONTHNAMES_ABV[ttup.tm_mon]} "
-        st += f"{ttup.tm_mday: 2} "
+        st += f"{ttup.tm_mday:02} "
         st += f"{ttup.tm_hour:02}:"
         st += f"{ttup.tm_min:02}:"
         st += f"{ttup.tm_sec:02} "

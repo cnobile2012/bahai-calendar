@@ -11,7 +11,7 @@ Julian Period Days
 
 The most commonly used algorithm to convert to-and-from different Calendars is
 the JD (Julian period Day). You take your date from some calendar feed it into
-a function then out pops a JD. Then take that day and feed it into the  reverse
+a function then out pops a JD. Then take that JD and feed it into the  reverse
 function for a different calendar and out pops the date that is equivalent to
 the date of the first calendar. Essentially the JD is a continuous count of
 days from the Gregorian/Julian calendar year -4712:01:01 at noon. Jean Meeus in
@@ -34,19 +34,20 @@ calculations needed to be correct. This presented a few problems. I needed to
 find an algorithm that was Astronomically correct or write one myself. I know
 that both NASA and the USNO have an Astronomically correct formula, because
 they both have tables of the correct Vernal Eqinox, but I was not able to find
-it and if I did find it, it would only be for the Gregorian calendar. So as
-such I had to write my own formulas for both the Gregorian and Badí' calendars.
-This required both to-and-from formulas or four formulas in total.
+them. Even if I had found at least one of them, it would only have been for the
+Gregorian calendar. So as such I had to write my own formulas for both the
+Gregorian and Badí' calendars. This required both to-and-from formulas or four
+formulas in total.
 
 As mentioned elsewhere the Gregorian calendar uses a guestimation formula to
 determine the leap years so figuring out the leap years is rather easy. It is
-both consistant and regular. The Badí' calendar uses the sunset before the
-Vernal Equinox to determine the start of the year. There is no regularity in
-this at all, so determining leap years was a much bigger task, therefore the
-formula for the Badí' calendar needed coefficients to get it in line with a
-proper representation of the JD when checking against the Gregorian calendar.
-In my code I refer the Astronomically formula with the `exact` keyword being
-either `True` or `False`.
+both consistant and regular. The Badí' calendar, on the other hand, uses the
+sunset before the Vernal Equinox to determine the start of the year. There is
+little regularity in this, so determining leap years was a much bigger task,
+therefore the formula for the Badí' calendar needed coefficients to get it in
+line with a proper representation of the JD when checking against the Gregorian
+calendar. In my code the Astronomically formula is used by passing either
+`True` or `False` to the keyword `exact`.
 
 ================
 POSIX Timestamps
@@ -56,9 +57,9 @@ The POSIX timestamp had some of the same issues as the Julian Period day
 discussed above. It also needed to factor in coefficients to get inline with
 the Gregorian timestamps. However, because the timestamps are different
 depending on the timezone there is a minimum and maximum deviation between the
-Gregorian and Badí' timestamps. This deviation from a few time zones that were
-tested was between -241 and 121 seconds or about minus four minutes to plus two
-minutes.
+Gregorian and Badí' timestamps. The deviation from a few time zones were tested
+and shown to be between -241 and 121 seconds or about minus four minutes to
+plus two minutes.
 
 =============================
 Strftime and Strptime Methods
@@ -76,7 +77,7 @@ that the standard library don't support.
    %b  Abbreviated month name                       Bah
    %B  Full month name                              Bahá
    %c  Locale specific date and time. Equivilent
-       to "%a %b %e %H:%M:%S %Y"                    Jal Bah 01 22:30:45 181
+       to "%a %b %d %H:%M:%S %Y"                    Jal Bah 01 22:30:45 181
    %C  Century as a space-padded decimal number.
        (The year divided by 100 then truncated
        to an integer.)                              15 or ' 1'
