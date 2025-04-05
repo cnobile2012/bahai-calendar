@@ -25,11 +25,33 @@ class TestStrptime_Functions(unittest.TestCase):
         super().__init__(name)
 
     def setUp(self):
-        self.locale_patcher = patch('badidatetime._strptime.locale.getlocale')
-        self.mock_getlocale = self.locale_patcher.start()
+        self.getlocale_patcher = patch(
+            'badidatetime._strptime.locale.getlocale')
+        self.mock_getlocale = self.getlocale_patcher.start()
         self.mock_getlocale.return_value = ('en_US', 'UTF-8')
 
+        self.locale_patcher = patch(
+            'badidatetime._timedateutils.locale.nl_langinfo')
+        self.mock_nl_langinfo = self.locale_patcher.start()
+
+        def side_effect(item):
+            if item == locale.LC_TIME:
+                return 'en_US.UTF-8'
+            elif item == locale.AM_STR:
+                return 'AM'
+            elif item == locale.PM_STR:
+                return 'PM'
+            elif item == locale.D_FMT:
+                return '%m/%d/%Y'
+            elif item == locale.T_FMT:
+                return '%H:%M:%S'
+            else:
+                return 'Default Value'
+
+        self.mock_nl_langinfo.side_effect = side_effect
+
     def tearDown(self):
+        self.getlocale_patcher.stop()
         self.locale_patcher.stop()
 
     #@unittest.skip("Temporarily skipped")
