@@ -107,6 +107,21 @@ class TestStrptime_Functions(unittest.TestCase):
         Test that the _strptime_datetime function returns an instance of
         the supplyed datetime class object.
         """
+        def safe_data_parse():
+            is_github = os.getenv('TEST_RUNNING') == 'true'
+
+            if not is_github:
+                extra_tests = (
+                    ('182-01-16T12:30:30 EST', '%Y-%m-%dT%H:%M:%S %Z',
+                    '0182-01-16T12:30:30'),
+                    ('182-01-16T12:30:30-0500 EST', '%Y-%m-%dT%H:%M:%S%z %Z',
+                    '0182-01-16T12:30:30-05:00'),
+                    )
+            else:
+                extra_tests = ()
+
+            return extra_tests
+
         data = (
             ('Jal Bah 05 12:30:30 1', '', '0001-01-05T12:30:30'),
             ('0182-01-16', '%Y-%m-%d', '0182-01-16T00:00:00'),
@@ -114,12 +129,9 @@ class TestStrptime_Functions(unittest.TestCase):
             ('12:30:30', '%H:%M:%S', '0002-01-01T12:30:30'),
             ('182-01-16T12:30:30-05:00', '%Y-%m-%dT%H:%M:%S%z',
              '0182-01-16T12:30:30-05:00'),
-            # ('182-01-16T12:30:30 EST', '%Y-%m-%dT%H:%M:%S %Z',
-            #  '0182-01-16T12:30:30'),
-            # ('182-01-16T12:30:30-0500 EST', '%Y-%m-%dT%H:%M:%S%z %Z',
-            #  '0182-01-16T12:30:30-05:00'),
             )
         msg = "Expected {}, found {}"
+        data += safe_data_parse()
 
         for cnt, (data_string, fmt, expected_result) in enumerate(data):
             try:
@@ -132,7 +144,7 @@ class TestStrptime_Functions(unittest.TestCase):
                 self.assertEqual(expected_result, str(result), msg.format(
                     expected_result, result))
             except ValueError as e:
-                raise ValueError(f"With cnt '{cnt}' an error was raised, {e}.")
+                raise ValueError(f"With cnt '{cnt}' an error was raised, {e}")
 
 
 class TestStrptime_LocaleTime(unittest.TestCase):

@@ -43,12 +43,12 @@ are nearly equal making it a solar calendar.
 
 The Badí' leap years are irregular and cannot be guess with a simple formula as
 is done with Gregorian Calendar. Quite in contrast the Gregorian Calendar is
-only a solar calendar. It uses an approximation formula to guess when the leap
-years will be. This formula I call a 4/100/400 formula. In other words a leap
-year is every 4 years unless the year is divisible by 100 then it is not a leap
-year unless it is also dividable by 400 then it is a leap year. This means that
-the Gregorian leap years are on a 400 year cycle and can be predicted by the
-above formula thus making leap years fairly regular. 
+only a solar calendar. It uses a guesstimating formula to approximate when the
+leap years will be. This formula I call a 4/100/400 formula. In other words a
+leap year is every 4 years unless the year is divisible by 100 then it is not a
+leap year unless it is also dividable by 400 then it is a leap year. This means
+that the Gregorian leap years are on a 400 year cycle and can be more-or-less
+predicted by the above formula thus making leap years fairly regular.
 
 ------------
 Attributions
