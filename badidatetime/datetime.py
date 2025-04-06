@@ -240,7 +240,7 @@ def _fromutc(this: tzinfo, dt):
         dt += delta
         dtdst = dt.dst()
 
-        if dtdst is None:
+        if dtdst is None:  # pragma: no cover
             raise ValueError("_fromutc(): dt.dst gave inconsistent "
                              "results; cannot convert.")
 
@@ -2601,7 +2601,7 @@ class datetime(date, Coefficients):
             otoff = other.utcoffset()
 
             # Assume that allow_mixed means that we are called from __eq__
-            if allow_mixed:
+            if allow_mixed:  # pragma: no cover
                 if myoff != self.replace(fold=not self.fold).utcoffset():
                     return 2  # arbitrary non-zero value
 

@@ -20,6 +20,34 @@ from ..badi_calendar import BahaiCalendar
 datetime = importlib.import_module('badidatetime.datetime')
 
 
+class NoneTimeZone(datetime.tzinfo):
+    """
+    Creates a Timezone which defaults to None for the utcoffset, tzname,
+    and dst methods.
+    """
+
+    def __init__(self):
+        self._VALUES = {'utcoffset': None, 'tzname': None, 'dst': None}
+
+    def utcoffset(self, dt):
+        return self._VALUES['utcoffset']
+
+    def set_utcoffset(self, value):
+        self._VALUES['utcoffset'] = value
+
+    def tzname(self, dt):
+        return self._VALUES['tzname']
+
+    def set_tzname(self, value):
+        self._VALUES['tzname'] = value
+
+    def dst(self, dt):
+        return self._VALUES['dst']
+
+    def set_dst(self, value):
+        self._VALUES['dst'] = value
+
+
 class TestBadiDatetimeFunctions(unittest.TestCase):
 
     def __init__(self, name):
@@ -257,25 +285,25 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         """
         Test that the _fromutc function returns an updated datetime object.
         """
+        none_value_timezone0 = NoneTimeZone()
         err_msg0 = "_fromutc() requires a datetime argument."
         err_msg1 = "_fromutc() dt.tzinfo is not self"
-        #err_msg2 = "_fromutc() requires a non-None utcoffset() result."
+        err_msg2 = "_fromutc() requires a non-None utcoffset() result."
         err_msg3 = "_fromutc() requires a non-None dst() result."
-        #err_msg4 = ("_fromutc(): dt.dst gave inconsistent results; cannot "
-        #            "convert.")
+        # err_msg4 = ("_fromutc(): dt.dst gave inconsistent results; cannot "
+        #             "convert.")
         tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
-        #tz3 = datetime.timezone(datetime.timedelta(hours=0))
         data = (
             ((181, 14, 11), tz0, 0, False, '0181-14-11T03:30:00+03:30'),
             ((181, 14, 11), tz1, 0, False, '0181-14-11T00:00:00+00:00'),
             ((181, 14, 11), tz2, 0, False, '0181-14-10T19:00:00-05:00'),
             ((), None, 0, True, err_msg0),
             ((181, 14, 9), None, 0, True, err_msg1),
-            #((181, 14, 10), tz3, 0, True, err_msg2),
+            ((181, 14, 10), none_value_timezone0, 0, True, err_msg2),
             ((181, 14, 11), datetime.UTC, 0, True, err_msg3),
-            #((181, 14, 12), tz1, 1, True, err_msg4),
+            # ((181, 14, 12), none_value_timezone1, 0, True, err_msg4),
             )
         msg = "Expected {} with date {} and timezone {}, found {}."
 
@@ -284,9 +312,9 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                 dt = (datetime.datetime(*date, tzinfo=tz, fold=fold)
                       if date else None)
 
-                if tz is None and not dt: # err_msg0
+                if tz is None and not dt:  # err_msg0
                     this = None
-                elif tz is None: # err_msg1
+                elif tz is None:  # err_msg1
                     this = tz2
                 else:
                     this = dt.tzinfo
@@ -2907,6 +2935,12 @@ class TestBadiDatetime_datetime(unittest.TestCase):
              False, '0001-01-01T00:00:00+03:30'),
             # Test with timezone as None.
             ((181, 1, 1), None, None, False, '0181-01-01T00:00:00-05:00'),
+            # The offset is None for the tzinfo in datetime.datetime.
+            ((182, 1, 18), NoneTimeZone(), datetime.UTC, False,
+             '0182-01-18T05:00:00+00:00'),
+            # Same timezone
+            ((182, 1, 18), datetime.UTC, datetime.UTC, False,
+             '0182-01-18T00:00:00+00:00'),
             # Errors
             ((1, 1, 1), None, 0, True, err_msg0.format("<class 'int'>")),
             )
@@ -3062,21 +3096,22 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, tz, fold, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_strptime(self):
         """
         Test that the strptime method parses a date from a string and
         returns a datetime class object.
         """
         data = (
-            ("0001-01-01", "%Y-%m-%d", ''),
+            ('0001-01-01', '%Y-%m-%d', '0001-01-01T00:00:00'),
+            ('Jal Bah 05 12:30:30 1', '%a %b %d %H:%M:%S %Y',
+             '0001-01-05T12:30:30'),
             )
         msg = "Expected {} with str_date {} and format {}, found {}."
 
         for str_date, fmt, expected_result in data:
             dt = datetime.datetime.strptime(str_date, fmt)
             result = str(dt)
-            print(result)
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, str_date, fmt, result))
 
@@ -3512,7 +3547,6 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                     expected_result, date, td, result))
 
     #@unittest.skip("Temporarily skipped")
-    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test___sub__(self):
         """
         Test that the __sub__ method returns the correct results of a
@@ -3520,7 +3554,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         err_msg0 = "Result out of range."
         err_msg1 = "unsupported operand type(s) for -: 'datetime' and '{}'"
-        # err_msg2 = "Cannot mix naive and timezone-aware time."
+        err_msg2 = "Cannot mix naive and timezone-aware time."
         data = (
             ((1, 1, 1), None, (1,), (), False, (0, 19, 19)),
             ((1, 1, 1), None, (366,), (), False, (-1, 19, 19)),  # Leap year
@@ -3531,7 +3565,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((-1842, 1, 1), None, (1,), (), True, err_msg0),
             ((1161, 19, 19), None, (-1,), (), True, err_msg0),
             ((181, 1, 1), None, 1.5, (), True, err_msg1.format('float')),
-            #((181, 1, 2), datetime.LOCAL, (), (181, 1, 1), True, err_msg2),
+            ((181, 1, 2), datetime.UTC, NoneTimeZone(), (181, 1, 1), True,
+             err_msg2),
             )
         msg = "Expected {} with date0 {}, timedelta {}, and date1 {}, found {}"
 
