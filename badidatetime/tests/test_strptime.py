@@ -113,9 +113,9 @@ class TestStrptime_Functions(unittest.TestCase):
             if not is_github:
                 extra_tests = (
                     ('182-01-16T12:30:30 EST', '%Y-%m-%dT%H:%M:%S %Z',
-                    '0182-01-16T12:30:30'),
+                     '0182-01-16T12:30:30'),
                     ('182-01-16T12:30:30-0500 EST', '%Y-%m-%dT%H:%M:%S%z %Z',
-                    '0182-01-16T12:30:30-05:00'),
+                     '0182-01-16T12:30:30-05:00'),
                     )
             else:
                 extra_tests = ()
@@ -554,25 +554,29 @@ class TestStrptime_StrpTime(unittest.TestCase):
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, cnt, data_str, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     def test_multi_char_formats(self):
         """
         Test that the _parse_found_dict method correctly parses multi
         character formats using the correct regex.
         """
         data = (
-            (r"(?P<I>1[0-2]|0[1-9]|[1-9])\s+(?P<p>am|pm)", '2 pm',
-             {'hour': 14, }),
+            (r"(?P<I>1[0-2]|0[1-9]|[1-9])\s*(?P<p>am|pm)", '2 pm',
+             {'hour': 14}),
             (r"(?P<y>\d\d) %", '01 %', {'year': 1, }),
             (r"(?P<a>jal|jam|kam|fiḍ|idā|isj|isq)\s+(?P<b>ayy|bah|jal|jam|"
              r"aẓa|núr|raḥ|kal|kam|asm|izz|mas|ilm|qud|qaw|mas|sha|sul|mul|"
              r"alá)\s+(?P<d>1[0-9]|0[1-9]|[1-9]| [1-9])\s+(?P<H>2[0-3]|"
              r"[0-1]\d|\d):(?P<M>[0-5]\d|\d):(?P<S>6[0-1]|[0-5]\d|\d)"
-             r"\s+(?P<Y>-?\\d{1,4})", '', {'': 0, }),
+             r"\s+(?P<Y>-?\d{1,4})", 'Idā Bah 01 12:30:30 182',
+             {'year': 182, 'month': 1, 'day': 1, 'hour': 12, 'minute': 30,
+              'second': 30}),
             (r"(?P<m>1[0-9]|0[0-9]|[0-9])/(?P<d>1[0-9]|0[1-9]|[1-9]|"
-             r" [1-9])/(?P<Y>-?\\d{1,4})", '', {'': 0, }),
+             r" [1-9])/(?P<Y>-?\d{1,4})", '19/19/0181',
+             {'year': 181, 'month': 19, 'day': 19}),
             (r"(?P<I>1[0-2]|0[1-9]|[1-9]):(?P<M>[0-5]\d|\d):(?P<S>6[0-1]|"
-             r"[0-5]\d|\d)", '', {'': 0, }),
+             r"[0-5]\d|\d)", '11:30:30',
+             {'hour': 11, 'minute': 30, 'second': 30}),
             )
         msg = "Expected {}, with cnt {} and data_str {}, found {}"
 
@@ -581,10 +585,13 @@ class TestStrptime_StrpTime(unittest.TestCase):
             locale_time = LocaleTime()
             cmp_regex = re.compile(regex, re.IGNORECASE)
             found = cmp_regex.match(data_str)
-            dot_dict = st._parse_found_dict(found, locale_time)
 
-            for key, value in expected_result.items():
-                expected = None
+            try:
+                dot_dict = st._parse_found_dict(found, locale_time)
+            except AttributeError as e:
+                raise AttributeError(f"Count {cnt}, {e}")
+
+            for key, expected in expected_result.items():
                 result = getattr(dot_dict, key)
                 self.assertEqual(expected, result, msg.format(
                     expected_result, cnt, data_str, result))
