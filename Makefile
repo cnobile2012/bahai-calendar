@@ -88,8 +88,8 @@ build	: clobber
 .PHONY	: upload
 upload	: build
 	@./config.py
-#	hatch publish --repo main dist/*
-	twine upload --repository pypi dist/*
+	hatch publish --repo main dist/*
+#	twine upload --repository pypi dist/*
 
 .PHONY	: upload-test
 upload-test: export PR_TAG=$(TEST_TAG)
