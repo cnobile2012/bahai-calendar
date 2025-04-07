@@ -136,14 +136,14 @@ Building badidatetime
 
 .. note::
 
-   This part is only needed by me and people that have forked and want to
-   contribute to this project.
+   This part is only needed by me and people that have forked the repository
+   and want to contribute to this project.
 
-Versions are controlled by the **include.mk** file, so only change versions
-here. This file is read by various scripts in the this repository. In other
-words *DO NOT* update the **pyproject.toml** directly, there is a script
-(config.py) that is run from the **Makefile** that will update everything
-correctly.
+Versions are controlled by the **include.mk** file, so this is the only place
+to change version information. This file is read by various scripts in the
+repository. In other words *DO NOT* update the **pyproject.toml** directly,
+there is a script (config.py) that is run from the **Makefile** that will
+update everything correctly.
 
 Follow these steps to create the correct versioning and package for uploading
 to `pypi`.
@@ -170,7 +170,11 @@ to `pypi`.
 
    9. Go to your account on the `pypi test site <https://test.pypi.org/>`_ to
       check if it is there. :color-red:`(For errors see below.)`
-   10. Assuming everything went as expected then upload to the main `pypi`
+   10. The `pyproject.toml` files gets updated updating to the `pypi` test and
+       main sites, so it will need to be committed and pushed afterwards. This
+       file is not in the `badidatetime` build so it can lag behind with no
+       problems.
+   11. Assuming everything went as expected then upload to the main `pypi`
        site.
 
        .. code-block:: console
