@@ -119,7 +119,7 @@ class TestStrptime_Functions(unittest.TestCase):
                     )
             else:
                 extra_tests = ()
-                print(f"GitHub running tests. (TEST_RUNNING == {is_github})")
+                # print(f"GitHub running tests. (TEST_RUNNING == {is_github})")
 
             return extra_tests
 

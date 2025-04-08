@@ -45,7 +45,7 @@ class Test__init__(unittest.TestCase):
         .. note::
 
            This test requires internet access. We only test for the existance
-           of values because every locat would give different information.
+           of values because every locale would give different information.
         """
         lat, lon, zone = _get_local_coordinates()
         self.assertTrue(isinstance(lat, float),

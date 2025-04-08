@@ -42,6 +42,15 @@ sure to always import the packages you want after enabling the geocoder.
 The ``enable_geocoder()`` function takes one argument which can be set either
 ``True`` (default) or ``False``.
 
+.. warning::
+
+   The `geocoder` package that this API uses to get the locale coordinates and
+   time zone information, may return "ERROR - 429 Client Error: Too Many
+   Requests for url: http://ipinfo.io/json" on occasion. The `service they use
+   <http://ipinfo.io/>`_ lets you sign up for a free account permitting 50000
+   requests a month. I have only had this issue once in about 6 months without
+   even a free account, so it should not be an issue.
+
 ---------------
 datetime module
 ---------------
