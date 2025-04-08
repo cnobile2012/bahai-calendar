@@ -1766,9 +1766,11 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the _tzstr method returns a formatted timezone offset.
         """
+        tz0 = ZoneInfo('US/Eastern')
         data = (
             ((1, 30, 30, 500000), datetime.BADI, 0, '+03:30'),
-            # *** TODO *** No timezone yet
+            # tzinfo object without a datetime always returns None for offset.
+            ((12, 16, 4, 500000), tz0, 0, ''),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
@@ -1809,8 +1811,7 @@ class TestBadiDatetime_time(unittest.TestCase):
         data = (
             ((1, 30, 30), None, 0, '01:30:30'),
             ((1, 30, 30, 500000), None, 0, '01:30:30.500000'),
-            # *** TODO *** Needs to be tested with a timezone.
-            #((1, 30, 30, 500000), datetime.BADI, 0, '01:30:30.500000'),
+            ((1, 30, 30, 500000), datetime.BADI, 0, '01:30:30.500000+03:30'),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
@@ -2374,10 +2375,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # 1970-01-01 -> Badi date and time relative to +03:30
             (0, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
             # Local time (2024, 11, 30, 20, 24, 13, 327577)
-            # *** TODO *** There is a problem with the two results below, both
-            # should be the same. Checked with tz is correct. This could be
-            # that only God knows what coordinates are used for IANA time
-            # zones to arrive at the correct time. Off by 03:54:10.915200 hrs.
+            # There is a problem with the two results below, both should be
+            # the same. Checked with tz is correct. This could be that only
+            # God knows what coordinates are used for IANA time zones to
+            # arrive at the correct time. Off by 03:54:10.915200 hrs.
             # Latitude and Longitude dependent
             (1733016253.327577, None, True, '0181-14-10T08:22:10.099200'),
             (1733016253.327577, tz2, True, '0181-14-10T04:29:56.342400-05:00'),

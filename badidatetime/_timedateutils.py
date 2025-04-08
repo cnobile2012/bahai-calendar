@@ -463,8 +463,7 @@ class TimeDateUtils(BahaiCalendar):
               after. Subtract these two times and divide the results by 2 to
               determine noon. Then determine which side of noon the current
               Badí' time is on.
-
-        *** TODO *** Does a 12-hour clock make sense in a Badí' time?
+           3. Does a 12-hour clock make sense in a Badí' time?
 
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
@@ -1143,8 +1142,6 @@ class TimeDateUtils(BahaiCalendar):
                     # In Badí' years that have 52 weeks and start on the 3rd
                     # day (Kamál) or the 4th day (Fiḍāl).
                     # Badí' weeks start on Jalal (Saturday).
-                    # *** TODO *** This needs to be tested over a larger year
-                    #              spread.
                     p_offset = 7
                     out_of_range = False
 

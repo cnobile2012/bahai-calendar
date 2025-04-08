@@ -514,9 +514,6 @@ class TestBadiCalendar(unittest.TestCase):
         """
         Test that the badi_date_from_gregorian_date method returns the
         correct Badi date.
-
-        *** TODO *** In some cases Badi dates are off by almost a day.
-        (2024, 3, 19, 18, 15, 57.312) -> (181, 1, 1, 23, 59, 9.6288, 0)
         """
         data = (
             ((1844, 3, 19, 18, 16, 36.7104), False, True, True,

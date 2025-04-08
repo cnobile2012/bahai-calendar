@@ -1377,7 +1377,8 @@ class time:
         terms of the time to include. Valid options are `auto`, `hours`,
         `minutes`, `seconds`, `milliseconds` and `microseconds`.
 
-        :param str timespec: The specification for the time.
+        :param str timespec: The specification is either `auto` (default) or
+                             `milliseconds`.
         :returns: An ISO formatted string.
         :rtype: str
         """
