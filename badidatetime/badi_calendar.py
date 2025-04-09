@@ -35,19 +35,19 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         ]
     KULL_I_SHAY_MIN = -5
     """
-    Minimum kull_i_shay supported
+    int: Constant indicating the minimum Kull-i-shay the API supports.
     """
     KULL_I_SHAY_MAX = 4
     """
-    Maximum kull_i_shay supported
+    int: Constant indicating the maximum Kull-i-shay the API supports.
     """
     MINYEAR = -1842
     """
-    Minimum year supported
+    int: Constant indicating the minimum year this API can represent.
     """
     MAXYEAR = 1161
     """
-    Maximum year supported
+    int: Constant indicating the maximum year this API can represent.
     """
 
     def __init__(self, *args, **kwargs):
