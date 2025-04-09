@@ -2533,8 +2533,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     def test__mktime_gmt(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
-        local time. All tests below will only work with GMT set at the local
-        time set in the above patch.
+        local GMT time. All tests below will only work with GMT set at the
+        local time set in the above patch.
         https://www.epochconverter.com/timezones
         https://www.suntoday.org/sunrise-sunset/
         """
@@ -2591,10 +2591,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((-1347, 16, 2, None, None, 7, 55), -46483286400),
             ((-947, 16, 2, None, None, 7, 52), -33860505600),
             ((-547, 16, 2, None, None, 7, 49), -21237724800),
-            # Sunset 16:02 on 1969-12-31T16:02:00+00:00
-            # The start of the Badi day is at the date and time shown above.
-            # This is exactly 8 hours before UTC midnight the POSIX epoch.
-            # POSIX epoch local time 1970-01-01T00:00:00+00:00
+            # Sunset on 1969-12-31T16:02:00+00:00 is the start of the Badi day
+            # before the POSIX epoch. This is 7 hours and 58 minutes before
+            # UTC midnight the POSIX epoch. The local UTC time on the epoch was
+            # 1970-01-01T00:00:00+00:00
             ((126, 16, 2, None, None, 7, 58), 0),
             ((126, 16, 2, None, None, 8, 3, 7.7184), 307),
             )
@@ -2611,8 +2611,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     def test__mktime_local(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
-        local time. All tests below will only work with the local time set
-        in the above patch.
+        local time EST. All tests below will only work with the local time
+        set in the above patch.
         """
         # All results below indicate local time.
         data = (
@@ -2636,8 +2636,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
     def test__mktime_terhan(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
-        local time. All tests below will only work with Terhan set as the
-        local time set in the above patch.
+        local time in Terhan. All tests below will only work with Terhan
+        set as the local time set in the above patch.
         """
         # All results below indicate local time.
         data = (
@@ -2646,9 +2646,9 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # POSIX epoch local time 1970-01-01T03:50:00+03:30
             ((126, 16, 2, None, None, 10, 28), 0),
             # POSIX epoch 1970-01-01T00:00:00
-            #((126, 16, 2, None, None, 1, 48), 0),
-            # 2025-02-25T00:00:00
-            #((181, 18, 19, None, None, 6, 48), 1740459600),
+            ((126, 16, 2, None, None, 6, 48), -13200),
+            # 2024-31-30T00:00:00
+            ((181, 16, 2, None, None, 10, 28), 1735689600),
             )
         msg = "Expected {} with date {}, found {}."
 
