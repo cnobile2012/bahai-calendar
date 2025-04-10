@@ -2,6 +2,9 @@
 #
 # contrib/misc/determine_lat_lon.py
 #
+# This script determines the longitude in Tehran defined by the World Centre
+# for the origin of the Badi calendar.
+#
 
 import os
 import sys
@@ -38,7 +41,7 @@ Vernal Equinox        Sunset of Epoch
 (2023, 3, 21, 0, 54)  (2023, 3, 20, 18, 16)
 (2024, 3, 20, 6, 36)  (2024, 3, 19, 18, 15)
 (2025, 3, 20, 12, 31) (2025, 3, 19, 18, 15)
-(2026, 3, 20, 18, 16) (2026, 3, 20, 18, 16)
+(2026, 3, 20, 18, 16) (2026, 3, 20, 18, 16) ?
 (2027, 3, 20, 23, 55) (2027, 3, 20, 18, 16)
 (2028, 3, 20, 5, 47)  (2028, 3, 19, 18, 16)
 (2029, 3, 20, 11, 32) (2029, 3, 19, 18, 15)
@@ -81,7 +84,7 @@ Vernal Equinox        Sunset of Epoch
 
 
 class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
-    #    Year WC Naw-Ruz     Vernal Equinox (GMT)
+    #   Year  WC Naw-Ruz     NASA Vernal Equinox (GMT)
     WC_DATA = (
         (172, (2015, 3, 20), (2015, 3, 20, 22, 45)),
         (173, (2016, 3, 19), (2016, 3, 20,  4, 30)),
@@ -94,7 +97,7 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         (180, (2023, 3, 20), (2023, 3, 20, 21, 24)),
         (181, (2024, 3, 19), (2024, 3, 20,  3,  6)),
         (182, (2025, 3, 19), (2025, 3, 20,  9,  1)),
-        (183, (2026, 3, 20), (2026, 3, 20, 14, 46)),
+        (183, (2026, 3, 20), (2026, 3, 20, 14, 46)),  # ?
         (184, (2027, 3, 20), (2027, 3, 20, 20, 25)),
         (185, (2028, 3, 19), (2028, 3, 20,  2, 17)),
         (186, (2029, 3, 19), (2029, 3, 20,  8,  2)),
@@ -127,21 +130,26 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         (213, (2056, 3, 19), (2056, 3, 19, 21, 11)),
         (214, (2057, 3, 19), (2057, 3, 20,  3,  8)),
         (215, (2058, 3, 19), (2058, 3, 20,  9,  5)),
-        (216, (2059, 3, 19), (2059, 3, 20, 14, 44)),
+        (216, (2059, 3, 19), (2059, 3, 20, 14, 44)),  # ?
         (217, (2060, 3, 19), (2060, 3, 19, 20, 38)),
         (218, (2061, 3, 19), (2061, 3, 20,  2, 26)),
         (219, (2062, 3, 19), (2062, 3, 20,  8,  7)),
         (220, (2063, 3, 19), (2063, 3, 20, 13, 59)),
         (221, (2064, 3, 19), (2064, 3, 19, 19, 39)),
         )
+    # The overlap years
+    WC_DATA_183_216 = (
+        (183, (2026, 3, 20), (2026, 3, 20, 14, 46)),
+        (216, (2059, 3, 19), (2059, 3, 20, 14, 44)),
+        )
 
     def __init__(self):
         super().__init__()
         self.gc = GregorianCalendar()
-        self.location = self._BAHAI_LOCATION[:3]
-        #self.location = (35.682376, 51.285817, 3.5)
+        self.BADI_COORD = self._BAHAI_LOCATION[:3]
+        #self.BADI_COORD = (35.78, 51.2344395, 3.5)
 
-    def dump_sunset_after_ve(self):
+    def dump_sunset_after_ve(self, options):
         """
         Find the sunset before the Vernal Equinox or the sunset after if
         it is less than or equal to 1 minute after the Vernal Equinox.
@@ -151,103 +159,107 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         data = []
 
         for year, wc_ss, nasa_ve in self.WC_DATA:
-            # We do not use my version of the date to JD formula as it
-            # will not work with any of Meeus' equations.
-            first_of_march = (wc_ss[0], wc_ss[1], 1)  # Replace day with the 1st
-            jd = self.gc.jd_from_gregorian_date(first_of_march)  # Get Julian
-            my_ve_jd = self.find_moment_of_equinoxes_or_solstices(jd, zone=3.5)
-            my_ss_jd = self._sun_setting(my_ve_jd, *self.location)
-
-            # It is allowed to have a Vernal Equinox to be up to one minute
-            # before sunset and still use that sunset as the beginning of
-            # the year. If a day = 1 then 1 minute is 0.0006944444444444444
-            if my_ve_jd >= (my_ss_jd - 0.0006944444444444444):
-                begin_of_year = my_ss_jd
-            else:
-                begin_of_year = self._sun_setting(my_ve_jd - 1, *self.location)
-
-            my_g_ss = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
-                begin_of_year))
-            my_ve_g = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
-                my_ve_jd))
-            nasa_ve_jd = self.gc.jd_from_gregorian_date(nasa_ve) + self.HR(3.5)
-            nasa_ve_3p5 = self.gc.ymdhms_from_date(
-                self.gc.gregorian_date_from_jd(nasa_ve_jd))
-            #print(year, my_ve, nasa_ve_jd, file=sys.stderr)
+            (my_g_ss, my_ss_jd, my_ve_jd, nasa_ve_3p5, my_ve_g,
+             nasa_ve_jd) = self._find_data(year, wc_ss, nasa_ve, options)
             data.append((year,                           # Baha'i year
                          wc_ss,                          # WC sunset
                          my_g_ss,                        # My Gregorian sunset
                          round(my_ss_jd-my_ve_jd, 6),    # Sunset difference
-                         nasa_ve_3p5,                    # NASA VE
+                         nasa_ve_3p5,                    # Adjusted NASA VE
                          my_ve_g,                        # My VE
                          round(my_ve_jd-nasa_ve_jd, 6),  # VE difference
                          ))
 
         return data
 
-    def number_of_days(self):
+    def find_longitude(self, options):
         """
-        Find the number of days in a Badi year.
+        Find the best longitude for all 50 years.
 
-        Use -d
+        -l with -L
+        Optional -F, But be ware this will take many hours to complete.
         """
-        for year, item in self.WC_DATA.items():
-            wc_naw_ruz, vernal_equinox = item
-
-    def determine_year_length(self):
         data = []
-        #wc_pre_year = 0
-        #ss_pre_year = 0
-        data.append("Year "
-                    "VE STD Date                   "
-                    "WC Naw-Ruz    "
-                    #"B "
-                    "Sunset                        "
-                    #"SS Days "
-                    "(SS-VE)>=24hrs"
-                    )
+        start_lon = 51
+        dec_start = 131000  # Low range longitude
+        dec_end = 337200    # High range longitude
+        year_dict = {}
+        wc_data = self.WC_DATA if options.full else self.WC_DATA_183_216
 
-        for year, item in self.WC_DATA.items():
-            # World Center data
-            wc_naw_ruz = item[0]
-            #wc_nr_day = self.gc.jd_from_gregorian_date(wc_naw_ruz)
-            # Meeus tables UTC times
-            ve_utc_day = self.gc.jd_from_gregorian_date(item[1])
-            ve_std_date = self.gc.gregorian_date_from_jd(ve_utc_day)
-            rd_ss_day = self._sun_setting(ve_utc_day, *self._BAHAI_LOCATION[:3])
-            badi_ss_date = self.gc.gregorian_date_from_jd(rd_ss_day)
-            # VE more than 24 hours before sunset.
-            hours = True if (rd_ss_day - ve_utc_day) >= 24 else False
-            data.append((year, ve_std_date, wc_naw_ruz,
-                         #wc_nr_day
-                         #ve_utc_day <= wc_nr_day
-                         badi_ss_date, hours,
-                         #ve_utc_day <= rd_ss_day
-                         #wc_nr_day - wc_pre_year
-                         #rd_ss_day - ss_pre_year
-                         ))
-            #wc_pre_year = wc_nr_day
-            #ss_pre_year = rd_ss_day
+        for year, wc_ss, nasa_ve in wc_data:
+            min_max = []
+            print(f"Working on year {year}", file=sys.stderr)
+
+            for dp in range(dec_start, dec_end):
+                lon = round(start_lon + dp / 1000000, 6)
+                if lon > round(51 + dec_end / 1000000, 6): break
+                (my_g_ss, my_ss_jd, my_ve_jd, nasa_ve_3p5, my_ve_g,
+                 nasa_ve_jd) = self._find_data(year, wc_ss, nasa_ve,
+                                               options, test_lon=lon)
+                jd_diff = round(my_ss_jd-my_ve_jd, 6)
+
+                if wc_ss == my_g_ss[:3]:
+                    min_max.append((lon, jd_diff, wc_ss, my_g_ss[:3]))
+
+            min_l = 100
+            max_l = 0
+
+            for lon, diff, wc_ss, my_g_ss in min_max:
+                if min_l > lon:
+                    min_l = lon
+                    diff0 = diff
+                    wc_date0 = wc_ss
+                    my_date0 = my_g_ss
+
+                if max_l < lon:
+                    max_l = lon
+                    diff1 = diff
+                    wc_date1 = wc_ss
+                    my_date1 = my_g_ss
+
+            year_dict[year] = (wc_date0, my_date0, min_l, diff0,
+                               wc_date1, my_date1, max_l, diff1)
+
+        for year, (wc_date0, my_date0, min_l, diff0,
+                   wc_date1, my_date1, max_l, diff1) in year_dict.items():
+            data.append((year, wc_date0, my_date0, min_l, diff0,
+                         wc_date1, my_date1, max_l, diff1))
 
         return data
 
-    def find_coefficients(self):
-        data = []
-        #g_lte = 1.962
-        g_gt = 0.038
-        d0 = 365056.574  # or 365056.575
-        n0 = 730120      # 730113
+    # Support methods
 
-        for c in range(n0-20, 730151):
-            #rd_lte = 716241 / d0
-            rd_gt = (716241 - c) / d0
-            #data.append(f"{d0:<010}, {d}, {g_lte}, {rd_lte}")
-            data.append(f"{c}, {g_gt}, {rd_gt}")
+    def _find_data(self, year, wc_ss, nasa_ve, options, *, test_lon=None):
+        # We do not use my version of the date to JD formula as it
+        # will not work with any of Meeus' equations.
+        lat, lon, zone = self.BADI_COORD
+        lon = test_lon if test_lon and options.longitude else lon
+        first_of_march = (wc_ss[0], wc_ss[1], 1)  # Replace day with the 1st
+        jd = self.gc.jd_from_gregorian_date(first_of_march)  # Get JP day
+        my_ve_jd = self._find_moment_of_equinoxes_or_solstices(jd, zone=3.5)
+        my_ss_jd = self._sun_setting(my_ve_jd, lat, lon, zone)
 
-        return data
+        # It is allowed to have a Vernal Equinox to be up to one minute
+        # before sunset and still use that sunset as the beginning of
+        # the year. If a day = 1 then 1 minute is 0.0006944444444444444
+        if my_ve_jd >= (my_ss_jd - 0.0006944444444444444):
+            begin_of_year = my_ss_jd
+        else:
+            begin_of_year = self._sun_setting(my_ve_jd-1, lat, lon, zone)
+
+        my_g_ss = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
+            begin_of_year))
+        my_ve_g = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
+            my_ve_jd))
+        nasa_ve_jd = self.gc.jd_from_gregorian_date(nasa_ve) + self._HR(3.5)
+        nasa_ve_3p5 = self.gc.ymdhms_from_date(
+            self.gc.gregorian_date_from_jd(nasa_ve_jd))
+        #print(year, my_ve, nasa_ve_jd, file=sys.stderr)
+        return my_g_ss, my_ss_jd, my_ve_jd, nasa_ve_3p5, my_ve_g, nasa_ve_jd
 
 
 if __name__ == "__main__":
+    import time
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -257,61 +269,90 @@ if __name__ == "__main__":
         '-v', '--ve-ss', action='store_true', default=False, dest='ve_ss',
         help="Find the Vernal Equinox and sunset.")
     parser.add_argument(
-        '-d', '--days-in-years', action='store_true', default=False,
-        dest='days_in_years',
-        help="Find the number of days in each of 50 years.")
-
+        '-l', '--find-longitude', action='store_true', default=False,
+        dest='find_longitude', help="Find the length of each of the 50 years.")
+    parser.add_argument(
+        '-F', '--full', action='store_true', default=False,
+        dest='full', help=("Use the full spread of years from 172 to 221. "
+                           "Caution, this will take many hours to complete."))
+    parser.add_argument(
+        '-L', '--longitude', action='store_true', default=False,
+        dest='longitude', help=("If True use generated longitudes, else "
+                                "if False used default longitude."))
     options = parser.parse_args()
-    exclusive_error = (options.ve_ss, options.days_in_years)
-    assert exclusive_error.count(True) <= 1, (
-        "Options -v and -d  are exclusive.")
-
     cfmes = DumpFindMomentOfEquinoxesOrSolstices()
-    data = []
+    ret = 0
+    basename = os.path.basename(__file__)
 
-    if options.ve_ss:
-        print("The SS Diff is the difference between the Julian Period days "
-              "of the World Centre and my sunset times in Tehran and the "
-              "VE Diff\nis the difference between the Julian Period days of "
-              "the USNO Vernal Equinox, and my Vernal Equinox. The USNO "
-              "Vernal Equinox date\nand time was originally in UTC time "
-              "which I converted to Tehran standard time. (+03:30)\n")
-        print("Year WC Sunset     My Gregorian Sunset            SS Diff  "
-              "USNO's Vernal Equinox (Tehran) My Vernal Equinox (Tehran)     "
-              "VE Diff")
-        print('-'*130)
-        data = [f"{year}  "
-                f"{str(wc_ss):<13} "
-                f"{str(my_g_ss):<30} "
-                f"{ss_diff:<8} "
-                f"{str(nasa_ve):<30} "
-                f"{str(my_ve):<30} "
-                f"{ve_diff:>9.6f}"
-                for (year, wc_ss, my_g_ss, ss_diff,
-                     nasa_ve, my_ve, ve_diff) in cfmes.dump_sunset_after_ve()]
-        [print(line) for line in data]
-    elif options.days_in_years:
-        data = cfmes.number_of_days()
-        [print(line) for line in data]
+    if options.ve_ss:  # -v
+        if options.longitude:
+            print("Cannot use option -L (--longitude) with option -v "
+                  "(--ve-ss).", file=sys.stderr)
+            ret = 1
+        else:
+            data = cfmes.dump_sunset_after_ve(options)
+            print("The SS Diff is the difference between the Julian Period "
+                  "days of the World Centre and my sunset times in Tehran and "
+                  "the VE Diff\nis the difference between the Julian Period "
+                  "days of the USNO Vernal Equinox, and my Vernal Equinox. "
+                  "The USNO Vernal Equinox date\nand time was originally in "
+                  "UTC time which I converted to Tehran standard time. "
+                  "(+03:30)\n")
+            print("Year WC Sunset     My Gregorian Sunset            SS Diff  "
+                  "USNO's Vernal Equinox (Tehran) My Vernal Equinox (Tehran)  "
+                  "    VE Diff")
+            print('-'*130)
+            [print(f"{year}  "
+                   f"{str(wc_ss):<13} "
+                   f"{str(my_g_ss):<30} "
+                   f"{ss_diff:<8} "
+                   f"{str(nasa_ve):<30} "
+                   f"{str(my_ve):<30} "
+                   f"{ve_diff:>9.6f}"
+                   ) for (year, wc_ss, my_g_ss, ss_diff,
+                          nasa_ve, my_ve, ve_diff) in data]
+            print(f"\n./contrib/misc/{basename} -v")
+    elif options.find_longitude:  # -l
+        if not options.longitude:
+            print("Option -L (--longitude) must be used with option -l "
+                  "(--find-longitude).",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            start_time = time.time()
+            F = 'F' if options.full else ''
+            data = cfmes.find_longitude(options)
+            print(f"./contrib/misc/{basename} -oL{F}")
+            print("Year | WC Date       My Date       Min Lon   JD Diff  | "
+                  "WC Date       My Date       Max Lon   JD Diff")
+            print("-"*4, "|", "-"*46, "|", "-"*46)
+            [print(f"{year:04} | "
+                   f"{str(wc_date0):<13} "
+                   f"{str(my_date0):<13} "
+                   f"{min_l:<9} "
+                   f"{diff0:<8} | "
+                   f"{str(wc_date1):<13} "
+                   f"{str(my_date1):<13} "
+                   f"{max_l:<9} "
+                   f"{diff1:<8} "
+                   ) for (year, wc_date0, my_date0, min_l, diff0,
+                          wc_date1, my_date1, max_l, diff1) in data]
+
+            for (year, wc_date0, my_date0, min_l, diff0,
+                 wc_date1, my_date1, max_l, diff1) in data:
+                if min_l != 51.131:
+                    r_min_l = min_l
+                elif max_l != 51.3372:
+                    r_max_l = max_l
+
+            optimal_lon = (r_max_l - r_min_l) / 2 + r_min_l
+            print(f"\nThe optimal longitude is: {optimal_lon}")
+            end_time = time.time()
+            days, hours, minutes, seconds = cfmes._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
     else:
         parser.print_help()
 
-    if data:
-        pass
-        #data = cfmes.determine_year_length()
-        ## data.append(f"{year}, "
-        ##             f"{str(ve_std_date):<29} "
-        ##             f"{wc_naw_ruz} "
-        ##             #f"{wc_nr_day} "
-        ##             #f"{(ve_utc_day <= wc_nr_day):>1} "
-        ##             f"{str(badi_ss_date):<29} "
-        ##             f"{hours}"
-        ##             #f"{(ve_utc_day <= rd_ss_day):>1} "
-        ##             #f"{wc_nr_day - wc_pre_year} "
-        ##             #f"{rd_ss_day - ss_pre_year}"
-        ##             )
-
-        #data = cfmes.find_coefficients()
-        #pprint.pprint(data) # Raw data
-
-    sys.exit(0)
+    sys.exit(ret)

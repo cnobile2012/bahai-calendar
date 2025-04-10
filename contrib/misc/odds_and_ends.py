@@ -1,23 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# odds_and_ends.py
+# contrib/misc/odds_and_ends.py
 #
 
 import os
 import sys
-from datetime import datetime as dtime
 from zoneinfo import ZoneInfo
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from badidatetime import BahaiCalendar, GregorianCalendar, datetime
+from badidatetime import BahaiCalendar, GregorianCalendar
 from badidatetime._timedateutils import _td_utils
 
 
-class OddsAndEnds:
+class OddsAndEnds(BahaiCalendar):
     MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
               12, 13, 14, 15, 16, 17, 18, 0, 19)
     LOCAL_COORDS = (35.5894, -78.7792, -5.0)
@@ -31,75 +30,28 @@ class OddsAndEnds:
         )
 
     def __init__(self):
-        self._bc = BahaiCalendar()
+        super().__init__()
         self._gc = GregorianCalendar()
-
-    def find_year_week_day_of_week(self, options):
-        """
-        -1842, 1162
-        1, 182
-        """
-        for year in range(173, 182):
-            is_leap = self._bc._is_leap_year(year)
-
-            for month in self.MONTHS:
-                dm = 19 if month != 0 else 4 + is_leap
-
-                for day in range(1, dm + 1):
-                    date = (year, month, day)
-                    y, w, d, var = self._year_week_day(*date)
-
-                    if var == 3:
-                        print(date, is_leap, y, w, d)
-
-    def find_posix_time(self, options):
-        """
-        """
-        data = []
-
-        for date, coords, tz in self.GREG_POSIX_DATES:
-            m_jd = self._gc.jd_from_gregorian_date(date)
-            db_m_jd = m_jd - 1  # We need the day before.
-            ss = self._gc._sun_setting(db_m_jd, *coords)
-            ss -= self._bc._exact_from_meeus(ss)  # Convert to exact JD
-            b_date = self._bc.badi_date_from_jd(ss, *coords, short=True,
-                                                trim=True)
-            # Get the fractional day between sunset and UTC 12 a.m. on the
-            # following day
-            bm_frac = 0.5 - ss % 1
-            # Add the before midnight fraction to the fractional part of
-            # the Gregorian day minus 0.5.
-            total_frac = bm_frac + (m_jd % 1 - 0.5)
-            hms = self._bc._hms_from_decimal_day(total_frac)
-            full_date0 = b_date[:3] + hms
-            full_date1 = b_date[:3] + (None, None) + hms
-            greg_ts = dtime(*date, tzinfo=tz).timestamp()
-
-            #print(full_date0, full_date1, file=sys.stderr)
-
-            badi_ts = datetime(*full_date1, tzinfo=tz).timestamp()
-            diff = round(badi_ts - greg_ts, 6)
-            data.append((date, b_date, hms, full_date0, greg_ts, badi_ts, diff))
-
-        return data
 
     def test_ordinals(self, options):
         """
+        Check that the ordinals are correct.
+
         -o with -S and -E
         """
         data = []
         start = options.start
         end = options.end
-        assert (self._bc.MINYEAR-1) < start < (self._bc.MAXYEAR+1), (
-            f"Start '{start}' must be from {self._bc.MINYEAR} "
-            f"to {self._bc.MAXYEAR}.")
-        assert self._bc.MINYEAR < end < (self._bc.MAXYEAR+2), (
-            f"End '{end}' must be from {self._bc.MINYEAR} "
-            f"to {self._bc.MAXYEAR}")
+        assert (self.MINYEAR-1) < start < (self.MAXYEAR+1), (
+            f"Start '{start}' must be from {self.MINYEAR} "
+            f"to {self.MAXYEAR}.")
+        assert self.MINYEAR < end < (self.MAXYEAR+2), (
+            f"End '{end}' must be from {self.MINYEAR} "
+            f"to {self.MAXYEAR}")
         prev_ord = 0
 
         for year in range(start, end):
-            is_leap = self._bc._is_leap_year(year)
+            is_leap = self._is_leap_year(year)
 
             for month in self.MONTHS:
                 dm = 19 if month != 0 else 4 + is_leap
@@ -160,16 +112,11 @@ class OddsAndEnds:
 
 
 if __name__ == "__main__":
+    import time
     import argparse
 
     parser = argparse.ArgumentParser(
         description=("Some odds and ends."))
-    parser.add_argument(
-        '-a', '--analyze0', action='store_true', default=False,
-        dest='analyze0', help="Find the dates that are >= the 52 week.")
-    parser.add_argument(
-        '-b', '--analyze1', action='store_true', default=False,
-        dest='analyze1', help="Reconcile POSIX timestamps with Badi Dates.")
     parser.add_argument(
         '-o', '--ordinal', action='store_true', default=False,
         dest='ordinal', help="Test that _ymd2ord and _ord2ymd produce "
@@ -188,30 +135,13 @@ if __name__ == "__main__":
     ret = 0
     basename = os.path.basename(__file__)
 
-    if options.analyze0:  # -a
-        print(f"./contrib/misc/{basename} -a")
-        oae.find_year_week_day_of_week(options)
-    elif options.analyze1:  # -b
-        print(f"./contrib/misc/{basename} -b")
-        print("Gregorian Date                    Badi Date                  "
-              "   HMS               Combined                     Greg TS"
-              "          Badi TS          Diff")
-        print('-'*155)
-        [print(f"{str(date):33} "
-               f"{str(b_date):29} "
-               f"{str(hms):17} "
-               f"{str(comb):28} "
-               f"{greg_ts:>+16.4f} "
-               f"{badi_ts:>+16.4f} "
-               f"{diff:>+10.4f}"
-               ) for (date, b_date, hms, comb, greg_ts,
-                      badi_ts, diff) in oae.find_posix_time(options)]
-    elif options.ordinal:  # -o
+    if options.ordinal:  # -o
         if options.start is None or options.end is None:
             print("If option -o is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
-        elif options.previous:
+        elif options.previous:  # with -P
+            start_time = time.time()
             data = oae.test_ordinals(options)
             print(f"./contrib/misc/{basename} -oPS{options.start} "
                   f"-E{options.end}")
@@ -222,7 +152,13 @@ if __name__ == "__main__":
                    f"{str(date1):15} "
                    f"{ordinal:>7} "
                    ) for date0, prev_ord, date1, ordinal in data]
+            end_time = time.time()
+            days, hours, minutes, seconds = oae._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
         else:
+            start_time = time.time()
             data = oae.test_ordinals(options)
             print(f"./contrib/misc/{basename} -oS{options.start} "
                   f"-E{options.end}")
@@ -237,6 +173,11 @@ if __name__ == "__main__":
             print(f"    Total Years Tested: {options.end-options.start}")
             errors = [l[4] is True for l in data].count(True)
             print(f"Total Number of Errors: {errors}")
+            end_time = time.time()
+            days, hours, minutes, seconds = oae._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
     else:
         parser.print_help()
 

@@ -39,7 +39,8 @@ class PosixTests(BahaiCalendar, Coefficients):
     _MODULA = 4
 
     # Gregorian offset to the year before the Bahi epoch.
-    TRAN_COFF = 1843
+    _TRAN_COFF = 1843
+    _MONTH_DAY = (16, 2)
 
     def __init__(self):
         super().__init__()
@@ -61,8 +62,9 @@ class PosixTests(BahaiCalendar, Coefficients):
         offset = int(self.LOCAL_COORD[-1] * 3600)
 
         for b_year in range(start, end):
-            g_year = b_year + self.TRAN_COFF
-            date = (b_year, 16, 2, None, None) + self._get_badi_hms(b_year)[-1]
+            g_year = b_year + self._TRAN_COFF
+            date = (b_year, *self._MONTH_DAY,
+                    None, None) + self._get_badi_hms(b_year)[-1]
             dt = datetime.datetime(*date)
             b_date = date[:3] + date[5:]
             gmt_ts = int(dtime.datetime(g_year + 1, 1, 1,
@@ -92,7 +94,7 @@ class PosixTests(BahaiCalendar, Coefficients):
 
         for y in range(options.start, options.end):
             year = options.end - y
-            data.append((y + self.TRAN_COFF, y, year % self._MODULA))
+            data.append((y + self._TRAN_COFF, y, year % self._MODULA))
 
         return data
 
@@ -107,8 +109,8 @@ class PosixTests(BahaiCalendar, Coefficients):
         items = []
 
         for b_year in range(start, end):
-            g_year = b_year + self.TRAN_COFF
-            month, day = 16, 2
+            g_year = b_year + self._TRAN_COFF
+            month, day = self._MONTH_DAY
             h, m = self._get_badi_hms(b_year)[-1]
             dt = datetime.datetime(b_year, month, day, None, None, h, m)
             t1 = self._mktime(dt)
@@ -534,7 +536,7 @@ class PosixTests(BahaiCalendar, Coefficients):
                     epoch) // datetime.timedelta(0, 1)
 
         hms = self._get_badi_hms(126)[-1]
-        epoch = datetime.datetime(126, 16, 2, None, None, *hms)
+        epoch = datetime.datetime(126, *self._MONTH_DAY, None, None, *hms)
         date = self._short_from_long_form(dt, time=dt.b_time)
         t = (datetime.datetime(*date) - epoch) // datetime.timedelta(0, 1)
         a = gmt(t) - t
@@ -561,7 +563,8 @@ class PosixTests(BahaiCalendar, Coefficients):
 
         This is the last value returned, the first two are only for testing.
         """
-        jd = self.jd_from_badi_date((year, 16, 2), *self.LOCAL_COORD)
+        jd = self.jd_from_badi_date((year, *self._MONTH_DAY),
+                                    *self.LOCAL_COORD)
         mjd = jd + self._meeus_from_exact(jd)
         ss = self._sun_setting(mjd, *self.LOCAL_COORD)
         # Round to the nearest minute.
