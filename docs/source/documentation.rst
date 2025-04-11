@@ -61,32 +61,32 @@ Gregorian and Badí' timestamps. The deviation from a few time zones were tested
 and shown to be between -241 and 121 seconds or about minus four minutes to
 plus two minutes.
 
-============================================================================
-Finding the Latitude and Longitude of the Origin Point of the Badí' Calendar
-============================================================================
+==================================
+Origin Point of the Badí' Calendar
+==================================
 
 There are two years 0183-01-01 (2026-03-20) and 0216-01-01 (2059-03-19) that
 have a very narrow overlap where all the 50 dates provided by The World Centre
-will be on the correct day for Naw-Rúz. I ran these calculation by hand and
-came up with 35.682376 for the latitude and 51.285817 for the longitude. The
-longitude I chose was more-or-less the midway point between the above mentioned
-overlap. All the code in the `badidatetime/badi_calendar.py` module are
-dependent on these values.
+will be on the correct day for Naw-Rúz. The calculations for latitude and
+longitude were derived by hand, with results of 35.682376 for the latitude and
+51.285817 for the longitude. The longitude I chose was more-or-less the midway
+point between the above mentioned overlap. All the code in the
+`badidatetime/badi_calendar.py` module is dependent on these values.
 
 Since my original calculations I wrote a script that can determine this midway
 point algorithmically. It gave me a slightly different midway point, but not
 enough for me to make changes to the code.
 
-To get the midway point, run the script below. It only runs data for the two
-years mentioned above. Runs for about 9 minutes.
+To get the midway point, run the script below. It only calculates data for the
+two years mentioned above. It runs for about 9 minutes.
 
 .. code:: shell
 
    $ ./contrib/misc/determine_lat_lon.py -oL
 
-There is also a `-F` argument to run the full 50 years which can be added to
-the above script, however, it will take up to 4 or 5 hours to run, so beware.
-The final midway point will be the same in either case.
+There is also a `-F` argument which can be added to the above script, it
+calculates the full 50 years, however, it will take up to 4 or 5 hours to run,
+so beware. The final midway point should be the same in either case.
 
 =============================
 Strftime and Strptime Methods
