@@ -18,11 +18,12 @@ from badidatetime import BahaiCalendar, GregorianCalendar
 """
 These are the sunsets which are for the most part before the Vernal Equinox.
 All dates are corrected for Tehran Iran.
-Max longitude (2026): 51.5036157
-Max Longitude (2059): 51.285817
+Max longitude 183 (2026): 51.5036157
+Max longitude 216 (2059): 51.337186
+The longitude midway point: 51.2344395
 Median Longitude    : 51.285817 USED
-Min longitude (2026): 51.2540465
-Min Longitude (2059): 51.0360365
+Min longitude 183 (2026): 51.131693
+Min longitude 216 (2059): 51.0360365
 The latitude makes little difference so we use: 35.682376
 
 Hour calculator:
