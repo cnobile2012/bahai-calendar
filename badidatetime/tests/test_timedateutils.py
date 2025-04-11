@@ -1060,15 +1060,17 @@ class TestTimeDateUtils(unittest.TestCase):
         data = (
             ((181, 1, 1), '%d/%m/%Y, %H:%M:%S', d_t, '01/01/0181, 00:00:00'),
             ((1, 1, 8), '%-d', d_t, '8'),
-            #((181, 1, 1, 0, 9, 0), dt_t, '%-M', ''),
+            ((181, 1, 1, None, None, 0, 9, 0), '%-M', dt_t, '9'),
+            ((182, 2, 4, None, None, 12, 30, 30, 500000),
+             '%a %b %d %H:%M:%S %Y', dt_t, 'Isj Jal 04 12:30:30 0182'),
             )
         msg = "Expected {} with date {} and format {}, found {}."
 
         for date, fmt, obj_t, expected_result in data:
             if obj_t == d_t:
-                d = datetime.datetime(*date)
+                d = datetime.date(*date)
             else:
-                d = datetime(*date)
+                d = datetime.datetime(*date)
 
             tt = d.timetuple()
             result = self._tdu._wrap_strftime(date, fmt, tt)

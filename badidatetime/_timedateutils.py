@@ -1460,8 +1460,8 @@ class TimeDateUtils(BahaiCalendar):
         assert fold in (0, 1), (
             f"The fold argument '{fold}' must be either 0 or 1.")
 
-    def _wrap_strftime(self, object, format: str,
-                       timetuple: tuple, tzinfo=None) -> str:
+    def _wrap_strftime(self, object, format: str, timetuple: tuple,
+                       tzinfo=None) -> str:
         """
         Correctly substitute for %z and %Z escapes in strftime formats.
 
