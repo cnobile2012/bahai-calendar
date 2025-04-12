@@ -30,6 +30,3 @@ formats:
 python:
   install:
     - requirements: requirements/development.txt
-
-latex:
-  latex_engine: lualatex
