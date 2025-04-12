@@ -9,6 +9,7 @@ import sys
 import locale
 import importlib
 import unittest
+from zoneinfo import ZoneInfo
 from unittest.mock import patch, PropertyMock
 
 PWD = os.path.dirname(os.path.abspath(__file__))
@@ -1057,12 +1058,16 @@ class TestTimeDateUtils(unittest.TestCase):
         string.
         """
         d_t, dt_t = 1, 2
+        tz = ZoneInfo('US/Eastern')
         data = (
             ((181, 1, 1), '%d/%m/%Y, %H:%M:%S', d_t, '01/01/0181, 00:00:00'),
             ((1, 1, 8), '%-d', d_t, '8'),
             ((181, 1, 1, None, None, 0, 9, 0), '%-M', dt_t, '9'),
             ((182, 2, 4, None, None, 12, 30, 30, 500000),
-             '%a %b %d %H:%M:%S %Y', dt_t, 'Isj Jal 04 12:30:30 0182'),
+             '%a %b %d %H:%M:%S.%f %Y', dt_t,
+             'Isj Jal 04 12:30:30.500000 0182'),
+            ((182, 2, 4, None, None, 0, 0, 0, 0, tz), '%Y-%m-%dT%H:%M:%S%z',
+             dt_t, '0182-02-04T00:00:00-0400'),
             )
         msg = "Expected {} with date {} and format {}, found {}."
 
@@ -1073,6 +1078,6 @@ class TestTimeDateUtils(unittest.TestCase):
                 d = datetime.datetime(*date)
 
             tt = d.timetuple()
-            result = self._tdu._wrap_strftime(date, fmt, tt)
+            result = self._tdu._wrap_strftime(d, fmt, tt)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, date, format, result))

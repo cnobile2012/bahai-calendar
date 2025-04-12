@@ -1460,12 +1460,12 @@ class TimeDateUtils(BahaiCalendar):
         assert fold in (0, 1), (
             f"The fold argument '{fold}' must be either 0 or 1.")
 
-    def _wrap_strftime(self, object, format: str, timetuple: tuple,
+    def _wrap_strftime(self, obj, format: str, timetuple: tuple,
                        tzinfo=None) -> str:
         """
         Correctly substitute for %z and %Z escapes in strftime formats.
 
-        :param class object: A class instance that uses this method.
+        :param class obj: A class instance that is calling this method.
         :param str format: The formatted string.
         :param timetuple:
         :type ttup: ShortFormStruct or LongFormStruct
@@ -1479,7 +1479,7 @@ class TimeDateUtils(BahaiCalendar):
         newformat = []
         push = newformat.append
         i, n = 0, len(format)
-        tzinfo = object.tzinfo if hasattr(object, 'tzinfo') else None
+        tzinfo = obj.tzinfo if hasattr(obj, 'tzinfo') else None
 
         while i < n:
             ch = format[i]
@@ -1492,7 +1492,7 @@ class TimeDateUtils(BahaiCalendar):
 
                     if ch == 'f':
                         if freplace is None:
-                            freplace = f'{getattr(object, "microsecond", 0):06}'
+                            freplace = f'{getattr(obj, "microsecond", 0):06d}'
 
                         push(freplace)
                     else:
