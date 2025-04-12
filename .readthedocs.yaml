@@ -9,10 +9,10 @@ build:
   os: ubuntu-24.04
   tools:
     python: "3.13"
-  jobs:
-    pre_build:
-      - apt-get update -y
-      - apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended latexmk texlive-xetex fonts-freefont-otf luatex85 imagemagick
+#  jobs:
+#    pre_build:
+#      - apt-get update -y
+#      - apt-get install -y texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended latexmk texlive-xetex fonts-freefont-otf luatex85 imagemagick
 
 sphinx:
   configuration: docs/source/conf.py
