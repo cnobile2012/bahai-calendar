@@ -68,8 +68,11 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
+    'sphinx.ext.imgconverter',
     'sphinx_new_tab_link',
     ]
+
+svg2pdf_converter = 'imagemagick'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -166,7 +169,9 @@ htmlhelp_basename = 'badidatetime'
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_engine = 'xelatex'
+#latex_engine = 'xelatex'
+#latex_engine = 'pdflatex'
+latex_engine = 'lualatex'
 latex_use_xindy = False
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
@@ -184,7 +189,6 @@ latex_elements = {
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
-    'preamble': '\\usepackage[UTF8]{ctex}\n'
     }
 
 # Grouping the document tree into LaTeX files. List of tuples

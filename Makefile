@@ -20,11 +20,11 @@ PIP_ARGS	= # Pass variables for pip install.
 TEST_PATH	= # The path to run tests on.
 export DEBUG
 
-#----------------------------------------------------------------------
+#---------------------------------------------------------------------
 .PHONY	: all
 all	: help
 
-#----------------------------------------------------------------------
+#---------------------------------------------------------------------
 .PHONY	: help
 help	:
 	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : \
@@ -66,9 +66,24 @@ flake8	:
 	# Warn on everything else.
 	flake8 . --exit-zero
 
+# --------------------------------------------------------------------
+
 .PHONY	: sphinx
 sphinx  : clean
 	(cd $(DOCS_DIR); make html)
+
+.PHONY	: latexpdf
+latexpdf:
+	(cd $(DOCS_DIR); make latexpdf)
+
+.PHONY	: epub
+epub:
+	(cd $(DOCS_DIR); make epub)
+
+.PHONY	: alldocs
+alldocs	: sphinx epub latexpdf
+
+# --------------------------------------------------------------------
 
 # To add a pre-release candidate such as 'rc1' to a test package name an
 # environment variable needs to be set that setup.py can read.
