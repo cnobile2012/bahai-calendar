@@ -6,7 +6,8 @@ __docformat__ = "restructuredtext en"
 
 __all__ = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
            'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
-           'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL')
+           'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL', 'MONTHNAMES',
+           'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
 import sys
 import time as _time
@@ -27,6 +28,10 @@ BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
 GMT_COORD = (51.477928, -0.001545, 0)
 # LOCAL_COORD and LOCAL is lazily configured to the local coordinates
 # if enables or the default is BADI_COORD, and BADI.
+MONTHNAMES = [v for k, v in _td_utils.MONTHNAMES.items()]
+MONTHNAMES_ABV = [v for k, v in _td_utils.MONTHNAMES_ABV.items()]
+DAYNAMES = _td_utils.DAYNAMES
+DAYNAMES_ABV = _td_utils.DAYNAMES_ABV
 
 
 def _cmp(x, y):
@@ -222,7 +227,7 @@ def _fromutc(this: tzinfo, dt):
         raise TypeError("_fromutc() requires a datetime argument.")
 
     if dt.tzinfo is not this:
-        raise ValueError("_fromutc() dt.tzinfo is not self")
+        raise ValueError("_fromutc() dt.tzinfo is not this.")
 
     dtoff = dt.utcoffset()
 

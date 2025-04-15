@@ -16,4 +16,3 @@ per-file-ignores =
     contrib/misc/*: C901, E128, E201, E231, E252, E265, E266, E402, E501, E731, E701, E741
     contrib/thirdparty/hpiers.obspm.fr/*: E701
     ipython_badi.py: E401, E702, F401
-    setup.py: E26

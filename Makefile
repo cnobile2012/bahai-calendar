@@ -77,7 +77,7 @@ latexpdf:
 	(cd $(DOCS_DIR); make latexpdf)
 
 .PHONY	: epub
-epub:
+epub	:
 	(cd $(DOCS_DIR); make epub)
 
 .PHONY	: alldocs

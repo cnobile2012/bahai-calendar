@@ -287,7 +287,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         """
         none_value_timezone0 = NoneTimeZone()
         err_msg0 = "_fromutc() requires a datetime argument."
-        err_msg1 = "_fromutc() dt.tzinfo is not self"
+        err_msg1 = "_fromutc() dt.tzinfo is not this."
         err_msg2 = "_fromutc() requires a non-None utcoffset() result."
         err_msg3 = "_fromutc() requires a non-None dst() result."
         # err_msg4 = ("_fromutc(): dt.dst gave inconsistent results; cannot "

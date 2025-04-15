@@ -14,7 +14,8 @@ from badidatetime.gregorian_calendar import GregorianCalendar
 
 dt_objects = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
               'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
-              'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL')
+              'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL', 'MONTHNAMES',
+              'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
 
 def _local_timezone_info():

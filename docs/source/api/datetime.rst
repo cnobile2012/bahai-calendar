@@ -22,21 +22,33 @@ badidatetime.datetime.BADI_COORD : tuple
    Iran.
 
 badidatetime.datetime.GMT_COORD : tuple
-   Constant indication the latitude, longitude, amd zone offset for Greenwich
+   Constant indicating the latitude, longitude, amd zone offset for Greenwich
    UK.
 
 badidatetime.datetime.LOCAL_COORD : tuple
-   Constant indication the latitude, longitude, amd zone offset for the local
+   Constant indicating the latitude, longitude, amd zone offset for the local
    locale.
 
 badidatetime.datetime.UTC : badidatetime.datetime.timezone
-   Constant indication the timezone object information for Greenwich UK.
+   Constant indicating the timezone object information for Greenwich UK.
 
 badidatetime.datetime.BADI : badidatetime.datetime.timezone
-   Constant indication the timezone object information for Tehran, Iran.
+   Constant indicating the timezone object information for Tehran, Iran.
 
 badidatetime.datetime.LOCAL : badidatetime.datetime.timezone
-   Constant indication the timezone object information for the local locale.
+   Constant indicating the timezone object information for the local locale.
+
+badidatetime.datetime.MONTHNAMES: list
+   Constant indicating the Badí' month names.
+
+badidatetime.datetime.MONTHNAMES_ABV: list
+   Constant indicating the abbreviated Badí' month names.
+
+badidatetime.datetime.DAYNAMES: tuple
+   Constant indicating the Badí' day names.
+
+badidatetime.datetime.DAYNAMES_ABV: tuple
+   Constant indicating the abbreviated Badí' day names.
 
 ----------------
 Module Functions

@@ -8,6 +8,7 @@ import time
 import locale
 import math
 from typing import NamedTuple
+from collections import OrderedDict
 
 from ._structures import struct_time, ShortFormStruct, LongFormStruct
 from .badi_calendar import BahaiCalendar
@@ -32,18 +33,20 @@ class TimeDateUtils(BahaiCalendar):
     """
     tuple: The abreviated day names.
     """
-    MONTHNAMES = {1: 'Bahá', 2: 'Jalál', 3: 'Jamál', 4: "'Aẓamat", 5: 'Núr',
-                  6: 'Raḥmat', 7: 'Kalimát', 8: 'Kamál', 9: "Asmá'",
-                  10: "'Izzat", 11: 'Mashíyyat', 12: "'Ilm", 13: 'Qudrat',
-                  14: 'Qawl', 15: 'Masá’il', 16: 'Sharaf', 17: 'Sulṭán',
-                  18: 'Mulk', 0: 'Ayyám-i-Há', 19: "'Alá'"}
+    MONTHNAMES = OrderedDict((
+        (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
+        (6, 'Raḥmat'), (7, 'Kalimát'), (8, 'Kamál'), (9, "Asmá'"),
+        (10, "'Izzat"), (11, 'Mashíyyat'), (12, "'Ilm"), (13, 'Qudrat'),
+        (14, 'Qawl'), (15, 'Masá’il'), (16, 'Sharaf'), (17, 'Sulṭán'),
+        (18, 'Mulk'), (0, 'Ayyám-i-Há'), (19, "'Alá'")))
     """
     dict: The full month names.
     """
-    MONTHNAMES_ABV = {1: 'Bah', 2: 'Jal', 3: 'Jam', 4: 'Aẓa', 5: 'Núr',
-                      6: 'Raḥ', 7: 'Kal', 8: 'Kam', 9: 'Asm', 10: 'Izz',
-                      11: 'Mas', 12: 'Ilm', 13: 'Qud', 14: 'Qaw', 15: 'Mas',
-                      16: 'Sha', 17: 'Sul', 18: 'Mul', 0: 'Ayy', 19: 'Alá'}
+    MONTHNAMES_ABV = OrderedDict((
+        (1, 'Bah'), (2, 'Jal'), (3, 'Jam'), (4, 'Aẓa'), (5, 'Núr'), (6, 'Raḥ'),
+        (7, 'Kal'), (8, 'Kam'), (9, 'Asm'), (10, 'Izz'), (11, 'Mas'),
+        (12, 'Ilm'), (13, 'Qud'), (14, 'Qaw'), (15, 'Mas'), (16, 'Sha'),
+        (17, 'Sul'), (18, 'Mul'), (0, 'Ayy'), (19, 'Alá')))
     """
     dict: The abreviated month names.
     """
