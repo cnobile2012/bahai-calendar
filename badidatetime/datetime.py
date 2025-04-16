@@ -1897,7 +1897,10 @@ class datetime(date, Coefficients):
                 if probe2 == result:  # pragma: no cover
                     result._fold = 1
         elif tz is not None:
-            result = _fromutc(tz, result)
+            if isinstance(tz, timezone):
+                result = tz.fromutc(result)
+            else:
+                result = _fromutc(tz, result)
 
         del bc
         return result

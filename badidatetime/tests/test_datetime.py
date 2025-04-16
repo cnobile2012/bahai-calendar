@@ -2333,9 +2333,12 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             (-18000, False, tz1, True, '0126-16-02T01:47:57.148800+00:00'),
             # Assume UTC as starting point.
             (0, True, tz1, True, '0126-16-02T07:59:32.496000+00:00'),
+            (0, True, datetime.UTC, True, '0126-16-02T07:59:32.496000+00:00'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
             (-18000, False, tz0, True, '0126-16-02T05:17:57.148800+03:30'),
+            (-18000, False, datetime.BADI, True,
+             '0126-16-02T05:17:57.148800+03:30'),
             # Assume UTC as starting point.
             (0, True, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
             # Latitude and Longitude dependent
