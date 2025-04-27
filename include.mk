@@ -5,7 +5,7 @@
 # Baha'i Calendar version info.
 MAJORVERSION	= 0
 MINORVERSION	= 4
-PATCHLEVEL	= 0
+PATCHLEVEL	= 1
 VERSION		= ${MAJORVERSION}.${MINORVERSION}.${PATCHLEVEL}
 # How mature is this project? Common values are
 #   3 - Alpha

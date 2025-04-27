@@ -102,7 +102,7 @@ this.
 
 .. code-block:: console
 
-   $ pip install badidatetime # Not available as of 2025-01-18
+   $ pip install badidatetime
    or
    $ pip install git+https://github.com/cnobile2012/bahai-calendar.git
 
