@@ -46,7 +46,7 @@ Also from the letter from the Secretariat.
    the sign of Aries”. This phenomenon coincides with the moment of the vernal
    equinox in the northern hemisphere. Thus, the Festival of Naw Rúz falls on
    the day on which the vernal equinox occurs, and that day, 1 Bahá, according
-   to the Badí‘ calendar, starts at subset on 19 ‘Alá’ and ends at the
+   to the Badí‘ calendar, starts at sunset on 19 ‘Alá’ and ends at the
    following sunset, which marks the beginning of 2 Bahá.
 
 .. seealso::
