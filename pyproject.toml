@@ -25,7 +25,7 @@ exclude = ["tests*"]
 
 [project]
 name = "badidatetime"
-version = "0.4.1"
+version = "0.4.2"
 description = "Badi Calendar Datetime API (badidatetime)"
 readme = "README.rst"
 authors = [
