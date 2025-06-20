@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # pyproject.toml
 #
@@ -41,6 +42,8 @@ dependencies = [
   "tzdata",
   "geocoder",
 ]
+keywords = ["Calendar", "Badi Calendar", "Badí' Calendar", "Bahá'i", "Baha'i",
+            "Badí'", "Badi"]
 requires-python = ">= 3.10"
 classifiers = [
   # How mature is this project? Common values are
