@@ -185,9 +185,9 @@ to `pypi`.
        it is there.
    12. Done, the new version is published.
 
-If you get errors during the upload to the test `pypi` site and need to fix any
-files that need to be checked in you will need to move the tag the *HEAD* of
-the branch afterwards.
+If errors occurred during the upload to the test `pypi` site and need to fixed
+any files. The tag created above will need to be moved to the *HEAD* of the
+branch afterwards.
 
    1. Run local tests.
    2. Commit and push all code relating to the errors found above.
@@ -197,6 +197,7 @@ the branch afterwards.
 
       .. code-block:: console
 
+         $ git log | less  # The value after the 'commit' keyword is the hash.
          $ git tag -a <tagname> <HEAD commit hash> -f -m "Comment"
          $ git push origin --tags -f
 
