@@ -581,8 +581,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         Test that the __repr__ returns the expected formatted text.
         """
         data = (
-            ((181, 9, 16), 'datetime.date(181, 9, 16)'),
-            ((1, 10, 10, 9, 16), 'datetime.date(1, 10, 10, 9, 16)'),
+            ((181, 9, 16), 'badidatetime.date(181, 9, 16)'),
+            ((1, 10, 10, 9, 16), 'badidatetime.date(1, 10, 10, 9, 16)'),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -1786,14 +1786,15 @@ class TestBadiDatetime_time(unittest.TestCase):
         Test that the __repr__ method returns the correct string.
         """
         data = (
-            ((0, 0, 0, 0), None, 0, 'datetime.time(0, 0)'),
-            ((1, 30), None, 0, 'datetime.time(1, 30)'),
-            ((1, 30, 30), None, 0, 'datetime.time(1, 30, 30)'),
-            ((1, 30, 30, 50000), None, 0, 'datetime.time(1, 30, 30, 50000)'),
+            ((0, 0, 0, 0), None, 0, 'badidatetime.time(0, 0)'),
+            ((1, 30), None, 0, 'badidatetime.time(1, 30)'),
+            ((1, 30, 30), None, 0, 'badidatetime.time(1, 30, 30)'),
+            ((1, 30, 30, 50000), None, 0,
+             'badidatetime.time(1, 30, 30, 50000)'),
             ((1, 30, 30, 50000), datetime.BADI, 0,
-             'datetime.time(1, 30, 30, 50000, tzinfo=UTC+03:30)'),
+             'badidatetime.time(1, 30, 30, 50000, tzinfo=UTC+03:30)'),
             ((1, 30, 30, 50000), datetime.BADI, 1,
-             'datetime.time(1, 30, 30, 50000, tzinfo=UTC+03:30, fold=1)'),
+             'badidatetime.time(1, 30, 30, 50000, tzinfo=UTC+03:30, fold=1)'),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
@@ -2062,7 +2063,7 @@ class TestBadiDatetime_time(unittest.TestCase):
             ((12, 30, 30, 500000), None, 0, r"(b'\x0c\x1e\x1e\x07\xa1 ',)"),
             ((24, 30, 30, 500000), None, 0, r"(b'\x18\x1e\x1e\x07\xa1 ',)"),
             ((12, 30, 30, 500000), datetime.BADI, 0,
-             r"(b'\x0c\x1e\x1e\x07\xa1 ', datetime.BADI)"),
+             r"(b'\x0c\x1e\x1e\x07\xa1 ', badidatetime.BADI)"),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
@@ -3055,18 +3056,19 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         data = (
             ((181, 1, 1, None, None, 12, 30), None, 0,
-             'datetime.datetime(181, 1, 1, 12, 30)'),
+             'badidatetime.datetime(181, 1, 1, 12, 30)'),
             ((181, 1, 1, None, None, 12, 30, 30), None, 0,
-             'datetime.datetime(181, 1, 1, 12, 30, 30)'),
+             'badidatetime.datetime(181, 1, 1, 12, 30, 30)'),
             ((181, 1, 1, None, None, 12, 30, 30, 500000), None, 0,
-             'datetime.datetime(181, 1, 1, 12, 30, 30, 500000)'),
+             'badidatetime.datetime(181, 1, 1, 12, 30, 30, 500000)'),
             ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0,
-             'datetime.datetime(181, 1, 1, 12, 30, 30, tzinfo=datetime.BADI)'),
+             'badidatetime.datetime(181, 1, 1, 12, 30, 30, '
+             'tzinfo=badidatetime.BADI)'),
             ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 1,
-             'datetime.datetime(181, 1, 1, 12, 30, 30, '
-             'tzinfo=datetime.BADI, fold=1)'),
+             'badidatetime.datetime(181, 1, 1, 12, 30, 30, '
+             'tzinfo=badidatetime.BADI, fold=1)'),
             ((1, 10, 10, 15, 14), None, 0,
-             'datetime.datetime(1, 10, 10, 15, 14, 0, 0)'),
+             'badidatetime.datetime(1, 10, 10, 15, 14, 0, 0)'),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
@@ -3860,13 +3862,14 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         td2 = datetime.timedelta()
         IANA = datetime.BADI_IANA
         data = (
-            (td0, IANA, "datetime.timezone("
-             "datetime.timedelta(seconds=12600), 'Asia/Tehran')"),
-            (td1, 'UTC', "datetime.timezone(datetime.timedelta(0), 'UTC')"),
-            (td2, '', "datetime.timezone(datetime.timedelta(0), '')"),
-            (td2, None, "datetime.timezone(datetime.timedelta(0))"),
-            ('UTC', 'UTC', 'datetime.timezone.utc'),
-            ('BADI', IANA, 'datetime.BADI'),
+            (td0, IANA, "badidatetime.timezone("
+             "badidatetime.timedelta(seconds=12600), 'Asia/Tehran')"),
+            (td1, 'UTC', "badidatetime.timezone(badidatetime.timedelta(0), "
+             "'UTC')"),
+            (td2, '', "badidatetime.timezone(badidatetime.timedelta(0), '')"),
+            (td2, None, "badidatetime.timezone(badidatetime.timedelta(0))"),
+            ('UTC', 'UTC', 'badidatetime.timezone.utc'),
+            ('BADI', IANA, 'badidatetime.BADI'),
             )
         msg = "Expected {} with offset {} and name {}, found {}."
 

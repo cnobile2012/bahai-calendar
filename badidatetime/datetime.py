@@ -252,6 +252,15 @@ def _fromutc(this: tzinfo, dt):
     return dt + dtdst
 
 
+def _get_class_module(self):
+    module_name = self.__class__.__module__
+
+    if module_name == 'badidatetime.datetime':
+        return 'badidatetime'
+    else:
+        return module_name
+
+
 def _module_name(module: str) -> str:
     """
     Find the package name without the first directory.
@@ -261,7 +270,7 @@ def _module_name(module: str) -> str:
     """
     idx = module.find('.')
     dt_true = True if module[:idx] == 'datetime' else False
-    return module[idx + 1:] if idx != -1 and not dt_true else module
+    return f"badidatetime{module[idx:]}" if idx != -1 and dt_true else module
 
 
 class date(BahaiCalendar):
@@ -449,7 +458,7 @@ class date(BahaiCalendar):
            >>> repr(d)
            'datetime.date(181, 1, 1)'
         """
-        msg = (f"{_module_name(self.__class__.__module__)}."
+        msg = (f"{_get_class_module(self)}."
                f"{self.__class__.__qualname__}")
 
         if hasattr(self, '_kull_i_shay'):
@@ -1093,7 +1102,7 @@ class _IsoCalendarDate(tuple):
         :returns: A string representing the date.
         :rtype: str
         """
-        return (f'{_module_name(self.__class__.__name__)}'
+        return (f'{self.__class__.__name__}'
                 f'(year={self[0]}, week={self[1]}, weekday={self[2]})')
 
 
@@ -1357,7 +1366,7 @@ class time:
         else:
             s = ""
 
-        s = (f"{_module_name(self.__class__.__module__)}."
+        s = (f"{_get_class_module(self)}."
              f"{self.__class__.__qualname__}"
              f"({self._hour:d}, {self._minute:d}{s})")
 
@@ -2439,7 +2448,7 @@ class datetime(date, Coefficients):
             if L[-1] == 0:
                 del L[-1]
 
-        s = (f"{_module_name(self.__class__.__module__)}."
+        s = (f"{_get_class_module(self)}."
              f"{self.__class__.__qualname__}")
 
         if hasattr(self, '_kull_i_shay'):
@@ -2941,19 +2950,18 @@ class timezone(tzinfo):
            'datetime.timezone(datetime.timedelta(-1, 68400), 'EST')'
         """
         if self is self.utc:
-            return 'datetime.timezone.utc'
+            return 'badidatetime.timezone.utc'
 
         if self is self.badi:
-            return 'datetime.BADI'
+            return 'badidatetime.BADI'
 
-        module = self.__class__.__module__
         offset_name = f"{self._offset!r}"
 
         if self._name is None:
-            return (f"{_module_name(module)}.{self.__class__.__qualname__}"
+            return (f"{_get_class_module(self)}.{self.__class__.__qualname__}"
                     f"({_module_name(offset_name)})")
 
-        return (f"{_module_name(module)}.{self.__class__.__qualname__}"
+        return (f"{_get_class_module(self)}.{self.__class__.__qualname__}"
                 f"({_module_name(offset_name)}, {self._name!r})")
 
     def __str__(self) -> str:
