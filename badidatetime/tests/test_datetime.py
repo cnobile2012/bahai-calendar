@@ -333,6 +333,28 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                     expected_result, date, tz, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test__get_class_module(self):
+        """
+        Test that the _get_class_module function returns the correct module
+        name.
+        """
+        data = (
+            (datetime.date.today(), 'badidatetime'),
+            (datetime._IsoCalendarDate(182, 6, 1), 'badidatetime'),
+            (datetime.time(12, 30, 30), 'badidatetime'),
+            (datetime.datetime(182, 6, 4), 'badidatetime'),
+            (datetime.timezone.badi, 'badidatetime'),
+            (datetime.timedelta(1), 'datetime'),
+            (datetime.tzinfo(), 'datetime'),
+            )
+        msg = "Expected {} with instance {}, found {}."
+
+        for instance, expected_result in data:
+            result = datetime._get_class_module(instance)
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, repr(instance), result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__module_name(self):
         """
         Test that the _module_name function returns the module path without
