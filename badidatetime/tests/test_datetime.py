@@ -48,6 +48,123 @@ class NoneTimeZone(datetime.tzinfo):
         self._VALUES['dst'] = value
 
 
+class TestBadiDatetime__module__(unittest.TestCase):
+    """
+    Test that all classes that are defined in the datetime.py module have
+    their internal __module__ changed to `badidatetime`.
+    """
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    #@unittest.skip("Temporarily skipped")
+    def test_date(self):
+        import badidatetime
+
+        data = (
+            (datetime.date.today(), 'badidatetime.datetime'),
+            (badidatetime.date.today(), 'badidatetime.datetime')
+            )
+        msg = "Expected {}, found {}."
+
+        for instance, expected_result in data:
+            result = isinstance(instance, badidatetime.date)
+            self.assertTrue(result, msg.format(expected_result, result))
+            module = instance.__class__.__module__
+            self.assertEqual(expected_result, module, msg.format(
+                expected_result, module))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_datetime(self):
+        import badidatetime
+
+        data = (
+            (datetime.datetime.now(), 'badidatetime.datetime'),
+            (badidatetime.datetime.now(), 'badidatetime.datetime')
+            )
+        msg = "Expected {}, found {}."
+
+        for instance, expected_result in data:
+            result = isinstance(instance, badidatetime.datetime)
+            self.assertTrue(result, msg.format(expected_result, result))
+            module = instance.__class__.__module__
+            self.assertEqual(expected_result, module, msg.format(
+                expected_result, module))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_time(self):
+        import badidatetime
+
+        data = (
+            (datetime.time.fromisoformat("T12"), 'badidatetime.datetime'),
+            (badidatetime.time.fromisoformat("T12"), 'badidatetime.datetime')
+            )
+        msg = "Expected {}, found {}."
+
+        for instance, expected_result in data:
+            result = isinstance(instance, badidatetime.time)
+            self.assertTrue(result, msg.format(expected_result, result))
+            module = instance.__class__.__module__
+            self.assertEqual(expected_result, module, msg.format(
+                expected_result, module))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_timezone(self):
+        import badidatetime
+
+        data = (
+            (datetime.timezone.badi, 'badidatetime.datetime'),
+            (badidatetime.timezone.badi, 'badidatetime.datetime')
+            )
+        msg = "Expected {}, found {}."
+
+        for instance, expected_result in data:
+            result = isinstance(instance, badidatetime.timezone)
+            self.assertTrue(result, msg.format(expected_result, result))
+            module = instance.__class__.__module__
+            self.assertEqual(expected_result, module, msg.format(
+                expected_result, module))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_timedelta(self):
+        """
+        The 'timedelta` class is borrowed from the Python datetime package.
+        """
+        import badidatetime
+
+        data = (
+            (datetime.timedelta(1), 'datetime'),
+            (badidatetime.timedelta(1), 'datetime')
+            )
+        msg = "Expected {}, found {}."
+
+        for instance, expected_result in data:
+            result = isinstance(instance, datetime.timedelta)
+            self.assertTrue(result, msg.format(expected_result, result))
+            module = instance.__class__.__module__
+            self.assertEqual(expected_result, module, msg.format(
+                expected_result, module))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_tzinfo(self):
+        """
+        The 'tzinfo` class is borrowed from the Python datetime package.
+        """
+        import zoneinfo
+
+        data = (
+            (zoneinfo.ZoneInfo('America/New_York'), 'zoneinfo'),
+            )
+        msg = "Expected {}, found {}."
+
+        for instance, expected_result in data:
+            result = isinstance(instance, datetime.tzinfo)
+            self.assertTrue(result, msg.format(expected_result, result))
+            module = instance.__class__.__module__
+            self.assertEqual(expected_result, module, msg.format(
+                expected_result, module))
+
+
 class TestBadiDatetimeFunctions(unittest.TestCase):
 
     def __init__(self, name):

@@ -55,8 +55,8 @@ def _get_local_coordinates():
 def enable_geocoder(enable=True):
     """
     Enable or disable the geocode query to find the local latitude, longitude,
-    and zone. If this function is never run then the defaults for
-    `datetime.LOCAL_COORD` and `datetime.LOCAL` will be Tehran Iran locale.
+    and time zone. If this function is never run then the defaults for
+    `datetime.LOCAL_COORD` and `datetime.LOCAL` will be the Tehran Iran locale.
 
     :param bool enable: If True (default) geocoder is run else if False it is
                         not run.
