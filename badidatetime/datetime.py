@@ -336,14 +336,14 @@ class date(BahaiCalendar):
     # Additional constructors
 
     @classmethod
-    def fromtimestamp(cls, t: float, *, short: bool=False) -> object:
+    def fromtimestamp(cls, t: float, *, short: bool=True) -> object:
         """
         Construct a date from a POSIX timestamp (like time.time()).
 
         :param date cls: The class object.
         :param float t: The POSIX timestamp.
-        :param bool short: If True the short for is returned. The default
-                           is False.
+        :param bool short: If True (default) the short form date is returned
+                           else False the long form date is returned.
         :returns: The instantiated class.
         :rtype: date
         """
@@ -351,23 +351,23 @@ class date(BahaiCalendar):
         date = bc.posix_timestamp(t, *LOCAL_COORD, short=short, trim=True)
         del bc
         date = date[:3] if short else date[:5]
-        return cls(*date)  # We do not need any time values.
+        return cls(*date)  # We do not want time values.
 
     @classmethod
-    def today(cls, *, short: bool=False) -> object:
+    def today(cls, *, short: bool=True) -> object:
         """
         Construct a date from time.time().
 
         :param date cls: The class object.
-        :param bool short: If True the short for is returned. The default
-                           is False.
+        :param bool short: If True (default) the short form date is returned
+                           else False the long form date is returned.
         :returns: The instantiated class.
         :rtype: date
         """
         return cls.fromtimestamp(_time.time(), short=short)
 
     @classmethod
-    def fromordinal(cls, n: int, *, short: bool=False) -> object:
+    def fromordinal(cls, n: int, *, short: bool=True) -> object:
         """
         Construct a date from a proleptic Badi ordinal.
 
@@ -376,8 +376,8 @@ class date(BahaiCalendar):
 
         :param date cls: The class object.
         :param int n: The ordinal value.
-        :param bool short: If True the short for is returned. The default
-                           is False.
+        :param bool short: If True (default) the short form date is returned
+                           else False the long form date is returned.
         :returns: The instantiated class.
         :rtype: date
         """
@@ -387,14 +387,14 @@ class date(BahaiCalendar):
         return cls(*date)
 
     @classmethod
-    def fromisoformat(cls, date_string: str, *, short: bool=False) -> object:
+    def fromisoformat(cls, date_string: str, *, short: bool=True) -> object:
         """
         Construct a date from a string in ISO 8601 format.
         We only can convert from short form Badi dates.
 
         :param str date_string: A string representing the date.
-        :param bool short: If True the short for is returned. The default
-                           is False.
+        :param bool short: If True (default) the short form date is returned
+                           else False the long form date is returned.
         :returns: The date instance derived from the string representation.
         :rtype: date
         """
@@ -426,7 +426,7 @@ class date(BahaiCalendar):
 
     @classmethod
     def fromisocalendar(cls, year: int, week: int, day: int, *,
-                        short: bool=False) -> object:
+                        short: bool=True) -> object:
         """
         Construct a date from the ISO year, week number and weekday.
 
@@ -435,6 +435,8 @@ class date(BahaiCalendar):
         :param int year: The Badi year.
         :param int week: The number of the week in the year.
         :param int day: Badi day in week.
+        :param bool short: If True (default) the short form date is returned
+                           else False the long form date is returned.
         :returns: The date instance.
         :rtype: date
         """
@@ -1851,7 +1853,7 @@ class datetime(date, Coefficients):
         return self.__short
 
     @classmethod
-    def _fromtimestamp(cls, t, utc, tz, *, short=False):
+    def _fromtimestamp(cls, t, utc, tz, *, short=True):
         """
         Construct a datetime from a POSIX timestamp (like time.time()).
 
@@ -1859,8 +1861,8 @@ class datetime(date, Coefficients):
         :param bool utc: If True then the result is relative to UTC time else
                          if False it is relative to local time.
         :param tzinfo tz: A tzinfo instance.
-        :param bool short: If False (default) the result is in the long Badi
-                           form, else if True it is in the short form.
+        :param bool short: If True (default) the short form date is returned
+                           else False the long form date is returned.
         :returns: A datetime instance set to the date derived from the
                   POSIX timestamp.
         :rtype: datetime.datetime
@@ -1915,15 +1917,15 @@ class datetime(date, Coefficients):
         return result
 
     @classmethod
-    def fromtimestamp(cls, t: float, tz: tzinfo=None, *, short: bool=False):
+    def fromtimestamp(cls, t: float, tz: tzinfo=None, *, short: bool=True):
         """
         Construct a datetime from a POSIX timestamp representing local time
         (like time.time()).
 
         :param float t: The timestamp.
         :param tzinfo tz: The `tzinfo` instance.
-        :param bool short: If True the short for is returned. The default
-                           is False.
+        :param bool short: If True (default) the short form date is returned
+                           else False the long form date is returned.
         :returns: A `datetime` instance.
         :rtype: datetime
         """
@@ -1934,13 +1936,13 @@ class datetime(date, Coefficients):
     # https://docs.python.org/3/deprecations/index.html
 
     @classmethod
-    def now(cls, tz: tzinfo=None, short: bool=False):
+    def now(cls, tz: tzinfo=None, short: bool=True):
         """
         Construct a datetime from time.time() and optional time zone info.
 
         :param tzinfo tz: The `timezone` instance.
-        :param bool short: If True the short for is returned. The default
-                           is False.
+        :param bool short: If True (default) the short form date is returned
+                           else False the long form date is returned.
         :returns: A `datetime` instance.
         :rtype: datetime
         """
