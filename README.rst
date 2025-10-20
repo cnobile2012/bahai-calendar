@@ -12,6 +12,10 @@ Introduction to the Badí' Calendar API
    :target: https://pypi.python.org/pypi/badidatetime
    :alt: PyPi Version
 
+.. image:: https://img.shields.io/pypi/pyversions/badidatetime.svg
+    :target: https://pypi.python.org/pypi/badidatetime
+    :alt: PY Versions
+
 .. image:: http://img.shields.io/pypi/wheel/badidatetime.svg
    :target: https://pypi.python.org/pypi/badidatetime
    :alt: PyPI Wheel
@@ -24,6 +28,9 @@ Introduction to the Badí' Calendar API
    :target: https://coveralls.io/github/cnobile2012/bahai-calendar?branch=main
    :alt: Coverage
 
+.. image:: https://img.shields.io/pypi/dm/badidatetime.svg
+    :target: https://pypi.python.org/pypi/badidatetime
+    :alt: PyPI Downloads
 
 The objective of this API (Application Programming Interface) is to implement
 a library that provides date and time functionality similar to that of the

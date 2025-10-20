@@ -11,9 +11,9 @@ PACKAGE_DIR	= $(BASE_DIR)-$(VERSION)$(TEST_TAG)
 APP_NAME	= bahai_calendar
 DOCS_DIR	= $(PREFIX)/docs
 LOGS_DIR	= $(PREFIX)/logs
-RM_REGEX	= '(^.*.pyc$$)|(^.*.wsgic$$)|(^.*~$$)|(.*\#$$)|(^.*,cover$$)'
+RM_REGEX	= '(^.*.pyc$$)|(^.*.wsgic$$)|(^.*~$$)|(.*\#$$)|(^.*,cover$$)|(^.*__pycache__$$)'
 RM_CMD		= find $(PREFIX) -regextype posix-egrep -regex $(RM_REGEX) \
-                  -exec rm {} \;
+                  -exec rm -rf {} \;
 COVERAGE_FILE	= $(PREFIX)/.coveragerc
 TEST_TAG	=
 PIP_ARGS	= # Pass variables for pip install.

@@ -1439,8 +1439,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _meeus_from_exact(self, jd: float) -> int:
         """
-        The returned difference value to convert an exact algorithm jd to
-        a Meeus algorithm jd. This is added to the exact jd.
+        Returns the Meeus algorithm jd converted from the exact algorithm jd.
 
         :param float jd: Exact Julian Period day.
         :returns: The difference to subtract from an exact algorithm jd.
@@ -1459,7 +1458,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                 diff = df
                 break
 
-        return diff
+        return jd + diff
 
     def _exact_from_meeus(self, jd: float) -> int:
         """
@@ -1483,7 +1482,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                 diff = df
                 break
 
-        return diff
+        return jd - diff
 
     def _coterminal_angle(self, value: float) -> float:
         """
@@ -1562,8 +1561,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :returns: The ordinal number relating to the Julian Period day.
         :rtype: int
         """
-        jd -= 0 if _exact else self._exact_from_meeus(jd)
-        # We add 1 because ordinal date representations satrt at 1 not 0.
+        jd = jd if _exact else self._exact_from_meeus(jd)
+        # We add 1 because ordinal date representations starts at 1 not 0.
         return math.floor(jd - self._JULIAN_CAL_EPOCH) + 1
 
     def _jd_from_ordinal(self, ordinal: int, *, exact: bool=True) -> float:
@@ -1571,13 +1570,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Convert an ordinal number to a Julian Period day.
 
         :param int ordinal: The ordinal number of days starting with one on the
-                            first day od the Julian Calendar.
+                            first day of the Julian Calendar.
         :param bool exact: If True (default) the outgoing Julian Period day is
                            the more astronomically exact Julin Period day else
                            if False it is the historically correct (Meeus) JD.
         :returns: The Julian Period day relating to the ordinal number.
         :rtype: float
         """
-        # We subtract 1 because ordinal date representations satrt at 1 not 0.
+        # We subtract 1 because ordinal date representations starts at 1 not 0.
         jd = self._JULIAN_CAL_EPOCH + (ordinal - 1)
-        return jd + (0 if exact else self._meeus_from_exact(jd))
+        return jd if exact else self._meeus_from_exact(jd)

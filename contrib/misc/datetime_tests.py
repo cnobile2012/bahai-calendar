@@ -115,11 +115,11 @@ class DatetimeTests(BahaiCalendar):
     def analyze_ordinal_error_create(self, options):
         """
         Find the errors between conversion between badi dates to JD and
-        vice versa. This test in reality tests the _adjust_date method
+        vice versa. This tests the BahaiCalendar._adjust_date method.
 
         -b
         Also if -S and -E are used they must be used together and refer
-        to Gregorian years.
+        to Badi years.
         """
         data = []
         start = options.start
@@ -134,18 +134,25 @@ class DatetimeTests(BahaiCalendar):
 
                 for day in range(1, dm + 1):
                     date = (year, month, day)
+                    # We default to the Epoch Coordinates.
                     jd = self.jd_from_badi_date(date)
                     # Get the Badi date from the Julian Period day.
-                    #on = False if (year + 1) == 1162 else True
                     b_date = self.badi_date_from_jd(
                         jd, short=True, trim=True, rtd=True)
+                    # Difference of the date converted to a JD then back to a
+                    # date again then subtract the converted date from the
+                    # original date. They should be the same.
                     diff0 = self._subtract_tuples(b_date, date)
-                    g_date = self._gc.gregorian_date_from_jd(jd, exact=True)
                     # The ordinal date for visual comparison.
                     ordinal = self._ordinal_from_jd(jd)
                     o = datetime.fromordinal(ordinal, short=True)
                     o_date = (o.year, o.month, o.day)
+                    # Difference of the Badi datetime derived from an ordinal
+                    # then subtract the derived date original date. They
+                    # should be the same.
                     diff1 = self._subtract_tuples(o_date, date)
+                    # Get the Gregorian date.
+                    g_date = self._gc.gregorian_date_from_jd(jd, exact=True)
                     data.append((g_date, jd, o_date, b_date,
                                  date, diff0, diff1))
 
@@ -177,8 +184,10 @@ if __name__ == "__main__":
     options = parser.parse_args()
     dt = DatetimeTests()
     ret = 0
+    basename = os.path.basename(__file__)
 
     if options.analyze:  # -a
+        print(f"./contrib/misc/{basename} -a")
         print("Gregorian Date                   Greg ord Badi Date     "
               "Badi ord Same  Df | JD             JD Diff    Badi Date     "
               "Date Diff Leap")
@@ -204,13 +213,16 @@ if __name__ == "__main__":
             options.end = 1162     # Gregorian year 3005
 
         start_time = time.time()
-        print(" "*84, "Badi - Orig    Ord - Orig")
-        print("Greg Date             JD             Ordinal Date    Badi Date"
-              "       Orig Date       B Date Diff    O Date Diff")
+        print(f"./contrib/misc/{basename} -bS {options.start} "
+              f"-E {options.end}")
+        print(" "*84, "Orig - Badi     Orig - Ord")
+        print("Greg Date             JD             Orig Date       Badi Date"
+              "       Ordinal Date    B Date Diff     O Date Diff")
         print('-'*111)
         data = dt.analyze_ordinal_error_create(options)
         total_diff0 = total_diff1 = 0
         items = []
+        #print(data, file=sys.stderr)
 
         for g_date, jd, o_date, b_date, date, diff0, diff1 in data:
             if diff0 != (0, 0, 0):
@@ -219,16 +231,18 @@ if __name__ == "__main__":
             if diff1 != (0, 0, 0):
                 total_diff1 += 1
 
-            if (0, 0, 0) not in (diff0, diff1):
+            if (0, 0, 0) != diff0 or (0, 0, 0) != diff1:
                 items.append((g_date, jd, o_date, b_date, date, diff0, diff1))
 
         [print(f"{str(g_date):21} "
                f"{jd:<14} "
-               f"{str(o_date):15} "
-               f"{str(b_date):15} "
                f"{str(date):15} "
-               f"{str(diff0):15}"
-               f"{str(diff1):15}")
+               f"{str(b_date):15} "
+               f"{str(o_date):15} "
+               f"{str(diff0):15} "
+               f"{str(diff1):15} "
+               f"{dt._hms_from_decimal_day(jd)}"  # Temporary
+               )
          for g_date, jd, o_date, b_date, date, diff0, diff1 in items]
         total_errors = total_diff0 + total_diff1
         print(f"Analyzing year {options.start} to year {options.end-1}.")

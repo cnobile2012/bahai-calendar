@@ -680,10 +680,10 @@ class DateTests(BahaiCalendar):
                 for day in range(1, dm + 1):
                     date = (year, month, day)
                     jd = self.jd_from_badi_date(date)
-                    jd += self._meeus_from_exact(jd)
+                    jd = self._meeus_from_exact(jd)
                     ssjd = self._sun_setting(jd, *locate)
-                    essjd = self._exact_from_meeus(ssjd)
-                    hms = self._day_Length(essjd, *locate)
+                    ssjd = self._exact_from_meeus(ssjd)
+                    hms = self._day_Length(ssjd, *locate)
 
                     if short_day == () or long_day == ():
                         short_day = long_day = date
@@ -903,10 +903,8 @@ class DateTests(BahaiCalendar):
                     g_date = self.gc.gregorian_date_from_jd(jd, exact=True)
                     jd0 = math.floor(jd)
                     jd1 = jd0 + 1
-                    diff0 = self._meeus_from_exact(jd0)
-                    diff1 = self._meeus_from_exact(jd1)
-                    mjd0 = jd0 + diff0
-                    mjd1 = jd1 + diff1
+                    mjd0 = self._meeus_from_exact(jd0)
+                    mjd1 = self._meeus_from_exact(jd1)
                     ss0 = self._sun_setting(mjd0, lat, lon, zone)
                     ss1 = self._sun_setting(mjd1, lat, lon, zone)
                     b_date = self.badi_date_from_jd(jd, short=True,
@@ -980,8 +978,8 @@ class DateTests(BahaiCalendar):
         # The diff value converts the more exact jd to the Meeus algorithm
         # for determining the sunset jd. The fractional on the day is not
         # affected.
-        diff = self._meeus_from_exact(jd)
-        ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
+        jd = self._meeus_from_exact(jd)
+        ss_a = self._sun_setting(jd, lat, lon, zone) % 1
         #print(f"{str(b_date):<15} {day:<9} {jd:<14} {ss_a:<20}",
         #      file=sys.stderr)
         coff = 0 if coeffon else self._get_coff(year)

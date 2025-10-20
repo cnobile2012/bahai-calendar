@@ -22,8 +22,6 @@ class TestBadiCalendar(unittest.TestCase):
     Alternative latitude and longitude coordinates can be found at:
     https://latitude.to/map/us/united-states/cities/fuquay-varina
     """
-    #MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
-    #          12, 13, 14, 15, 16, 17, 18, 0, 19)
 
     def __init__(self, name):
         super().__init__(name)
@@ -886,13 +884,16 @@ class TestBadiCalendar(unittest.TestCase):
             # Stage 4
             (2460729.2, (181, 0, 1), *local_coords, True, False, False, False,
              (181, 18, 19.446448)),
-            # Test where the JD is >= the sunset. Stage 5
-            (2460733.3, (181, 19, 1), *local_coords, False, False, False, False,
-             (181, 19, 1, 1, 2, 14.64)),
-            # Test fraction -- Stage 5
+            # Stage 5
+            (2460853.308848, (182, 6, 7), *epoch_coords, False, False, True,
+             False, (182, 6, 6)),
+            # Test where the JD is >= the sunset. Stage 6
+            (2460733.3, (181, 19, 1), *local_coords, False, False, False,
+             False, (181, 19, 1, 1, 2, 14.64)),
+            # Test fraction -- Stage 6
             (2460733.3, (181, 19, 1), *local_coords, True, False, False, False,
              (181, 19, 1.043225)),
-            # Stage 5
+            # Stage 6
             (2394641.5, (0, 19, 18), *epoch_coords, False, False, True, False,
              (0, 19, 18)),
             (2394642.5, (0, 19, 19), *epoch_coords, False, False, True, False,
@@ -902,23 +903,23 @@ class TestBadiCalendar(unittest.TestCase):
             (2460387.3, (181, 1, 1), *local_coords, False, False, False, False,
              (181, 1, 1, 0, 45, 29.1168)),
             # Test 1st day of the year for a few years
-            # 1845-03-20T18:16:24.4416 -> 2395009.261394 Stage 5
+            # 1845-03-20T18:16:24.4416 -> 2395009.261394 Stage 6
             (2395009.261972, (2, 1, 1), *epoch_coords, False, False, False,
              False, (2, 1, 1, 0, 0, 0.0)),
-            # 1863-03-20T18:16:05.6928 -> 2401583.261177 Stage 5
+            # 1863-03-20T18:16:05.6928 -> 2401583.261177 Stage 6
             (2401583.261756, (20, 1, 1), *epoch_coords, False, False, False,
              False, (20, 1, 1, 0, 0, 0.0)),
-            # 2015-03-20T18:16:06.9888 -> 2457100.261192 Stage 5
+            # 2015-03-20T18:16:06.9888 -> 2457100.261192 Stage 6
             (2457100.261775, (172, 1, 1), *epoch_coords, False, False, False,
              False, (172, 1, 1, 0, 0, 0.0)),
-            # 2024-03-19T18:15:57.312 -> 2460387.26108 Stage 5
+            # 2024-03-19T18:15:57.312 -> 2460387.26108 Stage 6
             (2460387.262245, (181, 1, 1), *epoch_coords, False, False, False,
              False, (181, 1, 1, 0, 0, 50.2848)),
             # Test with microseconds
-            # JD from jd_from_badi_date() Stage 5
+            # JD from jd_from_badi_date() Stage 6
             (2460387.262245, (181, 1, 1), *epoch_coords, False, True, False,
              False, (181, 1, 1, 0, 0, 50, 284800)),
-            # JD from jd_from_gregorian_date() Stage 5
+            # JD from jd_from_gregorian_date() Stage 6
             (2460387.262234, (181, 1, 1), *epoch_coords, False, True, False,
              False, (181, 1, 1, 0, 0, 49, 334400)),
             # JD is exactly UTC midnight.

@@ -160,8 +160,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # The diff value converts the more exact jd to the Meeus algorithm
         # for determining the sunset jd. The fractional on the day is not
         # affected.
-        diff = self._meeus_from_exact(jd)
-        ss_a = self._sun_setting(jd + diff, lat, lon, zone) % 1
+        jd1 = self._meeus_from_exact(jd)
+        ss_a = self._sun_setting(jd1, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_jd_coeff(year),
                      self._ROUNDING_PLACES)
 
@@ -562,10 +562,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             b_date = date
 
         jd = self.jd_from_badi_date(b_date)
-        diff0 = self._meeus_from_exact(jd)
-        ss0 = self._sun_setting(jd + diff0, *self._GMT_LOCATION[:3])
-        diff1 = self._meeus_from_exact(jd + 1)
-        ss1 = self._sun_setting(jd + 1 + diff1, *self._GMT_LOCATION[:3])
+        jd1 = self._meeus_from_exact(jd)
+        ss0 = self._sun_setting(jd1, *self._GMT_LOCATION[:3])
+        jd2 = self._meeus_from_exact(jd + 1)
+        ss1 = self._sun_setting(jd2, *self._GMT_LOCATION[:3])
         mid = (ss1 - ss0) / 2
         return self._hms_from_decimal_day(mid) if hms else mid
 
@@ -780,17 +780,17 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         assert self._xor_boolean((fraction, us, rtd)), (
             "Cannot set more than one of fraction, us, or rtd to True.")
         year, month, day = ymd
-        jd0 = math.floor(jd)  # So we always get the sunset on the current day.
-        mjd0 = jd0 + self._meeus_from_exact(jd0)  # Current day
+        jd0 = math.floor(jd)  # We always get the sunset on the current day.
+        jd00 = self._meeus_from_exact(jd0)  # Current day
         # Current day sunset
-        ss0 = self._sun_setting(mjd0, lat, lon, zone)
+        ss0 = self._sun_setting(jd00, lat, lon, zone)
         ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)
         jd_frac = round(jd % 1, self._ROUNDING_PLACES)
 
         if jd_frac < ss_frac:  # Previous day before sunset.
             jd1 = jd0 - 1
-            mjd1 = jd1 + self._meeus_from_exact(jd1)
-            ss1 = self._sun_setting(mjd1, lat, lon, zone)
+            jd10 = self._meeus_from_exact(jd1)
+            ss1 = self._sun_setting(jd10, lat, lon, zone)
             ss1_frac = round(ss1 % 1, self._ROUNDING_PLACES)
             frac = abs(0.5 - ss1_frac + jd_frac)
             day -= 1
@@ -813,13 +813,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                     month = 18
                     day = 19
                     # print('Stage 4', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+            else:  # Stage 5
+                pass
+                # print('Stage 5', ymd, jd, ss0)
         elif jd_frac <= 0.5:  # Same Badi day before or equal to UTC midnight.
             frac = jd_frac - ss_frac
-            # print('Stage 5', jd, ymd, jd_frac, ss_frac)
-        elif 0.5 < jd_frac:  # Same Badi day after UTC midnight -- Stage 6
+            # print('Stage 6', jd, ymd, jd_frac, ss_frac)
+        elif 0.5 < jd_frac:  # Same Badi day after UTC midnight -- Stage 7
             frac = 0.5 - ss_frac + (jd_frac - 0.5)
-            # print('Stage 6', jd, ymd, ss_frac, jd_frac)
-        else:  # pragma: no cover -- Stage 7
+            # print('Stage 7', jd, ymd, ss_frac, jd_frac)
+        else:  # pragma: no cover -- Stage 8
             assert False, (f"Should never happen--jd: {jd}, ymd: {ymd}, "
                            f"jd_frac: {jd_frac}, ss_frac: {ss_frac}")
 
@@ -860,11 +863,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         jd0 = math.floor(jd)
         jd1 = jd0 + 1
         # The next day
-        mjd1 = jd1 + self._meeus_from_exact(jd1)
-        ss1 = self._sun_setting(mjd1, lat, lon, zone)
+        jd1 = self._meeus_from_exact(jd1)
+        ss1 = self._sun_setting(jd1, lat, lon, zone)
         # The first day
-        mjd0 = jd0 + self._meeus_from_exact(jd0)
-        ss0 = self._sun_setting(mjd0, lat, lon, zone)
+        jd0 = self._meeus_from_exact(jd0)
+        ss0 = self._sun_setting(jd0, lat, lon, zone)
         # Subtract the first day from the next day gived the total
         # hours, minutes, and seconds between them.
         value = list(self._hms_from_decimal_day(ss1 - ss0))

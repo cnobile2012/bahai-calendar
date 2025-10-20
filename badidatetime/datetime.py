@@ -2042,8 +2042,8 @@ class datetime(date, Coefficients):
         Find the correct hour and minute of the day based on the coordinents.
         """
         jd = self.jd_from_badi_date((year, 16, 2), *LOCAL_COORD)
-        mjd = jd + self._meeus_from_exact(jd)
-        ss = self._sun_setting(mjd, *LOCAL_COORD)
+        jd = self._meeus_from_exact(jd)
+        ss = self._sun_setting(jd, *LOCAL_COORD)
         # Round to the nearest minute.
         f_ss = _math.floor(ss) + round(ss % 1 * 1440) / 1440
         # Where 24 is hours in a day and offset from GMT.

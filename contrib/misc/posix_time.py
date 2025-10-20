@@ -565,8 +565,8 @@ class PosixTests(BahaiCalendar, Coefficients):
         """
         jd = self.jd_from_badi_date((year, *self._MONTH_DAY),
                                     *self.LOCAL_COORD)
-        mjd = jd + self._meeus_from_exact(jd)
-        ss = self._sun_setting(mjd, *self.LOCAL_COORD)
+        jd = self._meeus_from_exact(jd)
+        ss = self._sun_setting(jd, *self.LOCAL_COORD)
         # Round to the nearest minute.
         f_ss = math.floor(ss) + round(ss % 1 * 1440) / 1440
         hms = self._hms_from_decimal_day(f_ss + 0.5)
