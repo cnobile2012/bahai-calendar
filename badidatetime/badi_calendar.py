@@ -266,9 +266,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         """
         def get_leap_year_info(year, _chk_on):
             leap = self._is_leap_year(year, _chk_on=_chk_on)
-            yds = 365 + leap
-            ld = 4 + leap
-            return leap, yds, ld
+            return leap, 365 + leap, 4 + leap
 
         def check_and_fix_day(cjd, y, lat=None, lon=None, zone=None,
                               _chk_on=True):
@@ -309,7 +307,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
         date = self._adjust_date(jd, (year, month, day), lat, lon, zone,
-                                 fraction=fraction, rtd=rtd)
+                                 fraction=fraction, rtd=rtd, _chk_on=_chk_on)
 
         if fraction:
             b_date = date
@@ -519,7 +517,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
     def posix_timestamp(self, t: float, lat: float=None, lon: float=None,
                         zone: float=None, *, us: bool=False, short: bool=False,
-                        trim: bool=False) -> tuple:
+                        trim: bool=False, rtd: bool=False,
+                        _chk_on: bool=True) -> tuple:
         """
         Get the Badi date from a POSIX timestamp.
 
@@ -533,12 +532,17 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param bool short: If True then parse for a short date else if False
                            (default) parse for a long date.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
+        :param bool rtd: Round to day.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :returns: A Badi date long or short form.
         :rtype: tuple
         """
         jd = t / 86400 + self._POSIX_EPOCH
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
-                                      trim=trim)
+                                      trim=trim, rtd=rtd, _chk_on=_chk_on)
 
     def midday(self, date: tuple, *, hms: bool=False, _chk_on: bool=True
                ) -> tuple:
@@ -751,7 +755,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
     def _adjust_date(self, jd: float, ymd: tuple, lat: float, lon: float,
                      zone: float, *, fraction: bool=False, us: bool=False,
-                     rtd: bool=False) -> tuple:
+                     rtd: bool=False, _chk_on: bool=True) -> tuple:
         """
         The adjusted year, month, and day based on if the JD falls before
         or after sunset.
@@ -762,7 +766,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
            arguments are off by more than a day. As of now this method does
            not work with a JD after noon on the following day.
 
-        :param float jd: Exact Julian Period day.
+        :param float jd: Exact form of the Julian Period day.
         :param tuple ymd: The year month, and day.
         :param float lat: The latitude.
         :param float lon: The longitude.
@@ -773,6 +777,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param bool us: If True convert a fractional second to microseconds. If
                         False (default) output second with a fraction.
         :param bool rtd: Round to day.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :returns: Returns the year, month, day, and depending on other
                   arguments, the hour, minute, and second, and microsecond.
         :rtype: tuple
@@ -786,8 +794,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         ss0 = self._sun_setting(jd00, lat, lon, zone)
         ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)
         jd_frac = round(jd % 1, self._ROUNDING_PLACES)
+        is_leap = self._is_leap_year(year, _chk_on)
 
-        if jd_frac < ss_frac:  # Previous day before sunset.
+        if jd_frac < ss_frac:  # Previous day if its before sunset.
             jd1 = jd0 - 1
             jd10 = self._meeus_from_exact(jd1)
             ss1 = self._sun_setting(jd10, lat, lon, zone)
@@ -807,7 +816,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                     # print('Stage 2', jd, ymd, jd_frac, ss_frac, ss1 % 1)
                 elif month == 19:  # Stage 3
                     month = 0
-                    day = 4 + self._is_leap_year(year)
+                    day = 4 + is_leap
                     # print('Stage 3', jd, ymd, jd_frac, ss_frac, ss1 % 1)
                 else:  # month 0 -> Ayyám-i-Há Stage 4
                     month = 18
@@ -847,7 +856,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         return (year, month, day) + hms
 
-    def _day_Length(self, jd: float, lat: float, lon: float, zone: float
+    def _day_length(self, jd: float, lat: float, lon: float, zone: float
                     ) -> tuple:
         """
         The hour, minute, and seconds of the day's offset either less than

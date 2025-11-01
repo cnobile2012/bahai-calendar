@@ -12,10 +12,11 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
+from _timestamp import TimestampUtils
 from badidatetime import BahaiCalendar, GregorianCalendar, datetime
 
 
-class DatetimeTests(BahaiCalendar):
+class DatetimeTests(BahaiCalendar, TimestampUtils):
     LOCAL_COORDS = (35.5894, -78.7792, -5.0)
     BADI_COORDS = BahaiCalendar._BAHAI_LOCATION[:3]
     MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
@@ -82,7 +83,7 @@ class DatetimeTests(BahaiCalendar):
 
     def __init__(self):
         super().__init__()
-        self._gc = GregorianCalendar()
+        self.gc = GregorianCalendar()
 
     def analyze_ordinal_error_list(self, options):
         """
@@ -100,7 +101,7 @@ class DatetimeTests(BahaiCalendar):
             b_ord = b_dt.toordinal()
             same = g_ord == b_ord
             diff = g_ord - b_ord
-            g_jd = self._gc.jd_from_gregorian_date(g_date, exact=True)
+            g_jd = self.gc.jd_from_gregorian_date(g_date, exact=True)
             b_jd = self.jd_from_badi_date(b_date, *self.LOCAL_COORDS)
             jd_diff = round(g_jd - b_jd, 6)
             date = self.badi_date_from_jd(b_jd, *self.LOCAL_COORDS,
@@ -152,9 +153,57 @@ class DatetimeTests(BahaiCalendar):
                     # should be the same.
                     diff1 = self._subtract_tuples(o_date, date)
                     # Get the Gregorian date.
-                    g_date = self._gc.gregorian_date_from_jd(jd, exact=True)
-                    data.append((g_date, jd, o_date, b_date,
-                                 date, diff0, diff1))
+                    g_date = self.gc.gregorian_date_from_jd(jd, exact=True)
+                    data.append((g_date, jd, date, b_date, o_date,
+                                 diff0, diff1))
+
+        return data
+
+    def analyze_timestamp_errors(self, options):
+        """
+        Fins the errors in timestamp convbersions to Badi dates. This test
+        ensures that the datetime.date.today method changes date on sunset
+        based on local time.
+        https://www.unixtimestamp.com
+
+        -c
+        Also if -S and -E are used they must be used together and refer
+        to Gregorian/Julian years.
+        """
+        data = []
+        start = options.start
+        end = options.end
+        lat = options.latitude
+        lon = options.longitude
+        zone = options.zone
+        tz = dtime.timezone(dtime.timedelta(hours=zone))
+
+        for year in range(start, end):
+            is_leap = self._is_leap_year(year)
+
+            for month in self.MONTHS:
+                dm = 19 if month != 0 else 4 + is_leap
+
+                for day in range(1, dm + 1):
+                    criterion_date = (year, month, day)
+                    # Get the Gregorian timestamp for reference.
+                    g_date = self.gregorian_date_from_badi_date(criterion_date,
+                                                                lat, lon, zone)
+                    g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
+                    # Timestamp only methods, 1st get UTC timestamp for sunset.
+                    ts_ss = self.timestamp_at_sunset(g_date, lat, lon)
+                    ts_b_date = self.posix_timestamp(g_ts, lat, lon, zone,
+                                                     short=True, trim=True,
+                                                     rtd=False)
+                    # Julian Period day methods.
+                    #print(year, month, day, file=sys.stderr)
+                    jd_ts_ss = datetime(year, month, day).timestamp()
+                    jd_b_date = self.posix_timestamp(jd_ts_ss, lat, lon, zone,
+                                                     short=True, trim=True,
+                                                     rtd=False, _chk_on=False)
+                    diff = ts_ss - jd_ts_ss
+                    data.append((criterion_date, g_date, g_ts, ts_ss,
+                                 ts_b_date, jd_ts_ss, jd_b_date, diff))
 
         return data
 
@@ -175,11 +224,26 @@ if __name__ == "__main__":
         '-b', '--analyze1', action='store_true', default=False,
         dest='analyze1', help="Analyze Badi and Gregorian dates.")
     parser.add_argument(
+        '-c', '--analyze2', action='store_true', default=False,
+        dest='analyze2', help="Analyze timestamps relative to sunset..")
+    parser.add_argument(
         '-E', '--end', type=int, default=None, dest='end',
         help="End Badi year of sequence.")
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
         help="Start Badi year of sequence.")
+    parser.add_argument(
+        '-T', '--timezone', type=float, default=0.0, dest='timezone',
+        help="Timezone offset floating point value.")
+    parser.add_argument(
+        '-A', '--latitude', type=float, default=51.477928, dest='latitude',
+        help="Latitude")
+    parser.add_argument(
+        '-O', '--logitude', type=float, default=-0.001545, dest='longitude',
+        help="Longitude")
+    parser.add_argument(
+        '-Z', '--zone', type=float, default=0.0, dest='zone',
+        help="Time zone.")
 
     options = parser.parse_args()
     dt = DatetimeTests()
@@ -215,35 +279,32 @@ if __name__ == "__main__":
         start_time = time.time()
         print(f"./contrib/misc/{basename} -bS {options.start} "
               f"-E {options.end}")
-        print(" "*84, "Orig - Badi     Orig - Ord")
-        print("Greg Date             JD             Orig Date       Badi Date"
-              "       Ordinal Date    B Date Diff     O Date Diff")
-        print('-'*111)
+        print(" "*78, "Orig - Badi   Orig - Ord")
+        print("Greg Date             JD             Orig Date     Badi Date"
+              "     Ordinal Date  B Date Diff   O Date Diff   HMS from JD")
+        print('-'*123)
         data = dt.analyze_ordinal_error_create(options)
         total_diff0 = total_diff1 = 0
         items = []
         #print(data, file=sys.stderr)
 
-        for g_date, jd, o_date, b_date, date, diff0, diff1 in data:
+        for g_date, jd, date, b_date, o_date, diff0, diff1 in data:
             if diff0 != (0, 0, 0):
                 total_diff0 += 1
 
             if diff1 != (0, 0, 0):
                 total_diff1 += 1
 
-            if (0, 0, 0) != diff0 or (0, 0, 0) != diff1:
-                items.append((g_date, jd, o_date, b_date, date, diff0, diff1))
-
         [print(f"{str(g_date):21} "
                f"{jd:<14} "
-               f"{str(date):15} "
-               f"{str(b_date):15} "
-               f"{str(o_date):15} "
-               f"{str(diff0):15} "
-               f"{str(diff1):15} "
-               f"{dt._hms_from_decimal_day(jd)}"  # Temporary
+               f"{str(date):13} "
+               f"{str(b_date):13} "
+               f"{str(o_date):13} "
+               f"{str(diff0):13} "
+               f"{str(diff1):13} "
+               f"{dt._hms_from_decimal_day(jd)}"
                )
-         for g_date, jd, o_date, b_date, date, diff0, diff1 in items]
+         for g_date, jd, b_date, o_date, date, diff0, diff1 in data]
         total_errors = total_diff0 + total_diff1
         print(f"Analyzing year {options.start} to year {options.end-1}.")
         print(f"Ordinal Errors: {total_diff1}")
@@ -254,6 +315,68 @@ if __name__ == "__main__":
             end_time - start_time)
         print(f"  Elapsed time: {hours:02} hours, {minutes:02} minutes, "
               f"{round(seconds, 6):02.6} seconds.")
+    elif options.analyze2:  # -c
+        if options.start is None or options.end is None:
+            # Set default Badi years.
+            options.start = -1842
+            options.end = 1162
+
+        start_time = time.time()
+        underline_length = 201
+        print(f"./contrib/misc/{basename} -cS {options.start} -E {options.end} "
+              f"-A {options.latitude} -O {options.longitude} -Z {options.zone}"
+              )
+        print("Crit Badí' Dt  Gregorian Date", " " * 19, "Gregorian TS       "
+              "Sunset Timestamp   Badí' Date (TS)", " " * 16,
+              "Sunset TS (JD)      Badí' Date (JD)", " " * 16,
+              "Sunset TS Diff      TSD JDD")
+        print('-' * underline_length)
+        data = dt.analyze_timestamp_errors(options)
+        items = []
+
+        # Adjust for Badi calendar
+        for (criterion_date, g_date, ts, ts_ss,
+             ts_b_date, jd_ts_ss, jd_b_date, diff) in data:
+            year, month, day = criterion_date
+            #print(day, b_date[2], jd_b_date[2], file=sys.stderr)
+            ts_badi_err = day - ts_b_date[2]
+            jd_badi_err = day - jd_b_date[2]
+            items.append((criterion_date, g_date, ts, ts_ss,
+                          ts_b_date, jd_ts_ss, jd_b_date, diff,
+                          ts_badi_err, jd_badi_err))
+
+        [print(f"{str(criterion_date):14} "
+               f"{str(g_date):34} "
+               f"{ts:<18} "
+               f"{ts_ss:<18} "
+               f"{str(ts_b_date):32} "
+               f"{jd_ts_ss:<19} "
+               f"{str(jd_b_date):32} "
+               f"{diff:<19} "
+               f"{ts_badi_err:>3} "
+               f"{jd_badi_err:>3}"
+               )
+         for (criterion_date, g_date, ts, ts_ss, ts_b_date, jd_ts_ss,
+              jd_b_date, diff, ts_badi_err, jd_badi_err) in items]
+        print('-' * underline_length)
+        ss_ts_diff_ts = ss_ts_diff_jd = 0
+
+        for item in items:
+            #print(item[-2], item[-1], file=sys.stderr)
+            if item[-2] != 0:
+                ss_ts_diff_ts += 1
+
+            if item[-1] != 0:
+                ss_ts_diff_jd += 1
+
+        print(f"Analyzing year {options.start} to year {options.end} "
+              "Gregorian.")
+        print(f"                   Total days: {len(items):>4}")
+        print(f"Sunset derived from TS errors: {ss_ts_diff_ts:>4}")
+        print(f"Sunset derived from JD errors: {ss_ts_diff_jd:>4}")
+        print("=" * 35)
+        print("                 Total errors: "
+              f"{ss_ts_diff_ts + ss_ts_diff_jd:>4}")
     else:
         parser.print_help()
 

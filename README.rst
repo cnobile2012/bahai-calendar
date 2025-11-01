@@ -34,7 +34,7 @@ Introduction to the Badí' Calendar API
 
 The objective of this API (Application Programming Interface) is to implement
 a library that provides date and time functionality similar to that of the
-standard Python datetime package, however for the Badí' Calendar this API is
+standard Python datetime package, however for the Badí' Calendar. This API is
 much more extensive than the standard package as it includes all the
 astronomical calculations needed to find the Vernal Equinox, sunset, and many
 other astronomical events that are needed to support the Badí' Calendar.
@@ -46,16 +46,16 @@ number of days from the sunset immediately preceding the Vernal Equinox to the
 sunset immediately preceding the next Vernal Equinox. Counting the days it will
 either be 365 on ordinary years or 366 on leap years. The Vernal Equinox is
 when the sun is directly above the equator and the length of the day and night
-are nearly equal making it a solar calendar.
+are nearly equal thus making it a solar calendar.
 
 The Badí' leap years are irregular and cannot be guess with a simple formula as
-is done with Gregorian Calendar. Quite in contrast the Gregorian Calendar is
-only a solar calendar. It uses a guesstimating formula to approximate when the
-leap years will be. This formula I call a 4/100/400 formula. In other words a
-leap year is every 4 years unless the year is divisible by 100 then it is not a
-leap year unless it is also dividable by 400 then it is a leap year. This means
-that the Gregorian leap years are on a 400 year cycle and can be more-or-less
-predicted by the above formula thus making leap years fairly regular.
+is done with Gregorian Calendar. The Gregorian Calendar is only a solar
+calendar. It uses a guesstimating formula to approximate when the leap years
+will be. This formula I call a 4/100/400 formula. In other words a leap year is
+every 4 years unless the year is divisible by 100 then it is not a leap year
+unless it is also dividable by 400 then it is a leap year. This means that the
+Gregorian leap years are on a 400 year cycle and can be more-or-less predicted
+by the above formula thus making leap years fairly regular.
 
 ------------
 Attributions

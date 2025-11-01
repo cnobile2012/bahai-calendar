@@ -57,6 +57,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _SUN_OFFSET = 0.8333333333333334
     _STARS_PLANET_OFFSET = 0.5666666666666667
     _ROUNDING_PLACES = 6
+    # Meus value is 2440587.5
     _POSIX_EPOCH = 2440585.5  # This is using the more exact algorithm.
     _JULIAN_CAL_EPOCH = 1721423.5
 
@@ -77,7 +78,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param float jd: Julian day.
         :param bool seconds: If True leave as seconds in a minute else convert
-                             to seconds of a day.
+                             to seconds of a day (default).
         :returns: The delta t.
         :rtype: float
 
@@ -1033,8 +1034,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Greenwich.
 
         :param float jd: Meeus algorithm Julian day.
-        :param int lam: The lamda, either `_SPRING` (default), `_SUMMER`,
-                        `_AUTUMN`, or `_WINTER`.
+        :param int lam: The lamda, either `_SPRING` (0° default), `_SUMMER`
+                        (90°), `_AUTUMN` (180°), or `_WINTER` (270°).
         :param float zone: The time zone.
         :returns: The Julian day of the equinox or solstice.
         :rtype: float

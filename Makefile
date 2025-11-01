@@ -13,7 +13,7 @@ DOCS_DIR	= $(PREFIX)/docs
 LOGS_DIR	= $(PREFIX)/logs
 RM_REGEX	= '(^.*.pyc$$)|(^.*.wsgic$$)|(^.*~$$)|(.*\#$$)|(^.*,cover$$)|(^.*__pycache__$$)'
 RM_CMD		= find $(PREFIX) -regextype posix-egrep -regex $(RM_REGEX) \
-                  -exec rm -rf {} \;
+                  -exec rm -rf {} +
 COVERAGE_FILE	= $(PREFIX)/.coveragerc
 TEST_TAG	=
 PIP_ARGS	= # Pass variables for pip install.
@@ -126,7 +126,7 @@ install-dev:
 .PHONY	: clean clobber
 
 clean	:
-	$(shell $(RM_CMD))
+	@$(shell $(RM_CMD))
 
 clobber	: clean
 	@rm -rf dist badidatetime.egg-info

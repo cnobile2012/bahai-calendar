@@ -27,6 +27,7 @@ poop*
 contrib/thirdparty/
 docs/xmlcov/
 docs/badges/
+de406.bsp
 
 # C extensions
 *.so

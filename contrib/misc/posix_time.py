@@ -38,9 +38,9 @@ class PosixTests(BahaiCalendar, Coefficients):
     # Modula for determining coefficients.
     _MODULA = 4
 
-    # Gregorian offset to the year before the Bahi epoch.
+    # Gregorian offset to the year before the Badi epoch.
     _TRAN_COFF = 1843
-    _MONTH_DAY = (16, 2)
+    _MONTH_DAY = (16, 2)  # Sunset on day before the POSIX (1970, 1, 1) epoch.
 
     def __init__(self):
         super().__init__()
@@ -63,8 +63,10 @@ class PosixTests(BahaiCalendar, Coefficients):
 
         for b_year in range(start, end):
             g_year = b_year + self._TRAN_COFF
-            date = (b_year, *self._MONTH_DAY,
-                    None, None) + self._get_badi_hms(b_year)[-1]
+            hms = self._get_badi_hms(b_year)[-1]
+            #print((b_year, *self._MONTH_DAY), hms, file=sys.stderr)
+            date = (b_year, *self._MONTH_DAY, None, None) + hms
+            #print(date, file=sys.stderr)
             dt = datetime.datetime(*date)
             b_date = date[:3] + date[5:]
             gmt_ts = int(dtime.datetime(g_year + 1, 1, 1,
@@ -166,104 +168,142 @@ class PosixTests(BahaiCalendar, Coefficients):
             return data
 
         if year in self._PN01:
-            coeff = 86520
+            coeff = 86460
         elif year in self._PN02:
             coeff = 86400
         elif year in self._PN03:
-            coeff = 86160
+            coeff = 86340
         elif year in self._PN04:
-            coeff = 86040
+            coeff = 86100
         elif year in self._PN05:
-            coeff = 85860
+            coeff = 85980
         elif year in self._PN06:
             coeff = 85800
         elif year in self._PN07:
-            coeff = 85620
+            coeff = 85740
         elif year in self._PN08:
-            coeff = 180
+            coeff = 85560
         elif year in self._PN09:
-            coeff = 121
-        elif year in years(self._PN10):
             coeff = 120
-        elif year in self._PN11:
-            coeff = 119
-        elif year in self._PN12:
-            coeff = -1
-        elif year in self._PN13:
+        elif year in self._PN10:
+            coeff = 61
+        elif year in years(self._PN11):
+            coeff = 60
+        elif year in years(self._PN12):
             coeff = -60
-        elif year in years(self._PN14):
-            coeff = -180
+        elif year in self._PN13:
+            coeff = -61
+        elif year in self._PN14:
+            coeff = -119
         elif year in self._PN15:
-            coeff = -181
+            coeff = -120
         elif year in years(self._PN16):
-            coeff = -240
+            coeff = -180
         elif year in self._PN17:
-            coeff = -359
+            coeff = -239
         elif year in years(self._PN18):
-            coeff = -360
+            coeff = -240
         elif year in self._PN19:
-            coeff = -419
+            coeff = -241
         elif year in years(self._PN20):
-            coeff = -420
-        elif year in years(self._PN21):
-            coeff = -540
+            coeff = -300
+        elif year in self._PN21:
+            coeff = -359
         elif year in years(self._PN22):
-            coeff = -600
+            coeff = -360
         elif year in years(self._PN23):
-            coeff = -720
+            coeff = -420
         elif year in self._PN24:
-            coeff = -721
-        elif year in self._PN25:
-            coeff = -780
-        elif year in self._PN26:
-            coeff = -86220
-        elif year in self._PN27:
-            coeff = -86279
-        elif year in years(self._PN28):
-            coeff = -86280
+            coeff = -479
+        elif year in years(self._PN25):
+            coeff = -480
+        elif year in years(self._PN26):
+            coeff = -540
+        elif year in years(self._PN27):
+            coeff = -600
+        elif year in self._PN28:
+            coeff = -601
         elif year in self._PN29:
-            coeff = -86281
+            coeff = -659
         elif year in years(self._PN30):
-            coeff = -86400
-        elif year in self._PN31:
-            coeff = -86401
-        elif year in years(self._PN32):
-            coeff = -86460
-        elif year in years(self._PN33):
-            coeff = -86580
-        elif year in self._PN34:
-            coeff = -86581
+            coeff = -660
+        elif year in years(self._PN31):
+            coeff = -720
+        elif year in self._PN32:
+            coeff = -721
+        elif year in self._PN33:
+            coeff = -779
+        elif year in years(self._PN34):
+            coeff = -780
         elif year in self._PN35:
-            coeff = -86640
+            coeff = -840
         elif year in self._PN36:
-            coeff = -86759
+            coeff = -841
         elif year in years(self._PN37):
-            coeff = -86760
-        elif year in self._PN38:
-            coeff = -86819
-        elif year in self._PN39:
-            coeff = -86820
+            coeff = -86280
+        elif year in years(self._PN38):
+            coeff = -86339
+        elif year in years(self._PN39):
+            coeff = -86340
         elif year in years(self._PN40):
-            coeff = -86940
-        elif year in self._PN41:
-            coeff = -87000
+            coeff = -86400
+        elif year in years(self._PN41):
+            coeff = -86460
         elif year in self._PN42:
-            coeff = -87120
-        elif year in self._PN43:
-            coeff = -87121
-        elif year in self._PN44:
-            coeff = -172620
+            coeff = -86461
+        elif year in years(self._PN43):
+            coeff = -86520
+        elif year in years(self._PN44):
+            coeff = -86580
         elif year in self._PN45:
-            coeff = -172679
+            coeff = -86581
         elif year in self._PN46:
-            coeff = -172680
-        elif year in self._PN47:
-            coeff = -172800
-        elif year in self._PN48:
-            coeff = -172980
+            coeff = -86639
+        elif year in years(self._PN47):
+            coeff = -86640
+        elif year in years(self._PN48):
+            coeff = -86700
         elif year in self._PN49:
-            coeff = -173160
+            coeff = -86759
         elif year in self._PN50:
+            coeff = -86760
+        elif year in years(self._PN51):
+            coeff = -86820
+        elif year in self._PN52:
+            coeff = -86879
+        elif year in self._PN53:
+            coeff = -86880
+        elif year in self._PN54:
+            coeff = -86940
+        elif year in years(self._PN55):
+            coeff = -87000
+        elif year in self._PN56:
+            coeff = -87001
+        elif year in self._PN57:
+            coeff = -87059
+        elif year in years(self._PN58):
+            coeff = -87060
+        elif year in self._PN59:
+            coeff = -87120
+        elif year in self._PN60:
+            coeff = -87121
+        elif year in self._PN61:
+            coeff = -87180
+        elif year in self._PN62:
+            coeff = -87181
+        elif year in self._PN63:
+            coeff = -172680
+        elif year in self._PN64:
+            coeff = -172739
+        elif year in self._PN65:
+            coeff = -172740
+        elif year in self._PN66:
+            coeff = -172860
+        elif year in self._PN67:
+            coeff = -172980
+        elif year in self._PN68:
+            coeff = -173160
+        elif year in self._PN69:
             coeff = -173340
         else:
             coeff = 0
@@ -361,15 +401,6 @@ class PosixTests(BahaiCalendar, Coefficients):
         pn39 = ((-619, -583),)  # 86940, 86940, 86940, 540
         pn40 = ((-583, -543),)  # 86940, 86940, 86940, 86940
         pn41 = ((-543, -515),)  # 86940, 720, 600, 600
-        # pn42 = ((),)  #
-        # pn43 = ((),)  #
-        # pn44 = ((),)  #
-        # pn45 = ((),)  #
-        # pn46 = ((),)  #
-        # pn47 = ((),)  #
-        # pn48 = ((),)  #
-        # pn49 = ((),)  #
-        # pn50 = ((),)  #
 
         if year in years(pn1):
             coeff = process_segments(year, pn1, -86400, (0, 1), -60, (2, 3))
@@ -567,12 +598,13 @@ class PosixTests(BahaiCalendar, Coefficients):
                                     *self.LOCAL_COORD)
         jd = self._meeus_from_exact(jd)
         ss = self._sun_setting(jd, *self.LOCAL_COORD)
+        #print(year, jd, ss, file=sys.stderr)
         # Round to the nearest minute.
         f_ss = math.floor(ss) + round(ss % 1 * 1440) / 1440
         hms = self._hms_from_decimal_day(f_ss + 0.5)
         # Where 24 is hours in a day and the GMT offset.
         b_time = (((24 + self.LOCAL_COORD[-1]) / 24) - (f_ss + 0.5)) % 1
-        return ss, hms, self._hms_from_decimal_day(b_time)[:2]  # hh & mm only
+        return ss, hms, self._hms_from_decimal_day(b_time)
 
 
 def _group_sequences(lst: list) -> list:
@@ -642,7 +674,7 @@ if __name__ == "__main__":
         help="Find the sunset for given years.")
     parser.add_argument(
         '-C', '--coord', type=convert_to_float, action='store',
-        default=(51.477928, -0.001545, 0.0), dest='coord',
+        default=datetime.GMT_COORD, dest='coord',
         help="The coordinates with GMT offset in hours. Defalult is GMT.")
     parser.add_argument(
         '-D', '--debug', action='store_true', default=False, dest='debug',
@@ -682,12 +714,12 @@ if __name__ == "__main__":
             alt = '1' if options.coeff1 else ''
             print(f"./contrib/misc/{basename} -m{alt}C \"{coord}\" {k}"
                   f"-S{options.start} -E{options.end}")
-            print("Badí'", " "*29, "Gregorian ", " "*12, "Badí'", "diff")
-            print("Date", " "*17, "timestamp", " "*2, "timestamp", " "*2,
+            print("Badí'", " "*38, "Gregorian ", " "*12, "Badí'", "diff")
+            print("Date", " "*26, "timestamp", " "*2, "timestamp", " "*2,
                   "Leap", " "*0, "Year", "Leap")
-            [print(f"{str(b_date):22} "
-                   f"{t1:12} "
-                   f"{gmt_ts:12} "
+            [print(f"{str(b_date):31} "
+                   f"{t1:<12} "
+                   f"{gmt_ts:<12} "
                    f"{str(g_leap):5} "
                    f"{g_year:4} "
                    f"{str(b_leap):5} "

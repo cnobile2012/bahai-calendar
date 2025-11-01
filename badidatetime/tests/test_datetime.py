@@ -570,16 +570,69 @@ class TestBadiDatetime_date(unittest.TestCase):
 
     #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
-    def test_fromtimestamp(self):
+    def test_fromtimestamp_local(self):
         """
         Test that the fromtimestamp class method creates an instance of
-        date from a POSIX timestamp.
+        date from a POSIX timestamp for local time.
         """
         data = (
             (0, True, '0126-16-02'),
-            # Gregorian date (2024, 8, 7) this is definitly (0181, 8, 9)
+            # Gregorian date (2024, 8, 7) this is definitly (0181, 8, 8)
             (1723057467.0619307, False, '01-10-10-08-08'),
             (1723057467.0619307, True, '0181-08-08'),
+            # Check if the today method would change day correctly.
+            # Wrong is almost 5 hours early (04:59:16.113584)
+            (1761672223.8864158, True, '0182-12-14'),
+            (1761690180, True, '0182-12-15'),  # Sunset and day change
+            # Wrong is almost 5 hours early (05:00:23.351990)
+            (1762103916.6480098, True, '0182-12-19'),
+            (1762121940, True, '0182-13-01'),  # Sunset and day change
+            )
+        msg = "Expected {} with timestamp {}, found {}."
+
+        for ts, short, expected_result in data:
+            result = datetime.date.fromtimestamp(ts, short=short)
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, ts, result))
+
+    #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', datetime.GMT_COORD)
+    def test_fromtimestamp_utc(self):
+        """
+        Test that the fromtimestamp class method creates an instance of
+        date from a POSIX timestamp for UTC time.
+        """
+        data = (
+            # Check if the today method would change day correctly.
+            # Wrong is almost 5 hours early (04:59:16.113584)
+            (1761669490.5360037, True, '0182-12-14'),
+            (1761690180, True, '0182-12-15'),  # Sunset and day change
+            # Wrong is almost 5 hours early ()
+            #(1762103916.6480098, True, '0182-12-19'),
+            (1762121940, True, '0182-13-01'),  # Sunset and day change
+            )
+        msg = "Expected {} with timestamp {}, found {}."
+
+        for ts, short, expected_result in data:
+            result = datetime.date.fromtimestamp(ts, short=short)
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, ts, result))
+
+    #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', datetime.BADI_COORD)
+    def test_fromtimestamp_tehran(self):
+        """
+        Test that the fromtimestamp class method creates an instance of
+        date from a POSIX timestamp for Tehran time.
+        """
+        data = (
+            # Check if the today method would change day correctly.
+            # Wrong is almost 5 hours early (05:10:20.7887961)
+            (1761671559.2112039, True, '0182-12-14'),
+            (1761690180, True, '0182-12-15'),  # Sunset and day change
+            # Wrong is almost 5 hours early ()
+            #(1762103916.6480098, True, '0182-12-19'),
+            (1762121940, True, '0182-13-01'),  # Sunset and day change
             )
         msg = "Expected {} with timestamp {}, found {}."
 
@@ -2672,7 +2725,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                     expected_result, date, tz, result))
 
     #@unittest.skip("Temporarily skipped")
-    @patch.object(datetime, 'LOCAL_COORD', (51.477928, -0.001545, 0))
+    @patch.object(datetime, 'LOCAL_COORD', datetime.GMT_COORD)
     def test__mktime_gmt(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
@@ -2683,63 +2736,81 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         # All results below indicate local time.
         data = (
-            ((860, 16, 2, None, None, 8, 0), 23162716800),
-            ((-547, 16, 2, None, None, 7, 58), -21237724260),
-            ((60, 16, 2, None, None, 7, 58), -2082844800),
-            ((-1540, 16, 2, None, None, 7, 54), -52573968000),
-            ((-1140, 16, 2, None, None, 7, 52), -39951187200),
-            ((-740, 16, 2, None, None, 7, 49), -27328406400),
-            ((-732, 16, 2, None, None, 7, 48), -27075945600),
-            ((-340, 16, 2, None, None, 7, 45), -14705625600),
-            ((876, 16, 2, None, None, 8, 1), 23667638400),
-            ((660, 16, 2, None, None, 8, 0), 16851369600),
-            ((360, 16, 2, None, None, 8, 0), 7384262400),
-            ((475, 16, 2, None, None, 8, 0), 11013321600),
-            ((52, 16, 2, None, None, 7, 58), -2335219200),
+            ((-1842, 16, 2, None, None, 7, 58, 0.0012), -62104060800),
             ((-1841, 16, 2, None, None, 7, 57), -62072524800),
-            ((-1742, 16, 2, None, None, 7, 55), -58948387200),
-            ((-1617, 16, 2, None, None, 7, 55), -55003795200),
-            ((-1491, 16, 2, None, None, 7, 54), -51027580800),
-            ((-1242, 16, 2, None, None, 7, 52), -43169932800),
-            ((-1243, 16, 2, None, None, 7, 52), -43201468800),
-            ((-864, 16, 2, None, None, 7, 51), -31241376000),
-            ((-942, 16, 2, None, None, 7, 51), -33702825600),
-            ((-843, 16, 2, None, None, 7, 49), -30578688000),
-            ((-691, 16, 2, None, None, 7, 48), -25782019200),
-            ((-534, 16, 2, None, None, 7, 46), -20827584000),
-            ((-434, 16, 2, None, None, 7, 46), -17671910400),
-            ((-335, 16, 2, None, None, 7, 45), -14547772800),
-            ((810, 16, 2, None, None, 8, 1), 21584966400),
-            ((381, 16, 2, None, None, 8, 0), 8047036800),
-            ((216, 16, 2, None, None, 8, 0), 2840140800),
-            ((521, 16, 2, None, None, 8, 0), 12465014400),
-            ((-1842, 16, 2, None, None, 7, 58), -62104060800),
-            ((-1822, 16, 2, None, None, 7, 58), -61472908800),
+            ((-1822, 16, 2, None, None, 7, 58, 0.0012), -61472908800),
             ((-1819, 16, 2, None, None, 7, 57), -61378214400),
-            ((-1615, 16, 2, None, None, 7, 55), -54940636800),
-            ((-1475, 16, 2, None, None, 7, 55), -50522659200),
+            ((-1816, 16, 2, None, None, 7, 57), -61283606400),
+            ((-1747, 16, 2, None, None, 7, 58, 0.0012), -59106067200),
+            ((-1742, 16, 2, None, None, 7, 55, 59.9988), -58948387200),
+            ((-1643, 16, 2, None, None, 7, 55, 0.0012), -55824249600),
+            ((-1615, 16, 2, None, None, 7, 55, 59.9988), -54940636800),
+            ((-1540, 16, 2, None, None, 7, 54), -52573968000),
+            ((-1529, 16, 2, None, None, 7, 55, 0.0012), -52226812800),
+            ((-1491, 16, 2, None, None, 7, 54), -51027580800),
+            ((-1484, 16, 2, None, None, 7, 55, 0.0012), -50806742400),
+            ((-1483, 16, 2, None, None, 7, 55, 0.0012), -50775120000),
+            ((-1475, 16, 2, None, None, 7, 55, 0.0012), -50522659200),
+            ((-1438, 16, 2, None, None, 7, 55, 59.9988), -49355049600),
+            ((-1347, 16, 2, None, None, 7, 55, 59.9988), -46483286400),
+            ((-1343, 16, 2, None, None, 7, 55, 0.0012), -46357142400),
             ((-1335, 16, 2, None, None, 7, 54), -46104681600),
-            ((-1050, 16, 2, None, None, 7, 52), -37110960000),
-            ((-1187, 16, 2, None, None, 7, 52), -41434243200),
-            ((-887, 16, 2, None, None, 7, 51), -31967136000),
+            ((-1243, 16, 2, None, None, 7, 52, 59.9988), -43201468800),
+            ((-1242, 16, 2, None, None, 7, 52, 59.9988), -43169932800),
+            ((-1187, 16, 2, None, None, 7, 52, 59.9988), -41434243200),
+            ((-1143, 16, 2, None, None, 7, 52, 0.0012), -40045795200),
+            ((-1140, 16, 2, None, None, 7, 52, 0.0012), -39951187200),
+            ((-1071, 16, 2, None, None, 7, 52, 59.9988), -37773648000),
+            ((-1043, 16, 2, None, None, 7, 52, 0.0012), -36890035200),
+            ((-947, 16, 2, None, None, 7, 52, 59.9988), -33860505600),
+            ((-942, 16, 2, None, None, 7, 51), -33702825600),
+            ((-928, 16, 2, None, None, 7, 51, 0.0), -33261062400),
             ((-911, 16, 2, None, None, 7, 51), -32724518400),
-            ((-779, 16, 2, None, None, 7, 49), -28559001600),
+            ((-887, 16, 2, None, None, 7, 51), -31967136000),
+            ((-843, 16, 2, None, None, 7, 49, 59.9988), -30578688000),
+            ((-819, 16, 2, None, None, 7, 49, 0.0012), -29821305600),
+            ((-779, 16, 2, None, None, 7, 49, 59.9988), -28559001600),
+            ((-740, 16, 2, None, None, 7, 49, 0.0012), -27328406400),
+            ((-732, 16, 2, None, None, 7, 48), -27075945600),
+            ((-726, 16, 2, None, None, 7, 49, 0.0012), -26886556800),
+            ((-691, 16, 2, None, None, 7, 48), -25782019200),
+            ((-651, 16, 2, None, None, 7, 49, 0.0012), -24519715200),
+            ((-547, 16, 2, None, None, 7, 58, 59.9988), -21237724260),
+            ((-541, 16, 2, None, None, 7, 48), -21048508800),
+            ((-534, 16, 2, None, None, 7, 46, 59.9988), -20827584000),
             ((-527, 16, 2, None, None, 7, 48), -20606659200),
-            ((-407, 16, 2, None, None, 7, 46), -16819833600),
-            ((-370, 16, 2, None, None, 7, 46), -15652224000),
-            ((1041, 16, 2, None, None, 8, 1), 28874707200),
-            ((645, 16, 2, None, None, 8, 0), 16378156800),
-            ((249, 16, 2, None, None, 8, 0), 3881606400),
-            ((-1747, 16, 2, None, None, 7, 58), -59106067200),
-            ((-1347, 16, 2, None, None, 7, 55), -46483286400),
-            ((-947, 16, 2, None, None, 7, 52), -33860505600),
-            ((-547, 16, 2, None, None, 7, 49), -21237724800),
+            ((-515, 16, 2, None, None, 7, 48), -20227968000),
+            ((-498, 16, 2, None, None, 7, 49, 0.0012), -19691510400),
+            ((-443, 16, 2, None, None, 7, 46, 0.0012), -17955907200),
+            ((-434, 16, 2, None, None, 7, 46, 59.9988), -17671910400),
+            ((-407, 16, 2, None, None, 7, 46, 59.9988), -16819833600),
+            ((-390, 16, 2, None, None, 7, 46, 0.0012), -16283376000),
+            ((-362, 16, 2, None, None, 7, 46, 59.9988), -15399763200),
+            ((-340, 16, 2, None, None, 7, 45), -14705625600),
+            ((-335, 16, 2, None, None, 7, 45), -14547772800),
+            ((-291, 16, 2, None, None, 7, 45), -13159238400),
+            ((-283, 16, 2, None, None, 7, 46, 0.0012), -12906777600),
+            ((-271, 16, 2, None, None, 7, 46, 0.0012), -12528086400),
+            ((-261, 16, 2, None, None, 7, 58, 0.0012), -12212553600),
+            ((-256, 16, 2, None, None, 7, 58, 0.0012), -12054787200),
+            ((-242, 16, 2, None, None, 7, 58, 59.9988), -11612937600),
+            ((60, 16, 2, None, None, 7, 58, 0.0012), -2082844800),
             # Sunset on 1969-12-31T16:02:00+00:00 is the start of the Badi day
-            # before the POSIX epoch. This is 7 hours and 58 minutes before
-            # UTC midnight the POSIX epoch. The local UTC time on the epoch was
+            # before the POSIX epoch. This is 07:57:27.7 before UTC midnight
+            # the POSIX epoch. The local UTC time on the epoch was
             # 1970-01-01T00:00:00+00:00
-            ((126, 16, 2, None, None, 7, 58), 0),
-            ((126, 16, 2, None, None, 8, 3, 7.7184), 307),
+            ((126, 16, 2, None, None, 7, 58, 59.9988), 0),
+            ((216, 16, 2, None, None, 7, 58, 59.9988), 2840140740),
+            ((249, 16, 2, None, None, 8, 0), 3881606400),
+            ((360, 16, 2, None, None, 8, 0), 7384262400),
+            ((356, 16, 2, None, None, 8), 7258118400),
+            ((460, 16, 2, None, None, 7, 58, 59.9988), 10539936000),
+            ((475, 16, 2, None, None, 8, 0), 11013321600),
+            ((645, 16, 2, None, None, 8, 0), 16378156800),
+            ((810, 16, 2, None, None, 8, 1, 0.0012), 21584966400),
+            ((860, 16, 2, None, None, 8, 0), 23162716800),
+            ((876, 16, 2, None, None, 8, 1, 0.0012), 23667638400),
+            ((1041, 16, 2, None, None, 8, 1, 0.0012), 28874707200),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -2776,7 +2847,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
 
     #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.682376, 51.285817, 3.5))
-    def test__mktime_terhan(self):
+    def test__mktime_tehran(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
         local time in Terhan. All tests below will only work with Terhan
@@ -2787,11 +2858,14 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Sunset in Terhan was 17:02 UTC
             # Badi time was 24 - 17:02 = 6:58, 6:58 + 3:30 == 10:28
             # POSIX epoch local time 1970-01-01T03:50:00+03:30
-            ((126, 16, 2, None, None, 10, 28), 0),
+            ((126, 16, 2, None, None, 10, 28, 0.0012), 0),
             # POSIX epoch 1970-01-01T00:00:00
-            ((126, 16, 2, None, None, 6, 48), -13200),
-            # 2024-31-30T00:00:00
-            ((181, 16, 2, None, None, 10, 28), 1735689600),
+            ((126, 16, 2, None, None, 6, 58, 0.0012), -12600),
+            # Both test below are off by -25200
+            # 2024-31-30T00:00:00 -> 1735702200
+            ((181, 16, 2, None, None, 10, 28, 0.0012), 1735689600),
+            # 2024-31-30T00:00:00 -> 1735689600
+            ((181, 16, 2, None, None, 6, 58, 0.0012), 1735677000),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -2815,34 +2889,37 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
-            # 2024-03-19T18:17:38+30:30 -> 1710886658
+            # 2024-03-19T18:15:57.312+03:30 -> 1710873957.0
             # 0181-01-01T00:00:00+03:30
             # 2460387.262245 = sunset on 0181-01-01T00:00:00+03:30
             # 0.3125 = T07:30:00
             # 0.550255 = 0.5 - 0.262245 + 0.3125 = T13:12:22.032
-            ##((181, 1, 1), tz0, 0, 1710851520),
-            # 2024-03-19T18:15:57.312+00:00
+            ##((181, 1, 1), tz0, 0, 1710851552.3),
+            # 2024-03-19T18:15:57.312+00:00 -> 1710886557
             # 0181-01-01T00:00:00+00:00
-            ##((181, 1, 1), tz1, 0, 1710864120),
+            ##((181, 1, 1), tz1, 0, 1710864152.3),
             # 2024-03-19T18:15:57.312-04:00
             # 0181-01-01T00:00:00-04:00
             ##((181, 1, 1), tz2, 0, 1710878520),
             # POSIX epoch
-            # 0126-16-02T11:28:00+03:30
-            ((126, 16, 2, None, None, 11, 28), tz0, 0, 0),
-            # 0126-16-02T07:58:00+00:00
-            ((126, 16, 2, None, None, 7, 58), tz1, 0, 0),
-            # 0126-16-02T07:58:00+00:00
-            ((126, 16, 2, None, None, 7, 58), datetime.UTC, 0, 0),
-            # 0126-16-02T02:58:00-05:00
-            ((126, 16, 2, None, None, 2, 58), tz2, 0, 0),
+            # 0126-16-02T07:57:27.7+00:00 plus 3:30 hours
+            ((126, 16, 2, None, None, 11, 27, 27.7), tz0, 0, 0.0),
+            # 0126-16-02T07:57:27.7+00:00
+            ((126, 16, 2, None, None, 7, 57, 27.7), tz1, 0, 0.0),
+            # 0126-16-02T07:57:27.7+00:00
+            ((126, 16, 2, None, None, 7, 57, 27.7), datetime.UTC, 0, 0.0),
+            # 0126-16-02T07:57:27.7+00:00 minus -05:00 EST hours
+            ((126, 16, 2, None, None, 2, 57, 27.7), tz2, 0, 0.0),
             # Local dates and times
-            # 0181-16-02T07:58:00+00:00 -> 1735689600 GMT
-            ((181, 16, 2, None, None, 7, 58), tz1, 0, 1735603200),
-            # 0181-16-02T01:48:00-05:00 -> 1735671600
-            ((181, 16, 2, None, None, 1, 48), tz2, 0, 1735599000),
-            # 0181-16-02T01:48:00 -> 1735689720
-            ((181, 16, 2, None, None, 1, 48), None, 0, 1735689600),
+            # 0181-16-02T07:57:27.7+00:00 -> 2024-12-31T00:00:00+00:00 ->
+            # 1735603200.0 GMT
+            ((181, 16, 2, None, None, 7, 57, 27.7), tz1, 0, 1735603200.0),
+            # 0181-16-02T07:57:27.7-00:00 minus -05:00 EST -> 1735603200.0
+            ((181, 16, 2, None, None, 2, 57, 27.7), tz2, 0, 1735603200.0),
+            # 0181-16-02T07:57:27.7-00:00 minus -04:00 DST -> 1735603200.0
+            # The expected result below is wrong it's off by
+            # 1 day, 2hr 1 min 7.7 sec
+            ((181, 16, 2, None, None, 3, 57, 27.7), None, 0, 1735697367.7),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 

@@ -313,7 +313,7 @@ class TestBadiCalendar(unittest.TestCase):
              (0, 19, 18)),
             (2394642.5, *epoch_coords, False, True, True, False, True,
              (0, 19, 19)),
-            (2394643.5, *epoch_coords, False, True, True, False, True,
+            (2394643.262113, *epoch_coords, False, True, True, False, True,
              (1, 1, 1)),
             # 1969-12-31T17:12:00-05:00
             (2440585.216667, *local_coords, True, True, True, False, False,
@@ -584,25 +584,32 @@ class TestBadiCalendar(unittest.TestCase):
         https://www.latlong.net/place/prime-meridian-greenwich-30835.html#:~:text=Prime%20Meridian%20(Greenwich)%20Lat%20Long,%C2%B0%200'%205.5620''%20W.
         https://www.unixtimestamp.com/
         """
+        utc_coords = (51.477928, -0.001545, 0)
         local_coords = (35.5894, -78.7792, -5.0)
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
         data = (
             # 1970-01-01T00:00:00 -> UNIX Epoch at UTC
             # sunset the day before 16:01 lat=51.4769, lon=0, zone=0
-            #                      UTC 12am == (126, 16, 2, 8, 0, 0)
-            (0, 51.477928, -0.001545, 0, False, True, True,
-             (126, 16, 2, 7, 59, 32.496)),
-            #                      UTC 12am == (1, 7, 12, 16, 2, 8, 0, 0)
-            (0, 51.477928, -0.001545, 0, False, False, True,
+            #                       UTC 12am == (126, 16, 2, 8, 0, 0)
+            (0, *utc_coords, False, True, True, (126, 16, 2, 7, 59, 32.496)),
+            #                       UTC 12am == (1, 7, 12, 16, 2, 8, 0, 0)
+            (0, *utc_coords, False, False, True,
              (1, 7, 12, 16, 2, 7, 59, 32.496)),
-            # 1969-12-31T23:59:59 This is one second before the POSIX epoch
-            (-1, 51.477928, -0.001545, 0, False, True, True,
+            # 1969-12-31T23:59:59 This is one second before the POSIX epoch UTC
+            (-1, *utc_coords, False, True, True,
              (126, 16, 2, 7, 59, 31.4592)),
-            (-1, 51.477928, -0.001545, 0, True, True, True,
+            (-1, *utc_coords, True, True, True,
              (126, 16, 2, 7, 59, 31, 459200)),
+            # Tue Oct 28 2025 22:23:00 GMT+0000 Sunset
+            (1761690180, *utc_coords, False, True, True,
+             (182, 12, 15, 5, 44, 49.4304)),
+            (1761690179, *utc_coords, False, True, True,
+             (182, 12, 15, 5, 44, 48.3936)),
+
+
             # 2024-08-21T14:33:46.246101 -- Locality in NC USA
             # The h, m, & s are counted from the beginning of the Badi day
-            # which would be the previous Gregorian day.
+            # which would be sunset on the previous Gregorian day.
             (1724265226.246101, *local_coords, False, True, True,
              (181, 9, 3, 11, 36, 11.8944)),
             # Just after sunset US/Eastern on (2024, 1, 12, 17, 34, 1, 290939)
@@ -955,9 +962,9 @@ class TestBadiCalendar(unittest.TestCase):
                     expected_result, jd, date, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__day_Length(self):
+    def test__day_length(self):
         """
-        Test that the _day_Length method returns the hours, minutes, and
+        Test that the _day_length method returns the hours, minutes, and
         seconds of a day.
         """
         local_coords = (35.5894, -78.7792, -5.0)
@@ -1003,6 +1010,6 @@ class TestBadiCalendar(unittest.TestCase):
 
         for (date, location, expected_result) in data:
             jd = self._bc.jd_from_badi_date(date, *location)
-            result = self._bc._day_Length(jd, *location)
+            result = self._bc._day_length(jd, *location)
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, jd, location, result))

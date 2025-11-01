@@ -23,7 +23,7 @@ class DateTests(BahaiCalendar):
     Equinox and Solstices, Perihelion, and Aphelion
     https://www.timeanddate.com/sun/@112931?month=3&year=1844
 
-    The site below is where I've gotten the Vernal Equinox data it uses
+    The site below is where I've gotten the Vernal Equinox data that uses
     the 4, 100, and 400 algorithm, so we must also. The 4 and 128 algorithm
     is more accurate, but I've not found Vernal Equinox data that uses it.
 
@@ -683,7 +683,7 @@ class DateTests(BahaiCalendar):
                     jd = self._meeus_from_exact(jd)
                     ssjd = self._sun_setting(jd, *locate)
                     ssjd = self._exact_from_meeus(ssjd)
-                    hms = self._day_Length(ssjd, *locate)
+                    hms = self._day_length(ssjd, *locate)
 
                     if short_day == () or long_day == ():
                         short_day = long_day = date
@@ -1116,11 +1116,10 @@ class DateTests(BahaiCalendar):
             g_date = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
                 jd_ss))  # Sunset before VE
             bjd = self._jd_from_badi_date(b_date, coeffon=options.coff)
-            e_jd_ss = jd_ss - self._exact_from_meeus(jd_ss)
             # This must be rounded to 5 (See Badí' year 128)
-            diff = round(bjd - e_jd_ss, 5)
+            diff = round(bjd - jd_ss, 5)
             offby = math.floor(diff)
-            data.append((b_date, bjd, g_date, e_jd_ss, diff, offby))
+            data.append((b_date, bjd, g_date, jd_ss, diff, offby))
         except Exception as e:
             msg = f"Badí' date {b_date} and Gregorian date {g_date}, {e}"
             print(msg, file=sys.stderr)
@@ -1339,8 +1338,8 @@ if __name__ == "__main__":
         else:
             data = dt.analyze_date_error(options)
             print("Badí' Date    Badi JD        Gregorian Date (Sunset)      "
-                  "  Gregorian JD    Diff      Off By")
-            print('-'*92)
+                  "  Gregorian JD    Diff     Off By")
+            print('-'*91)
 
             for b_date, bjd, g_date, gjd, diff, offby in data:
                 dn = '-' if diff < 0 else ' '
@@ -1349,7 +1348,7 @@ if __name__ == "__main__":
                       f"{bjd:<14} "
                       f"{str(g_date):30} "
                       f"{gjd:<14} "
-                      f"{dn}{abs(diff):<8} "
+                      f"{dn}{abs(diff):<7} "
                       f"{on}{abs(offby)}")
 
             diffs = []

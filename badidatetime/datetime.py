@@ -23,7 +23,7 @@ from ._timedateutils import _td_utils
 _MAXORDINAL = 1097267  # date.max.toordinal()
 MINYEAR = BahaiCalendar.MINYEAR
 MAXYEAR = BahaiCalendar.MAXYEAR
-BADI_IANA = BahaiCalendar._BAHAI_LOCATION[3]  # Asia/Terhan
+BADI_IANA = BahaiCalendar._BAHAI_LOCATION[3]  # Asia/Tehran
 BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
 GMT_COORD = (51.477928, -0.001545, 0)
 # LOCAL_COORD and LOCAL is lazily configured to the local coordinates
@@ -2048,9 +2048,13 @@ class datetime(date, Coefficients):
         f_ss = _math.floor(ss) + round(ss % 1 * 1440) / 1440
         # Where 24 is hours in a day and offset from GMT.
         b_time = (((24 + LOCAL_COORD[-1]) / 24) - (f_ss + 0.5)) % 1
-        return self._hms_from_decimal_day(b_time)[:2]  # hh & mm only
+        return self._hms_from_decimal_day(b_time)
 
     def _get_ts_coeff(self, year: int) -> int:
+        """
+        Determine the coefficients needed to adjust the POSIX timestamp of
+        the Badí' dates to the Gregorian dates.
+        """
         def years(pn_all):
             data = []
 
@@ -2067,104 +2071,142 @@ class datetime(date, Coefficients):
             return data
 
         if year in self._PN01:
-            coeff = 86520
+            coeff = 86460
         elif year in self._PN02:
             coeff = 86400
         elif year in self._PN03:
-            coeff = 86160
+            coeff = 86340
         elif year in self._PN04:
-            coeff = 86040
+            coeff = 86100
         elif year in self._PN05:
-            coeff = 85860
+            coeff = 85980
         elif year in self._PN06:
             coeff = 85800
         elif year in self._PN07:
-            coeff = 85620
+            coeff = 85740
         elif year in self._PN08:
-            coeff = 180
+            coeff = 85560
         elif year in self._PN09:
-            coeff = 121
-        elif year in years(self._PN10):
             coeff = 120
-        elif year in self._PN11:
-            coeff = 119
-        elif year in self._PN12:
-            coeff = -1
-        elif year in self._PN13:
+        elif year in self._PN10:
+            coeff = 61
+        elif year in years(self._PN11):
+            coeff = 60
+        elif year in years(self._PN12):
             coeff = -60
-        elif year in years(self._PN14):
-            coeff = -180
+        elif year in self._PN13:
+            coeff = -61
+        elif year in self._PN14:
+            coeff = -119
         elif year in self._PN15:
-            coeff = -181
+            coeff = -120
         elif year in years(self._PN16):
-            coeff = -240
+            coeff = -180
         elif year in self._PN17:
-            coeff = -359
+            coeff = -239
         elif year in years(self._PN18):
-            coeff = -360
+            coeff = -240
         elif year in self._PN19:
-            coeff = -419
+            coeff = -241
         elif year in years(self._PN20):
-            coeff = -420
-        elif year in years(self._PN21):
-            coeff = -540
+            coeff = -300
+        elif year in self._PN21:
+            coeff = -359
         elif year in years(self._PN22):
-            coeff = -600
+            coeff = -360
         elif year in years(self._PN23):
-            coeff = -720
+            coeff = -420
         elif year in self._PN24:
-            coeff = -721
-        elif year in self._PN25:
-            coeff = -780
-        elif year in self._PN26:
-            coeff = -86220
-        elif year in self._PN27:
-            coeff = -86279
-        elif year in years(self._PN28):
-            coeff = -86280
+            coeff = -479
+        elif year in years(self._PN25):
+            coeff = -480
+        elif year in years(self._PN26):
+            coeff = -540
+        elif year in years(self._PN27):
+            coeff = -600
+        elif year in self._PN28:
+            coeff = -601
         elif year in self._PN29:
-            coeff = -86281
+            coeff = -659
         elif year in years(self._PN30):
-            coeff = -86400
-        elif year in self._PN31:
-            coeff = -86401
-        elif year in years(self._PN32):
-            coeff = -86460
-        elif year in years(self._PN33):
-            coeff = -86580
-        elif year in self._PN34:
-            coeff = -86581
+            coeff = -660
+        elif year in years(self._PN31):
+            coeff = -720
+        elif year in self._PN32:
+            coeff = -721
+        elif year in self._PN33:
+            coeff = -779
+        elif year in years(self._PN34):
+            coeff = -780
         elif year in self._PN35:
-            coeff = -86640
+            coeff = -840
         elif year in self._PN36:
-            coeff = -86759
+            coeff = -841
         elif year in years(self._PN37):
-            coeff = -86760
-        elif year in self._PN38:
-            coeff = -86819
-        elif year in self._PN39:
-            coeff = -86820
+            coeff = -86280
+        elif year in years(self._PN38):
+            coeff = -86339
+        elif year in years(self._PN39):
+            coeff = -86340
         elif year in years(self._PN40):
-            coeff = -86940
-        elif year in self._PN41:
-            coeff = -87000
+            coeff = -86400
+        elif year in years(self._PN41):
+            coeff = -86460
         elif year in self._PN42:
-            coeff = -87120
-        elif year in self._PN43:
-            coeff = -87121
-        elif year in self._PN44:
-            coeff = -172620
+            coeff = -86461
+        elif year in years(self._PN43):
+            coeff = -86520
+        elif year in years(self._PN44):
+            coeff = -86580
         elif year in self._PN45:
-            coeff = -172679
+            coeff = -86581
         elif year in self._PN46:
-            coeff = -172680
-        elif year in self._PN47:
-            coeff = -172800
-        elif year in self._PN48:
-            coeff = -172980
+            coeff = -86639
+        elif year in years(self._PN47):
+            coeff = -86640
+        elif year in years(self._PN48):
+            coeff = -86700
         elif year in self._PN49:
-            coeff = -173160
+            coeff = -86759
         elif year in self._PN50:
+            coeff = -86760
+        elif year in years(self._PN51):
+            coeff = -86820
+        elif year in self._PN52:
+            coeff = -86879
+        elif year in self._PN53:
+            coeff = -86880
+        elif year in self._PN54:
+            coeff = -86940
+        elif year in years(self._PN55):
+            coeff = -87000
+        elif year in self._PN56:
+            coeff = -87001
+        elif year in self._PN57:
+            coeff = -87059
+        elif year in years(self._PN58):
+            coeff = -87060
+        elif year in self._PN59:
+            coeff = -87120
+        elif year in self._PN60:
+            coeff = -87121
+        elif year in self._PN61:
+            coeff = -87180
+        elif year in self._PN62:
+            coeff = -87181
+        elif year in self._PN63:
+            coeff = -172680
+        elif year in self._PN64:
+            coeff = -172739
+        elif year in self._PN65:
+            coeff = -172740
+        elif year in self._PN66:
+            coeff = -172860
+        elif year in self._PN67:
+            coeff = -172980
+        elif year in self._PN68:
+            coeff = -173160
+        elif year in self._PN69:
             coeff = -173340
         else:
             coeff = 0
@@ -3068,4 +3110,8 @@ BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-_EPOCH = datetime(126, 16, 2, None, None, 7, 58, tzinfo=timezone.utc)
+# The below date was found using the Julian Period day derived from the
+# GregorianCalendar.jd_from_gregorian_date((1970, 1, 1), exact=True) ==
+# 2440585.5 to BahaiCalendar.jd_from_badi_date((126, 16, 2, 7, 57, 27.7),
+# 51.477928, -0.001545, 0) == 2440585.5
+_EPOCH = datetime(126, 16, 2, None, None, 7, 57, 27.7, tzinfo=timezone.utc)
