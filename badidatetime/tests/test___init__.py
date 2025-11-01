@@ -49,11 +49,12 @@ class Test__init__(unittest.TestCase):
         """
         lat, lon, zone = _get_local_coordinates()
         self.assertTrue(isinstance(lat, float),
-                        f"The lat {lat} was not a float.")
+                        f"The lat {lat} was not a float, found {type(lat)}.")
         self.assertTrue(isinstance(lon, float),
-                        f"The lon {lon} was not a float.")
-        self.assertTrue(isinstance(zone, float),
-                        f"The zone {zone} was not a float.")
+                        f"The lon {lon} was not a float, found {type(lon)}.")
+        self.assertTrue(
+            isinstance(zone, float),
+            f"The zone {zone} was not a float, found {type(zone)}.")
 
     #@unittest.skip("Temporarily skipped")
     def test_enable_geocoder(self):
