@@ -93,7 +93,8 @@ def _check_offset(name: str, offset: timedelta) -> None:
             if not -timedelta(1) < offset < timedelta(1):
                 raise ValueError(
                     f"{name}()={offset}, must be strictly between "
-                    "-timedelta(hours=24) and timedelta(hours=24)")
+                    "-timedelta(hours=24) and timedelta(hours=24), "
+                    f"not {offset!r}")
 
 
 def _check_tzinfo_arg(tz: tzinfo) -> None:
@@ -105,7 +106,7 @@ def _check_tzinfo_arg(tz: tzinfo) -> None:
     """
     if tz is not None and not isinstance(tz, tzinfo):
         raise TypeError("tzinfo argument must be None or of a tzinfo "
-                        f"subclass, found {tz!r}")
+                        f"subclass, not {type(tz).__name__!r}")
 
 
 def _cmperror(x, y) -> None:
@@ -200,7 +201,7 @@ def _check_tzname(name: str) -> None:
     """
     if name is not None and not isinstance(name, str):
         raise TypeError("tzinfo.tzname() must return None or string, "
-                        f"not {type(name)!r}")
+                        f"not {type(name).__name__!r}")
 
 
 def _fromutc(this: tzinfo, dt):
@@ -2950,7 +2951,8 @@ class timezone(tzinfo):
 
         if not cls._minoffset <= offset <= cls._maxoffset:
             raise ValueError("offset must be a timedelta strictly between "
-                             "-timedelta(hours=24) and timedelta(hours=24).")
+                             "-timedelta(hours=24) and timedelta(hours=24), "
+                             f"not {offset!r}.")
 
         return cls._create(offset, name)
 

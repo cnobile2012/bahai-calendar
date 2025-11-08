@@ -96,8 +96,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = self.jd_from_badi_date((year, 1, 1), lat, lon, zone)
-        date = self._gc.gregorian_date_from_jd(jd, exact=True)
-        return self._gc.ymdhms_from_date(date) if hms else date
+        return self._gc.gregorian_date_from_jd(jd, hms=hms, exact=True)
 
     def first_day_of_ridvan_g_date(self, year: int, lat: float=None,
                                    lon: float=None, zone: float=None, *,
@@ -120,16 +119,15 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = self.jd_from_badi_date((year, 2, 13), lat, lon, zone)
-        date = self._gc.gregorian_date_from_jd(jd, exact=True)
-        return self._gc.ymdhms_from_date(date) if hms else date
+        return self._gc.gregorian_date_from_jd(jd, hms=hms, exact=True)
 
     def jd_from_badi_date(self, b_date: tuple, lat: float=None,
                           lon: float=None, zone: float=None,
                           _chk_on: bool=True) -> float:
         """
-        Convert a Badi short form date to Julian period day.
+        Convert a Badí' short form date to Julian period day.
 
-        :param tuple b_date: A short form Badi date.
+        :param tuple b_date: A short form Badí' date.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The time zone.
@@ -148,7 +146,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             days = 18 * 19
         elif month < 19:  # month 1 - 18
             days = (month - 1) * 19
-        else:  # month == 19:
+        else:  # month 19:
             days = 18 * 19 + 4 + self._is_leap_year(year, _chk_on=_chk_on)
 
         td = self._days_in_years(year-1)
@@ -157,9 +155,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
-        # The diff value converts the more exact jd to the Meeus algorithm
-        # for determining the sunset jd. The fractional on the day is not
-        # affected.
+        # The day may have a decimal component. ex. 1.5 = (1 day and 12 hours)
+        # This day is relative to UTC time, so we need to compensate for Badi
+        # time since a Badi day starts at sunset not at midnight.
         jd1 = self._meeus_from_exact(jd)
         ss_a = self._sun_setting(jd1, lat, lon, zone) % 1
         return round(jd + ss_a + self._get_jd_coeff(year),
@@ -512,8 +510,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = self.jd_from_badi_date(b_date, lat, lon, zone, _chk_on=_chk_on)
-        return self._gc.ymdhms_from_date(self._gc.gregorian_date_from_jd(
-            jd, exact=_exact), us=True)
+        return self._gc.gregorian_date_from_jd(jd, hms=True, us=True,
+                                               exact=_exact)
 
     def posix_timestamp(self, t: float, lat: float=None, lon: float=None,
                         zone: float=None, *, us: bool=False, short: bool=False,

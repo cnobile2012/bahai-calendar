@@ -222,7 +222,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
                     "('utcoffset', 'badioffset', 'dst').")
         err_msg1 = "tzinfo.{}() must return None or timedelta, not {}"
         err_msg2 = ("{}()={}, must be strictly between -timedelta(hours=24) "
-                    "and timedelta(hours=24)")
+                    "and timedelta(hours=24), not {}")
         data = (
             ('utcoffset', datetime.timedelta(hours=10), False, None),
             ('dst', datetime.timedelta(hours=1), False, None),
@@ -230,7 +230,8 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             ('junk', None, True, err_msg0.format('junk')),
             ('utcoffset', 10, True, err_msg1.format('utcoffset', type(10))),
             ('utcoffset', datetime.timedelta(hours=24), True,
-             err_msg2.format('utcoffset', '1 day, 0:00:00')),
+             err_msg2.format('utcoffset', '1 day, 0:00:00',
+                             'datetime.timedelta(days=1)')),
             )
         msg = "Expected {} with name {} and offset {}, found {}."
 
@@ -256,10 +257,10 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         Test that the _check_tzinfo_arg function returns the correct result.
         """
         err_msg0 = ("tzinfo argument must be None or of a tzinfo subclass, "
-                    "found {}")
+                    "not {!r}")
         data = (
             (datetime.BADI, False, None),
-            ('JUNK', True, err_msg0.format("'JUNK'")),
+            ('JUNK', True, err_msg0.format('str')),
             )
         msg = "Expected {} with tz {}, found {}."
 
@@ -378,11 +379,11 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
         Test that the _check_tzname function raises a TypeError is the name
         argument is not None or a string.
         """
-        err_msg0 = "tzinfo.tzname() must return None or string, not {}"
+        err_msg0 = "tzinfo.tzname() must return None or string, not {!r}"
         data = (
             ('', False, ''),
             (None, False, ''),
-            (100, True, err_msg0.format(int)),
+            (100, True, err_msg0.format('int')),
             )
 
         for name, validity, expected_result in data:
@@ -569,6 +570,29 @@ class TestBadiDatetime_date(unittest.TestCase):
                              msg.format(expected_result, date, result))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', datetime.GMT_COORD)
+    def test_fromtimestamp_utc(self):
+        """
+        Test that the fromtimestamp class method creates an instance of
+        date from a POSIX timestamp for UTC time.
+        """
+        data = (
+            # Check if the today method would change day correctly.
+            # Wrong is almost 5 hours early (04:59:16.113584)
+            (1761669490.5360037, True, '0182-12-14'),
+            (1761690180, True, '0182-12-15'),  # Sunset and day change
+            # Wrong is almost 5 hours early ()
+            #(1762103916.6480098, True, '0182-12-19'),
+            (1762121940, True, '0182-13-01'),  # Sunset and day change
+            )
+        msg = "Expected {} with timestamp {}, found {}."
+
+        for ts, short, expected_result in data:
+            result = datetime.date.fromtimestamp(ts, short=short)
+            self.assertEqual(expected_result, str(result),
+                             msg.format(expected_result, ts, result))
+
+    #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_fromtimestamp_local(self):
         """
@@ -586,29 +610,6 @@ class TestBadiDatetime_date(unittest.TestCase):
             (1761690180, True, '0182-12-15'),  # Sunset and day change
             # Wrong is almost 5 hours early (05:00:23.351990)
             (1762103916.6480098, True, '0182-12-19'),
-            (1762121940, True, '0182-13-01'),  # Sunset and day change
-            )
-        msg = "Expected {} with timestamp {}, found {}."
-
-        for ts, short, expected_result in data:
-            result = datetime.date.fromtimestamp(ts, short=short)
-            self.assertEqual(expected_result, str(result),
-                             msg.format(expected_result, ts, result))
-
-    #@unittest.skip("Temporarily skipped")
-    @patch.object(datetime, 'LOCAL_COORD', datetime.GMT_COORD)
-    def test_fromtimestamp_utc(self):
-        """
-        Test that the fromtimestamp class method creates an instance of
-        date from a POSIX timestamp for UTC time.
-        """
-        data = (
-            # Check if the today method would change day correctly.
-            # Wrong is almost 5 hours early (04:59:16.113584)
-            (1761669490.5360037, True, '0182-12-14'),
-            (1761690180, True, '0182-12-15'),  # Sunset and day change
-            # Wrong is almost 5 hours early ()
-            #(1762103916.6480098, True, '0182-12-19'),
             (1762121940, True, '0182-13-01'),  # Sunset and day change
             )
         msg = "Expected {} with timestamp {}, found {}."
@@ -2271,7 +2272,7 @@ class TestBadiDatetime_time(unittest.TestCase):
         Test that the __setstate method sets the correct state for pickeling.
         """
         err_msg0 = ("tzinfo argument must be None or of a tzinfo subclass, "
-                    "found {}")
+                    "not {!r}")
         data = (
             ((12, 30, 30, 500000), None, 0, b'\x0c\x1e\x1e\x07\xa1 ',
              False, ''),
@@ -2279,7 +2280,7 @@ class TestBadiDatetime_time(unittest.TestCase):
              False, ''),
             ((0, 30, 30, 500000), None, 1, b'\x80\x1e\x1e\x07\xa1 ',
              False, ''),
-            ((12, 30, 30, 500000), None, 0, b'', True, err_msg0.format("''")),
+            ((12, 30, 30, 500000), None, 0, b'', True, err_msg0.format('str')),
             )
         msg = ("Expected {} with time {}, tz {}, fold {}, "
                "and bytes_str {}, found {}.")
@@ -3346,12 +3347,14 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
+        tz3 = datetime.timezone(datetime.timedelta(hours=3.5))
         data = (
             ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0, '3:30:00'),
             ((181, 1, 1, None, None, 12, 30, 30), tz0, 0, '3:30:00'),
             ((181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 0, '0:00:00'),
             ((181, 1, 1, None, None, 12, 30, 30), tz1, 0, '0:00:00'),
             ((181, 1, 1, None, None, 12, 30, 30), tz2, 0, '-1 day, 20:00:00'),
+            ((181, 1, 1, None, None, 12, 30, 30), tz3, 0, '3:30:00'),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 
@@ -4018,7 +4021,7 @@ class TestBadiDatetime_timezone(unittest.TestCase):
         err_msg0 = "offset must be a timedelta"
         err_msg1 = "name must be a string"
         err_msg2 = ("offset must be a timedelta strictly between "
-                    "-timedelta(hours=24) and timedelta(hours=24).")
+                    "-timedelta(hours=24) and timedelta(hours=24), not {}.")
         td = datetime.timedelta(hours=datetime.BADI_COORD[2])
         IANA = datetime.BADI_IANA
         data = (
@@ -4027,7 +4030,8 @@ class TestBadiDatetime_timezone(unittest.TestCase):
             (td, '', False, ''),
             (object, IANA, True, err_msg0),
             (td, object, True, err_msg1),
-            (datetime.timedelta(hours=25), '', True, err_msg2),
+            (datetime.timedelta(hours=25), '', True,
+             err_msg2.format('datetime.timedelta(days=1, seconds=3600)')),
             )
         msg = "Expected {} with offset {} and name {}, found {}."
 

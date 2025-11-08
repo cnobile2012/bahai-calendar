@@ -159,7 +159,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.12 p.88 Eq.12.3
+           Meeus--AA ch. 12 p. 88 Eq. 12.3
         """
         return self._coterminal_angle(280.46061837 + 360.98564736629 *
                                       (tc * 36525) + 0.000387933 *
@@ -177,7 +177,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.12 p.88
+           Meeus--AA ch. 12 p. 88
         """
         t0 = self._mean_sidereal_time_greenwich(tc)
         eps = self._true_obliquity_of_ecliptic(tc)
@@ -196,7 +196,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA p.93 Eq.13.6
+           Meeus--AA p. 93 Eq. 13.6
         """
         return math.degrees(math.asin(
             self._sin_deg(lat) * self._sin_deg(delta) + self._cos_deg(lat) *
@@ -229,7 +229,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           1. Meeus--AA p.101,102
+           1. Meeus--AA p. 101, 102
            2. If the result of the equation is negative then add 360°
               (6.283185307179586 radians). If result is greater than
               360° then subtract 360° (6.283185307179586 radians).
@@ -262,7 +262,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
         assert ((-180 <= zone <= 180 and not exact_tz) or
                 (zone == 0 and exact_tz)), (
@@ -328,7 +328,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
         jd += self._rising_setting(jd, lat, lon, zone, exact_tz=exact_tz,
                                    offset=offset, sr_ss='RISE')
@@ -359,7 +359,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
         jd += self._rising_setting(jd, lat, lon, zone, exact_tz=exact_tz,
                                    offset=offset, sr_ss='SET')
@@ -393,7 +393,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus-AA ch.15 p. 102, 103 Eq.15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
         assert ((-180 <= zone <= 180 and not exact_tz) or
                 (zone == 0 and exact_tz)), (
@@ -574,7 +574,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch.22 p.144
+           | Meeus--AA ch. 22 p. 144
            | Referenced by lm (M').
         """
         return self._coterminal_angle(self._poly(
@@ -590,7 +590,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch.22 p.144
+           | Meeus--AA ch. 22 p. 144
            | Referenced by ls (M).
         """
         return self._coterminal_angle(self._poly(
@@ -607,7 +607,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch.22 p.144
+           | Meeus--AA ch. 22 p. 144
            | Referenced by ff (F).
         """
         return self._coterminal_angle(self._poly(
@@ -622,7 +622,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch22 p144
+           | Meeus--AA ch. 22 p. 144
            | Referenced by dd (D).
         """
         return self._coterminal_angle(self._poly(
@@ -639,7 +639,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch22 p144
+           | Meeus--AA ch. 22 p. 144
            | Referenced by om (omega).
         """
         return self._coterminal_angle(self._poly(
@@ -656,7 +656,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch.22 p.147 Eq.22.3
+           | Meeus--AA ch. 22 p. 147 Eq. 22.3
            | Convert lots of things:
            | https://www.xconvert.com/unit-converter/arcseconds-to-degrees
         """
@@ -680,7 +680,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch.25 p.163 Eq.25.2
+           | Meeus--AA ch. 25 p. 163 Eq. 25.2
            | References by L0
         """
         return self._coterminal_angle(self._poly(
@@ -696,7 +696,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p.163 Eq.25.4
+           Meeus--AA ch. 25 p. 163 Eq. 25.4
         """
         return self._poly(tc, (0.016708634, -0.000042037, -0.0000001267))
 
@@ -715,7 +715,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p.164
+           Meeus--AA ch. 25 p. 164
         """
         m = self._sun_earth_mean_anomaly(tc)
         return ((1.914602 - 0.004817 * tc - 0.000014 * tc**2) *
@@ -734,7 +734,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA p.164
+           Meeus--AA p. 164
         """
         l0 = self._sun_mean_longitude(tc)
         cen = self._sun_equation_of_center(tc)
@@ -752,7 +752,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA p.164
+           Meeus--AA p. 164
 
            This has a less accurate result. apparent_solar_longitude()
            should be more acurate.
@@ -773,7 +773,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p.165 Eq.25.6
+           Meeus--AA ch. 25 p. 165 Eq. 25.6
         """
         om = self._moon_ascending_node_longitude(tc)
         eps = (self._true_obliquity_of_ecliptic(tc) + 0.00256 *
@@ -796,7 +796,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p165 Eq25.7
+           Meeus--AA ch. 25 p. 165 Eq. 25.7
         """
         om = self._moon_ascending_node_longitude(tc)
         eps = (self._true_obliquity_of_ecliptic(tc) + 0.00256 *
@@ -817,7 +817,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch.25 p.166
+           | Meeus--AA ch. 25 p. 166
            | Referenced by L
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
@@ -844,7 +844,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch.25 p.166
+           | Meeus--AA ch. 25 p. 166
            | Referenced by B
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
@@ -866,7 +866,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           | Meeus--AA ch.25 p.166
+           | Meeus--AA ch. 25 p. 166
            | Referenced by R
         """
         func = lambda a, b, c: a * math.cos(b + c * tm)
@@ -892,7 +892,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p.166
+           Meeus--AA ch. 25 p. 166
         """
         tm = self._julian_millennia(jde)
         l = self._heliocentric_ecliptical_longitude(tm, degrees=False)
@@ -922,7 +922,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.25 p.166
+           Meeus--AA ch. 25 p. 166
         """
         tm = self._julian_millennia(jde)
         tc = tm * 10  # Convert millenna to centuries
@@ -954,7 +954,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           AA p.167 Eq.25.11, p.168
+           AA p.167 Eq. 25.11, p. 168
         """
         if fixed:
             aberration = 3548.193
@@ -988,7 +988,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           See: Meeus AA ch.27 p.177
+           See: Meeus AA ch. 27 p. 177
         """
         if g_year <= 1000:
             y = g_year / 1000
@@ -1023,7 +1023,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         # JD♈(Y) = JD0+78.814+365.24236 ΔY+5.004*10^−8 ΔY^2−2.87*10^−12
         # ΔY^3−4.5*10^−16 ΔY^4
-
         return jde
 
     def _find_moment_of_equinoxes_or_solstices(self, jd: float,
@@ -1042,7 +1041,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus--AA ch.27 p.177
+           Meeus--AA ch. 27 p. 177
         """
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
@@ -1064,7 +1063,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         | The Shrine of Baha’u’llah: 32°56’36.86″N, 35° 5’30.38″E
         | The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″E
         | The Guardian’s Resting Place (not 3D): 51°37’21.85″N, 0°08’35.57″W
-
 
         .. rubric:: Process
 
@@ -1183,7 +1181,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :returns: The number of seconds.
         :rtype: float
         """
-        return (days * 86400+ (hours + zone) * 3600 + minutes * 60
+        return (days * 86400 + (hours + zone) * 3600 + minutes * 60
                 + seconds + zone * 3600)
 
     def _dhms_from_seconds(self, seconds: float, zone: float=0) -> tuple:
