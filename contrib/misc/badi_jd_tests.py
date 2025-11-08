@@ -1113,8 +1113,8 @@ class DateTests(BahaiCalendar):
 
     def _calculate_b_date(self, b_date, jd_ss, data, options):
         try:
-            g_date = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
-                jd_ss))  # Sunset before VE
+            # Sunset before VE
+            g_date = self.gc.gregorian_date_from_jd(jd_ss, hms=True)
             bjd = self._jd_from_badi_date(b_date, coeffon=options.coff)
             # This must be rounded to 5 (See Badí' year 128)
             diff = round(bjd - jd_ss, 5)
@@ -1156,9 +1156,8 @@ class DateTests(BahaiCalendar):
         """
         jd = self._jd_from_badi_date(b_date, lat=lat, lon=lon, zone=zone,
                                      coeffon=options.coff)
-        gd = self.gc.gregorian_date_from_jd(jd, exact=options.exact)
-        g_date = self.gc.ymdhms_from_date(gd)
-        return g_date
+        return self.gc.gregorian_date_from_jd(jd, hms=True,
+                                              exact=options.exact)
 
     def _calc_kvymd(self, days, k, v, y, m, data):
         year = (k - 1) * 361 + (v - 1) * 19 + y

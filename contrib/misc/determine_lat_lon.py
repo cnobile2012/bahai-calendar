@@ -248,13 +248,10 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         else:
             begin_of_year = self._sun_setting(my_ve_jd-1, lat, lon, zone)
 
-        my_g_ss = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
-            begin_of_year))
-        my_ve_g = self.gc.ymdhms_from_date(self.gc.gregorian_date_from_jd(
-            my_ve_jd))
+        my_g_ss = self.gc.gregorian_date_from_jd(begin_of_year, hms=True)
+        my_ve_g = self.gc.gregorian_date_from_jd(my_ve_jd, hms=True)
         nasa_ve_jd = self.gc.jd_from_gregorian_date(nasa_ve) + self._HR(3.5)
-        nasa_ve_3p5 = self.gc.ymdhms_from_date(
-            self.gc.gregorian_date_from_jd(nasa_ve_jd))
+        nasa_ve_3p5 = self.gc.gregorian_date_from_jd(nasa_ve_jd, hms=True)
         #print(year, my_ve, nasa_ve_jd, file=sys.stderr)
         return my_g_ss, my_ss_jd, my_ve_jd, nasa_ve_3p5, my_ve_g, nasa_ve_jd
 

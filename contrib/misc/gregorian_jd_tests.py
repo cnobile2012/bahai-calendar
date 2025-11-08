@@ -39,15 +39,15 @@ class JulianPeriodTests:
         (6, 1, 1), (8, 1, 1), (9, 1, 1),
         # The 29th should be wrong for standard leap year
         (100, 2, 28), (100, 2, 29), (100, 3, 1),
-        # The 29th should be wrong for alternitive leap year
+        # The 29th should be wrong for alternative leap year
         (128, 2, 28), (128, 2, 29), (128, 3, 1),
         # The 29th should be wrong for standard leap year
         (200, 2, 28), (200, 2, 29), (200, 3, 1),
-        # The 29th should be wrong for alternitive leap year
+        # The 29th should be wrong for alternative leap year
         (256, 2, 28), (256, 2, 29), (256, 3, 1),
         # The 29th should be wrong for standard leap year
         (300, 2, 28), (300, 2, 29), (300, 3, 1),
-        # The 29th should be wrong for alternitive leap year
+        # The 29th should be wrong for alternative leap year
         (384, 2, 28), (384, 2, 29), (384, 3, 1),
         # The 29th should be wrong for standard leap year
         (400, 2, 28), (400, 2, 29), (400, 3, 1),
@@ -135,7 +135,7 @@ class JulianPeriodTests:
         Check that Gregorian dates can be converted to a Julian Period
         day then back to a Gregorian dates correctly.
 
-        -a with optional -A for alternete leap year calculation.
+        -a with optional -A for alternate leap year calculation.
         """
         GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
                else self.GREGORIAN_LEAP_YEAR)
@@ -165,11 +165,11 @@ class JulianPeriodTests:
         """
         Compare Meeus' and my algorithms showing differences.
 
-        -1 with optional -A for alternete leap year calculation.
-        -S and -E are manditory.
+        -1 with optional -A for alternate leap year calculation.
+        -S and -E are mandatory.
 
         If the last column shows anything other than 0.0 then there are
-        inconsistancies.
+        inconsistencies.
 
         This test will display, to stderr a progress counter indicating
         every 500 years.
@@ -211,8 +211,8 @@ class JulianPeriodTests:
         If there is any data returned except the heading then there are
         errors in the conversion.
 
-        -2 with optional -A for alternete leap year calculation.
-        -S and -E are manditory.
+        -2 with optional -A for alternate leap year calculation.
+        -S and -E are mandatory.
 
         This test will display, to stderr a progress counter indicating
         every 500 years.
@@ -374,8 +374,8 @@ class JulianPeriodTests:
         or doubling up.
         Should produce no output if working correctly.
 
-        -k With optional -A for alternete leap year calculation.
-        -S and -E are manditory.
+        -k With optional -A for alternate leap year calculation.
+        -S and -E are mandatory.
         If -J is used then the test is for consecutive Julian Period days.
 
         If -JM is used the test is for consecutive Julian Period days using
@@ -452,9 +452,9 @@ class JulianPeriodTests:
         in the historically correct Julian day count or the sunsets will
         not be correct.
 
-        This is used in some Badi tests.
+        This is used in some Badí tests.
 
-        -j with -S and -E which are manditory.
+        -j with -S and -E which are mandatory.
         """
         data = []
         alt_lat_lon = {
@@ -510,8 +510,9 @@ class JulianPeriodTests:
         """
         Meeus algorithm
         The alt keyword does nothing.
+        https://aa.usno.navy.mil/data/JulianDate
 
-        There are 12 years skip a day. Pope Gregory only compinsated for
+        There are 12 years that skip a day. Pope Gregory only compensated for
         10 of them.
 
         +----------------+-----------------+----------------+-------------+
