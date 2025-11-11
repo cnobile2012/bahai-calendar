@@ -6,6 +6,8 @@ pytest
 coverage
 flake8
 ipython
+# Parso is needed by ipython when using Python3.14
+parso
 hatch
 hatchling
 tomlkit

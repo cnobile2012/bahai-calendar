@@ -96,6 +96,9 @@ class GregorianCalendar(BaseCalendar):
         :param float jd: A Julian period day. This value should be an
                          historical JD if exact is False and an astronomical
                          JD if exact is True.
+        :param bool hms: If `True` convert a fractional day to hours,
+                         minutes, seconds, and microseconds else if `False`
+                         (default) do not convert.
         :param bool exact: If `False` (default) Meeus' historically algorithm
                            is used, else if `True` the more astronomically
                            correct algorithm is used.
@@ -291,13 +294,13 @@ class GregorianCalendar(BaseCalendar):
     def ymdhms_from_date(self, date: tuple, us: bool=False) -> tuple:
         """
         Convert (year, month, day.fractional) into a
-        (year, month, day, hour, minute, second).
+        (year, month, day, hour, minute, second, microseconds).
 
         :param tuple date: A three part date (y, m, d.nnn).
-        :param bool us: If True return microseconds as seperate field from
-                        seconds else return seconds with fractional seconds.
-                        Default is False.
-        :returns: A six part date (y, m, d, hh, mm, ss).
+        :param bool us: If `True` return microseconds as seperate field from
+                        seconds else if `False` (default) return seconds with
+                        fractional seconds.
+        :returns: A 6 or 7 part date (y, m, d, hh, mm, ss, us).
         :rtype: tuple
         """
         self._check_valid_gregorian_month_day(date)

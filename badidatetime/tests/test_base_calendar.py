@@ -399,24 +399,23 @@ class TestBaseCalendar(unittest.TestCase):
             # 1988-03-20T00:00:00 -- 0.5354166666666667 = 12:51 pm Alt 48 deg
             # AA Ex.15.a 0.8198 at Boston, US
             # JD        Longitude
-            (2447240.5, -71.0833, -5.0, False, 0.49423327921649307),
+            (2447240.5, -71.0833, -5.0, 0.49423327921649307),
             # 2024-03-20T00:00:00 -- 0.5048611111111111 = 12:07 pm, Alt 39 deg
             # Transit in Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
-            (2460389.5, -0.001545, 0, False, 0.5050828012152296),
+            (2460389.5, -0.001545, 0, 0.5050828012152296),
             # 2024-03-20T00:00:00 -- 0.5076388888888889 = 12:11 pm, Alt 54 deg
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 51.423056, 3.5, False, 0.5080994320882255),
+            (2460389.5, 51.423056, 3.5, 0.5080994320882255),
             # 2024-03-20T00:00:00 -- 0.5051123582525348 = 12:07:0.36179588
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 51.423056, 0, True, 0.5051079209771144),
+            (2460389.5, 51.423056, None, 0.5051079209771144),
             )
-        msg = "Expected {}, for jd {}, zone {}, and exact_tz {}, found {}."
+        msg = "Expected {}, for jd {}, and zone {}, found {}."
 
-        for jd, lon, zone, exact_tz, expected_result in data:
-            result = self.bc._sun_transit(jd, lon, zone=zone,
-                                          exact_tz=exact_tz)
+        for jd, lon, zone, expected_result in data:
+            result = self.bc._sun_transit(jd, lon, zone=zone)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, jd, zone, exact_tz, result))
+                expected_result, jd, zone, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_setting(self):
@@ -462,35 +461,33 @@ class TestBaseCalendar(unittest.TestCase):
             # 1988-03-20T00:00:00 -- 0.51766, 0.1213
             # AA Ex.15.a at Boston, US
             # JD        Latitude Longitude zone  exact  offset
-            (2447240.5, 42.3333, -71.0833, -5.0, False, PLT,
+            (2447240.5, 42.3333, -71.0833, -5.0, PLT,
              (0.24210617024415584, 0.7468650828479303)),
             # 2024-03-20T00:00:00 -- (0.250694 = 6:01 am, 0.759027 = 6:13 pm)
             # https://timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
             # In Greenwich, UK with 51.477928 (lat) and -0.001545 (lon)
-            (2460389.5, 51.477928, -0.001545, 0, False, SUN,
+            (2460389.5, 51.477928, -0.001545, 0, SUN,
              (0.25124811609282555, 0.759618623423145)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
             # https://www.timeanddate.com/sun/@112931?month=3&year=2024
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 35.696111, 51.423056, 3.5, False, SUN,
+            (2460389.5, 35.696111, 51.423056, 3.5, SUN,
              (0.2553156470420874, 0.7612822588083131)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
             # Transit in Tehran, Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 35.696111, 51.423056, 0, True, SUN,
+            (2460389.5, 35.696111, 51.423056, None, SUN,
              (0.25232413593097636, 0.7582907476972021)),
             )
-        msg = "Expected {}, for jd {}, zone {}, exact_tz {}, found {}."
+        msg = "Expected {}, for jd {}, zone {}, found {}."
 
-        for jd, lat, lon, zone, exact_tz, offset, expected_result in data:
+        for jd, lat, lon, zone, offset, expected_result in data:
             result0 = self.bc._rising_setting(
-                jd, lat, lon, zone=zone, exact_tz=exact_tz, offset=offset,
-                sr_ss='rise')
+                jd, lat, lon, zone=zone, offset=offset, sr_ss='rise')
             result1 = self.bc._rising_setting(
-                jd, lat, lon, zone=zone, exact_tz=exact_tz, offset=offset,
-                sr_ss='set')
+                jd, lat, lon, zone=zone, offset=offset, sr_ss='set')
             result = (result0, result1)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, jd, zone, exact_tz, result))
+                expected_result, jd, zone, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__nutation_longitude(self):

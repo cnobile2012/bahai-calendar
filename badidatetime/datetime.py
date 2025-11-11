@@ -3116,4 +3116,5 @@ timezone.max = timezone._create(timedelta(hours=23, minutes=59))
 # GregorianCalendar.jd_from_gregorian_date((1970, 1, 1), exact=True) ==
 # 2440585.5 to BahaiCalendar.jd_from_badi_date((126, 16, 2, 7, 57, 27.7),
 # 51.477928, -0.001545, 0) == 2440585.5
-_EPOCH = datetime(126, 16, 2, None, None, 7, 57, 27.7, tzinfo=timezone.utc)
+_EPOCH = datetime(126, 16, 2, None, None, 7, 57, 27, 700000,
+                  tzinfo=timezone.utc)

@@ -755,8 +755,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                      zone: float, *, fraction: bool=False, us: bool=False,
                      rtd: bool=False, _chk_on: bool=True) -> tuple:
         """
-        The adjusted year, month, and day based on if the JD falls before
-        or after sunset.
+        The adjusted year, month, and day depending on whether the JD is
+        before or after sunset.
 
         .. warning::
 

@@ -245,30 +245,29 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return math.degrees(math.acos(cos_h0))
 
-    def _sun_transit(self, jd: float, lon: float, zone: float=0.0,
-                     exact_tz: bool=False) -> float:
+    def _sun_transit(self, jd: float, lon: float, zone: float=None) -> float:
         """
         The transit is when the body crosses the local maridian at upper
         culmination.
 
         :param float jd: Julian day in UT.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: This is the political timezone.
-        :param bool exact_tz: Derive the timezone from the longitude. The
-                              'zone' parameter is not used if this is True,
-                              Default is False.
+        :param float zone: The time zone defaults to None causing the zone
+                           to be calculated from the longitude.
         :returns: The center point between sunrise and sunset.
         :rtype: float
 
         .. note::
 
-           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           1. If the zone is None the zone will be calculated from the
+              longitude, a value other than None will be reguarded as the
+              political time zone.
+           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        assert ((-180 <= zone <= 180 and not exact_tz) or
-                (zone == 0 and exact_tz)), (
-            f"If exact_tz is True then zone must be 0, found zone: {zone} "
-            f"and exact_tz: {exact_tz}.")
-        zone = zone if not exact_tz else lon / 15
+        assert zone is not None and (-180 <= zone <= 180) or zone is None, (
+            "If the zone is not None the zone value must be between -180 and "
+            f"180, found zone: {zone}.")
+        zone = lon / 15 if zone is None else zone
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self._julian_centuries(jd)
         dt = self._delta_t(jd)
@@ -310,8 +309,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone, defaults to the zero zone in
-                           Greenwich UK.
+        :param float zone: The time zone defaults to None causing the zone
+                           to be calculated from the longitude.
         :param bool exact_tz: The political time zones or the exact time zone
                               derived from the longitude
                               (15 degrees = 360 / 24).
@@ -328,25 +327,25 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           1. If the zone is None the zone will be calculated from the
+              longitude, a value other than None will be reguarded as the
+              political time zone.
+           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, exact_tz=exact_tz,
-                                   offset=offset, sr_ss='RISE')
+        jd += self._rising_setting(jd, lat, lon, zone, offset=offset,
+                                   sr_ss='RISE')
         return round(jd, self._ROUNDING_PLACES)
 
-    def _sun_setting(self, jd: float, lat: float, lon: float, zone: float=0, *,
-                     exact_tz: bool=False, offset: float=_SUN_OFFSET) -> float:
+    def _sun_setting(self, jd: float, lat: float, lon: float, zone: float=None,
+                     *, offset: float=_SUN_OFFSET) -> float:
         """
         Find the jd for sunset of the given jd.
 
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone, defaults to the zero zone in
-                           Greenwich UK.
-        :param bool exact_tz: The political time zones (default) or the exact
-                              time zone. The exact time zone is derived from
-                              the longitude (15 degrees = 360 / 24).
+        :param float zone: The time zone defaults to None causing the zone
+                           to be calculated from the longitude.
         :param bool offset: A constant “standard” altitude, i.e., the geometric
                             altitude of the center of the body at the time of
                             apparent rising or setting, namely,
@@ -359,14 +358,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           1. If the zone is None the zone will be calculated from the
+              longitude, a value other than None will be reguarded as the
+              political time zone.
+           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, exact_tz=exact_tz,
-                                   offset=offset, sr_ss='SET')
+        jd += self._rising_setting(jd, lat, lon, zone, offset=offset,
+                                   sr_ss='SET')
         return round(jd, self._ROUNDING_PLACES)
 
-    def _rising_setting(self, jd: float, lat: float, lon: float, zone: float=0,
-                        *, exact_tz: bool=False, offset: float=_SUN_OFFSET,
+    def _rising_setting(self, jd: float, lat: float, lon: float,
+                        zone: float=None, *, offset: float=_SUN_OFFSET,
                         sr_ss: str='RISE') -> float:
         """
         Find the jd difference for sunrise or sunset of the given jd.
@@ -374,12 +376,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone, defaults to the zero zone in
-                           Greenwich UK.
-        :param bool exact_tz: The political time zones or the exact time zone
-                              derived from the longitude
-                              (15 degrees = 360 / 24).
-                              Default is False or the political time zone.
+        :param float zone: The time zone defaults to None causing the zone
+                           to be calculated from the longitude.
         :param float offset: A constant “standard” altitude, i.e., the
                              geometric altitude of the center of the body at
                              the time of apparent rising or setting, namely,
@@ -393,13 +391,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           1. If the zone is None the zone will be calculated from the
+              longitude, a value other than None will be reguarded as the
+              political time zone.
+           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        assert ((-180 <= zone <= 180 and not exact_tz) or
-                (zone == 0 and exact_tz)), (
-            f"If exact_tz is True then zone must be 0, found zone: {zone} "
-            f"and exact_tz: {exact_tz}.")
-        zone = zone if not exact_tz else lon / 15
+        assert zone is not None and (-180 <= zone <= 180) or zone is None, (
+            "If the zone is not None the zone value must be between -180 and "
+            f"180, found zone: {zone}.")
+        zone = lon / 15 if zone is None else zone
         flags = ('RISE', 'SET')
         sr_ss = sr_ss.upper()
         assert sr_ss in flags, (
@@ -1171,7 +1171,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _seconds_from_dhms(self, days: int, hours: int, minutes: int,
                            seconds: float, zone: float=0) -> float:
         """
-        Convert days, hours, minutes, and seconds to seconds.
+        Convert days, hours, minutes, and seconds to seconds depending on
+        the timezone.
 
         :param int days: Number of days.
         :param int hours: Number of hours.
@@ -1198,7 +1199,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            See: https://www.timeanddate.com/time/map/
 
-           Timezones can be from -11 to +14 based on the political timeszones
+           Timezones can be from -12 to +14 based on the political timeszones
            as of 2024-08-09.
         """
         seconds += zone * 3600
