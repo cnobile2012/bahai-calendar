@@ -1175,16 +1175,29 @@ class TestBaseCalendar(unittest.TestCase):
         Test that the _seconds_from_dhms method converts hours minutes,
         and seconds to seconds.
         """
+        err_msg0 = ("If microseconds is greater that zero the second argument "
+                    "cannot have a decimal, found {}.")
         data = (
-            ((0, 10, 2, 5), 36125),
-            ((1, 0, 0, 0), 86400),
+            ((0, 10, 2, 5), 0, True, 36125),
+            ((1, 0, 0, 0), 0, True, 86400),
+            ((0, 10, 2, 5.5), 0, True, 36125.5),
+            ((0, 10, 2, 5, 500000), 0, True, 36125.5),
+            ((0, 10, 2, 5, 500000), -5.0, True, 18125.5),
+            ((1, 10, 2, 5.5, 500000), 0, False, err_msg0.format(5.5))
             )
         msg = "Expected {} with h,m,s {}, found {}."
 
-        for args, expected_result in data:
-            result = self.bc._seconds_from_dhms(*args)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, args, result))
+        for args, zone, valid, expected_result in data:
+            if valid:
+                result = self.bc._seconds_from_dhms(*args, zone=zone)
+                self.assertEqual(expected_result, result,
+                                msg.format(expected_result, args, result))
+            else:
+                with self.assertRaises(AssertionError) as cm:
+                    self.bc._seconds_from_dhms(*args)
+
+                message = str(cm.exception)
+                self.assertEqual(expected_result, message)
 
     #@unittest.skip("Temporarily skipped")
     def test__dhms_from_seconds(self):
@@ -1193,13 +1206,17 @@ class TestBaseCalendar(unittest.TestCase):
         hours, minutes, and seconds properly.
         """
         data = (
-            (36125, (0, 10, 2, 5)),
-            (86400, (1, 0, 0, 0)),
+            (36125, 0, False, (0, 10, 2, 5)),
+            (86400, 0, False, (1, 0, 0, 0)),
+            (36125.5, 0, False, (0, 10, 2, 5.5)),
+            (36125.5, 0, True, (0, 10, 2, 5, 500000)),
+            (36125.5, -5.0, False, (0, 5, 2, 5.5)),
+            (36125.5, -5.0, True, (0, 5, 2, 5, 500000)),
             )
         msg = "Expected {} with seconds {}, found {}."
 
-        for seconds, expected_result in data:
-            result = self.bc._dhms_from_seconds(seconds)
+        for seconds, zone, ms, expected_result in data:
+            result = self.bc._dhms_from_seconds(seconds, zone, ms=ms)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, seconds, result))
 
