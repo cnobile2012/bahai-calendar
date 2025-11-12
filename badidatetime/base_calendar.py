@@ -1169,7 +1169,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return h, m, s
 
     def _seconds_from_dhms(self, days: int, hours: int, minutes: int,
-                           seconds: float, zone: float=0) -> float:
+                           seconds: float, microseconds: int=0,
+                           zone: float=0) -> float:
         """
         Convert days, hours, minutes, and seconds to seconds depending on
         the timezone.
@@ -1178,20 +1179,31 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param int hours: Number of hours.
         :param int minutes: The number of minutes.
         :param float seconds: The number of seconds with possible fraction.
+        :param int microseconds: The number of microseconds if they exist.
         :param float zone: The timezone in degrees, defaults to 0 or GMT.
         :returns: The number of seconds.
         :rtype: float
         """
-        return (days * 86400 + (hours + zone) * 3600 + minutes * 60
-                + seconds + zone * 3600)
+        if microseconds > 0:
+            assert seconds % 1 == 0, (
+                "If microseconds is greater that zero the second argument "
+                f"cannot have a decimal, found {seconds}.")
+            sec = seconds + microseconds / 1e6
+        else:
+            sec = seconds
 
-    def _dhms_from_seconds(self, seconds: float, zone: float=0) -> tuple:
+        return days * 86400 + hours * 3600 + minutes * 60 + sec + zone * 3600
+
+    def _dhms_from_seconds(self, seconds: float, zone: float=0,
+                           ms: bool=False) -> tuple:
         """
         Convert seconds into days, hours, minutes, and seconds. Depending
         on the timezone there could be an additional day added.
 
         :param float seconds: The number of seconds with possible fraction.
         :param float zone: The timezone in degrees, defaults to 0 or GMT.
+        :param bool us: If False (default) no seperate field for microseconds
+                        is returned else return microseconds.
         :returns: The days, hours, minutes, and seconds.
         :rtype: tuple
 
@@ -1214,7 +1226,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             day = 1
             seconds -= 86400
 
-        return day, hours, minutes, (seconds - hours * 3600) - minutes * 60
+        sec = (seconds - hours * 3600) - minutes * 60
+
+        if ms:
+            sms = (math.floor(sec), int(round(sec % 1, 6) * 1e6))
+        else:
+            sms = (sec,)
+
+        return (day, hours, minutes) + sms
 
     def _tz_decimal_from_dhms(self, days: int, hours: int, minutes: int,
                               seconds: int) -> int:
