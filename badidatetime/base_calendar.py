@@ -1195,7 +1195,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return days * 86400 + hours * 3600 + minutes * 60 + sec + zone * 3600
 
     def _dhms_from_seconds(self, seconds: float, zone: float=0,
-                           ms: bool=False) -> tuple:
+                           us: bool=False) -> tuple:
         """
         Convert seconds into days, hours, minutes, and seconds. Depending
         on the timezone there could be an additional day added.
@@ -1228,7 +1228,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         sec = (seconds - hours * 3600) - minutes * 60
 
-        if ms:
+        if us:
             sms = (math.floor(sec), int(round(sec % 1, 6) * 1e6))
         else:
             sms = (sec,)

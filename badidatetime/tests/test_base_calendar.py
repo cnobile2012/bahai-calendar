@@ -1191,7 +1191,7 @@ class TestBaseCalendar(unittest.TestCase):
             if valid:
                 result = self.bc._seconds_from_dhms(*args, zone=zone)
                 self.assertEqual(expected_result, result,
-                                msg.format(expected_result, args, result))
+                                 msg.format(expected_result, args, result))
             else:
                 with self.assertRaises(AssertionError) as cm:
                     self.bc._seconds_from_dhms(*args)
@@ -1215,8 +1215,8 @@ class TestBaseCalendar(unittest.TestCase):
             )
         msg = "Expected {} with seconds {}, found {}."
 
-        for seconds, zone, ms, expected_result in data:
-            result = self.bc._dhms_from_seconds(seconds, zone, ms=ms)
+        for seconds, zone, us, expected_result in data:
+            result = self.bc._dhms_from_seconds(seconds, zone, us=us)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, seconds, result))
 

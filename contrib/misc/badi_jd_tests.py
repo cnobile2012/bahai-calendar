@@ -42,11 +42,11 @@ class DateTests(BahaiCalendar):
     | Tehran: 35.682376, 51.285817 USED
     """
 
-    # Gregorian offset to the year before the Bahi epoch.
+    # Gregorian offset to the year before the Badí' epoch.
     TRAN_COFF = 1843
 
     # The coordinates and the sunset in the city of Tehran to determine the
-    # yearly Badi epochs. Below are the Gregorian dates of the Vernal Equinox.
+    # yearly Badí' epochs. Below are the Gregorian dates of the Vernal Equinox.
     # This needs to be done because Meeus's algorithm uses an historically
     # correct algorithm which is astronomically incorrect.
     VE_0001_1582 = (
@@ -607,7 +607,7 @@ class DateTests(BahaiCalendar):
         ((182, 0, 5), (2026, 3, 1, 18, 1, 8.9472)),
         )
 
-    # Badi month sequence where 1 - 19 are the actual Badi month and
+    # Badí' month sequence where 1 - 19 are the actual Badí' month and
     # 0 is Ayyám-i-Há
     MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
               12, 13, 14, 15, 16, 17, 18, 0, 19)
@@ -632,6 +632,8 @@ class DateTests(BahaiCalendar):
 
     def check_long_date_from_short_date(self, data):
         """
+        Check that long_date_from_short_date() works correctly.
+
         -c or --ck-dates
         """
         items = []
@@ -702,10 +704,10 @@ class DateTests(BahaiCalendar):
 
     def find_weekdays(self, options):
         """
+        Find weekdays between provided years.
+
         -e and -S and -E
         -C to not use coefficients.
-
-        Find all the leap years between -1842 and 1161.
         """
         data = []
         start = options.start
@@ -736,9 +738,11 @@ class DateTests(BahaiCalendar):
 
     def find_gregorian_dates(self, options):
         """
+        Convert Badí' to Gregorian dates.
+
         -g or --g-dates and -S and -E
 
-        Converts Badi to Gregorian dates for the given range.
+        Converts Badí' to Gregorian dates for the given range.
         """
         data = []
 
@@ -756,6 +760,8 @@ class DateTests(BahaiCalendar):
 
     def create_date_lists(self, options):
         """
+        Generate a list of Badí' dates both long and short versions.
+
         -l or --list
         Also -S and -E must both used together.
         """
@@ -774,12 +780,13 @@ class DateTests(BahaiCalendar):
 
     def find_coefficents_precursor(self, options):
         """
+        Dump data for determining the precursors to the coefficients. This
+        determines which coefficient group should be used for the years
+        provided. The years provided are on the Badí' Calendar - or + the
+        epoch.
+
         -p or --precursor
         -S and -E must be Gregorian dates
-
-        This determines which coefficient group should be used for the
-        years provided. The years provided are on the Badi Calendar - or +
-        the epoch.
 
         Arguments to the process_segment() function.
         --------------------------------------------
@@ -821,6 +828,8 @@ class DateTests(BahaiCalendar):
 
     def find_coefficents(self, options):
         """
+        Dump data for determining coefficients.
+
         -q or --coeff and -S and -E
 
         If -X is used the more exact mode is used. This should be the
@@ -859,6 +868,8 @@ class DateTests(BahaiCalendar):
 
     def get_range(self, end):
         """
+        Dump an analysis of date ranges. Takes an integer value.
+
         -r or --range
         """
         seq = {-159: -259, -64: -159, 35: -64, 134: 35, 233: 134, 332: 233,
@@ -880,6 +891,7 @@ class DateTests(BahaiCalendar):
     def twenty_four_hours(self, options):
         """
         Dump the hours, minutes, and seconds of the day.
+
         -t and -S and -E
         """
         data = []
@@ -918,6 +930,8 @@ class DateTests(BahaiCalendar):
 
     def find_leap_years(self, options):
         """
+        Dump leap years.
+
         -y with -S and -E
         """
         data = []
@@ -1101,7 +1115,7 @@ class DateTests(BahaiCalendar):
             else:
                 jd_ss = self._sun_setting(ve_jd-1, *self._BAHAI_LOCATION[:3])
 
-            # Make the Badi date for the beginning of the year.
+            # Make the Badi' date for the beginning of the year.
             b_date = (g_year - self.TRAN_COFF, 1, 1)
             self._calculate_b_date(b_date, jd_ss, data, options)
 
@@ -1265,7 +1279,8 @@ if __name__ == "__main__":
         dest='leap_years', help="Dump leap years.")
     parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
-        dest='alt_leap', help="Use alternative leap year method.")
+        dest='alt_leap', help=("Use the 4|100|400 (default) or the 4|128 "
+                               "rules from Julian Calendar day one."))
     parser.add_argument(
         '-C', '--coff', action='store_true', default=False, dest='coff',
         help="Turn off all coefficients during an analysis.")
@@ -1285,14 +1300,15 @@ if __name__ == "__main__":
               "end Badí' years."))
     parser.add_argument(
         '-R', '--ref-day', type=str, default='Jalál', dest='ref_day',
-        help="Change the referance day. Default is Jalál.")
+        help="Change the reference day. Default is Jalál.")
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
         help="Start Badí' year of sequence.")
     parser.add_argument(
         '-X', '--exact', action='store_true', default=False, dest='exact',
-        help=("Use the 4|100|400 or the 4|128 rules from Julian Calendar "
-              "day one."))
+        help=("Use the Historically correct Meeus method (default) or the "
+              "Astronomically correct method for finding the Julian period "
+              "day."))
     parser.add_argument(
         '-Y', '--year', action='store_true', default=False, dest='year',
         help="Test for the consecutive defined years 1 - 3004.")
@@ -1336,7 +1352,7 @@ if __name__ == "__main__":
             [print(item) for item in items]
         else:
             data = dt.analyze_date_error(options)
-            print("Badí' Date    Badi JD        Gregorian Date (Sunset)      "
+            print("Badí' Date    Badí' JD       Gregorian Date (Sunset)      "
                   "  Gregorian JD    Diff     Off By")
             print('-'*91)
 
