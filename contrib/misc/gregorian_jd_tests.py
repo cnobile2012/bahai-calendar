@@ -446,47 +446,53 @@ class JulianPeriodTests:
         #[print(item) for item in items]
         return data
 
-    def julian_day_with_sunset(self, options):
+    def julian_day_with_ut_sunset(self, options):
         """
-        Generate a list of Julian days with sunset data. This must be done
+        Generate a list of Julian days with ut sunset data. This must be done
         in the historically correct Julian day count or the sunsets will
         not be correct.
+        Sunsets found on https://gml.noaa.gov/grad/solcalc/ set to UTC
+        coordinates.
 
-        This is used in some Badí tests.
+        The output is used in some Badí tests.
 
         -j with -S and -E which are mandatory.
         """
         data = []
-        alt_lat_lon = {
-            1970: (51.4769, 0, 0)
-            }
         hm = {
-            (1, 3, 20):    (18, 16),
-            (1, 4, 8):     (18, 30),
-            (2, 2, 24):    (17, 56),
-            (2, 2, 25):    (17, 57),
-            (2, 2, 26):    (17, 58),
-            (2, 3, 2):     (18, 1),
-            (2, 3, 6):     (18, 5),
-            (1583, 3, 21): (18, 16),
-            (1844, 3, 20): (18, 16),
-            (1845, 3, 20): (18, 16),
-            (1863, 3, 21): (18, 16),
-            (2015, 3, 21): (18, 16),
-            (2022, 2, 25): (17, 56),
-            (2022, 3, 1):  (17, 59),
-            (2022, 3, 2):  (18, 0),
-            (2024, 3, 20): (18, 16),
-            (2024, 4, 20): (18, 42),
-            (2024, 5, 14): (19, 2),
-            (2024, 7, 17): (19, 19),
+            (1, 3, 19):    (18, 11),
+            (1, 3, 20):    (18, 12),
+            (1, 4,  8):    (18, 42),
+            (2, 2, 24):    (17, 33),
+            (2, 2, 25):    (17, 34),
+            (2, 2, 26):    (17, 36),
+            (2, 3,  2):    (17, 43),
+            (2, 3,  6):    (17, 49),
+            (1583, 3, 20): (18, 12),
+            (1583, 3, 21): (18, 14),
+            (1844, 3, 19): (18, 12),
+            (1845, 3, 20): (18, 13),
+            (1863, 3, 20): (18, 12),
+            (1863, 3, 21): (18, 14),
+            (1970, 1, 1):  ( 0,  0),
+            (2015, 3, 20): (18, 12),
+            (2015, 3, 21): (18, 14),
+            (2022, 2, 24): (17, 31),
+            (2022, 2, 25): (17, 33),
+            (2022, 3,  1): (17, 40),
+            (2022, 3,  2): (17, 42),
+            (2024, 3, 19): (17, 12),
+            (2024, 3, 20): (18, 14),
+            (2024, 4, 20): (19,  6),
+            (2024, 5, 12): (19, 41),
+            (2024, 5, 14): (19, 45),
+            (2024, 7, 17): (20,  8),
             }
 
         for year in range(options.start, options.end):
             leap = (self.JULIAN_LEAP_YEAR(year) if year < 1583
                     else self.GREGORIAN_LEAP_YEAR(year))
-            location = (alt_lat_lon[year] if year in alt_lat_lon
-                        else self._bc._BAHAI_LOCATION[:3])
+            lat, lon, zone = (51.477928, -0.001545, 0)
 
             for month, days in enumerate(self.MONTHS, start=1):
                 if month == 2 and not leap:
@@ -497,11 +503,11 @@ class JulianPeriodTests:
                 for day in range(1, max_days + 1):
                     date = (year, month, day)
                     date += hm[date] if date in hm else ()
-                    jd = self._gc.jd_from_gregorian_date(date)
-                    jdss = self._gc._sun_setting(jd, *location)
-                    # Convert to my jd count.
-                    ejd = self._gc.jd_from_gregorian_date(date, exact=True)
-                    ss = math.floor(ejd) + jdss % 1
+                    jd_ut = self._gc.jd_from_gregorian_date(date)
+                    jd_ss_ut = self._gc._sun_setting(jd_ut, lat, lon)
+                    # Convert to Astronomically correct jd.
+                    ajd = self._gc.jd_from_gregorian_date(date, exact=True)
+                    ss = math.floor(ajd) + jd_ss_ut % 1
                     data.append((date, ss))
 
         return data
@@ -863,7 +869,7 @@ if __name__ == "__main__":
             data = [
                 f"{str(date):<23} "
                 f"{jdss:<14}"
-                for date, jdss in jpt.julian_day_with_sunset(options)]
+                for date, jdss in jpt.julian_day_with_ut_sunset(options)]
             [print(item) for item in data]
     else:
         parser.print_help()

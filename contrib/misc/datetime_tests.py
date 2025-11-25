@@ -13,7 +13,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
 from _timestamp import TimestampUtils
-from badidatetime import BahaiCalendar, GregorianCalendar, datetime
+from badidatetime import (BahaiCalendar, GregorianCalendar, datetime, timezone,
+                          timedelta)
 
 
 class DatetimeTests(BahaiCalendar, TimestampUtils):
@@ -80,6 +81,182 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         ((2943, 3, 20, 18, 15, 9, 100800), (1100, 1, 1)),
         ((3004, 3, 20, 18, 15, 14, 630400), (1161, 1, 1)),
         )
+    BADI_TIMESTAMP_DATES = (
+        ((0, 16, 2, 7, 58, 59.9988), -3976214400),
+        ((1, 16, 2, 7, 58, 59.9988), -3944592000),
+        ((2, 16, 2, 7, 58, 0.0012), -3913056000),
+        ((3, 16, 2, 7, 58, 0.0012), -3881520000),
+        ((4, 16, 2, 7, 58, 59.9988), -3849984000),
+        ((5, 16, 2, 7, 58, 59.9988), -3818361600),
+        ((6, 16, 2, 7, 58, 0.0012), -3786825600),
+        ((7, 16, 2, 7, 58, 0.0012), -3755289600),
+        ((8, 16, 2, 7, 58, 59.9988), -3723753600),
+        ((9, 16, 2, 7, 58, 59.9988), -3692131200),
+        ((10, 16, 2, 7, 58, 0.0012), -3660595200),
+        ((11, 16, 2, 7, 58, 0.0012), -3629059200),
+        ((12, 16, 2, 7, 58, 59.9988), -3597523200),
+        ((13, 16, 2, 7, 58, 59.9988), -3565900800),
+        ((14, 16, 2, 7, 58, 0.0012), -3534364800),
+        ((15, 16, 2, 7, 58, 0.0012), -3502828800),
+        ((16, 16, 2, 7, 58, 59.9988), -3471292800),
+        ((17, 16, 2, 7, 58, 59.9988), -3439670400),
+        ((18, 16, 2, 7, 58, 0.0012), -3408134400),
+        ((19, 16, 2, 7, 58, 0.0012), -3376598400),
+        ((20, 16, 2, 7, 58, 59.9988), -3345062400),
+        ((21, 16, 2, 7, 58, 59.9988), -3313440000),
+        ((22, 16, 2, 7, 58, 59.9988), -3281904000),
+        ((23, 16, 2, 7, 58, 0.0012), -3250368000),
+        ((24, 16, 2, 7, 58, 59.9988), -3218832000),
+        ((25, 16, 2, 7, 58, 59.9988), -3187209600),
+        ((26, 16, 2, 7, 58, 59.9988), -3155673600),
+        ((27, 16, 2, 7, 58, 0.0012), -3124137600),
+        ((28, 16, 2, 7, 58, 59.9988), -3092601600),
+        ((29, 16, 2, 7, 58, 59.9988), -3060979200),
+        ((30, 16, 2, 7, 58, 59.9988), -3029443200),
+        ((31, 16, 2, 7, 58, 0.0012), -2997907200),
+        ((32, 16, 2, 7, 58, 59.9988), -2966371200),
+        ((33, 16, 2, 7, 58, 59.9988), -2934748800),
+        ((34, 16, 2, 7, 58, 59.9988), -2903212800),
+        ((35, 16, 2, 7, 58, 0.0012), -2871676800),
+        ((36, 16, 2, 7, 58, 59.9988), -2840140800),
+        ((37, 16, 2, 7, 58, 59.9988), -2808518400),
+        ((38, 16, 2, 7, 58, 59.9988), -2776982400),
+        ((39, 16, 2, 7, 58, 0.0012), -2745446400),
+        ((40, 16, 2, 7, 58, 0.0012), -2713910400),
+        ((41, 16, 2, 7, 58, 59.9988), -2682288000),
+        ((42, 16, 2, 7, 58, 59.9988), -2650752000),
+        ((43, 16, 2, 7, 58, 0.0012), -2619216000),
+        ((44, 16, 2, 7, 58, 0.0012), -2587680000),
+        ((45, 16, 2, 7, 58, 59.9988), -2556057600),
+        ((46, 16, 2, 7, 58, 59.9988), -2524521600),
+        ((47, 16, 2, 7, 58, 0.0012), -2492985600),
+        ((48, 16, 2, 7, 58, 0.0012), -2461449600),
+        ((49, 16, 2, 7, 58, 59.9988), -2429827200),
+        ((50, 16, 2, 7, 58, 59.9988), -2398291200),
+        ((51, 16, 2, 7, 58, 0.0012), -2366755200),
+        ((52, 16, 2, 7, 58, 0.0012), -2335219200),
+        ((53, 16, 2, 7, 58, 59.9988), -2303596800),
+        ((54, 16, 2, 7, 58, 59.9988), -2272060800),
+        ((55, 16, 2, 7, 58, 59.9988), -2240524800),
+        ((56, 16, 2, 7, 58, 0.0012), -2208988800),
+        ((57, 16, 2, 7, 58, 59.9988), -2177452800),
+        ((58, 16, 2, 7, 58, 59.9988), -2145916800),
+        ((59, 16, 2, 7, 58, 59.9988), -2114380800),
+        ((60, 16, 2, 7, 58, 0.0012), -2082844800),
+        ((61, 16, 2, 7, 58, 59.9988), -2051222400),
+        ((62, 16, 2, 7, 58, 59.9988), -2019686400),
+        ((63, 16, 2, 7, 58, 59.9988), -1988150400),
+        ((64, 16, 2, 7, 58, 0.0012), -1956614400),
+        ((65, 16, 2, 7, 58, 59.9988), -1924992000),
+        ((66, 16, 2, 7, 58, 59.9988), -1893456000),
+        ((67, 16, 2, 7, 58, 59.9988), -1861920000),
+        ((68, 16, 2, 7, 58, 0.0012), -1830384000),
+        ((69, 16, 2, 7, 58, 59.9988), -1798761600),
+        ((70, 16, 2, 7, 58, 59.9988), -1767225600),
+        ((71, 16, 2, 7, 58, 59.9988), -1735689600),
+        ((72, 16, 2, 7, 58, 0.0012), -1704153600),
+        ((73, 16, 2, 7, 58, 59.9988), -1672531200),
+        ((74, 16, 2, 7, 58, 59.9988), -1640995200),
+        ((75, 16, 2, 7, 58, 59.9988), -1609459200),
+        ((76, 16, 2, 7, 58, 0.0012), -1577923200),
+
+        ((126, 16, 2, 7, 57, 27.7), 0),
+        ((127, 16, 2, 7, 57, 43.2), 31536000),
+        ((128, 16, 2, 7, 58, 59.9988), 63072000),
+        ((129, 16, 2, 7, 58, 59.9988), 94694400),
+        ((130, 16, 2, 7, 58, 0.0012), 126230400),
+        ((131, 16, 2, 7, 58, 59.9988), 157766400),
+        ((132, 16, 2, 7, 58, 59.9988), 189302400),
+        ((133, 16, 2, 7, 58, 59.9988), 220924800),
+        ((134, 16, 2, 7, 58, 0.0012), 252460800),
+        ((135, 16, 2, 7, 58, 59.9988), 283996800),
+        ((136, 16, 2, 7, 58, 59.9988), 315532800),
+        ((137, 16, 2, 7, 58, 59.9988), 347155200),
+        ((138, 16, 2, 7, 58, 0.0012), 378691200),
+        ((139, 16, 2, 7, 58, 59.9988), 410227200),
+        ((140, 16, 2, 7, 58, 59.9988), 441763200),
+        ((141, 16, 2, 7, 58, 59.9988), 473385600),
+        ((142, 16, 2, 7, 58, 0.0012), 504921600),
+        ((143, 16, 2, 7, 58, 59.9988), 536457600),
+        ((144, 16, 2, 7, 58, 59.9988), 567993600),
+        ((145, 16, 2, 7, 58, 59.9988), 599616000),
+        ((146, 16, 2, 7, 58, 0.0012), 631152000),
+        ((147, 16, 2, 7, 58, 59.9988), 662688000),
+        ((148, 16, 2, 7, 58, 59.9988), 694224000),
+        ((149, 16, 2, 7, 58, 59.9988), 725846400),
+        ((150, 16, 2, 7, 58, 59.9988), 757382400),
+        ((151, 16, 2, 7, 58, 59.9988), 788918400),
+        ((152, 16, 2, 7, 58, 59.9988), 820454400),
+        ((153, 16, 2, 7, 58, 59.9988), 852076800),
+        ((154, 16, 2, 7, 58, 59.9988), 883612800),
+        ((155, 16, 2, 7, 58, 59.9988), 915148800),
+        ((156, 16, 2, 7, 58, 59.9988), 946684800),
+        ((157, 16, 2, 7, 58, 59.9988), 978307200),
+        ((158, 16, 2, 7, 58, 59.9988), 1009843200),
+        ((159, 16, 2, 7, 58, 59.9988), 1041379200),
+        ((160, 16, 2, 7, 58, 59.9988), 1072915200),
+        ((161, 16, 2, 7, 58, 59.9988), 1104537600),
+        ((162, 16, 2, 7, 58, 59.9988), 1136073600),
+        ((163, 16, 2, 7, 58, 59.9988), 1167609600),
+        ((164, 16, 2, 7, 58, 59.9988), 1199145600),
+        ((165, 16, 2, 7, 58, 59.9988), 1230768000),
+        ((166, 16, 2, 7, 58, 59.9988), 1262304000),
+        ((167, 16, 2, 7, 58, 59.9988), 1293840000),
+        ((168, 16, 2, 7, 58, 59.9988), 1325376000),
+        ((169, 16, 2, 7, 58, 59.9988), 1356998400),
+        ((170, 16, 2, 7, 58, 59.9988), 1388534400),
+        ((171, 16, 2, 7, 58, 0.0012), 1420070400),
+        ((172, 16, 2, 7, 58, 59.9988), 1451606400),
+        ((173, 16, 2, 7, 58, 59.9988), 1483228800),
+        ((174, 16, 2, 7, 58, 59.9988), 1514764800),
+        ((175, 16, 2, 7, 58, 0.0012), 1546300800),
+        ((176, 16, 2, 7, 58, 59.9988), 1577836800),
+        ((177, 16, 2, 7, 58, 59.9988), 1609459200),
+        ((178, 16, 2, 7, 58, 59.9988), 1640995200),
+        ((179, 16, 2, 7, 58, 0.0012), 1672531200),
+        ((180, 16, 2, 7, 58, 59.9988), 1704067200),
+        ((181, 16, 2, 7, 58, 59.9988), 1735689600),
+        ((182, 16, 2, 7, 58, 59.9988), 1767225600),
+        ((183, 16, 2, 7, 58, 0.0012), 1798761600),
+        ((184, 16, 2, 7, 58, 59.9988), 1830297600),
+        ((185, 16, 2, 7, 58, 59.9988), 1861920000),
+        ((186, 16, 2, 7, 58, 59.9988), 1893456000),
+        ((187, 16, 2, 7, 58, 59.9988), 1924992000),
+        ((188, 16, 2, 7, 58, 59.9988), 1956528000),
+        ((189, 16, 2, 7, 58, 59.9988), 1988150400),
+        ((190, 16, 2, 7, 58, 59.9988), 2019686400),
+        ((191, 16, 2, 7, 58, 59.9988), 2051222400),
+        ((192, 16, 2, 7, 58, 59.9988), 2082758400),
+        ((193, 16, 2, 7, 58, 59.9988), 2114380800),
+        ((194, 16, 2, 7, 58, 59.9988), 2145916800),
+        ((195, 16, 2, 7, 58, 59.9988), 2177452800),
+        ((196, 16, 2, 7, 58, 59.9988), 2208988800),
+        ((197, 16, 2, 7, 58, 59.9988), 2240611200),
+        ((198, 16, 2, 7, 58, 59.9988), 2272147200),
+        ((199, 16, 2, 7, 58, 59.9988), 2303683200),
+        ((200, 16, 2, 7, 58, 59.9988), 2335219200),
+        ((201, 16, 2, 7, 58, 59.9988), 2366841600),
+        ((202, 16, 2, 7, 58, 59.9988), 2398377600),
+        ((203, 16, 2, 7, 58, 59.9988), 2429913600),
+        ((204, 16, 2, 7, 58, 59.9988), 2461449600),
+        ((205, 16, 2, 7, 58, 59.9988), 2493072000),
+        ((206, 16, 2, 7, 58, 59.9988), 2524608000),
+        ((207, 16, 2, 7, 58, 59.9988), 2556144000),
+        ((208, 16, 2, 7, 58, 0.0012), 2587680000),
+        ((209, 16, 2, 7, 58, 59.9988), 2619302400),
+        ((210, 16, 2, 7, 58, 59.9988), 2650838400),
+        ((211, 16, 2, 7, 58, 59.9988), 2682374400),
+        ((212, 16, 2, 7, 58, 0.0012), 2713910400),
+        ((213, 16, 2, 7, 58, 59.9988), 2745532800),
+        ((214, 16, 2, 7, 58, 59.9988), 2777068800),
+        ((215, 16, 2, 7, 58, 59.9988), 2808604800),
+        ((216, 16, 2, 8, 0, 0.0), 2840140800),
+        ((217, 16, 2, 7, 58, 59.9988), 2871763200),
+        ((218, 16, 2, 7, 58, 59.9988), 2903299200),
+        ((219, 16, 2, 7, 58, 59.9988), 2934835200),
+        ((220, 16, 2, 7, 58, 59.9988), 2966371200),
+        ((221, 16, 2, 7, 58, 59.9988), 2997993600),
+        )
 
     def __init__(self):
         super().__init__()
@@ -127,7 +304,6 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         end = options.end
 
         for year in range(start, end):
-            #print(year, file=sys.stderr)
             is_leap = self._is_leap_year(year)
 
             for month in self.MONTHS:
@@ -135,6 +311,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
 
                 for day in range(1, dm + 1):
                     date = (year, month, day)
+                    #print(date, file=sys.stderr)
                     # We default to the Epoch Coordinates.
                     jd = self.jd_from_badi_date(date)
                     # Get the Badi date from the Julian Period day.
@@ -161,54 +338,93 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
 
     def analyze_timestamp_errors(self, options):
         """
-        Fins the errors in timestamp convbersions to Badi dates. This test
-        ensures that the datetime.date.today method changes date on sunset
-        based on local time.
+        Find the errors in timestamp conversions to Badi dates. This test
+        trys to ensures that the datetime.date.today method changes date on
+        sunset based on local time.
         https://www.unixtimestamp.com
 
         -c
-        Also if -S and -E are used they must be used together and refer
-        to Gregorian/Julian years.
         """
         data = []
-        start = options.start
-        end = options.end
         lat = options.latitude
         lon = options.longitude
         zone = options.zone
         tz = dtime.timezone(dtime.timedelta(hours=zone))
 
+        for b_date, ts in self.BADI_TIMESTAMP_DATES:
+            # Get the Gregorian timestamp for reference.
+            g_date = self.gregorian_date_from_badi_date(b_date, lat, lon, zone)
+            g_ts_ss = dtime.datetime(*g_date, tzinfo=tz).timestamp()
+            #g_ts_ss = self.timestamp_at_sunset(g_date, lat, lon)
+            # Timestamp only methods, 1st get UTC timestamp for sunset.
+            ts_b_date = self.posix_timestamp(g_ts_ss, lat, lon, zone,
+                                             short=True, trim=True, rtd=False)
+            # Julian Period day methods.
+            year, month, day, hour, minute, second = b_date
+            jd_ts_ss = datetime(year, month, day, hour=hour, minute=minute,
+                                second=second).timestamp()
+            jd_b_date = self.posix_timestamp(jd_ts_ss, lat, lon, zone,
+                                             short=True, trim=True, rtd=False,
+                                             _chk_on=False)
+            ts_diff = g_ts_ss - ts
+            jd_diff = jd_ts_ss - ts
+            data.append((b_date, ts, g_date, g_ts_ss, ts_diff, ts_b_date,
+                         jd_ts_ss, jd_diff, jd_b_date))
+
+        return data
+
+    def analyze_timestamp_for_today(self, options):
+        """
+        See if we get close to the correct time after sunset so we can prove
+        that sunset can be found with a timestamp.
+
+        -t -S and -E in Gregorian years
+        """
+        data = []
+        start = options.start
+        end = options.end
+        #lat = options.latitude
+        lon = options.longitude
+
+        if lon:
+            zone = lon / 15
+        else:
+            zone = options.zone
+
+        tz0 = dtime.timezone(dtime.timedelta(hours=zone))
+        tz1 = timezone(timedelta(hours=zone))
+
         for year in range(start, end):
-            is_leap = self._is_leap_year(year)
-
-            for month in self.MONTHS:
-                dm = 19 if month != 0 else 4 + is_leap
-
-                for day in range(1, dm + 1):
-                    criterion_date = (year, month, day)
-                    # Get the Gregorian timestamp for reference.
-                    g_date = self.gregorian_date_from_badi_date(criterion_date,
-                                                                lat, lon, zone)
-                    g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
-                    # Timestamp only methods, 1st get UTC timestamp for sunset.
-                    ts_ss = self.timestamp_at_sunset(g_date, lat, lon)
-                    ts_b_date = self.posix_timestamp(g_ts, lat, lon, zone,
-                                                     short=True, trim=True,
-                                                     rtd=False)
-                    # Julian Period day methods.
-                    #print(year, month, day, file=sys.stderr)
-                    jd_ts_ss = datetime(year, month, day).timestamp()
-                    jd_b_date = self.posix_timestamp(jd_ts_ss, lat, lon, zone,
-                                                     short=True, trim=True,
-                                                     rtd=False, _chk_on=False)
-                    diff = ts_ss - jd_ts_ss
-                    data.append((criterion_date, g_date, g_ts, ts_ss,
-                                 ts_b_date, jd_ts_ss, jd_b_date, diff))
+            g_date = (year, 1, 1)
+            g_ts = dtime.datetime(*g_date, tzinfo=tz0).timestamp()
+            bd = datetime.fromtimestamp(g_ts, tz1)
+            b_date = bd.b_date
+            b_ts = bd.timestamp()
+            diff = b_ts - g_ts
+            data.append((g_date, g_ts, b_date, b_ts, diff))
 
         return data
 
     def _subtract_tuples(self, t0, t1):
         return t0[0] - t1[0], t0[1] - t1[1], t0[2] - t1[2]
+
+
+def fmt_float(value, left=4, right=4):
+    """
+    Format one float so that it is visually centered on the decimal point.
+
+    Parameters
+    ----------
+    value : float | int | str
+        The number to format.
+    left : int
+        Width to reserve on the left of the decimal (including any minus sign).
+    right : int
+        Number of digits to show after the decimal.
+    """
+    s = f"{value:.{right}f}"
+    left_part, right_part = s.split(".")
+    return f"{left_part.rjust(left)}.{right_part.ljust(right)}"
 
 
 if __name__ == "__main__":
@@ -225,24 +441,27 @@ if __name__ == "__main__":
         dest='analyze1', help="Analyze Badi and Gregorian dates.")
     parser.add_argument(
         '-c', '--analyze2', action='store_true', default=False,
-        dest='analyze2', help="Analyze timestamps relative to sunset..")
+        dest='analyze2', help="Analyze timestamps relative to sunset.")
+    parser.add_argument(
+        '-t', '--analyze3', action='store_true', default=False,
+        dest='analyze3', help="Analyze timestamps relative to sunset.")
     parser.add_argument(
         '-E', '--end', type=int, default=None, dest='end',
-        help="End Badi year of sequence.")
+        help="End of year of sequence.")
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
-        help="Start Badi year of sequence.")
+        help="Start of year of sequence.")
     parser.add_argument(
         '-T', '--timezone', type=float, default=0.0, dest='timezone',
         help="Timezone offset floating point value.")
     parser.add_argument(
-        '-A', '--latitude', type=float, default=51.477928, dest='latitude',
+        '-A', '--latitude', type=float, default=None, dest='latitude',
         help="Latitude")
     parser.add_argument(
-        '-O', '--logitude', type=float, default=-0.001545, dest='longitude',
+        '-O', '--logitude', type=float, default=None, dest='longitude',
         help="Longitude")
     parser.add_argument(
-        '-Z', '--zone', type=float, default=0.0, dest='zone',
+        '-Z', '--zone', type=float, default=None, dest='zone',
         help="Time zone.")
 
     options = parser.parse_args()
@@ -316,48 +535,43 @@ if __name__ == "__main__":
         print(f"  Elapsed time: {hours:02} hours, {minutes:02} minutes, "
               f"{round(seconds, 6):02.6} seconds.")
     elif options.analyze2:  # -c
-        if options.start is None or options.end is None:
-            # Set default Badi years.
-            options.start = -1842
-            options.end = 1162
-
         start_time = time.time()
-        underline_length = 201
-        print(f"./contrib/misc/{basename} -cS {options.start} -E {options.end} "
-              f"-A {options.latitude} -O {options.longitude} -Z {options.zone}"
-              )
-        print("Crit Badí' Dt  Gregorian Date", " " * 19, "Gregorian TS       "
-              "Sunset Timestamp   Badí' Date (TS)", " " * 16,
-              "Sunset TS (JD)      Badí' Date (JD)", " " * 16,
-              "Sunset TS Diff      TSD JDD")
+        underline_length = 212
+        print(f"./contrib/misc/{basename} -cA {options.latitude} "
+              f"-O {options.longitude} -Z {options.zone}")
+        print("Criteria Badí' Date    and    timestamp     Gregorian Date",
+              " " * 19, "Gregorian TS       Greg TS Diff    "
+              "Badí' Date (TS)", " " * 14, "Sunset TS (JD)   Badi TS Diff "
+              "Badí' Date (JD)", " " * 13, "TSD JDD")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
         items = []
 
         # Adjust for Badi calendar
-        for (criterion_date, g_date, ts, ts_ss,
-             ts_b_date, jd_ts_ss, jd_b_date, diff) in data:
-            year, month, day = criterion_date
-            #print(day, b_date[2], jd_b_date[2], file=sys.stderr)
-            ts_badi_err = day - ts_b_date[2]
-            jd_badi_err = day - jd_b_date[2]
-            items.append((criterion_date, g_date, ts, ts_ss,
-                          ts_b_date, jd_ts_ss, jd_b_date, diff,
+        for (b_date, ts, g_date, g_ts_ss, ts_diff,
+             ts_b_date, jd_ts_ss, jd_diff, jd_b_date) in data:
+            ts_badi_err = b_date[2] - ts_b_date[2]
+            jd_badi_err = b_date[2] - jd_b_date[2]
+            items.append((b_date, fmt_float(ts, 11, 1), g_date,
+                          fmt_float(g_ts_ss, 11, 6), fmt_float(ts_diff, 7, 6),
+                          ts_b_date, fmt_float(jd_ts_ss, 11, 4),
+                          fmt_float(jd_diff, 5, 6), jd_b_date,
                           ts_badi_err, jd_badi_err))
 
-        [print(f"{str(criterion_date):14} "
+        [print(f"{str(b_date):29} "
+               f"{ts:<10} "
                f"{str(g_date):34} "
-               f"{ts:<18} "
-               f"{ts_ss:<18} "
-               f"{str(ts_b_date):32} "
-               f"{jd_ts_ss:<19} "
-               f"{str(jd_b_date):32} "
-               f"{diff:<19} "
-               f"{ts_badi_err:>3} "
-               f"{jd_badi_err:>3}"
+               f"{g_ts_ss:<18} "
+               f"{ts_diff:<13}  "
+               f"{str(ts_b_date):30} "
+               f"{jd_ts_ss:<15} "
+               f"{jd_diff:<12} "
+               f"{str(jd_b_date):30} "
+               f"{ts_badi_err:>2}  "
+               f"{jd_badi_err:>2}"
                )
-         for (criterion_date, g_date, ts, ts_ss, ts_b_date, jd_ts_ss,
-              jd_b_date, diff, ts_badi_err, jd_badi_err) in items]
+         for (b_date, ts, g_date, g_ts_ss, ts_diff, ts_b_date, jd_ts_ss,
+              jd_diff, jd_b_date, ts_badi_err, jd_badi_err) in items]
         print('-' * underline_length)
         ss_ts_diff_ts = ss_ts_diff_jd = 0
 
@@ -369,14 +583,75 @@ if __name__ == "__main__":
             if item[-1] != 0:
                 ss_ts_diff_jd += 1
 
-        print(f"Analyzing year {options.start} to year {options.end} "
-              "Gregorian.")
+        print("Analyzing year")
         print(f"                   Total days: {len(items):>4}")
         print(f"Sunset derived from TS errors: {ss_ts_diff_ts:>4}")
         print(f"Sunset derived from JD errors: {ss_ts_diff_jd:>4}")
         print("=" * 35)
         print("                 Total errors: "
               f"{ss_ts_diff_ts + ss_ts_diff_jd:>4}")
+        end_time = time.time()
+        days, hours, minutes, seconds = dt._dhms_from_seconds(
+            end_time - start_time)
+        print(f"  Elapsed time: {hours:02} hours, {minutes:02} minutes, "
+              f"{round(seconds, 6):02.6} seconds.")
+    elif options.analyze3:  # -t
+        if options.start is None or options.end is None:
+            # Set default Gregorian years.
+            options.start = 2  # Year 1 would be before that oldest Badi date.
+            options.end = 3005
+
+        start_time = time.time()
+        underline_length = 76
+        lon = options.longitude
+        zone = lon / 14 if options.zone is None else options.zone
+        lon_text = "" if lon is None else f" -O {lon}"
+        print(f"./contrib/misc/{basename} -tS {options.start} "
+              f"-E {options.end}{lon_text} -Z {zone}")
+        print("Gregorian DT Greg TS        Badi Date      Badi Timestamp      "
+              "Diff")
+        print('-' * underline_length)
+        data = dt.analyze_timestamp_for_today(options)
+        [print(f"{str(g_date):12} "
+               f"{fmt_float(g_ts, 12, 1)} "
+               f"{str(b_date):14} "
+               f"{fmt_float(b_ts, 12, 6)} "
+               f"{fmt_float(diff, 6, 6)}"
+               )
+         for g_date, g_ts, b_date, b_ts, diff in data]
+        print('-' * underline_length)
+        deviation = {'n': 0, 'p': 0, 'max_n': 0, 'max_p': 0, 'total': 0}
+
+        for items in data:
+            diff = items[-1]
+
+            if diff < 0:
+                deviation['n'] += 1
+            elif diff > 0:
+                deviation['p'] += 1
+
+            if diff < deviation['max_n']:
+                deviation['max_n'] = diff
+            elif diff > deviation['max_p']:
+                deviation['max_p'] = diff
+
+            deviation['total'] += diff
+
+        total_years = options.end - options.start
+        mean_deviation = deviation['total'] / total_years
+        print(f"Analyzing year {options.start} to year {options.end} "
+              "Gregorian.")
+        print(f"Total years:                          {total_years}")
+        print(f"Total Timestamp negative deviations:  {deviation['n']}")
+        print(f"Maximum negative deviation (seconds): {deviation['max_n']}")
+        print(f"Total Timestamp positive deviations:  {deviation['p']}")
+        print(f"Maximum positive deviation (seconds): {deviation['max_p']}")
+        print(f"Mean deviation (seconds):             {mean_deviation}")
+        end_time = time.time()
+        days, hours, minutes, seconds = dt._dhms_from_seconds(
+            end_time - start_time)
+        print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+              f"{round(seconds, 6):02.6} seconds.")
     else:
         parser.print_help()
 

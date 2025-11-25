@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # contrib/misc/determine_lat_lon.py
 #
-# This script determines the longitude in Tehran defined by the World Centre
-# for the origin of the Badi calendar.
+# This script tries to determines the longitude in Tehran defined by the
+# World Centre for the origin of the Badi calendar.
 #
 
 import os
@@ -18,13 +19,20 @@ from badidatetime import BahaiCalendar, GregorianCalendar
 """
 These are the sunsets which are for the most part before the Vernal Equinox.
 All dates are corrected for Tehran Iran.
-Max longitude 183 (2026): 51.5036157
-Max longitude 216 (2059): 51.337186
+
+Max longitude 183 (2026)  : 51.5036157
+Max longitude 216 (2059)  : 51.337186
 The longitude midway point: 51.2344395
-Median Longitude    : 51.285817 USED
-Min longitude 183 (2026): 51.131693
-Min longitude 216 (2059): 51.0360365
+Median Longitude          : 51.288701 CURRENTLY USED
+Min longitude 183 (2026)  : 51.131693
+Min longitude 216 (2059)  : 51.0360365
+
+The minimum (35.672° N) and maximum (35.7167° N) latitude of the
+city of Tehran, with a mid point of approximately 35.69435° N.
 The latitude makes little difference so we use: 35.682376
+
+The minimum (51.24° E) and maximum (51.42° E) longitude of the
+city of Tehran, with a mid point of approximately 51.33° E.
 
 Hour calculator:
 https://www.calculatorsoup.com/calculators/time/time-calculator.php
@@ -46,19 +54,19 @@ Vernal Equinox        Sunset of Epoch
 (2027, 3, 20, 23, 55) (2027, 3, 20, 18, 16)
 (2028, 3, 20, 5, 47)  (2028, 3, 19, 18, 16)
 (2029, 3, 20, 11, 32) (2029, 3, 19, 18, 15)
-(2030, 3, 20, 17, 22) (2030, 3, 19, 18, 15)
+(2030, 3, 20, 17, 22) (2030, 3, 19, 18, 15) ?
 (2031, 3, 20, 23, 11) (2031, 3, 20, 18, 16)
 (2032, 3, 20, 4, 52)  (2032, 3, 19, 18, 16)
 (2033, 3, 20, 10, 52) (2033, 3, 19, 18, 15)
-(2034, 3, 20, 16, 47) (2034, 3, 19, 18, 15)
+(2034, 3, 20, 16, 47) (2034, 3, 19, 18, 15) ?
 (2035, 3, 20, 22, 32) (2035, 3, 20, 18, 16)
 (2036, 3, 20, 4, 33)  (2036, 3, 19, 18, 16)
 (2037, 3, 20, 10, 20) (2037, 3, 19, 18, 15)
-(2038, 3, 20, 16, 10) (2038, 3, 19, 18, 15)
+(2038, 3, 20, 16, 10) (2038, 3, 19, 18, 15) ?
 (2039, 3, 20, 22, 2)  (2039, 3, 20, 18, 16)
 (2040, 3, 20, 3, 41)  (2040, 3, 19, 18, 16)
 (2041, 3, 20, 9, 37)  (2041, 3, 19, 18, 15)
-(2042, 3, 20, 15, 23) (2042, 3, 19, 18, 15)
+(2042, 3, 20, 15, 23) (2042, 3, 19, 18, 15) ?
 (2043, 3, 20, 20, 57) (2043, 3, 20, 18, 16)
 (2044, 3, 20, 2, 50)  (2044, 3, 19, 18, 16)
 (2045, 3, 20, 8, 37)  (2045, 3, 19, 18, 15)
@@ -147,8 +155,8 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
     def __init__(self):
         super().__init__()
         self.gc = GregorianCalendar()
-        self.BADI_COORD = self._BAHAI_LOCATION[:3]
-        #self.BADI_COORD = (35.78, 51.2344395, 3.5)
+        #self.BADI_COORD = self._BAHAI_LOCATION[:3]
+        self.BADI_COORD = (35.69435, 51.288701, 3.5)
 
     def dump_sunset_after_ve(self, options):
         """
@@ -160,15 +168,18 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         data = []
 
         for year, wc_ss, nasa_ve in self.WC_DATA:
-            (my_g_ss, my_ss_jd, my_ve_jd, nasa_ve_3p5, my_ve_g,
-             nasa_ve_jd) = self._find_data(year, wc_ss, nasa_ve, options)
-            data.append((year,                           # Baha'i year
-                         wc_ss,                          # WC sunset
-                         my_g_ss,                        # My Gregorian sunset
-                         round(my_ss_jd-my_ve_jd, 6),    # Sunset difference
-                         nasa_ve_3p5,                    # Adjusted NASA VE
-                         my_ve_g,                        # My VE
-                         round(my_ve_jd-nasa_ve_jd, 6),  # VE difference
+            (my_local_ss, my_ss_ut, my_ve_ut, nasa_ve_date, my_local_date,
+             nasa_ve_ut) = self._find_data(year, wc_ss, nasa_ve, options)
+            diff = round(my_ve_ut - nasa_ve_ut, 6)
+            hms = self.gc._hms_from_decimal_day(abs(diff))
+            data.append((year,                         # Baha'i year
+                         wc_ss,                        # WC sunset
+                         my_local_ss,                  # My Gregorian sunset
+                         round(my_ss_ut-my_ve_ut, 6),  # Sunset VE difference
+                         nasa_ve_date,                 # Adjusted NASA VE
+                         my_local_date,                # My VE
+                         diff,                         # VE difference
+                         hms,                          # HH:MM:SS
                          ))
 
         return data
@@ -177,13 +188,19 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         """
         Find the best longitude for all 50 years.
 
+        .. note::
+
+           1. Sunset is later going west.
+           2. Sunset must be before the VE unless it's only a minute before
+              then it can be after.
+
         -l with -L
         Optional -F, But be ware this will take many hours to complete.
         """
         data = []
         start_lon = 51
-        dec_start = 131000  # Low range longitude
-        dec_end = 337200    # High range longitude
+        dec_start = 240000  # Low range longitude (131000 orig)
+        dec_end = 420000    # High range longitude (337200 orig)
         year_dict = {}
         wc_data = self.WC_DATA if options.full else self.WC_DATA_183_216
 
@@ -191,20 +208,28 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
             min_max = []
             print(f"Working on year {year}", file=sys.stderr)
 
+            # Capture data for each longitude only if the WC sunset is equal
+            # to the derived sunset.
             for dp in range(dec_start, dec_end):
-                lon = round(start_lon + dp / 1000000, 6)
-                if lon > round(51 + dec_end / 1000000, 6): break
+                lon = round(start_lon + dp / 1e6, 6)
+                if lon > round(start_lon + dec_end / 1e6, 6): break
                 (my_g_ss, my_ss_jd, my_ve_jd, nasa_ve_3p5, my_ve_g,
                  nasa_ve_jd) = self._find_data(year, wc_ss, nasa_ve,
                                                options, test_lon=lon)
-                jd_diff = round(my_ss_jd-my_ve_jd, 6)
+                jd_diff = round(my_ss_jd - my_ve_jd, 6)
 
                 if wc_ss == my_g_ss[:3]:
                     min_max.append((lon, jd_diff, wc_ss, my_g_ss[:3]))
 
+            if not len(min_max):
+                print("The min_max list is empty indicating the start and "
+                      "end criteria may need to be altered.", file=sys.stderr)
+                break
+
             min_l = 100
             max_l = 0
 
+            # Weed out longitudes that are greater than 100 or less than 0.
             for lon, diff, wc_ss, my_g_ss in min_max:
                 if min_l > lon:
                     min_l = lon
@@ -231,29 +256,61 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
     # Support methods
 
     def _find_data(self, year, wc_ss, nasa_ve, options, *, test_lon=None):
-        # We do not use my version of the date to JD formula as it
+        # We do not use Astronomical version of the date to JD formula as it
         # will not work with any of Meeus' equations.
         lat, lon, zone = self.BADI_COORD
         lon = test_lon if test_lon and options.longitude else lon
         first_of_march = (wc_ss[0], wc_ss[1], 1)  # Replace day with the 1st
-        jd = self.gc.jd_from_gregorian_date(first_of_march)  # Get JP day
-        my_ve_jd = self._find_moment_of_equinoxes_or_solstices(jd, zone=3.5)
-        my_ss_jd = self._sun_setting(my_ve_jd, lat, lon, zone)
+        jd = self.gc.jd_from_gregorian_date(first_of_march)  # Get JD day
+        my_ve_ut = self._find_moment_of_equinoxes_or_solstices(jd)
+        my_ss_ut = self._sun_setting(my_ve_ut, lat, lon)
 
         # It is allowed to have a Vernal Equinox to be up to one minute
         # before sunset and still use that sunset as the beginning of
         # the year. If a day = 1 then 1 minute is 0.0006944444444444444
-        if my_ve_jd >= (my_ss_jd - 0.0006944444444444444):
-            begin_of_year = my_ss_jd
-        else:
-            begin_of_year = self._sun_setting(my_ve_jd-1, lat, lon, zone)
+        if my_ve_ut < (my_ss_ut - 0.0006944444444444444):
+            my_ss_ut = self._sun_setting(my_ve_ut - 1, lat, lon)
 
-        my_g_ss = self.gc.gregorian_date_from_jd(begin_of_year, hms=True)
-        my_ve_g = self.gc.gregorian_date_from_jd(my_ve_jd, hms=True)
-        nasa_ve_jd = self.gc.jd_from_gregorian_date(nasa_ve) + self._HR(3.5)
-        nasa_ve_3p5 = self.gc.gregorian_date_from_jd(nasa_ve_jd, hms=True)
-        #print(year, my_ve, nasa_ve_jd, file=sys.stderr)
-        return my_g_ss, my_ss_jd, my_ve_jd, nasa_ve_3p5, my_ve_g, nasa_ve_jd
+        my_local_jd = self._local_zone_correction(my_ss_ut, zone, mod_jd=True)
+        my_local_ss = self.gc.gregorian_date_from_jd(my_local_jd, hms=True)
+        my_local_ve = self._local_zone_correction(my_ve_ut, zone, mod_jd=True)
+        my_local_date = self.gc.gregorian_date_from_jd(my_local_ve, hms=True)
+        nasa_ve_ut = self.gc.jd_from_gregorian_date(nasa_ve)
+        nasa_local_ve = self._local_zone_correction(nasa_ve_ut, zone,
+                                                    mod_jd=True)
+        nasa_ve_date = self.gc.gregorian_date_from_jd(nasa_local_ve, hms=True)
+        return (my_local_ss, my_ss_ut, my_ve_ut, nasa_ve_date, my_local_date,
+                nasa_ve_ut)
+
+
+def fmt_float(value, left=4, right=4, leading_zero=False):
+    """
+    Format one float so that it is visually centered on the decimal point.
+
+    Parameters
+    ----------
+    value : float | int | str
+        The number to format.
+    left : int
+        Width to reserve on the left of the decimal (including any minus sign).
+    right : int
+        Number of digits to show after the decimal.
+    """
+    value = round(value, right)
+    s = f"{value:.{right}f}"
+    left_part, right_part = s.split(".")
+
+    # If leading_zero=True, pad *numerical digits* but not the sign
+    if leading_zero and left_part.startswith("-"):
+        sign = "-"
+        digits = left_part[1:]
+        padded = sign + digits.zfill(left - 1)
+    elif leading_zero:
+        padded = left_part.zfill(left)
+    else:
+        padded = left_part.rjust(left)
+
+    return f"{padded}.{right_part.ljust(right)}"
 
 
 if __name__ == "__main__":
@@ -291,24 +348,27 @@ if __name__ == "__main__":
             data = cfmes.dump_sunset_after_ve(options)
             print("The SS Diff is the difference between the Julian Period "
                   "days of the World Centre and my sunset times in Tehran and "
-                  "the VE Diff\nis the difference between the Julian Period "
+                  "the VE Diff is the difference\nbetween the Julian Period "
                   "days of the USNO Vernal Equinox, and my Vernal Equinox. "
-                  "The USNO Vernal Equinox date\nand time was originally in "
-                  "UTC time which I converted to Tehran standard time. "
+                  "The USNO Vernal Equinox date and time was originally in "
+                  "UTC\ntime which I converted to Tehran standard time. "
                   "(+03:30)\n")
-            print("Year WC Sunset     My Gregorian Sunset            SS Diff  "
-                  "USNO's Vernal Equinox (Tehran) My Vernal Equinox (Tehran)  "
-                  "    VE Diff")
-            print('-'*130)
+            print("Year WC Sunset     My Gregorian Sunset            "
+                  "SS VE Dif USNO's Vernal Equinox (Tehran) "
+                  "My Vernal Equinox (Tehran)     VE Diff  HH:MM:SS Diff")
+            underline_length = 146
+            print('-' * underline_length)
             [print(f"{year}  "
                    f"{str(wc_ss):<13} "
                    f"{str(my_g_ss):<30} "
-                   f"{ss_diff:<8} "
+                   f"{fmt_float(ss_diff, 2, 6)} "
                    f"{str(nasa_ve):<30} "
                    f"{str(my_ve):<30} "
-                   f"{ve_diff:>9.6f}"
+                   f"{fmt_float(ve_diff, 1, 6)} "
+                   f"{str(hms)}"
                    ) for (year, wc_ss, my_g_ss, ss_diff,
-                          nasa_ve, my_ve, ve_diff) in data]
+                          nasa_ve, my_ve, ve_diff, hms) in data]
+            print('-' * underline_length)
             print(f"\n./contrib/misc/{basename} -v")
     elif options.find_longitude:  # -l
         if not options.longitude:
@@ -320,27 +380,28 @@ if __name__ == "__main__":
             start_time = time.time()
             F = 'F' if options.full else ''
             data = cfmes.find_longitude(options)
-            print(f"./contrib/misc/{basename} -oL{F}")
-            print("Year | WC Date       My Date       Min Lon   JD Diff  | "
+            print(f"./contrib/misc/{basename} -lL{F}")
+            print("Year | WC Date       My Date       Min Lon   JD Diff  |  "
                   "WC Date       My Date       Max Lon   JD Diff")
-            print("-"*4, "|", "-"*46, "|", "-"*46)
+            print("-" * 4, "|", "-" * 47, "|", "-" * 47)
             [print(f"{year:04} | "
                    f"{str(wc_date0):<13} "
                    f"{str(my_date0):<13} "
                    f"{min_l:<9} "
-                   f"{diff0:<8} | "
+                   f"{fmt_float(diff0, 2, 6)} | "
                    f"{str(wc_date1):<13} "
                    f"{str(my_date1):<13} "
                    f"{max_l:<9} "
-                   f"{diff1:<8} "
+                   f"{fmt_float(diff1, 2, 6)}"
                    ) for (year, wc_date0, my_date0, min_l, diff0,
                           wc_date1, my_date1, max_l, diff1) in data]
+            r_min_l = r_max_l = 0
 
             for (year, wc_date0, my_date0, min_l, diff0,
                  wc_date1, my_date1, max_l, diff1) in data:
-                if min_l != 51.131:
+                if min_l > r_min_l:
                     r_min_l = min_l
-                elif max_l != 51.3372:
+                elif max_l > r_max_l:
                     r_max_l = max_l
 
             optimal_lon = (r_max_l - r_min_l) / 2 + r_min_l

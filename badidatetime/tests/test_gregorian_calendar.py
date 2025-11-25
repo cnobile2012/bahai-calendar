@@ -135,9 +135,9 @@ class TestGregorianCalendar(unittest.TestCase):
             (2418781.5, True, False, (1910, 4, 22)),
             (2418781.5, True, True, (1910, 4, 21)),
             # Meeus AA ch 7 p64 ex7.c
-            (2436116.31, False, False, (1957, 10, 4.81)),
-            (2436116.31, True, False, (1957, 10, 6.81)),
-            (2436116.31, True, True, (1957, 10, 6.81)),
+            (2436116.31, False, False, (1957, 10, 4.810000000056)),
+            (2436116.31, True, False, (1957, 10, 6.810000000056)),
+            (2436116.31, True, True, (1957, 10, 6.810000000056)),
             # Meeus AA ch 7 p64 ex7.d
             (2446470.5, False, False, (1986, 2, 9)),
             (2446470.5, True, False, (1986, 2, 11)),
@@ -153,19 +153,19 @@ class TestGregorianCalendar(unittest.TestCase):
             (2451545.0, True, False, (2000, 1, 3.5)),
             (2451545.0, True, True, (2000, 1, 3.5)),
             # Fractional days other than 0 or 0.5
-            (2459188.6, False, False, (2020, 12, 5.1)),
-            (2459188.6, True, False, (2020, 12, 7.1)),
+            (2459188.6, False, False, (2020, 12, 5.100000000093)),
+            (2459188.6, True, False, (2020, 12, 7.100000000093)),
             (2459188.75, False, False, (2020, 12, 5.25)),
             (2459188.75, True, False, (2020, 12, 7.25)),
-            (2459188.99, False, False, (2020, 12, 5.49)),
-            (2459188.99, True, False, (2020, 12, 7.49)),
-            (2459189.31, False, False, (2020, 12, 5.81)),
-            (2459189.31, True, False, (2020, 12, 7.81)),
+            (2459188.99, False, False, (2020, 12, 5.490000000224)),
+            (2459188.99, True, False, (2020, 12, 7.490000000224)),
+            (2459189.31, False, False, (2020, 12, 5.810000000056)),
+            (2459189.31, True, False, (2020, 12, 7.810000000056)),
             # Tests the 0.nnn day issue.
             (2460732.5, True, False, (2025, 2, 28)),
             (2460733.0, True, False, (2025, 2, 28.5)),
-            (2460733.250321, True, False, (2025, 2, 28.750321)),
-            (2440585.20942, True, False, (1969, 12, 31.70942)),
+            (2460733.250321, True, False, (2025, 2, 28.750320999883)),
+            (2440585.20942, True, False, (1969, 12, 31.709420000203)),
             )
         msg = "Expected '{}' for jd '{}', with exact '{}', alt '{}', found '{}'"
 
@@ -248,9 +248,9 @@ class TestGregorianCalendar(unittest.TestCase):
         (year, month, day, hour, minute, second).
         """
         data = (
-            ((2024, 2, 15, 12, 45, 15), (2024, 2, 15.531424)),
+            ((2024, 2, 15, 12, 45, 15), (2024, 2, 15.531423611111)),
             # Badi Calendar epoch
-            ((1844, 3, 20, 18, 16), (1844, 3, 20.761111)),
+            ((1844, 3, 20, 18, 16), (1844, 3, 20.761111111111)),
             )
         msg = "Expected result {} for ymdhms {}, found {}."
 

@@ -619,6 +619,8 @@ class DateTests(BahaiCalendar):
         # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
         # 365.2421897
         self.gc = GregorianCalendar()
+        #self.BADI_COORDS = self._BAHAI_LOCATION[:3]
+        self.BADI_COORDS = (35.69435, 51.288701, 3.5)
 
     def analyze_date_error(self, options):
         """
@@ -673,7 +675,7 @@ class DateTests(BahaiCalendar):
         long_day = ()
         short_hms = ()
         long_hms = ()
-        locate = self._BAHAI_LOCATION[:3]
+        lat, lon, zone = self.BADI_COORDS
 
         for year in range(start, end):
             for month in self.MONTHS:
@@ -683,9 +685,11 @@ class DateTests(BahaiCalendar):
                     date = (year, month, day)
                     jd = self.jd_from_badi_date(date)
                     jd = self._meeus_from_exact(jd)
-                    ssjd = self._sun_setting(jd, *locate)
-                    ssjd = self._exact_from_meeus(ssjd)
-                    hms = self._day_length(ssjd, *locate)
+                    ssjd = self._sun_setting(jd, lat, lon)
+                    local_ss = self._local_zone_correction(ssjd, zone,
+                                                           mod_jd=True)
+                    ssjd = self._exact_from_meeus(local_ss)
+                    hms = self._day_length(ssjd, lat, lon)
 
                     if short_day == () or long_day == ():
                         short_day = long_day = date
@@ -740,7 +744,7 @@ class DateTests(BahaiCalendar):
         """
         Convert Badí' to Gregorian dates.
 
-        -g or --g-dates and -S and -E
+        -gX or --g-dates and -S and -E
 
         Converts Badí' to Gregorian dates for the given range.
         """
@@ -749,7 +753,7 @@ class DateTests(BahaiCalendar):
         for item in self._date_range(options):
             b_date, bjd, g_date, gjd, diff, offby = item
             g_date = self._gregorian_date_from_badi_date(
-                b_date, options, *self._BAHAI_LOCATION[:3])
+                b_date, options, *self.BADI_COORDS)
             gjd = self.gc.jd_from_gregorian_date(
                 g_date, exact=options.exact, alt=options.alt_leap)
             diff = round(bjd - gjd, 6)
@@ -786,7 +790,7 @@ class DateTests(BahaiCalendar):
         epoch.
 
         -p or --precursor
-        -S and -E must be Gregorian dates
+        -S and -E must be Badi dates
 
         Arguments to the process_segment() function.
         --------------------------------------------
@@ -851,12 +855,12 @@ class DateTests(BahaiCalendar):
             h, m, s, ms = self._get_hms(item[0], short_in=True)
             bjd = item[1]
             msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                   f"{s:<02} {bjd:<14} ")
+                   f"{s:>02} {fmt_float(bjd, 7, 6)} ")
             g_year, month, day = item[2][:3]
             h, m, s, ms = self._get_hms(item[2], short_in=True)
             gjd = item[3]
-            msg += (f"{g_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                    f"{s:<07} {gjd:<14} ")
+            msg += (f"{g_year:>04}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
+                    f"{fmt_float(s, 2, 4, True)} {fmt_float(gjd, 7, 6)} ")
             diff = item[4]
             offby = item[5]
             msg += f"{diff:< 9} {offby:< 1} "
@@ -901,7 +905,7 @@ class DateTests(BahaiCalendar):
             f"Start '{start}' must be from {self.MINYEAR} to {self.MAXYEAR}.")
         assert self.MINYEAR < end < (self.MAXYEAR+2), (
             f"End '{end}' must be from {self.MINYEAR} to {self.MAXYEAR}")
-        lat, lon, zone = self._BAHAI_LOCATION[:3]
+        lat, lon, zone = self.BADI_COORDS
 
         for year in range(start, end):
             is_leap = self._is_leap_year(year)
@@ -917,14 +921,19 @@ class DateTests(BahaiCalendar):
                     jd1 = jd0 + 1
                     mjd0 = self._meeus_from_exact(jd0)
                     mjd1 = self._meeus_from_exact(jd1)
-                    ss0 = self._sun_setting(mjd0, lat, lon, zone)
-                    ss1 = self._sun_setting(mjd1, lat, lon, zone)
+                    ss0 = self._sun_setting(mjd0, lat, lon)
+                    local_ss0 = self._local_zone_correction(ss0, zone,
+                                                            mod_jd=True)
+                    ss1 = self._sun_setting(mjd1, lat, lon)
+                    local_ss1 = self._local_zone_correction(ss1, zone,
+                                                            mod_jd=True)
                     b_date = self.badi_date_from_jd(jd, short=True,
                                                     fraction=True)
-                    ss_diff = ss1 - ss0
+                    ss_diff = local_ss1 - local_ss0
                     hms = self._hms_from_decimal_day(ss_diff)
-                    data.append((b_date, g_date, round(ss0 % 1, 6),
-                                 round(ss1 % 1, 6), round(ss_diff, 6), hms))
+                    data.append((b_date, g_date, round(local_ss0 % 1, 6),
+                                 round(local_ss1 % 1, 6), round(ss_diff, 6),
+                                 hms))
 
         return data
 
@@ -974,87 +983,95 @@ class DateTests(BahaiCalendar):
     def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None, *,
                            coeffon=True):
         year, month, day = self.date_from_kvymdhms(
-            self.long_date_from_short_date(b_date), short=True)
+            self.long_date_from_short_date(b_date, trim=True), short=True)
 
         if month == 0:    # Ayyam-i-Ha
-            m = 18 * 19
+            days = 18 * 19
         elif month < 19:  # month 1 - 18
-            m = (month - 1) * 19
-        else:             # month == 19:
-            m = 18 * 19 + 4 + self._is_leap_year(year)
+            days = (month - 1) * 19
+        else:             # month == 19
+            days = 18 * 19 + 4 + self._is_leap_year(year)
 
         td = self._days_in_years(year-1)
-        jd = td + math.floor(self._BADI_EPOCH+1) + m + day
+        jd = td + math.floor(self._BADI_EPOCH + 1) + days + day
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
-            lat, lon, zone = self._BAHAI_LOCATION[:3]
+            lat, lon, zone = self.BADI_COORDS
 
-        # The diff value converts the more exact jd to the Meeus algorithm
-        # for determining the sunset jd. The fractional on the day is not
-        # affected.
+        # We convert the more exact jd to the Meeus algorithm for determining
+        # the sunset jd. The fractional day is never affected.
         jd = self._meeus_from_exact(jd)
-        ss_a = self._sun_setting(jd, lat, lon, zone) % 1
-        #print(f"{str(b_date):<15} {day:<9} {jd:<14} {ss_a:<20}",
+        ss = self._sun_setting(jd, lat, lon)
+        local_ss = self._local_zone_correction(ss, zone, mod_jd=True)
+        #print(f"{str(b_date):<15} {day:<9} {jd:<14} {local_ss:<20}",
         #      file=sys.stderr)
-        coff = 0 if coeffon else self._get_coff(year)
-        return round(jd + ss_a + coff, 6)
+        coeff = 0 if coeffon else self._get_jd_coeff(year)
+        a_ss = self._exact_from_meeus(local_ss)
+        return round(a_ss + coeff, 12)
 
-    def _get_coff(self, year):
+    def _get_jd_coeff(self, year):
         def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
             func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
-            coff = 0
+            coeff = 0
 
             if a and func(y, onoff0):    # Whatever is passed in onoff0.
-                coff = a
+                coeff = a
             elif b and func(y, onoff1):  # Whatever is passed in onoff1.
-                coff = b
+                coeff = b
 
-            return coff
+            return coeff
 
         def process_segments(year, pn, a=0, onoff0=(), b=0, onoff1=()):
-            coff = 0
+            coeff = 0
 
             for start, end in pn:
                 if year in range(start, end):
                     # start to end (range -S start -E end)
-                    coff0 = process_segment(end - year, a=a, onoff0=onoff0)
-                    coff1 = process_segment(end - year, b=b, onoff1=onoff1)
-                    coff = coff0 if coff0 != 0 else coff1
+                    coeff0 = process_segment(end - year, a=a, onoff0=onoff0)
+                    coeff1 = process_segment(end - year, b=b, onoff1=onoff1)
+                    coeff = coeff0 if coeff0 != 0 else coeff1
 
-            return coff
+            return coeff
 
-        p1 = ((-1783, -1747), (-1651, -1615), (-1499, -1483), (-1383, -1347),
-              (-1251, -1215), (-1099, -1083), (-983, -947), (-851, -815),
-              (-699, -683), (-583, -547), (-451, -415), (-299, -283),
-              (-179, -143), (-47, -11), (101, 117), (213, 249), (345, 381),
-              (501, 513), (609, 645), (741, 777), (901, 909), (1005, 1041),
-              (1137, 1162))
-        p1100 = ((-1699, -1683), (-1299, -1283), (-899, -883), (-499, -483),
-                 (-99, -79), (301, 313), (701, 709), (1101, 1105))
-        p1110 = ((-1799, -1783), (-1683, -1651), (-1399, -1383),
-                 (-1283, -1251), (-999, -983), (-883, -851), (-599, -583),
-                 (-483, -451), (-199, -179), (-79, -47), (201, 213),
+        P1 = ((-1842, -1841), (-1801, -1797), (-1761, -1727), (-1631, -1595),
+              (-1571, -1563), (-1499, -1463), (-1367, -1327), (-1231, -1195),
+              (-1099, -1063), (-967, -931), (-915, -911), (-831, -795),
+              (-775, -771), (-699, -663), (-567, -531), (-431, -395),
+              (-299, -263), (-179, -143), (-47, -11), (101, 117), (213, 249),
+              (345, 381), (501, 513), (609, 645), (741, 777),
+              (901, 909), (1005, 1041), (1137, 1162), )
+        P1000 = ((-1299, -1295), (-899, -895), (-499, -495), )
+        P1011 = ((-1797, -1761), )
+        P1100 = ((-1695, -1663), (-1295, -1263), (-895, -863), (-495, -463),
+                 (-99, -79), (301, 313), (701, 709), (1101, 1105), )
+        P1110 = ((-1799, -1763), (-1663, -1631), (-1399, -1367),
+                 (-1263, -1231), (-999, -967), (-863, -831), (-599, -567),
+                 (-463, -431), (-199, -179), (-79, -47), (201, 213),
                  (313, 345), (601, 609), (709, 741), (1001, 1005),
-                 (1105, 1137))
-        p2 = ((-1519, -1499), (-1119, -1099), (-319, -299), (-719, -699),
-              (85, 101), (477, 501), (873, 901))
-        p2111 = ((-1747, -1715), (-1615, -1583), (-1483, -1451),
-                 (-1347, -1315), (-1327, -1315), (-1215, -1183),
-                 (-1083, -1051), (-947, -915), (-815, -783), (-683, -651),
-                 (-547, -515), (-415, -383), (-283, -243), (-143, -111),
+                 (1105, 1137), )
+        P1121 = ((-1841, -1833), (-1576, -1572), )
+        P1122 = ((-1833, -1801), )
+        P1211 = ((-1575, -1571), )
+        P1222 = ((-1532, -1500), )
+        P2 = ((-715, -711), (85, 101), (477, 501), (873, 901))
+        P2000 = ((-1699, -1695), )
+        P2111 = ((-1727, -1699), (-1595, -1575), (-1463, -1431),
+                 (-1327, -1299), (-1195, -1163), (-1063, -1031), (-931, -915),
+                 (-911, -899), (-795, -775), (-771, -763), (-663, -631),
+                 (-531, -499), (-395, -363), (-263, -243), (-143, -111),
                  (-11, 21), (117, 149), (249, 281), (381, 413), (513, 545),
-                 (645, 677), (777, 809), (909, 941), (1041, 1073))
-        p2211 = ((-1843, -1815), (-1715, -1699), (-1583, -1551),
-                 (-1451, -1435), (-1435, -1415), (-1315, -1299),
-                 (-1183, -1151), (-1051, -1019), (-915, -899), (-783, -751),
-                 (-651, -619), (-515, -499), (-383, -351), (-243, -211),
+                 (645, 677), (777, 809), (909, 941), (1041, 1073), )
+        P2211 = ((-1563, -1531), (-1431, -1399), (-1163, -1131), (-1031, -999),
+                 (-763, -731), (-631, -599), (-363, -331), (-243, -211),
                  (-111, -99), (21, 53), (149, 185), (281, 301), (413, 445),
                  (545, 577), (677, 701), (809, 841), (941, 973), (1073, 1101))
-        p2221 = ((-1815, -1799), (-1551, -1519), (-1415, -1399),
-                 (-1151, -1119), (-1019, -999), (-751, -719), (-619, -599),
-                 (-351, -319), (-211, -199), (53, 85), (185, 201), (445, 477),
-                 (577, 601), (841, 873), (973, 1001))
-        coff = 0
+        P2221 = ((-1531, -1499), (-1131, -1099), (-731, -715), (-711, -699),
+                 (-331, -299), (-211, -199),  (53, 85), (185, 201), (445, 477),
+                 (577, 601), (841, 873), (973, 1001),
+                 )
+        P2222 = ((497, 501), (893, 901), )
+
+        coeff = 0
 
         # General ranges are determined with:
         # ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
@@ -1062,31 +1079,56 @@ class DateTests(BahaiCalendar):
         # be process. Use the following command to test the results of each
         # segment. ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
         # Full range is -1842 to 1161
-        if not coff:
-            coff = process_segments(year, p1, -1, (0, 1, 2, 3))
+        if not coeff:
+            coeff = process_segments(year, P1, -1, (0, 1, 2, 3))
 
-        if not coff:
-            coff = process_segments(year, p1100, -1, (0, 3))
+        if not coeff:
+            coeff = process_segments(year, P1000, -1, (0,))
 
-        if not coff:
-            coff = process_segments(year, p1110, -1, (0, 2, 3))
+        if not coeff:
+            coeff = process_segments(year, P1011, -1, (0, 1, 2))
 
-        if not coff:
-            coff = process_segments(year, p2, -2, (0, 1, 2, 3))
+        if not coeff:
+            coeff = process_segments(year, P1100, -1, (0, 3))
 
-        if not coff:
-            coff = process_segments(year, p2111, -2, (0,), -1, (1, 2, 3))
+        if not coeff:
+            coeff = process_segments(year, P1110, -1, (0, 2, 3))
 
-        if not coff:
-            coff = process_segments(year, p2211, -2, (0, 3), -1, (1, 2))
+        if not coeff:
+            coeff = process_segments(year, P1121, -1, (0, 1, 3), -2, (2,))
 
-        if not coff:
-            coff = process_segments(year, p2221, -2, (0, 2, 3), -1, (1,))
+        if not coeff:
+            coeff = process_segments(year, P1122, -1, (0, 3), -2, (1, 2))
 
-        return coff
+        if not coeff:
+            coeff = process_segments(year, P1211, -1, (0, 1, 2), -2, (3,))
+
+        if not coeff:
+            coeff = process_segments(year, P1222, -1, (0,), -2, (1, 2, 3))
+
+        if not coeff:
+            coeff = process_segments(year, P2, -2, (0, 1, 2, 3))
+
+        if not coeff:
+            coeff = process_segments(year, P2000, -1, (0,))
+
+        if not coeff:
+            coeff = process_segments(year, P2111, -2, (0,), -1, (1, 2, 3))
+
+        if not coeff:
+            coeff = process_segments(year, P2211, -2, (0, 3), -1, (1, 2))
+
+        if not coeff:
+            coeff = process_segments(year, P2221, -2, (0, 2, 3), -1, (1,))
+
+        if not coeff:
+            coeff = process_segments(year, P2222, -2, (0, 1, 2, 3))
+
+        return coeff
 
     def _date_range(self, options):
         data = []
+        lat, lon, zone = self.BADI_COORDS
         ve_jd_0001_1582 = self._pre_process_vernal_equinoxs()
         #inject = [(b_date[0], (b_date, g_date))
         #          for b_date, g_date in self.INJECT]
@@ -1094,30 +1136,33 @@ class DateTests(BahaiCalendar):
         for g_year in range(options.start, options.end):
             if g_year < 1583:
                 if g_year in ve_jd_0001_1582:
-                    ve_jd = ve_jd_0001_1582[g_year]
+                    ve_jd_ut = ve_jd_0001_1582[g_year]
                 else:
                     continue
             else:
                 g_date = (g_year, 3, 1)
                 # We must use the Meeus algorithm not mine when finding the
                 # equinox and sunset. So don't use exact=options.exact here.
-                jd = self.gc.jd_from_gregorian_date(g_date)  # Julian Period day
-                ve_jd = self._find_moment_of_equinoxes_or_solstices(
-                    jd, zone=self._BAHAI_LOCATION[2])
+                # Historical Julian Period day
+                jd = self.gc.jd_from_gregorian_date(g_date)
+                ve_jd_ut = self._find_moment_of_equinoxes_or_solstices(jd)
 
-            ss_jd = self._sun_setting(ve_jd, *self._BAHAI_LOCATION[:3])
+            jd_ss_ut = self._sun_setting(ve_jd_ut, lat, lon)
 
             # It is allowed to have a Vernal Equinox to be up to one minute
             # before sunset and still use that sunset as the beginning of
             # the year. If a day == 1 then 1 minute is 0.0006944444444444444
-            if ve_jd >= (ss_jd - 0.0006944444444444444):
-                jd_ss = ss_jd
-            else:
-                jd_ss = self._sun_setting(ve_jd-1, *self._BAHAI_LOCATION[:3])
+            if ve_jd_ut < (jd_ss_ut - 0.0006944444444444444):
+                jd_ss_ut = self._sun_setting(ve_jd_ut - 1, lat, lon)
+
+            # We need the local correction and the  Astromomically correct
+            # JD Period day
+            local_ss = self._local_zone_correction(jd_ss_ut, zone, mod_jd=True)
+            a_local_jd = self._exact_from_meeus(local_ss)
 
             # Make the Badi' date for the beginning of the year.
             b_date = (g_year - self.TRAN_COFF, 1, 1)
-            self._calculate_b_date(b_date, jd_ss, data, options)
+            self._calculate_b_date(b_date, a_local_jd, data, options)
 
             #for b_date, g_ss_date in self._find_dates(b_date[0], inject):
             #    jd_ss = self.gc.jd_from_gregorian_date(g_ss_date)
@@ -1125,15 +1170,15 @@ class DateTests(BahaiCalendar):
 
         return data
 
-    def _calculate_b_date(self, b_date, jd_ss, data, options):
+    def _calculate_b_date(self, b_date, a_local_jd, data, options):
         try:
             # Sunset before VE
-            g_date = self.gc.gregorian_date_from_jd(jd_ss, hms=True)
+            g_date = self.gc.gregorian_date_from_jd(a_local_jd, hms=True,
+                                                    exact=True)
             bjd = self._jd_from_badi_date(b_date, coeffon=options.coff)
-            # This must be rounded to 5 (See Badí' year 128)
-            diff = round(bjd - jd_ss, 5)
-            offby = math.floor(diff)
-            data.append((b_date, bjd, g_date, jd_ss, diff, offby))
+            diff = round(a_local_jd - bjd, 6)
+            offby = 0 if abs(diff) < 0 else int(diff)
+            data.append((b_date, bjd, g_date, a_local_jd, diff, offby))
         except Exception as e:
             msg = f"Badí' date {b_date} and Gregorian date {g_date}, {e}"
             print(msg, file=sys.stderr)
@@ -1147,7 +1192,7 @@ class DateTests(BahaiCalendar):
             assert year == (last_year + 1), (
                 f"last_year: {last_year}, current year {year}")
             jd = self.gc.jd_from_gregorian_date(date)
-            jd += self._BAHAI_LOCATION[2] / 24  # 3.5 hours for Tehran time
+            jd += self.BADI_COORDS[2] / 24  # 3.5 hours for Tehran time
             data[year] = jd
             last_year = year
 
@@ -1235,6 +1280,36 @@ class DateTests(BahaiCalendar):
             week += 1 if _offset(year-1, 18) in (-2, -3) else 0
 
         return week
+
+
+def fmt_float(value, left=4, right=4, leading_zero=False):
+    """
+    Format one float so that it is visually centered on the decimal point.
+
+    Parameters
+    ----------
+    value : float | int | str
+        The number to format.
+    left : int
+        Width to reserve on the left of the decimal (including any minus sign).
+    right : int
+        Number of digits to show after the decimal.
+    """
+    value = round(value, right)
+    s = f"{value:.{right}f}"
+    left_part, right_part = s.split(".")
+
+    # If leading_zero=True, pad *numerical digits* but not the sign
+    if leading_zero and left_part.startswith("-"):
+        sign = "-"
+        digits = left_part[1:]
+        padded = sign + digits.zfill(left - 1)
+    elif leading_zero:
+        padded = left_part.zfill(left)
+    else:
+        padded = left_part.rjust(left)
+
+    return f"{padded}.{right_part.ljust(right)}"
 
 
 if __name__ == "__main__":
@@ -1351,42 +1426,69 @@ if __name__ == "__main__":
 
             [print(item) for item in items]
         else:
+            start_time = time.time()
             data = dt.analyze_date_error(options)
-            print("Badí' Date    Badí' JD       Gregorian Date (Sunset)      "
-                  "  Gregorian JD    Diff     Off By")
-            print('-'*91)
+            print("Badí' Date    Badí' JD           Gregorian Date (Sunset)  "
+                  "      Gregorian JD        Diff      Off By")
+            underline_length = 100
+            print('-' * underline_length)
 
             for b_date, bjd, g_date, gjd, diff, offby in data:
-                dn = '-' if diff < 0 else ' '
-                on = '-' if offby < 0 else ' '
-                print(f"{str(b_date):13} "
-                      f"{bjd:<14} "
-                      f"{str(g_date):30} "
-                      f"{gjd:<14} "
-                      f"{dn}{abs(diff):<7} "
-                      f"{on}{abs(offby)}")
+                print(f"{str(b_date):>13} "
+                      f"{bjd:<18} "
+                      f"{str(g_date):<30} "
+                      f"{gjd:<19} "
+                      f"{fmt_float(diff, 2, 6):<8} "
+                      f"{fmt_float(offby, 2, 1)}")
 
+            print('-' * underline_length)
+            offbys = []
             diffs = []
-            p = 0
-            n = 0
+            diff_total = p = n = 0
 
             for item in data:
-                if item[-1] != 0:
-                    diffs.append(item[-1])
+                diff = item[4]
+                diff_total += diff
+                offby = item[5]
 
-                if item[-1] > 0:
+                if diff != 0:
+                    year = item[0][0]
+                    diffs.append(diff)
+
+                if offby != 0:
+                    offbys.append(offby)
+
+                if offby > 0:
                     p += 1
-                    #print('Positive:', item[0], item[-1], file=sys.stderr)
-                elif item[-1] < 0:
+                elif offby < 0:
                     n += 1
-                    #print('Negative:', item[0], item[-1], file=sys.stderr)
 
-            print(f"Total: {len(data)}\nPositive Errors: {p}\n"
-                  f"Negative Errors: {n}\n   Total Errors: {len(diffs)}")
+            total_years = options.end - options.start
+            print(f"Total years: {len(data)}\n")
+            print(f"Positive Errors: {p}")
+            print(f"Negative Errors: {n}")
+            print("-" * 21)
+            print(f"Total Errors:    {n + p}\n")
 
             if options.coff:
-                coff = sum(diffs) / len(diffs)
-                print(f"Average Coefficient: {coff}")
+                coff = sum(offbys) / len(offbys)
+                print(f"Average off by:      {coff}")
+
+            set_items = set([diff for diff in diffs])
+            items = []
+
+            if set_items:
+                min_max = set(set_items)
+                print(f"Maximum deviation:   {fmt_float(max(min_max), 2, 1)}")
+                print(f"Minimum deviation:   {fmt_float(min(min_max), 2, 1)}")
+                print("Difference Average:  "
+                      f"{fmt_float(diff_total/total_years, 2, 15)}")
+
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
     elif options.ck_dates:  # -c
         if options.start is None or options.end is None:
             print("If option -c is used, -S and -E must also be used.",
@@ -1474,19 +1576,16 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
-            print(f"./contrib/misc/{basename} -gS{options.start} "
+            X = 'X' if options.exact else ''
+            print(f"./contrib/misc/{basename} -g{X}S{options.start} "
                   f"-E{options.end}")
-            print("b_date           "
-                  "bjd            "
-                  "g_date                         "
-                  "gjd            "
-                  "diff "
-                  "offby")
+            print("b_date", " " * 9,  "bjd", " " * 14, "g_date", " " * 23,
+                  "gjd", " " * 14, "diff offby")
             [print(f"{str(b_date):<16} "
-                   f"{bjd:<14} "
+                   f"{bjd:<18} "
                    f"{str(g_date):<30} "
-                   f"{gjd:<14} "
-                   f"{diff:<4} "
+                   f"{gjd:<18} "
+                   f"{diff:>4} "
                    f"{offby}"
                    )
              for (b_date, bjd, g_date,

@@ -318,45 +318,46 @@ class GregorianCalendar(BaseCalendar):
         hhmmssus = self._hms_from_decimal_day(day, us=us)
         return (year, month, math.floor(day)) + hhmmssus
 
-    # def _date_updated_with_offset(self, date: tuple, offset: float,
-    #                               us: bool=False, exact: bool=False):
-    #     """
-    #     Update the Gregorian date with the time zone offset.
-    #     """
-    #     # JD = 2440587.5 -> 1970-01-01T00:00:00+00:00 -> 0.0 timestamp
-    #     #
-    #     # Apply timezone offset (in fractional days)
-    #     jd = self.jd_from_gregorian_date(date, exact=exact) + offset / 24
-    #     # Round JD to suppress float noise (~0.008 ms precision)
-    #     jd = round(jd, 12)
-    #     y, m, d, h, mi, s = self.gregorian_date_from_jd(jd, hms=True, us=False,
-    #                                                     exact=exact)
-    #     # Fix floating-point artifacts in seconds
-    #     s_rounded = round(s, 6)  # microsecond precision
+    def _date_updated_with_offset(self, date: tuple, offset: float,
+                                  us: bool=False, exact: bool=False):
+        """
+        Update the Gregorian date with the time zone offset.
+        
+        """
+        # JD = 2440587.5 -> 1970-01-01T00:00:00+00:00 -> 0.0 timestamp
+        #
+        # Apply timezone offset (in fractional days)
+        jd = self.jd_from_gregorian_date(date, exact=exact) + offset / 24
+        # Round JD to suppress float noise (~0.008 ms precision)
+        jd = round(jd, 12)
+        y, m, d, h, mi, s = self.gregorian_date_from_jd(jd, hms=True, us=False,
+                                                        exact=exact)
+        # Fix floating-point artifacts in seconds
+        s_rounded = round(s, 6)  # microsecond precision
 
-    #     # Handle roll-over cleanly (e.g. 59.9999999 → 0)
-    #     if s_rounded >= 60.0:
-    #         s_rounded = 0.0
-    #         mi += 1
+        # Handle roll-over cleanly (e.g. 59.9999999 → 0)
+        if s_rounded >= 60.0:
+            s_rounded = 0.0
+            mi += 1
 
-    #         if mi >= 60:
-    #             mi = 0
-    #             h += 1
+            if mi >= 60:
+                mi = 0
+                h += 1
 
-    #             if h >= 24:
-    #                 h = 0
-    #                 # you'd probably want to roll over day here too (optional)
-    #                 d += 1
+                if h >= 24:
+                    h = 0
+                    # you'd probably want to roll over day here too (optional)
+                    d += 1
 
-    #     # If microseconds requested
-    #     if us:
-    #         micros = int(round((s_rounded % 1) * 1000000))
-    #         s_int = int(s_rounded)  # keep integer seconds
-    #         gd = y, m, d, h, mi, s_int, micros
-    #     else:
-    #         gd = y, m, d, h, mi, s_rounded
+        # If microseconds requested
+        if us:
+            micros = int(round((s_rounded % 1) * 1000000))
+            s_int = int(s_rounded)  # keep integer seconds
+            gd = y, m, d, h, mi, s_int, micros
+        else:
+            gd = y, m, d, h, mi, s_rounded
 
-    #     return gd
+        return gd
 
     def _check_valid_gregorian_month_day(self, g_date: tuple,
                                          historical: bool=False) -> None:

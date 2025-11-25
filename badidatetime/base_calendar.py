@@ -26,7 +26,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _MINS = lambda self, x: x / 60
     _SECS = lambda self, x: x / 3600
     # Convert microseconds to a partial second.
-    _US = lambda self, x: x / 1000000
+    _US = lambda self, x: x / 1e6
     _ANGLE = lambda self, d, m, s: d + (m + s / 60) / 60  # 0 - 360
     _AMOD = lambda self, x, y: y + x % -y
     _MOD3 = lambda self, x, a, b: x if a == b else (
@@ -36,13 +36,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # The inline functions below will assume that 0 is midnight, if
     # converting from a Julian Period day add 0.5 to the value before
     # calling the function.
-    _PARTIAL_DAY_TO_HOURS = lambda self, x: round(
-        (x % 1) * 24, self._ROUNDING_PLACES)
-    _PARTIAL_HOUR_TO_MINUTE = lambda self, x: round(
-        (x % 1) * 60, self._ROUNDING_PLACES)
+    _PARTIAL_DAY_TO_HOURS = lambda self, x: round((x % 1) * 24, 6)
+    _PARTIAL_HOUR_TO_MINUTE = lambda self, x: round((x % 1) * 60, 6)
     _PARTIAL_MINUTE_TO_SECOND = _PARTIAL_HOUR_TO_MINUTE
-    _PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(
-        round(x % 1, self._ROUNDING_PLACES) * 1e6)
+    _PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(round(x % 1, 6) * 1e6)
 
     _MEAN_TROPICAL_YEAR = 365.2421897
     # MEAN_SIDEREAL_YEAR = 365.256363004
@@ -54,9 +51,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _SUMMER = 90
     _AUTUMN = 180
     _WINTER = 270
-    _SUN_OFFSET = 0.8333333333333334
-    _STARS_PLANET_OFFSET = 0.5666666666666667
-    _ROUNDING_PLACES = 6
+    _SUN_OFFSET = 0.8333
+    _STARS_PLANET_OFFSET = 0.5667
+    _ROUNDING_PLACES = 12
     # Meus value is 2440587.5
     _POSIX_EPOCH = 2440585.5  # This is using the more exact algorithm.
     _JULIAN_CAL_EPOCH = 1721423.5
@@ -245,29 +242,20 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return math.degrees(math.acos(cos_h0))
 
-    def _sun_transit(self, jd: float, lon: float, zone: float=None) -> float:
+    def _sun_transit(self, jd: float, lon: float) -> float:
         """
         The transit is when the body crosses the local maridian at upper
         culmination.
 
         :param float jd: Julian day in UT.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone defaults to None causing the zone
-                           to be calculated from the longitude.
         :returns: The center point between sunrise and sunset.
         :rtype: float
 
         .. note::
 
-           1. If the zone is None the zone will be calculated from the
-              longitude, a value other than None will be reguarded as the
-              political time zone.
-           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        assert zone is not None and (-180 <= zone <= 180) or zone is None, (
-            "If the zone is not None the zone value must be between -180 and "
-            f"180, found zone: {zone}.")
-        zone = lon / 15 if zone is None else zone
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self._julian_centuries(jd)
         dt = self._delta_t(jd)
@@ -276,8 +264,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         ast = self._apparent_sidereal_time_greenwich(tc)
         m = func0((alpha - lon - ast) / 360)
         md = self._transit_correction(tc, ast, dt, lon, m)
-        m += md + self._tz_decimal_from_dhms(0, zone, 0, 0)
-        return m
+        return m + md
 
     def _transit_correction(self, tc: float, ast: float, dt: float, lon: float,
                             m: float) -> float:
@@ -301,20 +288,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         h = self._local_hour_angle(srt, lon, alpha)
         return -h / 360
 
-    def _sun_rising(self, jd: float, lat: float, lon: float, zone: float=0, *,
-                    exact_tz: bool=False, offset: float=_SUN_OFFSET) -> float:
+    def _sun_rising(self, jd: float, lat: float, lon: float, *,
+                    offset: float=_SUN_OFFSET) -> float:
         """
         Find the jd for sunrise of the given jd.
 
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone defaults to None causing the zone
-                           to be calculated from the longitude.
-        :param bool exact_tz: The political time zones or the exact time zone
-                              derived from the longitude
-                              (15 degrees = 360 / 24).
-                              Default is False or the political time zone.
         :param bool offset: A constant “standard” altitude, i.e., the geometric
                             altitude of the center of the body at the time of
                             apparent rising or setting, namely,
@@ -322,30 +303,24 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                             h0 = -0°50' = -0°8333 for the Sun.
                             Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                             also be used.
-        :returns: The jd moments of the sunrise.
+        :returns: The jd moment of the sunrise.
         :rtype: float
 
         .. note::
 
-           1. If the zone is None the zone will be calculated from the
-              longitude, a value other than None will be reguarded as the
-              political time zone.
-           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, offset=offset,
-                                   sr_ss='RISE')
+        jd += self._rising_setting(jd, lat, lon, offset=offset, sr_ss='RISE')
         return round(jd, self._ROUNDING_PLACES)
 
-    def _sun_setting(self, jd: float, lat: float, lon: float, zone: float=None,
-                     *, offset: float=_SUN_OFFSET) -> float:
+    def _sun_setting(self, jd: float, lat: float, lon: float, *,
+                     offset: float=_SUN_OFFSET) -> float:
         """
         Find the jd for sunset of the given jd.
 
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone defaults to None causing the zone
-                           to be calculated from the longitude.
         :param bool offset: A constant “standard” altitude, i.e., the geometric
                             altitude of the center of the body at the time of
                             apparent rising or setting, namely,
@@ -353,31 +328,24 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                             h0 = -0°50' = -0°8333 for the Sun.
                             Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                             also be used.
-        :returns: The jd moments of the sunset.
+        :returns: The jd moment of the sunset.
         :rtype: float
 
         .. note::
 
-           1. If the zone is None the zone will be calculated from the
-              longitude, a value other than None will be reguarded as the
-              political time zone.
-           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, offset=offset,
-                                   sr_ss='SET')
+        jd += self._rising_setting(jd, lat, lon, offset=offset, sr_ss='SET')
         return round(jd, self._ROUNDING_PLACES)
 
-    def _rising_setting(self, jd: float, lat: float, lon: float,
-                        zone: float=None, *, offset: float=_SUN_OFFSET,
-                        sr_ss: str='RISE') -> float:
+    def _rising_setting(self, jd: float, lat: float, lon: float, *,
+                        offset: float=_SUN_OFFSET, sr_ss: str='RISE') -> float:
         """
         Find the jd difference for sunrise or sunset of the given jd.
 
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone defaults to None causing the zone
-                           to be calculated from the longitude.
         :param float offset: A constant “standard” altitude, i.e., the
                              geometric altitude of the center of the body at
                              the time of apparent rising or setting, namely,
@@ -391,36 +359,29 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           1. If the zone is None the zone will be calculated from the
-              longitude, a value other than None will be reguarded as the
-              political time zone.
-           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        assert zone is not None and (-180 <= zone <= 180) or zone is None, (
-            "If the zone is not None the zone value must be between -180 and "
-            f"180, found zone: {zone}.")
-        zone = lon / 15 if zone is None else zone
         flags = ('RISE', 'SET')
         sr_ss = sr_ss.upper()
         assert sr_ss in flags, (
             f"Invalid value, should be one of '{flags}' found '{sr_ss}'.")
-        func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self._julian_centuries(jd)
         dt = self._delta_t(jd)
         tc_td = dt / 36525 + tc  # Compensate for the Julian Century
         alpha = self._sun_apparent_right_ascension(tc_td)
         ast = self._apparent_sidereal_time_greenwich(tc)
         h0 = self._approx_local_hour_angle(tc, lat, offset=offset)
-        m0 = func0((alpha - lon - ast) / 360)
+        # Normalize to [0,1]
+        m0 = ((alpha - lon - ast) / 360) % 1
         m = m0 - h0 / 360 if sr_ss == 'RISE' else m0 + h0 / 360
-        dm = 1
 
-        for i in range(5):
+        for _ in range(3):
             dm = self._rise_set_correction(tc, ast, dt, lat, lon, m, offset)
             m += dm
-            if abs(dm) < 0.0001: break
 
-        m += self._tz_decimal_from_dhms(0, zone, 0, 0)
+            if abs(dm) < 0.0001:
+                break
+
         return m % 1
 
     def _rise_set_correction(self, tc: float, ast: float, dt: float,
@@ -1021,16 +982,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                 jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
                                      -0.00823, 0.00032))
 
-        # JD♈(Y) = JD0+78.814+365.24236 ΔY+5.004*10^−8 ΔY^2−2.87*10^−12
-        # ΔY^3−4.5*10^−16 ΔY^4
         return jde
 
     def _find_moment_of_equinoxes_or_solstices(self, jd: float,
                                                lam: int=_SPRING,
                                                zone: float=0) -> float:
         """
-        With the jd and time of year find an equinoxe or solstice at
-        Greenwich.
+        With the jd and season of the year find the equinoxe or solstice at
+        Greenwich. If a time zone is provided modify the returned value.
 
         :param float jd: Meeus algorithm Julian day.
         :param int lam: The lamda, either `_SPRING` (0° default), `_SUMMER`
@@ -1046,14 +1005,19 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
         year = gc.gregorian_year_from_jd(jd)
-        jde = self._approx_julian_day_for_equinoxes_or_solstices(year, lam)
-        tc = self._julian_centuries(jde)
+        jde0 = self._approx_julian_day_for_equinoxes_or_solstices(year, lam)
+        tc = self._julian_centuries(jde0)
         w = 35999.373 * tc - 2.47
-        dl = 1 + 0.0334 * self._cos_deg(w + 0.0007) * self._cos_deg(2*w)
+        dl = 1 + 0.0334 * self._cos_deg(w + 0.0007) * self._cos_deg(2 * w)
         s = self._sigma((self._EQ_SO_A, self._EQ_SO_B, self._EQ_SO_C),
                         lambda a, b, c: a * self._cos_deg(b + c * tc))
-        jde += (0.00001 * s) / dl + self._HR(zone)
-        return round(jde, self._ROUNDING_PLACES)
+        jde = jde0 + (0.00001 * s) / dl
+        # Must convert from Dynamical time (JDE) to Universal Time (UT).
+        delta_t_seconds = self._delta_t(jde)
+        jd_ut = jde - delta_t_seconds / 86400.0   # Divide by seconds in a day
+        # Now add the timezone.
+        jd_local = jd_ut + self._HR(zone)
+        return round(jd_local, self._ROUNDING_PLACES)
 
     def _decimal_from_dms(self, degrees: int, minutes: int, seconds: float,
                           direction: str='N') -> float:
@@ -1286,8 +1250,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           If a whole number as in 10.5 is passed in, the value to the left
-           of the decimal will be stripped off before calculations are done.
+           If a number as in 10.5 is passed in, the value to the left of
+           the decimal will be stripped off before calculations are done.
         """
         h = self._PARTIAL_DAY_TO_HOURS(dec)
         hour = math.floor(h)
@@ -1599,3 +1563,43 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         # We subtract 1 because ordinal date representations starts at 1 not 0.
         jd = self._JULIAN_CAL_EPOCH + (ordinal - 1)
         return jd if exact else self._meeus_from_exact(jd)
+
+    def _local_zone_correction(self, jd_ut: float, zone: float=None,
+                               lon: float=None, *,
+                               mod_jd: bool=False) -> float:
+        """
+        Convert the UT time to local time.
+
+        .. note::
+
+           1. If the full JD is passed as jd_ut then the result will be the
+              correct value.
+           2. If jd_ut is the fractional part of the JD the result of this
+              method replaces the fractional part of the JD. DO NOT add it
+              to the fractional part.
+           3. If the zone is None the zone will be calculated from the
+              longitude, a value other than None will be reguarded as a
+              political time zone.
+
+        :param float jd_ut: UT time as a fractional part of a JD.
+        :param float zone: The time zone in hours.
+        :param float lon: The longitude.
+        :param bool mod_jd: If `False` (default) a correction value is returned
+                            else if `True` the jd_ut is updatyed to local time.
+        :returns: The local time corrected from the UT time as a fraction.
+        :rtype: float
+        """
+        assert zone is None or zone is not None and (-180 <= zone <= 180), (
+            "If the zone is not None the zone value must be between -180 and "
+            f"180, found zone: {zone}.")
+        assert (zone, lon).count(None) in (0, 1), (
+            "Both the time zone and longitude cannot be None.")
+        zone = lon / 15 if zone is None else zone
+        modified_jd = jd_ut + self._HR(zone)
+
+        if mod_jd:
+            result = modified_jd
+        else:
+            result = modified_jd % 1
+
+        return result

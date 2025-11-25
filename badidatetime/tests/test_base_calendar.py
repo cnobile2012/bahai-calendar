@@ -21,8 +21,8 @@ class TestBaseCalendar(unittest.TestCase):
             # Location of Tehran for astronomical Baha’i calendar.
             # Can be change for individual tests using the location
             # method below.
-            latitude = 36.569336
-            longitude = 52.0050234
+            latitude = 35.682376
+            longitude = 51.285817
             zone = 3.5
             elevation = 0
 
@@ -34,10 +34,10 @@ class TestBaseCalendar(unittest.TestCase):
                     self.longitude = location[1]
 
                 if location[2] is not None:
-                    self.elevation = location[2]
+                    self.zone = location[2]
 
                 if location[3] is not None:
-                    self.zone = location[3]
+                    self.elevation = location[3]
             location = property(None, location)
 
         self.bc = FakeParent()
@@ -97,6 +97,17 @@ class TestBaseCalendar(unittest.TestCase):
         expected_secs = 0.00166666666666666667
         msg = f"_SECS should be {expected_secs}, found {secs}."
         self.assertEqual(expected_secs, secs, msg)
+
+    #@unittest.skip("Temporarily skipped")
+    def test__US(self):
+        """
+        Test the _US (microseconds) lambda.
+        """
+        value = 600000
+        msecs = self.bc._US(value)
+        expected_msecs = 0.6
+        msg = f"_US should be {expected_msecs}, found {msecs}."
+        self.assertEqual(expected_msecs, msecs, msg)
 
     #@unittest.skip("Temporarily skipped")
     def test__ANGLE(self):
@@ -310,11 +321,11 @@ class TestBaseCalendar(unittest.TestCase):
         data = (
             # 1988-03-20T00:00:00 -- 0.51766, 0.1213 -> -0.5665074179151752
             # AA Ex.15.a at Boston, US
-            (2447240.5, 42.3333, -71.0833, 'SET', PLT, -1.2620568801432246),
+            (2447240.5, 42.3333, -71.0833, 'SET', PLT, -1.262090300747096),
             # Greenwich, UK 2024-03-20T00:00:00 -> -0.8331021963100147
-            (2460389.5, 51.477928, -0.001545, 'SET', SUN, -1.298984618215317),
+            (2460389.5, 51.477928, -0.001545, 'SET', SUN, -1.298951201117289),
             # Tehran, Iran 2024-03-20T00:00:00 -> -0.8332800872601968
-            (2460389.5, 35.696111, 51.423056, 'SET', SUN, -1.3256541419119139),
+            (2460389.5, 35.696111, 51.423056, 'SET', SUN, -1.3256207198852623),
             )
         msg = "Expected {}, for jd {}, with lat {} and lon {}, found {}."
 
@@ -346,9 +357,9 @@ class TestBaseCalendar(unittest.TestCase):
         """
         offset = self.bc._SUN_OFFSET
         data = (
-            ((1844, 3, 20), self.bc.latitude, offset, 90.89234108635455),
-            ((1988, 3, 20), 42.3333, offset, 90.98306896131454), # AA Ex15.a
-            ((2024, 6, 20), self.bc.latitude, offset, 109.9589991005709),
+            ((1844, 3, 20), self.bc.latitude, offset, 90.88528765885808),
+            ((1988, 3, 20), 42.3333, offset, 90.98302386790827), # AA Ex15.a
+            ((2024, 6, 20), self.bc.latitude, offset, 109.3196338142018),
             # Test for combinations of latitude and degrees that cause the
             # cos_h0 value to be less than -1.
             ((1844, 4, 10.5), 90, offset, 90.0),
@@ -361,33 +372,39 @@ class TestBaseCalendar(unittest.TestCase):
             jde = self.gc.jd_from_gregorian_date(g_date)
             tc = self.bc._julian_centuries(jde)
             result = self.bc._approx_local_hour_angle(tc, lat, offset)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, g_date, result))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, g_date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_rising(self):
         """
         """
         data = (
-            # 1844-03-20T12:00:00 -> 1844-03-21T06:05:57.0912 (06:06)
-            (2394646.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2394646.754133),
-            # 2024-03-19T12:00:00 -> 2024-03-20T06:05:17.1744 (06:07)
+            # 1844-03-19T12:00:00 -> 1844-03-20T06:09:00+03:30 (06:09)
+            (2394645.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             (2394645.6103179483, 0.7561512817628682, (6, 8, 51.4716))),
+            # 2024-03-19T12:00:00 -> 2024-03-20T06:08:00+03:30 (06:08)
             (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.753669),
-            # 2024-03-20T00:00:00 -> 2024-03-20T06:05:17.1744 (06:05)
+             (2460389.6098637776, 0.755697111133486, (6, 8, 12.2316))),
+            # 2024-03-20T00:00:00 -> 2024-03-20T06:08:00+03:30 (06:08)
             (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.753669),
-            # 2024-03-20T02:00:00 -> 2024-03-20T06:05:17.1744 (06:06)
+             (2460389.6098637516, 0.7556970850564539, (6, 8, 12.228))),
+            # 2024-03-20T02:00:00 -> 2024-03-20T06:08:00+03:30 (06:08)
             (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.753669),
+             (2460389.609863714, 0.7556970473378897, (6, 8, 12.2244))),
             )
         msg = "Expected {}, for jd {}, found {}."
 
         for jd, lat, lon, zone, expected_result in data:
-            result = self.bc._sun_rising(jd, lat, lon, zone)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jd, result))
+            result = self.bc._sun_rising(jd, lat, lon)
+            self.assertEqual(expected_result[0], result, msg.format(
+                expected_result, jd, result))
+            tz_correction = self.bc._local_zone_correction(result, zone)
+            self.assertEqual(expected_result[1], tz_correction, msg.format(
+                expected_result, jd, zone, result))
+            hms = self.bc._hms_from_decimal_day(tz_correction + 0.5)
+            self.assertEqual(expected_result[2], hms, msg.format(
+                expected_result, jd, zone, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_transit(self):
@@ -399,53 +416,61 @@ class TestBaseCalendar(unittest.TestCase):
             # 1988-03-20T00:00:00 -- 0.5354166666666667 = 12:51 pm Alt 48 deg
             # AA Ex.15.a 0.8198 at Boston, US
             # JD        Longitude
-            (2447240.5, -71.0833, -5.0, 0.49423327921649307),
+            (2447240.5, -71.0833, 0.7025666125498263),
             # 2024-03-20T00:00:00 -- 0.5048611111111111 = 12:07 pm, Alt 39 deg
             # Transit in Greenwich UK with 51.477928 (lat) and -0.001545 (lon)
-            (2460389.5, -0.001545, 0, 0.5050828012152296),
+            (2460389.5, -0.001545, 0.5050828012152296),
             # 2024-03-20T00:00:00 -- 0.5076388888888889 = 12:11 pm, Alt 54 deg
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 51.423056, 3.5, 0.5080994320882255),
+            (2460389.5, 51.423056, 0.3622660987548922),
             # 2024-03-20T00:00:00 -- 0.5051123582525348 = 12:07:0.36179588
             # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 51.423056, None, 0.5051079209771144),
+            (2460389.5, 51.423056, 0.3622660987548922),
             )
-        msg = "Expected {}, for jd {}, and zone {}, found {}."
+        msg = "Expected {}, for jd {}, found {}."
 
-        for jd, lon, zone, expected_result in data:
-            result = self.bc._sun_transit(jd, lon, zone=zone)
+        for jd, lon, expected_result in data:
+            result = self.bc._sun_transit(jd, lon)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, jd, zone, result))
+                expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_setting(self):
         """
         Test that the _sun_setting method returns the correct sunset for a
         given date represented by a Julian Period day.
+        https://gml.noaa.gov/grad/solcalc/
         """
         data = (
-            # 1844-03-20T12:00:00 -> 1844-03-20T18:13:47.0208
-            (2394646.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2394646.259572),
+            # 1844-03-19T12:00:00 -> 1844-03-19T18:16:00 sunset 0.761111
+            (2394645.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
+             (2394645.115702063, 0.26153539633378386, (18, 16, 36.66))),
             # 2024-03-19T12:00:00 -> 2024-03-19T18:13:59.1168
             (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460389.259709),
+             (2460389.115829569, 0.2616629023104906, (18, 16, 47.676))),
             # 2024-03-20T00:00:00 -> 2024-03-20T18:13:59.1168
             (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460390.259709),
+             (2460390.1158295674, 0.26166290091350675, (18, 16, 47.676))),
             # 2024-03-20T02:00:00 -> 2024-03-20T18:13:59.1168
             (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             2460390.259709),
+             (2460390.115829567, 0.26166290044784546, (18, 16, 47.676))),
             # 2024-04-20T00:00:00 -> 2024-04-20T19:52:378624 DST (19:53)
             # In Raligh NC, USA
-            (2460420.5, 35.7796, -78.6382, -4, 2460421.328213)
+            (2460420.5, 35.7796, -78.6382, -4,
+             (2460421.4948800434, 0.32821337692439556, (19, 52, 37.6356))),
             )
-        msg = "Expected {}, for jd {}, found {}."
+        msg = "Expected {}, for jd {} and zone {}, found {}."
 
         for jd, lat, lon, zone, expected_result in data:
-            result = self.bc._sun_setting(jd, lat, lon, zone)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jd, result))
+            result = self.bc._sun_setting(jd, lat, lon)
+            self.assertEqual(expected_result[0], result, msg.format(
+                expected_result, jd, zone, result))
+            tz_correction = self.bc._local_zone_correction(result, zone)
+            self.assertEqual(expected_result[1], tz_correction, msg.format(
+                expected_result, jd, zone, result))
+            hms = self.bc._hms_from_decimal_day(tz_correction + 0.5)
+            self.assertEqual(expected_result[2], hms, msg.format(
+                expected_result, jd, zone, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__rising_setting(self):
@@ -458,33 +483,34 @@ class TestBaseCalendar(unittest.TestCase):
         SUN = self.bc._SUN_OFFSET
         PLT = self.bc._STARS_PLANET_OFFSET
         data = (
-            # 1988-03-20T00:00:00 -- 0.51766, 0.1213
+            # 1988-03-20T00:00:00 -- 0.51766 = , 0.1213
             # AA Ex.15.a at Boston, US
-            # JD        Latitude Longitude zone  exact  offset
+            # JD        Latitude Longitude Zone  Offset
             (2447240.5, 42.3333, -71.0833, -5.0, PLT,
-             (0.24210617024415584, 0.7468650828479303)),
-            # 2024-03-20T00:00:00 -- (0.250694 = 6:01 am, 0.759027 = 6:13 pm)
+             (0.45043937846904675, 0.9551985415470607)),
+            # 2024-03-20T00:00:00 -- (0.251389 = 6:02, 0.759722 = 18:14)
             # https://timeanddate.com/sun/uk/greenwich-city?month=3&year=2024
             # In Greenwich, UK with 51.477928 (lat) and -0.001545 (lon)
             (2460389.5, 51.477928, -0.001545, 0, SUN,
-             (0.25124811609282555, 0.759618623423145)),
-            # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
+             (0.25124826455377425, 0.7596184745333456)),
+            # 2024-03-20T00:00:00 -- (0.255555 = 6:08, 0.761805 = 18:17)
+            # 
             # https://www.timeanddate.com/sun/@112931?month=3&year=2024
-            # Transit in Tehran Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 35.696111, 51.423056, 3.5, SUN,
-             (0.2553156470420874, 0.7612822588083131)),
+            # Transit in Tehran Iran with 35.682376 (lat) and 51.285817 (lon)
+            (2460389.5, 35.682376, 51.285817, 3.5, SUN,
+             (0.1098637514187786, 0.6158295672236276)),
             # 2024-03-20T00:00:00 -- (0.254861 = 6:07 am, 0.761 = 6:16 pm)
-            # Transit in Tehran, Iran with 35.696111 (lat) and 51.423056 (lon)
-            (2460389.5, 35.696111, 51.423056, None, SUN,
-             (0.25232413593097636, 0.7582907476972021)),
+            # Transit in Tehran, Iran with 35.682376 (lat) and 51.285817 (lon)
+            (2460389.5, 35.682376, 51.285817, None, SUN,
+             (0.1098637514187786, 0.6158295672236276)),
             )
         msg = "Expected {}, for jd {}, zone {}, found {}."
 
         for jd, lat, lon, zone, offset, expected_result in data:
-            result0 = self.bc._rising_setting(
-                jd, lat, lon, zone=zone, offset=offset, sr_ss='rise')
-            result1 = self.bc._rising_setting(
-                jd, lat, lon, zone=zone, offset=offset, sr_ss='set')
+            result0 = self.bc._rising_setting(jd, lat, lon, offset=offset,
+                                              sr_ss='rise')
+            result1 = self.bc._rising_setting(jd, lat, lon, offset=offset,
+                                              sr_ss='set')
             result = (result0, result1)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, jd, zone, result))
@@ -817,10 +843,10 @@ class TestBaseCalendar(unittest.TestCase):
         the correct values.
         """
         data = (
-            (2394646.5, True, 180.50142), # 1844-03-21
+            (2394646.5, True, 180.501420262321), # 1844-03-21
             # 1992-10-13T00:00:00 -- 19.907372 AA Ex.25.b
-            (2448908.5, True, 19.907372),
-            (2451544.5, True, 99.868072), # 2000-01-01
+            (2448908.5, True, 19.907371990725),
+            (2451544.5, True, 99.868072457384), # 2000-01-01
             )
         msg = "Expected {}, for jde {}, found {}."
 
@@ -837,10 +863,10 @@ class TestBaseCalendar(unittest.TestCase):
         the correct values.
         """
         data = (
-            (2394646.5, True, 359.999859), # 1844-03-21
+            (2394646.5, True, 359.99985945941), # 1844-03-21
             # 1992-10-13T00:00:00 -- -0.000179 AA Ex.25.b
-            (2448908.5, True, 359.999821),
-            (2451544.5, True, 359.99981), # 2000-01-01
+            (2448908.5, True, 359.999820987496),
+            (2451544.5, True, 359.999810027916), # 2000-01-01
             )
         msg = "Expected {}, for jde {}, found {}."
 
@@ -856,10 +882,10 @@ class TestBaseCalendar(unittest.TestCase):
         Test that the _radius_vector method returns the correct values.
         """
         data = (
-            (2394646.5, True, 57.116216),  # 1844-03-21
+            (2394646.5, True, 57.116215635928),  # 1844-03-21
             # 1992-10-13T00:00:00 -- 0.99760775 (57.15871368454215) AA Ex.25.b
-            (2448908.5, True, 57.158714),
-            (2451544.5, True, 56.340762),  # 2000-01-01
+            (2448908.5, True, 57.15871365675),
+            (2451544.5, True, 56.340762239128),  # 2000-01-01
             )
         msg = "Expected {}, for jde {}, found {}."
 
@@ -900,48 +926,48 @@ class TestBaseCalendar(unittest.TestCase):
         """
         data = (
             # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
-            (2460389.759722, 359.740947), # 0
+            (2460389.759722, 359.740938790093), # 0
             # (2024, 6, 20) Summer solstice 2024-06-20T20:50:23 UTC
-            (2460483.238888, 90.449786),  # 90
+            (2460483.238888, 90.449821636455),  # 90
             # (2024, 9, 22) Autumnal equinox 2024-09-22T12:43:12 UTC
-            (2460576.561111, 180.161496), # 180
+            (2460576.561111, 180.161497145808), # 180
             # (2024, 12, 21) Winter solstice 2024-12-21T09:19:54 UTC
-            (2460666.279166, 270.074089), # 270
+            (2460666.279166, 270.074119473989), # 270
             # (1800, 3, 20) Vernal equinox 1800-03-20T20:11:48 UTC
-            (2378575.181945, 359.401715), # 0
+            (2378575.181945, 359.401753831233), # 0
             # (1800, 6, 21) Summer solstice 1800-06-21T17:51:29 UTC
-            (2378667.9875, 89.320445),    # 90
+            (2378667.9875, 89.32041245143),     # 90
             # (1800, 9, 23) Autumnal equinox 1800-09-23T07:25:31 UTC
-            (2378761.118055, 178.907454), # 180
+            (2378761.118055, 178.907448509213), # 180
             # (1800, 12, 22) Winter solstice 1800-12-22T00:16:24
-            (2378850.522222, 268.615081), # 270
+            (2378850.522222, 268.615086297708), # 270
             # (2073, 3, 20) Vernal equinox 2073-03-20T00:12:24 UTC
-            (2478286.520833, 359.553774), # 0
+            (2478286.520833, 359.55382375668),  # 0
             # (2073, 6, 20) Summer solstice 2073-06-20T17:06:18 UTC
-            (2478379.927777, 90.197347),  # 90
+            (2478379.927777, 90.197366193355),  # 90
             # (2073, 9, 22) Autumnal equinox 2073-09-22T09:14:10 UTC
-            (2478473.273611, 179.871075), # 180
+            (2478473.273611, 179.871063138558), # 180
             # (2073, 12, 21) Winter solstice 2073-12-21T06:49:41 UTC
-            (2478563.072222, 269.779984), # 270
+            (2478563.072222, 269.780008293968), # 270
             # All the dates below are from the CC Appendix C Sample Data p452
             # (-586, 7, 24)
-            (1507231.5, 118.207136),      # 118.98911336371384
+            (1507231.5, 118.207154305186),      # 118.98911336371384
             # (576, 5, 20)
-            (1931579.5, 58.475114),       # 59.119741
+            (1931579.5, 58.47508540703),        # 59.119741
             # (1288, 4, 2)
-            (2191584.5, 12.816201),        # 13.498220
+            (2191584.5, 12.816213952552),       # 13.498220
             # (1553, 9, 19)
-            (2288542.5, 175.003305),      # 176.059431
+            (2288542.5, 175.003325857397),      # 176.059431
             # (1768, 6, 19)
-            (2366978.5, 88.027608),       # 88.567428
+            (2366978.5, 88.027595925087),       # 88.567428
             # (1941, 9, 29)
-            (2430266.5, 185.09022),      # 185.945867
+            (2430266.5, 185.090224449767),      # 185.945867
             # (2038, 11, 10)
-            (2465737.5, 227.070777),      # 228.184879
+            (2465737.5, 227.070783444347),      # 228.184879
             # (2094, 7, 18)
-            (2486076.5, 115.381223),      # 116.439352
+            (2486076.5, 115.381213164408),      # 116.439352
             # 1992-10-13T00:00:00 DT -- 199.9060605... AA Ex.25.b
-            (2448908.5, 199.835144),
+            (2448908.5, 199.835133937607),
             )
         msg = "Expected {}, for jde {}, found {}."
 
@@ -957,7 +983,7 @@ class TestBaseCalendar(unittest.TestCase):
         """
         data = (
             # 1992-10-13T00:00:00 DT -- 0.000172 AA Ex.25.b
-            (2448908.5, 0.000167),
+            (2448908.5, 0.000173905958),
             )
         msg = "Expected {}, for jde {}, found {}."
 
@@ -974,8 +1000,8 @@ class TestBaseCalendar(unittest.TestCase):
         """
         data = (
             # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
-            (389.759722222, True, -0.005708),
-            (389.759722222, False, -0.005708),
+            (389.759722222, True, -0.005707963671),
+            (389.759722222, False, -0.005708184088),
             )
         msg = "Expected {}, for jd {}, found {}."
 
@@ -1022,44 +1048,44 @@ class TestBaseCalendar(unittest.TestCase):
         seasons = {SP: 'SPRING', SM: 'SUMMER', AU: 'AUTUMN', WN: 'WINTER'}
         data = (
             # Vernal Equinox
-            ((900, 3, 1), SP, (900, 3, 15, 18, 19, 15.6864)),
-            ((1788, 3, 19, 22, 16), SP, (1788, 3, 19, 22, 16, 44.9472)),
-            ((1844, 3, 20, 11, 53), SP, (1844, 3, 20, 11, 53, 50.208)),
-            ((1951, 3, 21, 10, 26), SP, (1951, 3, 21, 10, 26, 44.4768)),
+            ((900, 3, 1), SP, (900, 3, 15, 18, 19, 15.618)),
+            ((1788, 3, 19, 22, 16), SP, (1788, 3, 19, 22, 16, 44.9328)),
+            ((1844, 3, 20, 11, 53), SP, (1844, 3, 20, 11, 53, 50.2404)),
+            ((1951, 3, 21, 10, 26), SP, (1951, 3, 21, 10, 26, 44.4444)),
             # AA p.180 Ex 27.a
-            ((1962, 6, 1), SM, (1962, 6, 21, 21, 25, 6.0384)),
+            ((1962, 6, 1), SM, (1962, 6, 21, 21, 25, 6.024)),
             # AA p.182 Table 27.e
-            ((2000, 3, 20, 7, 35), SP, (2000, 3, 20, 7, 36, 37.872)),
+            ((2000, 3, 20, 7, 35), SP, (2000, 3, 20, 7, 36, 37.8648)),
             # Should be 2018-03-20T16:16:36 DT
-            ((2018, 3, 20), SP, (2018, 3, 20, 16, 16, 23.952)),
+            ((2018, 3, 20), SP, (2018, 3, 20, 16, 16, 23.9268)),
             # Should be 2022-03-20T15:34:33 DT
-            ((2022, 3, 20), SP, (2022, 3, 20, 15, 34, 40.08)),
-            ((2024, 3, 20, 3, 6), SP, (2024, 3, 20, 3, 7, 49.152)),
+            ((2022, 3, 20), SP, (2022, 3, 20, 15, 34, 40.1052)),
+            ((2024, 3, 20, 3, 6), SP, (2024, 3, 20, 3, 7, 49.116)),
             # Should be 2026-03-20T14:47:05 DT
-            ((2026, 3, 20), SP, (2026, 3, 20, 14, 46, 50.8224)),
+            ((2026, 3, 20), SP, (2026, 3, 20, 14, 46, 50.8152)),
             ((2038, 3, 20, 12, 40), SP, (2038, 3, 20, 12, 42, 2.2752)),
             # Should be 2043-03-20T17:28:58 DT
-            ((2043, 3, 20), SP, (2043, 3, 20, 17, 29, 7.4112)),
+            ((2043, 3, 20), SP, (2043, 3, 20, 17, 29, 7.3788)),
             # Should be 2047-03-20T16:53:53 DT
-            ((2047, 3, 20), SP, (2047, 3, 20, 16, 54, 14.0256)),
+            ((2047, 3, 20), SP, (2047, 3, 20, 16, 54, 14.0436)),
             # Should be 2051-03-20T16:00:28 DT
-            ((2051, 3, 20), SP, (2051, 3, 20, 16, 0, 23.2704)),
+            ((2051, 3, 20), SP, (2051, 3, 20, 16, 0, 23.2344)),
             # Should be 2055-03-20T15:30:03 DT
-            ((2055, 3, 20), SM, (2055, 6, 21, 8, 40, 54.5952)),
-            ((2064, 3, 19, 19, 37), SP, (2064, 3, 19, 19, 40, 13.6992)),
-            ((2100, 3, 20, 13, 3), SP, (2100, 3, 20, 13, 6, 30.2112)),
-            ((2150, 3, 20, 16, 1), SP, (2150, 3, 20, 16, 6, 35.9136)),
-            ((2200, 3, 20, 18, 40), SP, (2200, 3, 20, 18, 48, 6.624)),
-            ((2211, 3, 21, 10, 38), SP, (2211, 3, 21, 10, 45, 29.9232)),
+            ((2055, 3, 20), SM, (2055, 6, 21, 8, 40, 54.624)),
+            ((2064, 3, 19, 19, 37), SP, (2064, 3, 19, 19, 40, 13.7136)),
+            ((2100, 3, 20, 13, 3), SP, (2100, 3, 20, 13, 6, 30.1896)),
+            ((2150, 3, 20, 16, 1), SP, (2150, 3, 20, 16, 6, 35.9064)),
+            ((2200, 3, 20, 18, 40), SP, (2200, 3, 20, 18, 48, 6.642)),
+            ((2211, 3, 21, 10, 38), SP, (2211, 3, 21, 10, 45, 29.9484)),
             # Summer Solstice
-            ((900, 6, 1), SM, (900, 6, 17, 6, 32, 44.2176)),
-            ((2000, 6, 1), SM, (2000, 6, 21, 1, 48, 45.36)),
+            ((900, 6, 1), SM, (900, 6, 17, 6, 32, 44.2104)),
+            ((2000, 6, 1), SM, (2000, 6, 21, 1, 48, 45.3528)),
             # Autumn Equinox
-            ((900, 9, 1), AU, (900, 9, 18, 8, 35, 1.4784)),
-            ((2000, 9, 1), AU, (2000, 9, 22, 17, 28, 41.664)),
+            ((900, 9, 1), AU, (900, 9, 18, 8, 35, 1.41)),
+            ((2000, 9, 1), AU, (2000, 9, 22, 17, 28, 41.6784)),
             # Winter Solstice
-            ((900, 12, 1), WN, (900, 12, 16, 11, 38, 22.272)),
-            ((2000, 12, 1), WN, (2000, 12, 21, 13, 38, 47.1264)),
+            ((900, 12, 1), WN, (900, 12, 16, 11, 38, 22.236)),
+            ((2000, 12, 1), WN, (2000, 12, 21, 13, 38, 47.1696)),
             )
         msg = "Expected '{}' during the {}, found '{}'"
 
@@ -1625,3 +1651,46 @@ class TestBaseCalendar(unittest.TestCase):
             result = self.bc._jd_from_ordinal(ordinal, exact=exact)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, ordinal, exact, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__local_zone_correction(self):
+        """
+        Test that the _local_zone_correction method converts a Julian Period
+        day fraction to the without zone information to one with zone
+        information.
+        """
+        err_msg0 = ("If the zone is not None the zone value must be between "
+                    "-180 and 180, found zone: {}.")
+        err_msg1 = "Both the time zone and longitude cannot be None."
+        data = (
+            # 1844-03-19T12:00:00 -> 1844-03-19T18:16:00 sunset 0.761111
+            (2394645.115702063, self.bc.zone, None, False, True,
+             (0.26153539633378386, (18, 16, 36.66))),
+            (2460421.4948800434, -4, None, False, True,
+             (0.32821337692439556, (19, 52, 37.6356))),
+            # Same as the first except using longitude to determine zone.
+            (2394645.115702063, None, self.bc.longitude, False, True,
+             (0.25816266564652324, (18, 11, 45.2544))),
+            (2394645.115702063, None, self.bc.longitude, True, True,
+             (2394645.2581626656, (18, 11, 45.2544))),
+            (2394645.0, 181, None, False, False, err_msg0.format(181)),
+            (2394645.0, -181, None, False, False, err_msg0.format(-181)),
+            (2394645.0, None, None, False, False, err_msg1),
+            )
+        msg = "Expected {} with jd {}, zone {}, and lon {}, found {}."
+
+        for jd, zone, lon, mod_jd, valid, expected_result in data:
+            if valid:
+                result = self.bc._local_zone_correction(jd, zone, lon,
+                                                        mod_jd=mod_jd)
+                self.assertEqual(expected_result[0], result, msg.format(
+                    expected_result, jd, zone, lon, result))
+                hms = self.bc._hms_from_decimal_day(result + 0.5)
+                self.assertEqual(expected_result[1], hms, msg.format(
+                    expected_result, jd, zone, lon, result))
+            else:
+                with self.assertRaises(AssertionError) as cm:
+                    self.bc._local_zone_correction(jd, zone, lon)
+
+                message = str(cm.exception)
+                self.assertEqual(expected_result, message)

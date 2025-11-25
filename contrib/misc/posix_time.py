@@ -4,22 +4,25 @@
 # contrib/misc/posix_time.py
 #
 
-import importlib
+#import importlib
 import os
 import sys
-import math
+import importlib
+
 import datetime as dtime
+from unittest.mock import patch
+from contextlib import redirect_stdout
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from badidatetime import BahaiCalendar, GregorianCalendar
-from badidatetime._coefficients import Coefficients
-datetime = importlib.import_module('badidatetime.datetime')
+from badidatetime import (BahaiCalendar, GregorianCalendar, datetime, timezone,
+                          timedelta)
+badidt = importlib.import_module('badidatetime.datetime')
 
 
-class PosixTests(BahaiCalendar, Coefficients):
+class PosixTests(BahaiCalendar):
     """
     | POSIX converter: https://www.unixtimestamp.com/
     | Julian Period Converter: https://aa.usno.navy.mil/data/JulianDate
@@ -34,522 +37,125 @@ class PosixTests(BahaiCalendar, Coefficients):
     #BADI_COORD = (35.682376, 51.285817, 3.5)
     #FQ_COORD = (35.5894, -78.7792, -5.0)
     GMT_COORD = (51.477928, -0.001545, 0)
-
-    # Modula for determining coefficients.
-    _MODULA = 4
-
-    # Gregorian offset to the year before the Badi epoch.
-    _TRAN_COFF = 1843
-    _MONTH_DAY = (16, 2)  # Sunset on day before the POSIX (1970, 1, 1) epoch.
+    #EPOCH = datetime(126, 16, 2, None, None, 7, 59, 31, 497600,
+    #              tzinfo=timezone.utc)
+    EPOCH = datetime(126, 16, 2, None, None, 7, 57, 27, 700000,
+                  tzinfo=timezone.utc)
+    #EPOCH = datetime(126, 16, 2, None, None, 7, 56, 30, 0,
+    #              tzinfo=timezone.utc)
 
     def __init__(self):
         super().__init__()
         self.LOCAL_COORD = None
         self.gc = GregorianCalendar()
 
+    #@patch.object(datetime, 'LOCAL_COORD', datetime.GMT_COORD)
     def mktime(self, options) -> list:
         """
-        Test that the _mktime method produces the correct local time.
+        Test that the _mktime method produces the correct local timestamp.
 
-        -m or --mktime with -C, -S, and -E
+        -m or --mktime with -S, and -E (Gregorian Dates) -A latitude
+                            -O longitude -Z zone
 
-        Total range -1842 through 1161
+        Total derived range -1842 through 1161 with Gregorian years 2 - 3006.
         """
         start = options.start
         end = options.end
-        self.LOCAL_COORD = options.coord
-        data = []
-        offset = int(self.LOCAL_COORD[-1] * 3600)
-
-        for b_year in range(start, end):
-            g_year = b_year + self._TRAN_COFF
-            hms = self._get_badi_hms(b_year)[-1]
-            #print((b_year, *self._MONTH_DAY), hms, file=sys.stderr)
-            date = (b_year, *self._MONTH_DAY, None, None) + hms
-            #print(date, file=sys.stderr)
-            dt = datetime.datetime(*date)
-            b_date = date[:3] + date[5:]
-            gmt_ts = int(dtime.datetime(g_year + 1, 1, 1,
-                tzinfo=dtime.timezone.utc).timestamp()) + offset
-            t1 = self._mktime(dt)
-
-            if not options.kill_coeff:
-                if options.coeff1:
-                    t1 -= self._get_ts_coeff1(date[0])
-                else:
-                    t1 -= self._get_ts_coeff0(date[0])
-
-            g_leap = self.gc._GREGORIAN_LEAP_YEAR(g_year)
-            b_leap = self._is_leap_year(b_date[0])
-            t1 += offset
-            data.append(
-                (b_date, t1, gmt_ts, g_leap, g_year, b_leap, gmt_ts-t1))
-
-        return data
-
-    def find_coefficents_modula(self, options) -> list:
-        """
-        -p or --precursor
-        -S and -E must be Badí' dates.
-        """
+        coords = (options.latitude, options.longitude, options.zone)
+        tz = dtime.timezone(dtime.timedelta(hours=coords[-1]))
         data = []
 
-        for y in range(options.start, options.end):
-            year = options.end - y
-            data.append((y + self._TRAN_COFF, y, year % self._MODULA))
+        # The datetime.fromtimestamp(g_ts) method below internally needs the
+        # local time, however, every run of this method could be with a
+        # different set of coordinents, so we need to patch
+        # badidatetime.datetime.LOCAL_COORD.
+        with patch.object(badidt, 'LOCAL_COORD', coords):
+            for year in range(start, end):
+                g_date = (year, 1, 1)
+                g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
+
+                b_date = self.badi_date_from_gregorian_date(
+                    g_date, *coords, short=True, trim=True)
+                bd = datetime(*b_date[:3], None, None, *b_date[3:])
+                # *** TODO *** Check for off-by-one day error in method below
+                # bd = datetime.fromtimestamp(g_ts)
+                # b_date = bd.b_date
+                # hms = self._get_badi_hms(b_date, coords)[-1]
+                # b_date += hms
+                # bd = bd.replace(hour=hms[0], minute=hms[1], second=hms[2],
+                #                 microsecond=hms[3])
+                #print(hms, bd, file=sys.stderr)
+                b_ts = self._mktime(bd, coords)
+                g_leap = self.gc._GREGORIAN_LEAP_YEAR(year)
+                b_leap = self._is_leap_year(b_date[0])
+                diff = round(b_ts - g_ts)
+                data.append((g_date, g_leap, g_ts, b_date, b_leap, b_ts, diff))
 
         return data
-
-    def find_coefficents(self, options) -> list:
-        """
-        -q or --coeff and -S and -E
-        """
-        start = options.start
-        end = options.end
-        self.LOCAL_COORD = options.coord
-        cp = {by: m for gy, by, m in self.find_coefficents_modula(options)}
-        items = []
-
-        for b_year in range(start, end):
-            g_year = b_year + self._TRAN_COFF
-            month, day = self._MONTH_DAY
-            h, m = self._get_badi_hms(b_year)[-1]
-            dt = datetime.datetime(b_year, month, day, None, None, h, m)
-            t1 = self._mktime(dt)
-            msg = (f"{b_year:> 5}-{month:>02}-{day:>02}T{h:>02}:{m:>02}:"
-                   f"00 {t1:12} ")
-            gmt_ts = int(dtime.datetime(g_year + 1, 1, 1,
-                tzinfo=dtime.timezone.utc).timestamp())
-            msg += (f"{g_year:4} {gmt_ts:12} ")
-            diff = gmt_ts - t1
-            msg += f"{diff:7} "
-            msg += f"{cp.get(b_year)}"
-            items.append(msg)
-
-        return items
 
     def sunset(self, options) -> list:
         """
-        Find the sunset for given years.
+        Find the sunset for given years. This tests the self._get_badi_hms
+        method below.
 
-        -s or --sunset with -S and -E
+        -s or --sunset with -S and -E (Gregorian Dates) -A latitude
+                            -O longitude -Z zone
         """
-        self.LOCAL_COORD = options.coord
         start = options.start
         end = options.end
+        coords = (options.latitude, options.longitude, options.zone)
+        tz = dtime.timezone(dtime.timedelta(hours=coords[-1]))
         data = []
 
-        for year in range(start, end):
-            ss, g_hms, b_hms = self._get_badi_hms(year)
-            data.append((year, ss, g_hms, b_hms))
+        with patch.object(badidt, 'LOCAL_COORD', coords):
+            for year in range(start, end):
+                g_date = (year, 1, 1)
+                g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
+                bd = datetime.fromtimestamp(g_ts)
+                b_date = bd.b_date
+                ss, utc_hms, badi_hms = self._get_badi_hms(b_date, coords)
+                data.append((g_date, b_date, ss, utc_hms, badi_hms))
 
         return data
 
+    def all_timezones(self, options):
+        """
+        Dump analysis files for all defined timezones.
+
+        -t or --timezones with -S and -E (Gregorian Dates) -A latitude
+                               -O longitude -Z zone
+        """
+        start = options.start
+        end = options.end
+        zones = _epoch_for_timezone()
+        save_path = options.path
+
+        if save_path.startswith(os.sep):
+            path = save_path
+        else:
+            path = os.path.join(BASE_DIR, save_path)
+
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        for name, (lat, lon, zone) in zones.items():
+            start_time = time.time()
+            #print(name, lat, lon, zone, file=sys.stderr)
+            zone_txt = f"{zone}" if zone < 0 else f"+{zone}"
+            filename = f"posix-TS{zone_txt}-{name}.txt"
+            fullpath = os.path.join(path, filename)
+
+            with open(fullpath, mode='w') as f:
+                options.latitude = lat
+                options.longitude = lon
+                options.zone = zone
+
+                with redirect_stdout(f):
+                    _m_and_t_options(options, start_time, self.mktime(options))
+
     # Supporting methods
 
-    def _get_ts_coeff0(self, year: int) -> int:
-        """
-        Determine the coefficients needed to adjust the POSIX timestamp of
-        the Badí' dates to the Gregorian dates.
-        """
-        def years(pn_all):
-            data = []
-
-            for pn in pn_all:
-                if isinstance(pn, int):
-                    data.append(pn)
-                elif isinstance(pn, tuple):
-                    start, end = pn
-                    data += range(start, end+1)
-                else:  # pragma: no cover
-                    assert False, ("The 'pn' argument can only be an int or "
-                                   f"tuple, found: {type(pn)}")
-
-            return data
-
-        if year in self._PN01:
-            coeff = 86460
-        elif year in self._PN02:
-            coeff = 86400
-        elif year in self._PN03:
-            coeff = 86340
-        elif year in self._PN04:
-            coeff = 86100
-        elif year in self._PN05:
-            coeff = 85980
-        elif year in self._PN06:
-            coeff = 85800
-        elif year in self._PN07:
-            coeff = 85740
-        elif year in self._PN08:
-            coeff = 85560
-        elif year in self._PN09:
-            coeff = 120
-        elif year in self._PN10:
-            coeff = 61
-        elif year in years(self._PN11):
-            coeff = 60
-        elif year in years(self._PN12):
-            coeff = -60
-        elif year in self._PN13:
-            coeff = -61
-        elif year in self._PN14:
-            coeff = -119
-        elif year in self._PN15:
-            coeff = -120
-        elif year in years(self._PN16):
-            coeff = -180
-        elif year in self._PN17:
-            coeff = -239
-        elif year in years(self._PN18):
-            coeff = -240
-        elif year in self._PN19:
-            coeff = -241
-        elif year in years(self._PN20):
-            coeff = -300
-        elif year in self._PN21:
-            coeff = -359
-        elif year in years(self._PN22):
-            coeff = -360
-        elif year in years(self._PN23):
-            coeff = -420
-        elif year in self._PN24:
-            coeff = -479
-        elif year in years(self._PN25):
-            coeff = -480
-        elif year in years(self._PN26):
-            coeff = -540
-        elif year in years(self._PN27):
-            coeff = -600
-        elif year in self._PN28:
-            coeff = -601
-        elif year in self._PN29:
-            coeff = -659
-        elif year in years(self._PN30):
-            coeff = -660
-        elif year in years(self._PN31):
-            coeff = -720
-        elif year in self._PN32:
-            coeff = -721
-        elif year in self._PN33:
-            coeff = -779
-        elif year in years(self._PN34):
-            coeff = -780
-        elif year in self._PN35:
-            coeff = -840
-        elif year in self._PN36:
-            coeff = -841
-        elif year in years(self._PN37):
-            coeff = -86280
-        elif year in years(self._PN38):
-            coeff = -86339
-        elif year in years(self._PN39):
-            coeff = -86340
-        elif year in years(self._PN40):
-            coeff = -86400
-        elif year in years(self._PN41):
-            coeff = -86460
-        elif year in self._PN42:
-            coeff = -86461
-        elif year in years(self._PN43):
-            coeff = -86520
-        elif year in years(self._PN44):
-            coeff = -86580
-        elif year in self._PN45:
-            coeff = -86581
-        elif year in self._PN46:
-            coeff = -86639
-        elif year in years(self._PN47):
-            coeff = -86640
-        elif year in years(self._PN48):
-            coeff = -86700
-        elif year in self._PN49:
-            coeff = -86759
-        elif year in self._PN50:
-            coeff = -86760
-        elif year in years(self._PN51):
-            coeff = -86820
-        elif year in self._PN52:
-            coeff = -86879
-        elif year in self._PN53:
-            coeff = -86880
-        elif year in self._PN54:
-            coeff = -86940
-        elif year in years(self._PN55):
-            coeff = -87000
-        elif year in self._PN56:
-            coeff = -87001
-        elif year in self._PN57:
-            coeff = -87059
-        elif year in years(self._PN58):
-            coeff = -87060
-        elif year in self._PN59:
-            coeff = -87120
-        elif year in self._PN60:
-            coeff = -87121
-        elif year in self._PN61:
-            coeff = -87180
-        elif year in self._PN62:
-            coeff = -87181
-        elif year in self._PN63:
-            coeff = -172680
-        elif year in self._PN64:
-            coeff = -172739
-        elif year in self._PN65:
-            coeff = -172740
-        elif year in self._PN66:
-            coeff = -172860
-        elif year in self._PN67:
-            coeff = -172980
-        elif year in self._PN68:
-            coeff = -173160
-        elif year in self._PN69:
-            coeff = -173340
-        else:
-            coeff = 0
-
-        return coeff
-
-    def _get_ts_coeff1(self, year: int) -> int:
-        """
-        An alternative algorithm for applying coefficients to the timestamp.
-        There is a much shorter list of years, but the code itself is much
-        more complicated, so it's not used. The total coefficients were not
-        completely derived.
-        """
-        def years(pn_all):
-            data = []
-
-            for pn in pn_all:
-                data += range(*pn)
-
-            return data
-
-        def process_segment(y, a=0, onoff0=(), b=0, onoff1=(), c=0, onoff2=(),
-                            d=0, onoff3=()):
-            func = lambda y, onoff: 0 < y < 100 and y % self._MODULA in onoff
-            coeff = 0
-
-            if a and func(y, onoff0):    # Whatever is passed in onoff0.
-                coeff = a
-            elif b and func(y, onoff1):  # Whatever is passed in onoff1.
-                coeff = b
-            elif c and func(y, onoff2):  # Whatever is passed in onoff2.
-                coeff = c
-            elif d and func(y, onoff3):  # Whatever is passed in onoff3.
-                coeff = d
-
-            return coeff
-
-        def process_segments(year, pn, a=0, onoff0=(), b=0, onoff1=(),
-                             c=0, onoff2=(), d=0, onoff3=()):
-            coeff = 0
-
-            for start, end in pn:
-                if year in range(start, end):
-                    # start to end (range -S start -E end)
-                    coeff0 = process_segment(end - year, a=a, onoff0=onoff0)
-                    coeff1 = process_segment(end - year, b=b, onoff1=onoff1)
-                    coeff2 = process_segment(end - year, c=c, onoff2=onoff2)
-                    coeff3 = process_segment(end - year, d=d, onoff3=onoff3)
-                    coeff = [
-                        coeff for coeff in (coeff0, coeff1, coeff2, coeff3)
-                        if coeff != 0]
-                    assert len(coeff) == 1, f"Invalid len of {coeff} must be 1"
-                    coeff = coeff[0]
-
-            return coeff
-
-        pn1 = ((-1842, -1814),)  # 86400, 60, 60, 86400
-        pn2 = ((-1814, -1782),)  # 86400, 86400, 60, 86400
-        pn3 = ((-1782, -1742),)  # 86400, 86400, 86400, 86460
-        pn4 = ((-1742, -1715),)  # 180, 60, 60, 86460
-        pn5 = ((-1715, -1683),)  # 86460, 86460, 180, 60
-        pn6 = ((-1683, -1651),)  # 86460, 86460, 86460, 180
-        pn7 = ((-1651, -1643),)  # 86460, 86460, 86460, 86460
-        pn8 = ((-1643, -1615), (-1519, -1483))  # 180, 180, 180, 180
-        pn9 = ((-1615, -1583), (-1483, -1451),)  # 86580, 180, 180, 180
-        pn10 = ((-1583, -1551), (-1451, -1415),)  # 86580, 86580, 180, 180
-        pn11 = ((-1551, -1543), (-1415, -1383), )  # 86580, 86580, 86580, 180
-        pn12 = ((-1543, -1519),)  # 180, 180, 180, -86160
-        pn13 = ((-1383, -1343),)  # 86580, 86580, 86580, 86580
-        pn14 = ((-1343, -1315),)  # 86580, 240, 240, 240
-        pn15 = ((-1315, -1283),)  # 86640, 86580, 240, 240
-        pn16 = ((-1283, -1251),)  # 86640, 86640, 86580, 240
-        pn17 = ((-1251, -1243),)  # 86640, 86640, 86580, 86580
-        pn18 = ((-1243, -1215), (-1119, -1083),)  # 360, 360, 360, 360
-        pn19 = ((-1215, -1183),)  # 86640, 360, 360, 360
-        pn20 = ((-1183, -1151),)  # 86760, 86640, , 360, 360
-        pn21 = ((-1151, -1143),)  # 86760, 86640, 86640, 360
-        pn22 = ((-1143, -1119),)  # 360, 360, 360, -86040
-        pn23 = ((-1083, -1051),)  # 86760, 360, 360, 360
-        pn24 = ((-1051, -1019),)  # 86760, 86760, 360, 360
-        pn25 = ((-1019, -983),)  # 86760, 86760, 86760, 360
-        pn26 = ((-983, -942),)  # 86760, 86760, 86760, 86760
-        pn27 = ((-942, -914),)  # 420, 420, 420, 86760
-        pn28 = ((-914, -882),)  # 86760, 420, 420, 86820
-        pn29 = ((-882, -850),)  # 86760, 86760, 420, 86820
-        pn30 = ((-850, -843),)  # 86820, 86760, 86760, 86820
-        pn31 = ((-843, -815),)  # 540, 540, 540, 420
-        pn32 = ((-815, -783),)  # 86820, 540, 540, 540
-        pn33 = ((-783, -751),)  # 86940, 86820, 540, 540
-        pn34 = ((-751, -743),)  # 86940, 86820, 86820, 540
-        pn35 = ((-743, -719),)  # 540, 540, 540, -85800
-        pn36 = ((-719, -683),)  # 540, 540, 540, 540
-        pn37 = ((-683, -651),)  # 86940, 540, 540, 540
-        pn38 = ((-651, -619),)  # 86940, 86940, 540, 540
-        pn39 = ((-619, -583),)  # 86940, 86940, 86940, 540
-        pn40 = ((-583, -543),)  # 86940, 86940, 86940, 86940
-        pn41 = ((-543, -515),)  # 86940, 720, 600, 600
-
-        if year in years(pn1):
-            coeff = process_segments(year, pn1, -86400, (0, 1), -60, (2, 3))
-        elif year in years(pn2):
-            coeff = process_segments(year, pn2, -86400, (0, 1, 3), -60, (2,))
-        elif year in years(pn3):
-            coeff = process_segments(year, pn3, -86400, (0, 2, 3),
-                -86460, (1,))
-        elif year in years(pn4):
-            coeff = process_segments(year, pn4, -86460, (0,), -60, (1, 2),
-                -180, (3,))
-        elif year in years(pn5):
-            coeff = process_segments(year, pn5, -86460, (0, 3), -180, (2,),
-                -60, (1,))
-        elif year in years(pn6):
-            coeff = process_segments(year, pn6, -86460, (0, 2, 3), -180, (1,))
-        elif year in years(pn7):
-            coeff = process_segments(year, pn7, -86460, (0, 1, 2, 3))
-        elif year in years(pn8):
-            coeff = process_segments(year, pn8, -180, (0, 1, 2, 3))
-        elif year in years(pn9):
-            coeff = process_segments(year, pn9, -86580, (0,), -180, (1, 2, 3))
-        elif year in years(pn10):
-            coeff = process_segments(year, pn10, -86580, (0, 3), -180, (1, 2))
-        elif year in years(pn11):
-            coeff = process_segments(year, pn11, -86580, (0, 2, 3), -180, (1,))
-        elif year in years(pn12):
-            coeff = process_segments(year, pn12, -180, (0, 2, 3), 86160, (1,))
-        elif year in years(pn13):
-            coeff = process_segments(year, pn13, -86580, (0, 1, 2, 3))
-        elif year in years(pn14):
-            coeff = process_segments(year, pn14, -86580, (0,), -240, (1, 2, 3))
-        elif year in years(pn15):
-            coeff = process_segments(year, pn15, -86640, (0,), -240, (1, 2),
-                -86580, (3,))
-        elif year in years(pn16):
-            coeff = process_segments(year, pn16, -86640, (0, 3), -86640, (2,),
-                -240, (1,))
-        elif year in years(pn17):
-            coeff = process_segments(year, pn17, -86640, (0, 3),
-                -86580, (1, 2))
-        elif year in years(pn18):
-            coeff = process_segments(year, pn18, -360, (0, 1, 2, 3))
-        elif year in years(pn19):
-            coeff = process_segments(year, pn19, -86640, (0,), -360, (1, 2, 3))
-        elif year in years(pn20):
-            coeff = process_segments(year, pn20, -86760, (0,), -360, (1, 2),
-                -86640, (3,))
-        elif year in years(pn21):
-            coeff = process_segments(year, pn21, -86760, (0,), -360, (1,),
-                -86640, (2, 3))
-        elif year in years(pn22):
-            coeff = process_segments(year, pn22, -360, (0, 2, 3), 86040, (1,))
-        elif year in years(pn23):
-            coeff = process_segments(year, pn23, -86760, (0,), -360, (1, 2, 3))
-        elif year in years(pn24):
-            coeff = process_segments(year, pn24, -86760, (0, 3), -360, (1, 2))
-        elif year in years(pn25):
-            coeff = process_segments(year, pn25, -86760, (0, 2, 3), -360, (1,))
-        elif year in years(pn26):
-            coeff = process_segments(year, pn26, -86760, (0, 1, 2, 3))
-        elif year in years(pn27):
-            coeff = process_segments(year, pn27, -86760, (1,), -420, (0, 2, 3))
-        elif year in years(pn28):
-            coeff = process_segments(year, pn28, -86760, (0,), -86820, (1,),
-                -420, (2, 3))
-        elif year in years(pn29):
-            coeff = process_segments(year, pn29, -86760, (0, 3), -86820, (1,),
-                -420, (2,))
-        elif year in years(pn30):
-            coeff = process_segments(year, pn30, -86820, (0, 3), -86760,
-                (1, 2))
-        elif year in years(pn31):
-            coeff = process_segments(year, pn31, -540, (0, 2, 3), -420, (1,))
-        elif year in years(pn32):
-            coeff = process_segments(year, pn32, -86820, (0,), -540, (1, 2, 3))
-        elif year in years(pn33):
-            coeff = process_segments(year, pn33, -86940, (0,), -540, (1, 2),
-                -86820, (3,))
-        elif year in years(pn34):
-            coeff = process_segments(year, pn34, -86940, (0,), -540, (1,),
-                -86820, (2, 3))
-        elif year in years(pn35):
-            coeff = process_segments(year, pn35, -540, (0, 2, 3), 85800, (1,))
-        elif year in years(pn36):
-            coeff = process_segments(year, pn36, -540, (0, 1, 2, 3))
-        elif year in years(pn37):
-            coeff = process_segments(year, pn37, -86940, (0,), -540, (1, 2, 3))
-        elif year in years(pn38):
-            coeff = process_segments(year, pn38, -86940, (0, 3), -540, (1, 2))
-        elif year in years(pn39):
-            coeff = process_segments(year, pn39, -86940, (0, 2, 3), -540, (1,))
-        elif year in years(pn40):
-            coeff = process_segments(year, pn40, -86940, (0, 1, 2, 3))
-        elif year in years(pn41):
-            coeff = process_segments(year, pn41, -86940, (0,), -600, (1, 2),
-                -720, (3,))
-        # elif year in years(pn42):
-        #     coeff = process_segments(year, pn42, )
-        # elif year in years(pn43):
-        #     coeff = process_segments(year, pn43, )
-        # elif year in years(pn44):
-        #     coeff = process_segments(year, pn44, )
-        # elif year in years(pn45):
-        #     coeff = process_segments(year, pn45, )
-        # elif year in years(pn46):
-        #     coeff = process_segments(year, pn46, )
-        # elif year in years(pn47):
-        #     coeff = process_segments(year, pn47, )
-        # elif year in years(pn48):
-        #     coeff = process_segments(year, pn48, )
-        # elif year in years(pn49):
-        #     coeff = process_segments(year, pn49, )
-        # elif year in years(pn50):
-        #     coeff = process_segments(year, pn50, )
-        else:
-            coeff = 0
-
-        if year in (-1822, -1790, -1617, -1580, -1572, -1529, -1513, -1511,
-                    -1510, -1507, -1494, -1484, -1475, -1473, -1462, -1457,
-                    -1438, -1427, -1424, -1401, -1400, -1398, -1380, -1376,
-                    -1363, -1354, ):
-            coeff += -1
-        elif year in (-1819, -1807, -1803, -1799, -1795, -1791, -1787, -1783,
-                      -1766, -1762, -1758, -1754, -1750, -1746, -1491, -1487,
-                      -1454, -1335, -1323, -1319, -1286, -1245, -870, -866,
-                      -862, -858, -854, -691, -687, -527, -523, -519, ):
-            coeff += -60
-        elif year in (-1729, -1725, -1721, -1717, -1688, -1187, -820, -816):
-            coeff += -120
-        elif year in (-1747, ):
-            coeff += -86340
-        elif year in (-1347, -947, -547, ):
-            coeff += -86400
-        elif year in ( -1281, -1273, -1269, -1265, -1261, -1257, -1253, -740,
-                      -736):
-            coeff += 60
-        elif year in (-1277,):
-            coeff += 59
-        elif year in (-1242, -1050, -887, -864):
-            coeff += 1
-        elif year in (-1240, -1236, -1232, -542, -538, ):
-            coeff += 120
-        elif year in (-783, ):
-            coeff += 121
-
-        return coeff
-
-    def _mktime(self, dt: datetime.datetime) -> float:
+    def _mktime(self, dt: datetime, coords: tuple) -> float:
         """
         This is the inverse function of localtime(). Its argument is the
         struct_time or full 9-tuple (since the dst flag is needed; use -1 as
@@ -559,52 +165,92 @@ class PosixTests(BahaiCalendar, Coefficients):
         either OverflowError or ValueError will be raised (which depends on
         whether the invalid value is caught by Python or the underlying C
         libraries).
-        """
-        def gmt(u):
-            date = self.posix_timestamp(u, *self.GMT_COORD, short=True,
-                us=True)
-            return (datetime.datetime(*date[:3], None, None, *date[3:6]) -
-                    epoch) // datetime.timedelta(0, 1)
+        https://en.wikipedia.org/wiki/Time_zone
 
-        hms = self._get_badi_hms(126)[-1]
-        epoch = datetime.datetime(126, *self._MONTH_DAY, None, None, *hms)
-        date = self._short_from_long_form(dt, time=dt.b_time)
-        t = (datetime.datetime(*date) - epoch) // datetime.timedelta(0, 1)
-        a = gmt(t) - t
-        u1 = t - a
-        t1 = gmt(u1)
+        Derived Badi time on the epoch 1970-01-01
+        ------------------------------------------------
+        GMT 0.0 time:     0126-16-02T07:58:31.4976+00:00
+        EST -5.0 time:    0126-16-02T06:47:57.12-05:00
+        Tehran 3.5 time:  0126-16-02T06:57:58.5504+03:30
+        Beijing 8.0 time: 0126-16-01T07:00:59.1264+08:00
+        """
+        def sunset(date, coords):
+            jd = self.jd_from_badi_date(date, *coords)
+            mjd = self._meeus_from_exact(jd)
+            ss = self._sun_setting(mjd-1, *coords)
+            return ss % 1 * 86400  # fraction * seconds in a day
+
+        # Find the floor of the timestamp of the naive epoch datetime
+        # subtracted from the local datetime.
+        tz = timezone(timedelta(hours=coords[-1]))
+        dt = dt.replace(tzinfo=tz)
+        t = (dt - self.EPOCH) // timedelta(0, 1)
+        # Compensate for off-by-one days on the 1st day of the POSIX epoch
+        # per year.
+        greg_epoch = (1970, 1, 1)
+        badi_epoch = self.badi_date_from_gregorian_date(greg_epoch, *coords,
+                                                        short=True)
+        if badi_epoch[2] != dt.day:
+            dt = dt.replace(day=badi_epoch[2])
+
+        # Compensate for different sunsets.
+        # 1. Get date at GMT
+        # 2. Get the number of seconds after noon for sunset for the date
+        # 3. Subtract the GMT seconds from the local seconds
+        # 4. Add the resultant value to t
+        b_date = dt.b_date + dt.b_time
+        loc_ss_diff = sunset(b_date, coords)
+        gmt_ss_diff = sunset(b_date, self.GMT_COORD)
+        t1 = t + loc_ss_diff - gmt_ss_diff
+        #print(dt, loc_ss_diff, gmt_ss_diff, t, t1, file=sys.stderr)
         return t1
 
-    def _short_from_long_form(self, dt: datetime.datetime,
-                              time: tuple=()) -> tuple:
+    def _get_badi_hms(self, b_date, coords: tuple) -> tuple:
         """
-        Convert the long form Badí' date to the short form Badí' date.
-        """
-        if dt.is_short:
-            date = (*dt.b_date, None, None, *time)
-        else:
-            b_date = self.short_date_from_long_date(dt.b_date + time)
-            date = (*b_date[:3], None, None, *b_date[3:])
+        Find the correct Badi hour, minute, and second after sunset equal
+        to UTC midnight based on the coordinents.
 
-        return date
+        Correct Badi time on the epoch 1970-01-01   Sunset  Approx b_time
+                                                    before
+                                                    epoch
+        ---------------------------------------------------------------------
+        GMT 0.0 time:     0126-16-02T08:00:00+00:00 (16:00 hrs) 0.33333333
+        EST -5.0 time:    0126-16-02T06:48:00-05:00 (17:11 hrs) 0.2833101875
+        Tehran 3.5 time:  0126-16-02T06:59:00+03:30 (17:01 hrs) 0.29097220
+        Beijing 8.0 time: 0126-16-02T07:01:00+08:00 (16:59 hrs) 0.29236110416
 
-    def _get_badi_hms(self, year: int) -> tuple:
+        Use the last value returned, the first two are only for testing.
         """
-        Find the correct hour and minute of the day based on the coordinents.
-
-        This is the last value returned, the first two are only for testing.
-        """
-        jd = self.jd_from_badi_date((year, *self._MONTH_DAY),
-                                    *self.LOCAL_COORD)
+        jd = self.jd_from_badi_date(b_date, *coords)
         jd = self._meeus_from_exact(jd)
-        ss = self._sun_setting(jd, *self.LOCAL_COORD)
-        #print(year, jd, ss, file=sys.stderr)
-        # Round to the nearest minute.
-        f_ss = math.floor(ss) + round(ss % 1 * 1440) / 1440
-        hms = self._hms_from_decimal_day(f_ss + 0.5)
-        # Where 24 is hours in a day and the GMT offset.
-        b_time = (((24 + self.LOCAL_COORD[-1]) / 24) - (f_ss + 0.5)) % 1
-        return ss, hms, self._hms_from_decimal_day(b_time)
+        ss = self._sun_setting(jd, *coords)
+        partial_day = ss % 1
+        utc_hms = self._hms_from_decimal_day(partial_day + 0.5, us=True)
+        b_time = 0.5 - partial_day
+        badi_hms = self._hms_from_decimal_day(b_time, us=True)
+        # print("Badi date:", b_date, "UTC Midnight:", 0.5,
+        #       "UTC sunset time:", partial_day,
+        #       "Badi time at UTC midnight:", b_time, file=sys.stderr)
+        return ss, utc_hms, badi_hms
+
+
+def fmt_float(value, left=4, right=4):
+    """
+    Format one float so that it is visually centered on the decimal point.
+
+    Parameters
+    ----------
+    value : float | int | str
+        The number to format.
+    left : int
+        Width to reserve on the left of the decimal (including any minus sign).
+    right : int
+        Number of digits to show after the decimal.
+    """
+    value = round(value, right)
+    s = f"{value:.{right}f}"
+    left_part, right_part = s.split(".")
+    return f"{left_part.rjust(left)}.{right_part.ljust(right)}"
 
 
 def _group_sequences(lst: list) -> list:
@@ -644,19 +290,124 @@ def _group_sequences(lst: list) -> list:
     return grouped
 
 
+def _epoch_for_timezone() -> tuple:
+    """
+    https://timezonedb.com/
+    https://www.timeanddate.com/time/map/
+    https://latitudelongitude.org/
+    """
+    return {
+        'Kanton': (-2.81056, -171.67556, -12.0),         # 1 -43200
+        'Nome': (64.501114, -165.406387, -11.0),         # 2 -39600
+        'Honolulu': (21.306944, -157.858333, -10.0),     # 3 -36000
+        'Anchorage': (61.21806, -149.90028, -9.0),       # 4 -32400
+        'Boise': (43.618881, -116.215019, -8.0),         # 5 -28800
+        'Bahia_Banderas': (20.80426, -105.30913, -7.0),  # 6 -25200
+        'Belize': (17.189877, -88.49765, -6.0),          # 7 -21600
+        'New_York': (40.71427, -74.00597, -5.0),         # 8 -18000
+        'Aruba': (12.52111, -69.968338, -4.5),           # 9 -16200
+        'Barbados': (13.193887, -59.543198, -4.0),       # 10 -14400
+        'Goose_Bay': (53.3016826, -60.3260842, -3.5),    # 11 -12600
+        'Montevideo': (-34.9033, -56.1882, -3.0),        # 12 -10800
+        'Recife': (-8.047562, -34.876964, -2.0),         # 13 -7200
+        'Azores': (37.741249, -25.675594, -1.0),         # 14 -3600
+        'GMT': (51.477928, -0.001545, 0.0),              # 15 0
+        'Paris': (48.856614, 2.3522219, 1.0),            # 16 3600
+        'Latvia': (56.946, 24.10589, 2.0),               # 17 7200
+        'Saratov': (51.54056, 46.00861, 3.0),            # 18 10800
+        'Tehran': (35.682376, 51.285817, 3.5),           # 19 12600
+        'Yerevan': (40.183333, 44.516667, 4.0),          # 20 14400
+        'Balkh': (36.75635, 66.8972, 4.5),               # 21 16200
+        'Yekaterinburg': (56.8519, 60.6122, 5.0),        # 22 18000
+        'Colombo': (6.93194, 79.84778, 5.5),             # 23 19800
+        'Kathmandu': (27.70169, 85.3206, 5.75),          # 24 20700
+        'Omsk': (54.99244, 73.36859, 6.0),               # 25 21600
+        'Yangon': (16.866069, 96.195132, 6.5),           # 26 23400
+        'Christmas': (-10.5, 105.6667, 7.0),             # 27 25200
+        'Perth': (-31.95224, 115.8614, 8.0),             # 28 28800
+        'Eucla': (-31.6772316, 128.8897862, 8.75),       # 29 31500
+        'Yokohama': (35.44778, 139.6425, 9.0),           # 30 32400
+        'Adelaide': (-34.92866, 138.59863, 9.5),         # 31 34200
+        'Brisbane': (-27.46794, 153.02809, 10.0),        # 32 36000
+        'Lord_Howe': (-31.55, 159.08333, 10.5),          # 33 37800
+        'Kosrae': (5.31086478, 162.9761931, 11.0),       # 34 39600
+        'Kwajalein': (9.083333, 167.333333, 12.0),       # 35 43200
+        'Chatham_Islands': (-44.00575230, -176.54006740, 12.75),  # 36 45900
+        'Fakaofo': (-9.380255, -171.218836, 13.0),       # 37 46800
+        'Kiritimati': (1.94, -157.475, 14.0),            # 38 50400
+        }
+
+
+def _m_and_t_options(options, start_time, data):
+    k = '-K ' if options.kill_coeff else ''
+    underline_length = 106
+    print(f"./contrib/misc/{basename} -mA {options.latitude} "
+          f"-O {options.longitude} -Z {options.zone} {k}"
+          f"-S {options.start} -E {options.end}")
+    print("Gregorian DT Leap  Greg Timestamp Badi Date Equal to UTC "
+          "Midnight  Leap  Badi Timestamp      Diff")
+    print('-' * underline_length)
+    [print(f"{str(g_date):>12} "
+           f"{str(g_leap):5} "
+           f"{fmt_float(g_ts, 12, 1)} "
+           f"{str(b_date):32} "
+           f"{str(g_leap):5} "
+           f"{fmt_float(b_ts, 12, 6)} "
+           f"{fmt_float(diff, 6, 6)}"
+           )
+     for (g_date, g_leap, g_ts, b_date, b_leap, b_ts, diff) in data]
+    print('-' * underline_length)
+    diffs = []  # [(diff, year)...]
+    dt = p = n = 0
+
+    for item in data:
+        diff = item[6]
+        dt += diff
+
+        if diff != 0:
+            year = item[0][0]
+            diffs.append((diff, year))
+
+        if diff > 0:
+            p += 1
+        elif diff < 0:
+            n += 1
+
+    total_years = options.end - options.start
+    print(f"Total Years Analyzed:       {total_years:>4}")
+    print(f"Positive Errors:            {p:>4}")
+    print(f"Negative Errors:            {n:>4}")
+    print("-" * 32)
+    print(f"Total Errors:               {len(diffs):>4}\n")
+    set_items = set([diff for diff, year in diffs])
+    items = []
+
+    if set_items:
+        min_max = set(set_items)
+        print(f"Maximum deviation (seconds):  {fmt_float(max(min_max), 4, 1)}")
+        print(f"Minimum deviation (seconds):  {fmt_float(min(min_max), 4, 1)}")
+        print("Difference Average (seconds): "
+              f"{fmt_float(dt/total_years, 4, 15)}")
+
+    for diff in sorted(set_items):
+        years = [y for d, y in diffs if d == diff]
+        years = _group_sequences(years)
+        items.append((diff, len(years), years))
+
+    print(f"\nThere is/are {len(set_items)} sequence(s) in items "
+          f"within the year {options.start} to {options.end-1} range:")
+    pprint.pp(items, width=70, compact=True)
+    end_time = time.time()
+    days, hours, minutes, seconds = pt._dhms_from_seconds(
+        end_time - start_time)
+    print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+          f"{round(seconds, 6):02.6} seconds.")
+
+
 if __name__ == "__main__":
     import time
     import argparse
     import pprint
-
-    def convert_to_float(value):
-        values = value.split()
-
-        if len(values) != 3:
-            raise argparse.ArgumentError("Must have three arguments, found "
-                                         f"{len(values)}.")
-
-        return tuple(map(float, values))
 
     parser = argparse.ArgumentParser(
         description=("Test POSIX dates and times."))
@@ -664,25 +415,15 @@ if __name__ == "__main__":
         '-m', '--mktime', action='store_true', default=False, dest='mktime',
         help="Test the _mktime() method for accuracy.")
     parser.add_argument(
-        '-p', '--modula', action='store_true', default=False, dest='modula',
-        help="Find the modula for determining coefficients (NOT USED).")
-    parser.add_argument(
-        '-q', '--coeff', action='store_true', default=False, dest='coeff',
-        help="Dump data for determining coefficients (NOT USED).")
-    parser.add_argument(
         '-s', '--sunset', action='store_true', default=False, dest='sunset',
         help="Find the sunset for given years.")
     parser.add_argument(
-        '-C', '--coord', type=convert_to_float, action='store',
-        default=datetime.GMT_COORD, dest='coord',
-        help="The coordinates with GMT offset in hours. Defalult is GMT.")
+        '-t', '--timezones', action='store_true', default=False,
+        dest='timezones',
+        help="Dump analysis files for all defined timezones.")
     parser.add_argument(
         '-D', '--debug', action='store_true', default=False, dest='debug',
         help="Run in debug mode.")
-    parser.add_argument(
-        '-1', '--coeff1',action='store_true', default=False, dest='coeff1',
-        help=("Test the _mktime() method for accuracy using coefficients 1 "
-              "(NOT USED).)"))
     parser.add_argument(
         '-E', '--end', type=int, default=None, dest='end',
         help="End Badí' year of sequence.")
@@ -693,6 +434,19 @@ if __name__ == "__main__":
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
         help="Start Badí' year of sequence.")
+    parser.add_argument(
+        '-A', '--latitude', type=float, default=None, dest='latitude',
+        help="Latitude")
+    parser.add_argument(
+        '-O', '--logitude', type=float, default=None, dest='longitude',
+        help="Longitude")
+    parser.add_argument(
+        '-Z', '--zone', type=float, default=None, dest='zone',
+        help="Time zone.")
+    parser.add_argument(
+        '-P', '--path', type=str, default='txt', dest='path',
+        help=("Path to timezone files. If it starts with a / then the path "
+              "is absolute."))
     options = parser.parse_args()
     pt = PosixTests()
     ret = 0
@@ -708,93 +462,42 @@ if __name__ == "__main__":
             ret = 1
         else:
             start_time = time.time()
-            data = pt.mktime(options)
-            k = '-K ' if options.kill_coeff else ''
-            coord = ' '.join([str(coord) for coord in options.coord])
-            alt = '1' if options.coeff1 else ''
-            print(f"./contrib/misc/{basename} -m{alt}C \"{coord}\" {k}"
-                  f"-S{options.start} -E{options.end}")
-            print("Badí'", " "*38, "Gregorian ", " "*12, "Badí'", "diff")
-            print("Date", " "*26, "timestamp", " "*2, "timestamp", " "*2,
-                  "Leap", " "*0, "Year", "Leap")
-            [print(f"{str(b_date):31} "
-                   f"{t1:<12} "
-                   f"{gmt_ts:<12} "
-                   f"{str(g_leap):5} "
-                   f"{g_year:4} "
-                   f"{str(b_leap):5} "
-                   f"{diff:7} ")
-             for b_date, t1, gmt_ts, g_leap, g_year, b_leap, diff in data]
-            diffs = []  # [(diff, year)...]
-            p = n = 0
-
-            for item in data:
-                if item[6] != 0:
-                    year = item[0][0]
-                    diffs.append((item[6], year))
-
-                if item[6] > 0:
-                    p += 1
-                elif item[6] < 0:
-                    n += 1
-
-            print(f"Total Years Analyzed: {len(data)}\nPositive Errors: {p}\n"
-                  f"Negative Errors: {n}\n   Total Errors: {len(diffs)}")
-            set_items = set([diff for diff, year in diffs])
-            items = []
-
-            if set_items:
-                min_max = set(set_items)
-                print(f"Maximum deviation: {max(min_max)}\n"
-                      f"Minimum deviation: {min(min_max)}")
-
-            for diff in sorted(set_items):
-                years = [y for d, y in diffs if d == diff]
-                years = _group_sequences(years)
-                items.append((diff, len(years), years))
-
-            print(f"There is/are {len(set_items)} sequence(s) in items within "
-                  f"years {options.start} to {options.end-1} range:")
-            pprint.pp(items, width=70, compact=True)
-
-            end_time = time.time()
-            days, hours, minutes, seconds = pt._dhms_from_seconds(
-                end_time - start_time)
-            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
-                f"{round(seconds, 6):02.6} seconds.")
-    elif options.modula:  # -p
-        if options.start is None or options.end is None:
-            print("If option -p is used, -S and -E must also be used.",
-                  file=sys.stderr)
-            ret = 1
-        else:
-            print(f"./contrib/misc/{basename} -pS{options.start} "
-                  f"-E{options.end}")
-            data = pt.find_coefficents_modula(options)
-            [print(f"{gy:> 5} {by:> 5}, {n:<1}") for gy, by, n in data]
-            print(f"Total years: {len(data)}")
-    elif options.coeff:  # -q
-        if options.start is None or options.end is None:
-            print("If option -q is used, -S and -E must also be used.",
-                  file=sys.stderr)
-            ret = 1
-        else:
-            print(f"./contrib/misc/{basename} -qS{options.start} "
-                  f"-E{options.end}")
-            [print(item) for item in pt.find_coefficents(options)]
+            _m_and_t_options(options, start_time, pt.mktime(options))
     elif options.sunset:  # -s
         if options.start is None or options.end is None:
             print("If option -s is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
         else:
-            print(f"./contrib/misc/{basename} -s")
-            print("Year  Sunset JD", " "*4, "UTC HMS", " "*9, "Badí' HMS")
-            [print(f"{year:>5} "
+            start_time = time.time()
+            print(f"./contrib/misc/{basename} -sA {options.latitude} "
+                  f"-O {options.longitude} -Z {options.zone} "
+                  f"-S {options.start} -E {options.end}")
+            print("Gregorian DT Badi Date      UTC Sunset JD  UTC Sunset HMS",
+                  "      Badí' HMS equal")
+            print(" " * 62, " to UTC midnight")
+            underline_length = 83
+            print('-' * underline_length)
+            data = pt.sunset(options)
+            [print(f"{str(g_date):>12} "
+                   f"{str(b_date):>14} "
                    f"{ss:14.6f} "
-                   f"{str(g_hms):17} "
-                   f"{str(b_hms):17}"
-                   ) for year, ss, g_hms, b_hms in pt.sunset(options)]
+                   f"{str(utc_hms):20} "
+                   f"{str(badi_hms):20}"
+                   ) for g_date, b_date, ss, utc_hms, badi_hms in data]
+            print('-' * underline_length)
+            end_time = time.time()
+            days, hours, minutes, seconds = pt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
+    elif options.timezones:  # -t
+        if options.start is None or options.end is None:
+            print("If option -t is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            pt.all_timezones(options)
     else:
         parser.print_help()
 

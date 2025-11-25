@@ -24,8 +24,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     | https://gml.noaa.gov/grad/solcalc/ Sunset data
     """
     # Near Mehrabad International Airport
-    #                  lattude    longitude  zone IANA name      elevation
-    _BAHAI_LOCATION = (35.682376, 51.285817, 3.5, 'Asia/Tehran', 0)
+    #                 lattude    longitude  zone IANA name      elevation
+    _BAHAI_LOCATION = (35.69435, 51.288701, 3.5, 'Asia/Tehran', 0)
     _GMT_LOCATION = (51.477928, -0.001545, 0, 0)
     _BADI_EPOCH = 2394643.5  # 2394645.5 using Meeus' algorithm
     _BADI_MONTH_NUM_DAYS = [
@@ -102,10 +102,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                                    lon: float=None, zone: float=None, *,
                                    hms: bool=False) -> tuple:
         """
-        Find the first day of Riḍván in either with or without hours,
-        minutes, and seconds.
-        If the latitude, longitude, and time zone are not given Riḍván time
-        of day is determined for the city of Nur in Iran.
+        Find the first day of Riḍván either with or without hours, minutes,
+        and seconds. If the latitude, longitude, and time zone are not given
+        Riḍván time of day is determined for the city of Nur in Iran.
 
         :param int year: A Badi year.
         :param float lat: The latitude.
@@ -142,15 +141,15 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             self.long_date_from_short_date(b_date, trim=True, _chk_on=_chk_on),
             short=True, _chk_on=_chk_on)
 
-        if month == 0:  # Ayyam-i-Ha
+        if month == 0:    # Ayyam-i-Ha
             days = 18 * 19
         elif month < 19:  # month 1 - 18
             days = (month - 1) * 19
-        else:  # month 19:
+        else:             # month 19
             days = 18 * 19 + 4 + self._is_leap_year(year, _chk_on=_chk_on)
 
         td = self._days_in_years(year-1)
-        jd = td + math.floor(self._BADI_EPOCH+1) + days + day
+        jd = td + math.floor(self._BADI_EPOCH + 1) + days + day
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
@@ -159,9 +158,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # This day is relative to UTC time, so we need to compensate for Badi
         # time since a Badi day starts at sunset not at midnight.
         jd1 = self._meeus_from_exact(jd)
-        ss_a = self._sun_setting(jd1, lat, lon, zone) % 1
-        return round(jd + ss_a + self._get_jd_coeff(year),
-                     self._ROUNDING_PLACES)
+        ss = self._sun_setting(jd1, lat, lon)
+        local_ss = self._local_zone_correction(ss, zone, lon, mod_jd=True)
+        a_ss = self._exact_from_meeus(local_ss)
+        return round(a_ss + self._get_jd_coeff(year), self._ROUNDING_PLACES)
 
     def _get_jd_coeff(self, year: int) -> int:
         """
@@ -209,28 +209,49 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         coeff = 0
 
         if not coeff:
-            coeff = process_segments(year, self._P1, -1, (0, 1, 2, 3))
+            coeff = process_segments(year, self.P1, -1, (0, 1, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self._P1100, -1, (0, 3))
+            coeff = process_segments(year, self.P1000, -1, (0,))
 
         if not coeff:
-            coeff = process_segments(year, self._P1110, -1, (0, 2, 3))
+            coeff = process_segments(year, self.P1011, -1, (0, 1, 2))
 
         if not coeff:
-            coeff = process_segments(year, self._P2, -2, (0, 1, 2, 3))
+            coeff = process_segments(year, self.P1100, -1, (0, 3))
 
         if not coeff:
-            coeff = process_segments(year, self._P2111, -2, (0,), -1,
-                                     (1, 2, 3))
+            coeff = process_segments(year, self.P1110, -1, (0, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self._P2211, -2, (0, 3), -1,
-                                     (1, 2))
+            coeff = process_segments(year, self.P1121, -1, (0, 1, 3), -2, (2,))
 
         if not coeff:
-            coeff = process_segments(year, self._P2221, -2, (0, 2, 3), -1,
-                                     (1,))
+            coeff = process_segments(year, self.P1122, -1, (0, 3), -2, (1, 2))
+
+        if not coeff:
+            coeff = process_segments(year, self.P1211, -1, (0, 1, 2), -2, (3,))
+
+        if not coeff:
+            coeff = process_segments(year, self.P1222, -1, (0,), -2, (1, 2, 3))
+
+        if not coeff:
+            coeff = process_segments(year, self.P2, -2, (0, 1, 2, 3))
+
+        if not coeff:
+            coeff = process_segments(year, self.P2000, -1, (0,))
+
+        if not coeff:
+            coeff = process_segments(year, self.P2111, -2, (0,), -1, (1, 2, 3))
+
+        if not coeff:
+            coeff = process_segments(year, self.P2211, -2, (0, 3), -1, (1, 2))
+
+        if not coeff:
+            coeff = process_segments(year, self.P2221, -2, (0, 2, 3), -1, (1,))
+
+        if not coeff:
+            coeff = process_segments(year, self.P2222, -2, (0, 1, 2, 3))
 
         return coeff
 
@@ -242,7 +263,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         """
         Convert a Julian Period day to a Badi date.
 
-        :param float jd: Julian Period day.
+        :param float jd: Julian Period day in the Astronomically correct
+                         method and in UT time.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.
@@ -259,7 +281,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
                              you are doing.
-        :returns: The Badi date from a Julian Period day.
+        :returns: The Badi date from an Astronomically correct Julian
+                  Period day.
         :rtype: tuple
         """
         def get_leap_year_info(year, _chk_on):
@@ -271,10 +294,14 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             fjdy = self.jd_from_badi_date((y, 1, 1), lat, lon, zone, _chk_on)
             return y-1 if (math.floor(fjdy) - math.floor(cjd)) > 0 else y
 
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self._BAHAI_LOCATION[:3]
+
         md = jd - (self._BADI_EPOCH - 1)
         # This is only needed for the last two days of Badi year 1161
         # and the day before the epoch.
         y = 1 if md < 424046 and md != 0 else 0
+        # Find the year
         year = math.floor(md / self._MEAN_TROPICAL_YEAR) + y
         leap, yds, ld = get_leap_year_info(year, _chk_on)
 
@@ -282,6 +309,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             year = y
             leap, yds, ld = get_leap_year_info(year, _chk_on)
 
+        # Get 1st day of year so we can find the number of days to the JD.
         fjdy = self.jd_from_badi_date((year, 1, 1), lat, lon, zone,
                                       _chk_on=_chk_on)
         days = math.floor(jd) - math.floor(fjdy) + 1
@@ -300,9 +328,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         for month, ds in month_days:
             if days <= ds: break
             days -= ds
-
-        if any([True if l is None else False for l in (lat, lon, zone)]):
-            lat, lon, zone = self._BAHAI_LOCATION[:3]
 
         date = self._adjust_date(jd, (year, month, day), lat, lon, zone,
                                  fraction=fraction, rtd=rtd, _chk_on=_chk_on)
@@ -359,7 +384,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         k = y / 361
         kull_i_shay = 0 if y == 0 else math.ceil(k)
         k0 = self._truncate_decimal(k % 1, self._ROUNDING_PLACES)
-        # k0 = round(k % 1, self._ROUNDING_PLACES)
         v = k0 / 19 * 361
 
         if v == 0:  # If there is no fraction in v
@@ -396,10 +420,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hour, minute, second, us = self._get_hms(b_date)
         day += round(self._HR(hour) + self._MN(minute) + self._SEC(second) +
-                     self._US(us), self._ROUNDING_PLACES)
+                     self._US(us), 6)  # Round to 6 decimal places
         date = (kull_i_shay, vahid, year, month, day)
-        return (self.short_date_from_long_date(date, trim=True, _chk_on=_chk_on)
-                if short else date)
+        return (self.short_date_from_long_date(
+            date, trim=True, _chk_on=_chk_on) if short else date)
 
     def kvymdhms_from_b_date(self, b_date: tuple, *, us: bool=False,
                              short: bool=False, trim: bool=False,
@@ -442,8 +466,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             hour = math.floor(hd)
             md = self._PARTIAL_HOUR_TO_MINUTE(hd)
             minute = math.floor(md)
-            second = round(self._PARTIAL_MINUTE_TO_SECOND(md),
-                           self._ROUNDING_PLACES)
+            # Round to 6 decimal places
+            second = round(self._PARTIAL_MINUTE_TO_SECOND(md), 6)
         else:
             hour = b_date[5] if dlen > 5 else 0
             minute = b_date[6] if dlen > 6 else 0
@@ -565,11 +589,12 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         jd = self.jd_from_badi_date(b_date)
         jd1 = self._meeus_from_exact(jd)
-        ss0 = self._sun_setting(jd1, *self._GMT_LOCATION[:3])
+        ss0 = self._sun_setting(jd1, *self._GMT_LOCATION[:2])
         jd2 = self._meeus_from_exact(jd + 1)
-        ss1 = self._sun_setting(jd2, *self._GMT_LOCATION[:3])
-        mid = (ss1 - ss0) / 2
-        return self._hms_from_decimal_day(mid) if hms else mid
+        ss1 = self._sun_setting(jd2, *self._GMT_LOCATION[:2])
+        ut_mid = (ss1 - ss0) / 2
+        local_mid = self._local_zone_correction(ut_mid, self._GMT_LOCATION[2])
+        return self._hms_from_decimal_day(local_mid) if hms else local_mid
 
     def _trim_hms(self, hms: tuple) -> tuple:
         """
@@ -764,7 +789,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
            arguments are off by more than a day. As of now this method does
            not work with a JD after noon on the following day.
 
-        :param float jd: Exact form of the Julian Period day.
+        :param float jd: The Astronomically correct Julian Period day in UT
+                         time.
         :param tuple ymd: The year month, and day.
         :param float lat: The latitude.
         :param float lon: The longitude.
@@ -785,21 +811,26 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         """
         assert self._xor_boolean((fraction, us, rtd)), (
             "Cannot set more than one of fraction, us, or rtd to True.")
+
+        def _fraction(jd_ut):
+            tb_ss = ss_frac - jd_frac
+            return self._day_length(jd_ut, lat, lon, decimal=True) - tb_ss
+
         year, month, day = ymd
-        jd0 = math.floor(jd)  # We always get the sunset on the current day.
-        jd00 = self._meeus_from_exact(jd0)  # Current day
-        # Current day sunset
-        ss0 = self._sun_setting(jd00, lat, lon, zone)
-        ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)
         jd_frac = round(jd % 1, self._ROUNDING_PLACES)
+        # Sunset for the current day.
+        jd0 = self._meeus_from_exact(math.floor(jd))
+        ss0 = self._sun_setting(jd0, 51.477928, -0.001545)  # UT sunset
+        ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)
+        # Get True / False for leap year.
         is_leap = self._is_leap_year(year, _chk_on)
 
-        if jd_frac < ss_frac:  # Previous day if its before sunset.
-            jd1 = jd0 - 1
-            jd10 = self._meeus_from_exact(jd1)
-            ss1 = self._sun_setting(jd10, lat, lon, zone)
-            ss1_frac = round(ss1 % 1, self._ROUNDING_PLACES)
-            frac = abs(0.5 - ss1_frac + jd_frac)
+        # Check all with UT time.
+        if jd_frac < ss_frac:  # Previous day if it's before sunset.
+            # To get the time of the day we subtract the day's fraction from
+            # the sunset fraction. Then subtract that answer from the legnth
+            # of the current day.
+            frac = _fraction(jd)
             day -= 1
 
             if day == 0:
@@ -807,37 +838,43 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                     year -= 1
                     month = 19
                     day = 19
-                    # print('Stage 1', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                    # print('Stage 1', jd, ymd, jd_frac, ss_frac, frac)
                 elif month in range(2, 19):  # Stage 2
                     month -= 1
                     day = 19
-                    # print('Stage 2', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                    # print('Stage 2', jd, ymd, jd_frac, ss_frac, frac)
                 elif month == 19:  # Stage 3
                     month = 0
                     day = 4 + is_leap
-                    # print('Stage 3', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                    # print('Stage 3', jd, ymd, jd_frac, ss_frac, frac)
                 else:  # month 0 -> Ayyám-i-Há Stage 4
                     month = 18
                     day = 19
-                    # print('Stage 4', jd, ymd, jd_frac, ss_frac, ss1 % 1)
+                    # print('Stage 4', jd, ymd, jd_frac, ss_frac, frac)
             else:  # Stage 5
                 pass
-                # print('Stage 5', ymd, jd, ss0)
-        elif jd_frac <= 0.5:  # Same Badi day before or equal to UTC midnight.
-            frac = jd_frac - ss_frac
-            # print('Stage 6', jd, ymd, jd_frac, ss_frac)
-        elif 0.5 < jd_frac:  # Same Badi day after UTC midnight -- Stage 7
-            frac = 0.5 - ss_frac + (jd_frac - 0.5)
-            # print('Stage 7', jd, ymd, ss_frac, jd_frac)
-        else:  # pragma: no cover -- Stage 8
-            assert False, (f"Should never happen--jd: {jd}, ymd: {ymd}, "
-                           f"jd_frac: {jd_frac}, ss_frac: {ss_frac}")
+                # print('Stage 5', jd, ymd, jd_frac, ss_frac, frac)
+        else:  # Same Badi day > sunset and < sunse next day.
+            frac = _fraction(jd + 1)
+            # print('Stage 6', jd, ymd, jd_frac, ss_frac, frac)
 
-        if fraction:
-            day = round(day + frac, self._ROUNDING_PLACES)
+        if fraction:  # *** TODO *** Could have same issue as RTD below.
+            day = round(day + frac, 6)  # Round to 6 decimal places
             hms = ()
         elif rtd:
             day = round(day + frac)
+
+            if month in range(2, 19) and day > 19:
+                month += 1
+                day = 1
+            elif month == 19 and day > 19:
+                year += 1
+                month = 1
+                day = 1
+            elif month == 0 and day > (4 + is_leap): # Ayyám-i-Há
+                month = 19
+                day = 1
+
             hms = ()
         else:
             hh, mm, ss = self._hms_from_decimal_day(frac)
@@ -847,15 +884,15 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                 ss = math.floor(ss)
                 msec = (microsecond,)
             else:
-                ss = round(ss, self._ROUNDING_PLACES)
+                ss = round(ss, 6)  # Round to 6 decimal places
                 msec = ()
 
             hms = (hh, mm, ss) + msec
 
         return (year, month, day) + hms
 
-    def _day_length(self, jd: float, lat: float, lon: float, zone: float
-                    ) -> tuple:
+    def _day_length(self, jd: float, lat: float, lon: float, *,
+                    decimal: bool=False) -> tuple:
         """
         The hour, minute, and seconds of the day's offset either less than
         or more than 24 hours.
@@ -863,20 +900,28 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param float jd: The astronomically exact Julian Period day.
         :param float lat: The latitude.
         :param float lon: The longitude.
-        :param float zone: The standard time zone.
-        :returns: The hour, minute, and second.
-        :rtype: tuple
+        :param bool decimal: If `False` (default) return HH:MM:SS else if
+                             `True` return a decimal number.
+        :returns: The hour, minute, and second or a decimal number.
+        :rtype: tuple or float
         """
         jd0 = math.floor(jd)
         jd1 = jd0 + 1
         # The next day
         jd1 = self._meeus_from_exact(jd1)
-        ss1 = self._sun_setting(jd1, lat, lon, zone)
+        ss1 = self._sun_setting(jd1, lat, lon)
         # The first day
         jd0 = self._meeus_from_exact(jd0)
-        ss0 = self._sun_setting(jd0, lat, lon, zone)
+        ss0 = self._sun_setting(jd0, lat, lon)
         # Subtract the first day from the next day gived the total
         # hours, minutes, and seconds between them.
-        value = list(self._hms_from_decimal_day(ss1 - ss0))
-        value[0] = 24 if value[0] == 0 else value[0]
-        return tuple(value)
+        ut_ss = ss1 - ss0
+
+        if decimal:
+            ret = round(ut_ss, self._ROUNDING_PLACES)
+        else:
+            value = list(self._hms_from_decimal_day(ut_ss))
+            value[0] = 24 if value[0] == 0 else value[0]
+            ret = tuple(value)
+
+        return ret

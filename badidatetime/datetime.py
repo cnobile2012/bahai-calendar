@@ -16,7 +16,6 @@ from datetime import timedelta, tzinfo
 from types import NoneType
 
 from .badi_calendar import BahaiCalendar
-from ._coefficients import Coefficients
 from ._timedateutils import _td_utils
 
 
@@ -1633,7 +1632,7 @@ time.max = time(24, 0, 3)  # See contrib/misc/badi_jd_tests.py --day
 time.resolution = timedelta(microseconds=1)
 
 
-class datetime(date, Coefficients):
+class datetime(date):
     """
     datetime(year, month, day[, hour[, minute[, second[,
              microsecond[,tzinfo]]]]])
@@ -2013,206 +2012,27 @@ class datetime(date, Coefficients):
         """
         Return integer POSIX timestamp.
 
-        .. warning::
-
-           Because of the nature of the Badí' calendar the resulting
-           timestamps will have a deviation from -241 to 121 seconds with
-           regards to the GMT timestamp. This means that any code derived
-           from this method may also have issues. Also effected are:
-           `timestamp()`, `_local_timezone()`, and `astimezone()`.
-
         :returns: The POSIX timestamp.
         :rtype: float
         """
-        def gmt(u):
-            date = self.posix_timestamp(u, *GMT_COORD, short=True, us=True)
-            return (datetime(*date[:3], None, None, *date[3:6]) -
-                    epoch) // timedelta(0, 1)
+        tz = timezone(timedelta(hours=LOCAL_COORD[-1]))
+        self = self.replace(tzinfo=tz)
+        t = (self - _EPOCH) // timedelta(0, 1)
+        # Compensate for off-by-one days on the 1st day of the POSIX epoch
+        # per year.
+        greg_epoch = (1970, 1, 1)
+        badi_epoch = self.badi_date_from_gregorian_date(
+            greg_epoch, *LOCAL_COORD, short=True)
 
-        epoch = datetime(126, 16, 2, None, None, *self._get_badi_hms(126))
-        date = self._short_from_long_form(time=self.b_time)
-        t = (datetime(*date) - epoch) // timedelta(0, 1)
-        a = gmt(t) - t
-        u1 = t - a
-        t1 = gmt(u1)
-        coeff = self._get_ts_coeff(date[0])
-        return t1 - coeff
+        if badi_epoch[2] != self.day:
+            self = self.replace(day=badi_epoch[2])
 
-    def _get_badi_hms(self, year: int):
-        """
-        Find the correct hour and minute of the day based on the coordinents.
-        """
-        jd = self.jd_from_badi_date((year, 16, 2), *LOCAL_COORD)
-        jd = self._meeus_from_exact(jd)
-        ss = self._sun_setting(jd, *LOCAL_COORD)
-        # Round to the nearest minute.
-        f_ss = _math.floor(ss) + round(ss % 1 * 1440) / 1440
-        # Where 24 is hours in a day and offset from GMT.
-        b_time = (((24 + LOCAL_COORD[-1]) / 24) - (f_ss + 0.5)) % 1
-        return self._hms_from_decimal_day(b_time)
-
-    def _get_ts_coeff(self, year: int) -> int:
-        """
-        Determine the coefficients needed to adjust the POSIX timestamp of
-        the Badí' dates to the Gregorian dates.
-        """
-        def years(pn_all):
-            data = []
-
-            for pn in pn_all:
-                if isinstance(pn, int):
-                    data.append(pn)
-                elif isinstance(pn, tuple):
-                    start, end = pn
-                    data += range(start, end+1)
-                else:  # pragma: no cover
-                    assert False, ("The 'pn' argument can only be an int or "
-                                   f"tuple, found: {type(pn)}")
-
-            return data
-
-        if year in self._PN01:
-            coeff = 86460
-        elif year in self._PN02:
-            coeff = 86400
-        elif year in self._PN03:
-            coeff = 86340
-        elif year in self._PN04:
-            coeff = 86100
-        elif year in self._PN05:
-            coeff = 85980
-        elif year in self._PN06:
-            coeff = 85800
-        elif year in self._PN07:
-            coeff = 85740
-        elif year in self._PN08:
-            coeff = 85560
-        elif year in self._PN09:
-            coeff = 120
-        elif year in self._PN10:
-            coeff = 61
-        elif year in years(self._PN11):
-            coeff = 60
-        elif year in years(self._PN12):
-            coeff = -60
-        elif year in self._PN13:
-            coeff = -61
-        elif year in self._PN14:
-            coeff = -119
-        elif year in self._PN15:
-            coeff = -120
-        elif year in years(self._PN16):
-            coeff = -180
-        elif year in self._PN17:
-            coeff = -239
-        elif year in years(self._PN18):
-            coeff = -240
-        elif year in self._PN19:
-            coeff = -241
-        elif year in years(self._PN20):
-            coeff = -300
-        elif year in self._PN21:
-            coeff = -359
-        elif year in years(self._PN22):
-            coeff = -360
-        elif year in years(self._PN23):
-            coeff = -420
-        elif year in self._PN24:
-            coeff = -479
-        elif year in years(self._PN25):
-            coeff = -480
-        elif year in years(self._PN26):
-            coeff = -540
-        elif year in years(self._PN27):
-            coeff = -600
-        elif year in self._PN28:
-            coeff = -601
-        elif year in self._PN29:
-            coeff = -659
-        elif year in years(self._PN30):
-            coeff = -660
-        elif year in years(self._PN31):
-            coeff = -720
-        elif year in self._PN32:
-            coeff = -721
-        elif year in self._PN33:
-            coeff = -779
-        elif year in years(self._PN34):
-            coeff = -780
-        elif year in self._PN35:
-            coeff = -840
-        elif year in self._PN36:
-            coeff = -841
-        elif year in years(self._PN37):
-            coeff = -86280
-        elif year in years(self._PN38):
-            coeff = -86339
-        elif year in years(self._PN39):
-            coeff = -86340
-        elif year in years(self._PN40):
-            coeff = -86400
-        elif year in years(self._PN41):
-            coeff = -86460
-        elif year in self._PN42:
-            coeff = -86461
-        elif year in years(self._PN43):
-            coeff = -86520
-        elif year in years(self._PN44):
-            coeff = -86580
-        elif year in self._PN45:
-            coeff = -86581
-        elif year in self._PN46:
-            coeff = -86639
-        elif year in years(self._PN47):
-            coeff = -86640
-        elif year in years(self._PN48):
-            coeff = -86700
-        elif year in self._PN49:
-            coeff = -86759
-        elif year in self._PN50:
-            coeff = -86760
-        elif year in years(self._PN51):
-            coeff = -86820
-        elif year in self._PN52:
-            coeff = -86879
-        elif year in self._PN53:
-            coeff = -86880
-        elif year in self._PN54:
-            coeff = -86940
-        elif year in years(self._PN55):
-            coeff = -87000
-        elif year in self._PN56:
-            coeff = -87001
-        elif year in self._PN57:
-            coeff = -87059
-        elif year in years(self._PN58):
-            coeff = -87060
-        elif year in self._PN59:
-            coeff = -87120
-        elif year in self._PN60:
-            coeff = -87121
-        elif year in self._PN61:
-            coeff = -87180
-        elif year in self._PN62:
-            coeff = -87181
-        elif year in self._PN63:
-            coeff = -172680
-        elif year in self._PN64:
-            coeff = -172739
-        elif year in self._PN65:
-            coeff = -172740
-        elif year in self._PN66:
-            coeff = -172860
-        elif year in self._PN67:
-            coeff = -172980
-        elif year in self._PN68:
-            coeff = -173160
-        elif year in self._PN69:
-            coeff = -173340
-        else:
-            coeff = 0
-
-        return coeff
+        # Compensate for different sunsets.
+        ss0 = self._seconds_from_dhms(_EPOCH.day, *_EPOCH.b_time)
+        ss1 = self._seconds_from_dhms(self.day, *self.b_time)
+        t1 = t + ss0 - ss1
+        #print(self, _EPOCH, badi_epoch, t, t1)
+        return t1
 
     def timestamp(self) -> float:
         """
