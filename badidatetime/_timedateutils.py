@@ -54,9 +54,10 @@ class TimeDateUtils(BahaiCalendar):
     """
     float: The first day that we start our count, Julian year 1, March 19th.
     """
-    DAYS_BEFORE_1ST_YEAR = 77
+    DAYS_BEFORE_1ST_YEAR = 78
     """
-    int: Keeps the Badí' day count in par with the Gregorian day count.
+    int: Keeps the Badí' day count in par with the Gregorian day count
+    for ordinals.
     """
     _SHORT_STRUCT_TM_ITEMS = 6
     """
@@ -984,7 +985,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False)
         jd1 = self.jd_from_badi_date((year, 1, 1), _chk_on=False)
-        return math.floor(jd1 - jd0) - 1
+        return math.floor(jd1 - jd0)
 
     def _days_in_month(self, year: int, month: int) -> int:
         """
@@ -1175,6 +1176,7 @@ class TimeDateUtils(BahaiCalendar):
         if firstweekday > 3:  # First week day >= Fidal
             week1jalal += 7
 
+        print(firstday, firstweekday, week1jalal)
         return week1jalal
 
     def _parse_isoformat_date_time_timezone(self, dtstr: str) -> tuple:

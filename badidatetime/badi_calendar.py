@@ -212,9 +212,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             coeff = process_segments(year, self.P1, -1, (0, 1, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self.P1000, -1, (0,))
-
-        if not coeff:
             coeff = process_segments(year, self.P1011, -1, (0, 1, 2))
 
         if not coeff:
@@ -224,25 +221,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             coeff = process_segments(year, self.P1110, -1, (0, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self.P1121, -1, (0, 1, 3), -2, (2,))
-
-        if not coeff:
             coeff = process_segments(year, self.P1122, -1, (0, 3), -2, (1, 2))
-
-        if not coeff:
-            coeff = process_segments(year, self.P1211, -1, (0, 1, 2), -2, (3,))
-
-        if not coeff:
-            coeff = process_segments(year, self.P1222, -1, (0,), -2, (1, 2, 3))
 
         if not coeff:
             coeff = process_segments(year, self.P2, -2, (0, 1, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self.P2000, -1, (0,))
+            coeff = process_segments(year, self.P2111, -2, (0,), -1, (1, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self.P2111, -2, (0,), -1, (1, 2, 3))
+            coeff = process_segments(year, self.P2122, -2, (0, 1, 2), -1, (3,))
 
         if not coeff:
             coeff = process_segments(year, self.P2211, -2, (0, 3), -1, (1, 2))
