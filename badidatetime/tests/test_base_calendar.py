@@ -494,7 +494,6 @@ class TestBaseCalendar(unittest.TestCase):
             (2460389.5, 51.477928, -0.001545, 0, SUN,
              (0.25124826455377425, 0.7596184745333456)),
             # 2024-03-20T00:00:00 -- (0.255555 = 6:08, 0.761805 = 18:17)
-            # 
             # https://www.timeanddate.com/sun/@112931?month=3&year=2024
             # Transit in Tehran Iran with 35.682376 (lat) and 51.285817 (lon)
             (2460389.5, 35.682376, 51.285817, 3.5, SUN,

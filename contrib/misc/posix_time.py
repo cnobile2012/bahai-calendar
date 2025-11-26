@@ -125,8 +125,8 @@ class PosixTests(BahaiCalendar):
         -t or --timezones with -S and -E (Gregorian Dates) -A latitude
                                -O longitude -Z zone
         """
-        start = options.start
-        end = options.end
+        #start = options.start
+        #end = options.end
         zones = _epoch_for_timezone()
         save_path = options.path
 

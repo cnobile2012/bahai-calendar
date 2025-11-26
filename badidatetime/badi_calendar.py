@@ -859,7 +859,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                 year += 1
                 month = 1
                 day = 1
-            elif month == 0 and day > (4 + is_leap): # Ayyám-i-Há
+            elif month == 0 and day > (4 + is_leap):  # Ayyám-i-Há
                 month = 19
                 day = 1
 

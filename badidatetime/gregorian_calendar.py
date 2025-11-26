@@ -322,7 +322,7 @@ class GregorianCalendar(BaseCalendar):
                                   us: bool=False, exact: bool=False):
         """
         Update the Gregorian date with the time zone offset.
-        
+        *** TODO ***
         """
         # JD = 2440587.5 -> 1970-01-01T00:00:00+00:00 -> 0.0 timestamp
         #

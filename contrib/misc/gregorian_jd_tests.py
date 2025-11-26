@@ -492,7 +492,7 @@ class JulianPeriodTests:
         for year in range(options.start, options.end):
             leap = (self.JULIAN_LEAP_YEAR(year) if year < 1583
                     else self.GREGORIAN_LEAP_YEAR(year))
-            lat, lon, zone = (51.477928, -0.001545, 0)
+            lat, lon = (51.477928, -0.001545)
 
             for month, days in enumerate(self.MONTHS, start=1):
                 if month == 2 and not leap:
