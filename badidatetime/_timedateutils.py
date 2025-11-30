@@ -50,11 +50,11 @@ class TimeDateUtils(BahaiCalendar):
     """
     dict: The abreviated month names.
     """
-    FIRST_YEAR_EPOCH = 1721501.261143
+    ORDINAL_1ST_YEAR_EPOCH = 1721501.2611352967
     """
     float: The first day that we start our count, Julian year 1, March 19th.
     """
-    DAYS_BEFORE_1ST_YEAR = 78
+    DAYS_BEFORE_1ST_YEAR = 77
     """
     int: Keeps the Badí' day count in par with the Gregorian day count
     for ordinals.
@@ -972,7 +972,7 @@ class TimeDateUtils(BahaiCalendar):
                     year += 1
                     week = 0
 
-        return year, week+1, day+1
+        return year, week+1, day + 1
 
     def _days_before_year(self, year: int) -> float:
         """
@@ -985,18 +985,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False)
         jd1 = self.jd_from_badi_date((year, 1, 1), _chk_on=False)
-        return math.floor(jd1 - jd0)
-
-    def _days_in_month(self, year: int, month: int) -> int:
-        """
-        The number of days in provided month in provided year.
-
-        :param int year: Badí' year
-        :param int month: Badí' month (0..19)
-        :returns: The number of in the current month.
-        :rtype: int
-        """
-        return 4 + self._is_leap_year(year) if month == 0 else 19
+        return math.floor(jd1 - jd0) + 1
 
     def _days_before_month(self, year: int, month: int) -> int:
         """
@@ -1039,6 +1028,11 @@ class TimeDateUtils(BahaiCalendar):
 
         year, month, day -> ordinal, considering -1842-01-01 as day 1
 
+        .. note::
+
+           We add 77 days to the total so that the ordinal number can be
+           compared to the ordinals in the standard datetime package.
+
         :param int year: Badí' year
         :param int month: Badí' month [0, 19]
         :param int day: Badí' day
@@ -1046,21 +1040,15 @@ class TimeDateUtils(BahaiCalendar):
                   current day.
         :rtype: int
         """
-        dim = self._days_in_month(year, month)
-        assert 1 <= day <= dim, (
-            f"Day '{day}' for month {month} must be in range of 1..{dim}")
-        # We add 77 days to the total so that the ordinal number can be
-        # compared to the ordinals in the standard datetime package.
-
-        # For some reason out of the 3004 year that are provided only
+        # For some reason out of the 3004 years that are provided only
         # these three years are off by 1.
         if year in (-1796, -1792, -1788):
             fudge = 1
         else:
             fudge = 0
 
-        return (self.DAYS_BEFORE_1ST_YEAR + self._days_before_year(year) +
-                self._days_before_month(year, month) + day + fudge)
+        return (self._days_before_year(year) + self._days_before_month(
+            year, month) + day + fudge + self.DAYS_BEFORE_1ST_YEAR)
 
     def _ord2ymd(self, n: int, *, short: bool=False) -> tuple:
         """
@@ -1083,7 +1071,7 @@ class TimeDateUtils(BahaiCalendar):
         # _ymd2ord and give the same date as Python standard datetime package.
         # The reason we need to do this is that the first date that this
         # package can provide is equivalent to Julian year 1, March, 19th.
-        jd = self.FIRST_YEAR_EPOCH - 1 - self.DAYS_BEFORE_1ST_YEAR + n
+        jd = self.ORDINAL_1ST_YEAR_EPOCH - 1 - self.DAYS_BEFORE_1ST_YEAR + n
         return self.badi_date_from_jd(math.floor(jd) + 0.5, short=short,
                                       trim=True, rtd=True, _chk_on=False)
 
@@ -1168,7 +1156,7 @@ class TimeDateUtils(BahaiCalendar):
         :returns: The number of the first Jalál in the Badí' year.
         :rtype: int
         """
-        firstday = self._ymd2ord(year, 1, 1)
+        firstday = self._ymd2ord(year, 1, 1)  # 1st day of year
         # We subtract 6 instead of add 6 as is done in _isoweek1Monday.
         firstweekday = (firstday - 6) % 7
         week1jalal = firstday - firstweekday
@@ -1176,7 +1164,6 @@ class TimeDateUtils(BahaiCalendar):
         if firstweekday > 3:  # First week day >= Fidal
             week1jalal += 7
 
-        print(firstday, firstweekday, week1jalal)
         return week1jalal
 
     def _parse_isoformat_date_time_timezone(self, dtstr: str) -> tuple:

@@ -42,10 +42,10 @@ class OddsAndEnds(BahaiCalendar):
         data = []
         start = options.start
         end = options.end
-        assert (self.MINYEAR-1) < start < (self.MAXYEAR+1), (
+        assert (self.MINYEAR - 1) < start < (self.MAXYEAR + 1), (
             f"Start '{start}' must be from {self.MINYEAR} "
             f"to {self.MAXYEAR}.")
-        assert self.MINYEAR < end < (self.MAXYEAR+2), (
+        assert self.MINYEAR < end < (self.MAXYEAR + 2), (
             f"End '{end}' must be from {self.MINYEAR} "
             f"to {self.MAXYEAR}")
         prev_ord = 0
@@ -146,12 +146,14 @@ if __name__ == "__main__":
             print(f"./contrib/misc/{basename} -oPS{options.start} "
                   f"-E{options.end}")
             print("Start Date      Prev Ord Result Date     Cur Ord")
-            print('-'*48)
+            underline_length = 48
+            print('-' * underline_length)
             [print(f"{str(date0):15}  "
                    f"{prev_ord:>7} "
                    f"{str(date1):15} "
                    f"{ordinal:>7} "
                    ) for date0, prev_ord, date1, ordinal in data]
+            print('-' * underline_length)
             end_time = time.time()
             days, hours, minutes, seconds = oae._dhms_from_seconds(
                 end_time - start_time)
@@ -163,13 +165,15 @@ if __name__ == "__main__":
             print(f"./contrib/misc/{basename} -oS{options.start} "
                   f"-E{options.end}")
             print("Start Date      Ordinal Result Date     Leap  Error")
-            print('-'*51)
+            underline_length = 51
+            print('-' * underline_length)
             [print(f"{str(date0):15} "
                    f"{ordinal:>7} "
                    f"{str(date1):15} "
                    f"{str(leap):5} "
                    f"{str(flag):5}"
                    ) for date0, ordinal, date1, leap, flag in data]
+            print('-' * underline_length)
             print(f"    Total Years Tested: {options.end-options.start}")
             errors = [l[4] is True for l in data].count(True)
             print(f"Total Number of Errors: {errors}")

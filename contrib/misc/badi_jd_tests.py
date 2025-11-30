@@ -1237,8 +1237,9 @@ class DateTests(BahaiCalendar):
 
     def _week_of_year(self, year, month, day, weekday, week):
         def _offset(year, day):
-            leap = self._is_leap_year(year)
-            fwd = ddate(year, 1, 1).weekday() + 1  # Weekday on 1st of year.
+            leap = self._is_leap_year(year, _chk_on=False)
+            # Weekday on 1st of year.
+            fwd = ddate(year, 1, 1, _chk_on=False).weekday() + 1
             return self._OFFSETS.get((day, fwd, leap), 0)
 
         def _last_year_day(doy, day):
@@ -1517,12 +1518,13 @@ if __name__ == "__main__":
             C = 'C' if options.coff else ''
             print(f"./contrib/misc/{basename} -e{C}S{options.start} "
                   f"-E{options.end}")
-            print("Badí'          Gregorian                          Week "
+            print("Badí'            Gregorian                          Week "
                   "Week Day      Month      Leap  Days Day in")
-            print("Date           Date                               Num  "
+            print("Date             Date                               Num  "
                   "Day  Name     Name       Year  Year Year")
-            print('-'*97)
-            [print(f"{str(date):<14} "
+            underline_length = 99
+            print('-' * underline_length)
+            [print(f"{str(date):<16} "
                    f"{str(g_date):<34} "
                    f"{week:02}   "
                    f"{weekday}    "
@@ -1533,9 +1535,8 @@ if __name__ == "__main__":
                    f"{total:>03}"
                    ) for (date, g_date, week, weekday, wd_name, m_name,
                           leap, days, total) in data]
-            end_time = time.time()
-            days, hours, minutes, seconds = dt._dhms_from_seconds(
-                end_time - start_time)
+            print('-' * underline_length)
+            print(f"Years processed: {options.end - options.start}")
             prev_week = 0
             week_errors = []
 
@@ -1548,10 +1549,14 @@ if __name__ == "__main__":
 
                 prev_week = woy
 
-            print(f"\n{len(week_errors)} Week-of-Year errors:")
+            print(f"\nWeek-of-Year errors: {len(week_errors)}")
             # woy = Week of year, dow = day of week
-            print("   date      woy dow  leap")
+            print("\n   Date      WOY DOW  Leap")
+            print('-' * 27)
             pprint.pp(week_errors, width=30)
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
             print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
                   f"{round(seconds, 6):02.6} seconds.")
     elif options.g_dates:  # -g
@@ -1634,20 +1639,28 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            start_time = time.time()
             data = dt.find_leap_years(options)
             print(f"./contrib/misc/{basename} -yS{options.start} "
                   f"-E{options.end}")
             print("                  5 Year")
             print("Year  Leap  Years Spread")
-            print('-'*24)
+            underline_length = 24
+            print('-' * underline_length)
             [print(f"{year:+5d} "
                    f"{str(leap):5} "
                    f"{years}     "
                    f"{spread}"
                    ) for year, leap, years, spread in data]
-            print(f"         Leap years: {len(data)}")
+            print('-' * underline_length)
+            print(f"   Total Leap years: {len(data)}")
             total_5 = [l[2] for l in data]
             print(f"5th year leap years: {total_5.count(5)}")
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                  f"{round(seconds, 6):02.6} seconds.")
     else:
         parser.print_help()
 

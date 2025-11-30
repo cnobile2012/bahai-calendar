@@ -317,8 +317,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             if days <= ds: break
             days -= ds
 
-        date = self._adjust_date(jd, (year, month, day), lat, lon, zone,
-                                 fraction=fraction, rtd=rtd, _chk_on=_chk_on)
+        date = year, month, day
+        # date = self._adjust_date(jd, (year, month, day), lat, lon,
+        #                          fraction=fraction, rtd=rtd, _chk_on=_chk_on)
 
         if fraction:
             b_date = date
@@ -764,11 +765,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         us = date[s+3] if t_len > s+3 and date[s+3] is not None else 0
         return hour, minute, second, us
 
-    def _adjust_date(self, jd: float, ymd: tuple, lat: float, lon: float,
-                     zone: float, *, fraction: bool=False, us: bool=False,
-                     rtd: bool=False, _chk_on: bool=True) -> tuple:
+    def _adjust_date(self, jd: float, ymd: tuple, lat: float, lon: float, *,
+                     fraction: bool=False, us: bool=False, rtd: bool=False,
+                     _chk_on: bool=True) -> tuple:
         """
-        The adjusted year, month, and day depending on whether the JD is
+        The adjusted year, month, and day depending on if the JD is
         before or after sunset.
 
         .. warning::
@@ -782,7 +783,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param tuple ymd: The year month, and day.
         :param float lat: The latitude.
         :param float lon: The longitude.
-        :param float zone: The standard time zone.
         :param bool fraction: If True output the day with a fractional day as
                               a decimal. If False (default) output hour,
                               minute, and second.
@@ -800,9 +800,23 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         assert self._xor_boolean((fraction, us, rtd)), (
             "Cannot set more than one of fraction, us, or rtd to True.")
 
-        def _fraction(jd_ut):
+        def _find_fraction(jd_ut):
             tb_ss = ss_frac - jd_frac
             return self._day_length(jd_ut, lat, lon, decimal=True) - tb_ss
+
+        def _check_ymd(year, month, day):
+            if month in range(2, 19) and day > 19:
+                month += 1
+                day = 1
+            elif month == 19 and day > 19:
+                year += 1
+                month = 1
+                day = 1
+            elif month == 0 and day > (4 + is_leap):  # Ayyám-i-Há
+                month = 19
+                day = 1
+
+            return year, month, day
 
         year, month, day = ymd
         jd_frac = round(jd % 1, self._ROUNDING_PLACES)
@@ -818,7 +832,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             # To get the time of the day we subtract the day's fraction from
             # the sunset fraction. Then subtract that answer from the legnth
             # of the current day.
-            frac = _fraction(jd)
+            frac = _find_fraction(jd)
             day -= 1
 
             if day == 0:
@@ -827,6 +841,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                     month = 19
                     day = 19
                     # print('Stage 1', jd, ymd, jd_frac, ss_frac, frac)
+                    print(self._ymd_from__badi_ordinal(jd - 1721501 + 1))
                 elif month in range(2, 19):  # Stage 2
                     month -= 1
                     day = 19
@@ -843,26 +858,19 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                 pass
                 # print('Stage 5', jd, ymd, jd_frac, ss_frac, frac)
         else:  # Same Badi day > sunset and < sunse next day.
-            frac = _fraction(jd + 1)
+            frac = _find_fraction(jd + 1)
+            year, month, day = _check_ymd(year, month, math.floor(day + frac))
             # print('Stage 6', jd, ymd, jd_frac, ss_frac, frac)
+            #print(self._ymd_from__badi_ordinal(jd - 1721501 + 1))
 
-        if fraction:  # *** TODO *** Could have same issue as RTD below.
-            day = round(day + frac, 6)  # Round to 6 decimal places
+        if fraction:
+            # We've already modified the day based on the frac, so just
+            # the fraction is needed here.
+            day = round(day + frac % 1, 6)  # Round to 6 decimal places
             hms = ()
         elif rtd:
-            day = round(day + frac)
-
-            if month in range(2, 19) and day > 19:
-                month += 1
-                day = 1
-            elif month == 19 and day > 19:
-                year += 1
-                month = 1
-                day = 1
-            elif month == 0 and day > (4 + is_leap):  # Ayyám-i-Há
-                month = 19
-                day = 1
-
+            day = round(day + frac % 1)
+            year, month, day = _check_ymd(year, month, day)
             hms = ()
         else:
             hh, mm, ss = self._hms_from_decimal_day(frac)
@@ -913,3 +921,82 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             ret = tuple(value)
 
         return ret
+
+    # def _badi_ordinal_from_ymd(self, year: int, month: int, day: int) -> int:
+    #     """
+    #     Calculates the Badí' ordinal. Adding 77 to the result is equal to
+    #     the ordinal found in the standard Python datetime package. This is
+    #     because the Badí' calendar starts on the sunset before the vernal
+    #     equinox which is on 0001-03-19T18:14:31.8552 77 days and some hours
+    #     after 0001-01-01T00:00:00.
+    #     """
+    #     if not hasattr(self, '_leap_map'):
+    #         self._build_leap_tables()
+
+    #     total_years = year - self.MINYEAR
+    #     leap_years = self._leap_map[year]  # number of leap years before Y
+    #     lys = self._lys_map[year]          # 4 or 5
+
+    #     # month offsets
+    #     if month == 1:
+    #         offset = 0
+    #     elif 2 <= month <= 18:
+    #         offset = self._month_offset[month]
+    #     elif month == 0:
+    #         offset = 18 * 19               # 342
+    #     else:
+    #         offset = 18 * 19 + lys         # Ayyam-i-Há + leap
+
+    #     return total_years * 365 + leap_years + offset + day
+
+    # def _ymd_from__badi_ordinal(self, ordinal):
+    #     if not hasattr(self, '_leap_map'):
+    #         self._build_leap_tables()
+
+    #     year, doy = self._year_from_badi_ordinal(ordinal)
+    #     lys = self._lys_map[year]  # 4 or 5
+
+    #     if doy <= 342:  # Inside months 1–18
+    #         month = (doy - 1) // 19 + 1
+    #         day = (doy - 1) % 19 + 1
+    #     elif doy <= 342 + lys:  # Ayyam-i-Há (month 0)
+    #         month = 0
+    #         day = doy - 342
+    #     else:  # Final month (month 19)
+    #         month = 19
+    #         day = doy - (342 + lys)
+
+    #     return year, int(month), day
+
+    # def _build_leap_tables(self):
+    #     self._leap_map = {}
+    #     self._lys_map = {}
+    #     count = 0
+
+    #     for y in range(self.MINYEAR, self.MAXYEAR + 1):
+    #         self._leap_map[y] = count
+    #         is_leap = self._is_leap_year(y, _chk_on=False)
+    #         self._lys_map[y] = 5 if is_leap else 4
+
+    #         if is_leap:
+    #             count += 1
+
+    #     # month offsets for months 1–18
+    #     self._month_offset = {m: (m-1) * 19 for m in range(1, 19)}
+
+    # def _year_from_badi_ordinal(self, ordinal):
+    #     lo, hi = self.MINYEAR, self.MAXYEAR
+
+    #     while lo <= hi:
+    #         mid = (lo + hi) // 2
+    #         doy = (mid - self.MINYEAR) * 365 + self._leap_map[mid]
+
+    #         if doy < ordinal:
+    #             lo = mid + 1
+    #         else:
+    #             hi = mid - 1
+
+    #     year = hi
+    #     day_of_year = ordinal - (
+    #         (year - self.MINYEAR) * 365 + self._leap_map[year])
+    #     return year, day_of_year

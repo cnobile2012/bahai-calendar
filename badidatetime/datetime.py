@@ -281,7 +281,7 @@ class date(BahaiCalendar):
                  '_hashcode', '__date', '__short')
 
     def __new__(cls, a: int, b: int=None, c: int=None, d: int=None,
-                e: int=None):
+                e: int=None, _chk_on: bool=True):
         """
         Instantiate the class.
 
@@ -297,6 +297,10 @@ class date(BahaiCalendar):
                       it's not used.
         :param int e: Long form this value is the day and in the short form
                       it's not used.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :returns: The instantiated class.
         :rtype: date
         """
@@ -329,7 +333,10 @@ class date(BahaiCalendar):
                 self.__short = True
 
         super().__init__(self)
-        _td_utils._check_date_fields(*self.__date, short_in=self.__short)
+
+        if _chk_on:
+            _td_utils._check_date_fields(*self.__date, short_in=self.__short)
+
         self._hashcode = -1
         return self
 
