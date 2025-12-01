@@ -317,13 +317,26 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             if days <= ds: break
             days -= ds
 
-        date = year, month, day
-        # date = self._adjust_date(jd, (year, month, day), lat, lon,
-        #                          fraction=fraction, rtd=rtd, _chk_on=_chk_on)
+        jd_frac = round(jd % 1, self._ROUNDING_PLACES)  # hms in fraction
+        jd0 = self._meeus_from_exact(math.floor(jd))
+        ss0 = self._sun_setting(jd0, lat, lon)
+        ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)  # hms in fraction
+
+        if jd_frac > ss_frac:
+            frac = jd_frac - ss_frac
+            print('Stage 1 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
+                  'ss_frac', ss_frac, 'frac', frac)
+        else:
+            frac = ss_frac - jd_frac
+            print('Stage 2 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
+                  'ss_frac', ss_frac, 'frac', frac)
+
+        hh, mm, ss = self._hms_from_decimal_day(frac)
 
         if fraction:
-            b_date = date
+            b_date = year, month, round(day + frac, 6)
         else:
+            date = year, month, day, hh, mm, ss
             l_date = self.long_date_from_short_date(date, trim=True,
                                                     _chk_on=_chk_on)
             b_date = self.kvymdhms_from_b_date(l_date, us=us, short=short,
