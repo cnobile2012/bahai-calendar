@@ -1600,6 +1600,6 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         if mod_jd:
             result = modified_jd
         else:
-            result = modified_jd % 1
+            result = round(modified_jd % 1, self._ROUNDING_PLACES)
 
         return result

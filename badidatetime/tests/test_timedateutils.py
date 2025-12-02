@@ -415,8 +415,12 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         ttup_l, ttup_s = 1, 2
         data = (
-            ((1, 10, 10, 11, 17, 9, 30, 30), -1, ttup_l, 0.49919999996200204),
-            ((182, 1, 1, 18, 30, 30), -1, ttup_s, 0.5005864999257028),
+            # 2024-03-19
+            # sunset = 18:12 -> approximate midday = 18:12 + 12:00 = 01T06:12
+            ((1, 10, 10, 6, 12, 0, 0, 0), -1, ttup_l, 0.49919999996200204),
+            # 2025-03-19
+            # sunset = 18:12 -> approximate midday = 18:12 + 12:00 = 01T06:12
+            ((182, 1, 1, 6, 12, 0), -1, ttup_s, 0.500586260809),
             )
         msg = "Expected {}, with {}. found {}."
 

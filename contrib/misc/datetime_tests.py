@@ -293,7 +293,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
     def analyze_ordinal_error_create(self, options):
         """
         Find the errors between conversion between badi dates to JD and
-        vice versa. This tests the BahaiCalendar._adjust_date method.
+        vice versa. This tests the BahaiCalendar.badi_date_from_jd() method.
 
         -b
         Also if -S and -E are used they must be used together and refer

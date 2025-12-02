@@ -273,6 +273,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                   Period day.
         :rtype: tuple
         """
+        assert self._xor_boolean((fraction, us, rtd)), (
+            "Cannot set more than one of fraction, us, or rtd to True.")
+
         def get_leap_year_info(year, _chk_on):
             leap = self._is_leap_year(year, _chk_on=_chk_on)
             return leap, 365 + leap, 4 + leap
@@ -324,17 +327,38 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         if jd_frac > ss_frac:
             frac = jd_frac - ss_frac
-            print('Stage 1 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
-                  'ss_frac', ss_frac, 'frac', frac)
+            # print('Stage 1 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
+            #       'ss_frac', ss_frac, 'frac', frac)
         else:
-            frac = ss_frac - jd_frac
-            print('Stage 2 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
-                  'ss_frac', ss_frac, 'frac', frac)
+            diff = ss_frac - jd_frac
+            dl = self._day_length(jd - 1, lat, lon, decimal=True)
+            frac = dl - diff
+            # print('Stage 2 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
+            #       'ss_frac', ss_frac, 'diff', diff, 'frac', frac)
 
         hh, mm, ss = self._hms_from_decimal_day(frac)
 
         if fraction:
             b_date = year, month, round(day + frac, 6)
+        elif rtd:
+            day = round(day + frac)
+
+            if month in range(2, 19) and day > 19:
+                month += 1
+                day = 1
+            elif month == 19 and day > 19:
+                year += 1
+                month = 1
+                day = 1
+            elif month == 0 and day > (4 + is_leap):  # Ayyám-i-Há
+                month = 19
+                day = 1
+
+            b_date = year, month, day
+
+            if not short:
+                b_date = self.long_date_from_short_date(b_date, trim=trim,
+                                                        _chk_on=_chk_on)
         else:
             date = year, month, day, hh, mm, ss
             l_date = self.long_date_from_short_date(date, trim=True,
@@ -572,6 +596,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                ) -> tuple:
         """
         Find the midday time in hours, minutes, and seconds with fraction.
+        All calculations are done in GMT.
 
         :param tuple date: Badi date short or long.
         :param bool hms: If True return the hours, minutes, and seconds else
@@ -777,128 +802,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         second = date[s+2] if t_len > s+2 and date[s+2] is not None else 0
         us = date[s+3] if t_len > s+3 and date[s+3] is not None else 0
         return hour, minute, second, us
-
-    def _adjust_date(self, jd: float, ymd: tuple, lat: float, lon: float, *,
-                     fraction: bool=False, us: bool=False, rtd: bool=False,
-                     _chk_on: bool=True) -> tuple:
-        """
-        The adjusted year, month, and day depending on if the JD is
-        before or after sunset.
-
-        .. warning::
-
-           This method will give disasterous results if the jd and ymd
-           arguments are off by more than a day. As of now this method does
-           not work with a JD after noon on the following day.
-
-        :param float jd: The Astronomically correct Julian Period day in UT
-                         time.
-        :param tuple ymd: The year month, and day.
-        :param float lat: The latitude.
-        :param float lon: The longitude.
-        :param bool fraction: If True output the day with a fractional day as
-                              a decimal. If False (default) output hour,
-                              minute, and second.
-        :param bool us: If True convert a fractional second to microseconds. If
-                        False (default) output second with a fraction.
-        :param bool rtd: Round to day.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
-        :returns: Returns the year, month, day, and depending on other
-                  arguments, the hour, minute, and second, and microsecond.
-        :rtype: tuple
-        """
-        assert self._xor_boolean((fraction, us, rtd)), (
-            "Cannot set more than one of fraction, us, or rtd to True.")
-
-        def _find_fraction(jd_ut):
-            tb_ss = ss_frac - jd_frac
-            return self._day_length(jd_ut, lat, lon, decimal=True) - tb_ss
-
-        def _check_ymd(year, month, day):
-            if month in range(2, 19) and day > 19:
-                month += 1
-                day = 1
-            elif month == 19 and day > 19:
-                year += 1
-                month = 1
-                day = 1
-            elif month == 0 and day > (4 + is_leap):  # Ayyám-i-Há
-                month = 19
-                day = 1
-
-            return year, month, day
-
-        year, month, day = ymd
-        jd_frac = round(jd % 1, self._ROUNDING_PLACES)
-        # Sunset for the current day.
-        jd0 = self._meeus_from_exact(math.floor(jd))
-        ss0 = self._sun_setting(jd0, 51.477928, -0.001545)  # UT sunset
-        ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)
-        # Get True / False for leap year.
-        is_leap = self._is_leap_year(year, _chk_on)
-
-        # Check all with UT time.
-        if jd_frac < ss_frac:  # Previous day if it's before sunset.
-            # To get the time of the day we subtract the day's fraction from
-            # the sunset fraction. Then subtract that answer from the legnth
-            # of the current day.
-            frac = _find_fraction(jd)
-            day -= 1
-
-            if day == 0:
-                if month == 1:  # Stage 1
-                    year -= 1
-                    month = 19
-                    day = 19
-                    # print('Stage 1', jd, ymd, jd_frac, ss_frac, frac)
-                    print(self._ymd_from__badi_ordinal(jd - 1721501 + 1))
-                elif month in range(2, 19):  # Stage 2
-                    month -= 1
-                    day = 19
-                    # print('Stage 2', jd, ymd, jd_frac, ss_frac, frac)
-                elif month == 19:  # Stage 3
-                    month = 0
-                    day = 4 + is_leap
-                    # print('Stage 3', jd, ymd, jd_frac, ss_frac, frac)
-                else:  # month 0 -> Ayyám-i-Há Stage 4
-                    month = 18
-                    day = 19
-                    # print('Stage 4', jd, ymd, jd_frac, ss_frac, frac)
-            else:  # Stage 5
-                pass
-                # print('Stage 5', jd, ymd, jd_frac, ss_frac, frac)
-        else:  # Same Badi day > sunset and < sunse next day.
-            frac = _find_fraction(jd + 1)
-            year, month, day = _check_ymd(year, month, math.floor(day + frac))
-            # print('Stage 6', jd, ymd, jd_frac, ss_frac, frac)
-            #print(self._ymd_from__badi_ordinal(jd - 1721501 + 1))
-
-        if fraction:
-            # We've already modified the day based on the frac, so just
-            # the fraction is needed here.
-            day = round(day + frac % 1, 6)  # Round to 6 decimal places
-            hms = ()
-        elif rtd:
-            day = round(day + frac % 1)
-            year, month, day = _check_ymd(year, month, day)
-            hms = ()
-        else:
-            hh, mm, ss = self._hms_from_decimal_day(frac)
-
-            if us:
-                microsecond = self._PARTIAL_SECOND_TO_MICROSECOND(ss)
-                ss = math.floor(ss)
-                msec = (microsecond,)
-            else:
-                ss = round(ss, 6)  # Round to 6 decimal places
-                msec = ()
-
-            hms = (hh, mm, ss) + msec
-
-        return (year, month, day) + hms
 
     def _day_length(self, jd: float, lat: float, lon: float, *,
                     decimal: bool=False) -> tuple:
