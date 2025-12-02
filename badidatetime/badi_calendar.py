@@ -592,8 +592,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim, rtd=rtd, _chk_on=_chk_on)
 
-    def midday(self, date: tuple, *, hms: bool=False, _chk_on: bool=True
-               ) -> tuple:
+    def midday(self, date: tuple, *, hms: bool=False, _short: bool,
+               _chk_on: bool=True) -> tuple:
         """
         Find the midday time in hours, minutes, and seconds with fraction.
         All calculations are done in GMT.
@@ -601,6 +601,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param tuple date: Badi date short or long.
         :param bool hms: If True return the hours, minutes, and seconds else
                          if False return the decimal value.
+        :param bool _short: Indicates the incoming date format.
         :param bool _chk_on: If True (default) all date checks are enforced
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
@@ -608,7 +609,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: Midday in hours, minutes, and seconds.
         :rtype: tuple
         """
-        if len(date) == 5:
+        if not _short:
             b_date = self.short_date_from_long_date(date, trim=True,
                                                     _chk_on=_chk_on)
         else:

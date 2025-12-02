@@ -930,7 +930,7 @@ class TimeDateUtils(BahaiCalendar):
                     ttup.tm_mon, ttup.tm_mday, ttup.tm_hour, ttup.tm_min,
                     ttup.tm_sec)
 
-        return self.midday(date)
+        return self.midday(date, _short=ttup.short)
 
     def _get_year(self, ttup: tuple) -> int:
         """

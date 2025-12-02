@@ -655,19 +655,19 @@ class TestBadiCalendar(unittest.TestCase):
         hours, minutes, and seconds or as a decimal value.
         """
         data = (
-            ((1, 1, 1), False, 0.50058411737),
-            ((1, 1, 1), True, (12, 0, 50.4684)),
-            ((181, 11, 4), False, 0.499209157657),
-            ((181, 11, 4), True, (11, 58, 51.672)),
-            ((1, 1, 1, 1, 1), False, 0.50058411737),
-            ((1, 1, 1, 1, 1), True, (12, 0, 50.4684)),
+            ((1, 1, 1), False, True, 0.50058411737),
+            ((1, 1, 1), True, True, (12, 0, 50.4684)),
+            ((181, 11, 4), False, True, 0.499209157657),
+            ((181, 11, 4), True, True, (11, 58, 51.672)),
+            ((1, 1, 1, 1, 1), False, False, 0.50058411737),
+            ((1, 1, 1, 1, 1), True, False, (12, 0, 50.4684)),
             )
-        msg = "Expected {} for date {} and hms {}, found {}"
+        msg = "Expected {} for date {} hms {}, and _short {}, found {}"
 
-        for date, hms, expected_result in data:
-            result = self._bc.midday(date, hms=hms)
+        for date, hms, _short, expected_result in data:
+            result = self._bc.midday(date, hms=hms, _short=_short)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, hms, result))
+                expected_result, date, hms, _short, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__trim_hms(self):
