@@ -578,7 +578,8 @@ class TestBadiDatetime_date(unittest.TestCase):
         """
         data = (
             # Check if the today method would change day correctly.
-            # Wrong is almost 5 hours early (04:59:16.113584)
+            # 2025-10-28T16:38:12Z
+            # sunset = 16:40 -> Badi date = 0182-12-14
             (1761669490.5360037, True, '0182-12-14'),
             (1761690180, True, '0182-12-15'),  # Sunset and day change
             # Wrong is almost 5 hours early ()

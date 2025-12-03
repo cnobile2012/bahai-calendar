@@ -37,12 +37,8 @@ class PosixTests(BahaiCalendar):
     #BADI_COORD = (35.682376, 51.285817, 3.5)
     #FQ_COORD = (35.5894, -78.7792, -5.0)
     GMT_COORD = (51.477928, -0.001545, 0)
-    #EPOCH = datetime(126, 16, 2, None, None, 7, 59, 31, 497600,
-    #              tzinfo=timezone.utc)
-    EPOCH = datetime(126, 16, 2, None, None, 7, 57, 27, 700000,
-                  tzinfo=timezone.utc)
-    #EPOCH = datetime(126, 16, 2, None, None, 7, 56, 30, 0,
-    #              tzinfo=timezone.utc)
+    EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 488800,
+                     tzinfo=timezone.utc)
 
     def __init__(self):
         super().__init__()
@@ -73,7 +69,6 @@ class PosixTests(BahaiCalendar):
             for year in range(start, end):
                 g_date = (year, 1, 1)
                 g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
-
                 b_date = self.badi_date_from_gregorian_date(
                     g_date, *coords, short=True, trim=True)
                 bd = datetime(*b_date[:3], None, None, *b_date[3:])
@@ -85,7 +80,7 @@ class PosixTests(BahaiCalendar):
                 # bd = bd.replace(hour=hms[0], minute=hms[1], second=hms[2],
                 #                 microsecond=hms[3])
                 #print(hms, bd, file=sys.stderr)
-                b_ts = self._mktime(bd, coords)
+                b_ts = self._mktime(bd, coords, options)
                 g_leap = self.gc._GREGORIAN_LEAP_YEAR(year)
                 b_leap = self._is_leap_year(b_date[0])
                 diff = round(b_ts - g_ts)
@@ -155,7 +150,7 @@ class PosixTests(BahaiCalendar):
 
     # Supporting methods
 
-    def _mktime(self, dt: datetime, coords: tuple) -> float:
+    def _mktime(self, dt: datetime, coords: tuple, options) -> float:
         """
         This is the inverse function of localtime(). Its argument is the
         struct_time or full 9-tuple (since the dst flag is needed; use -1 as
@@ -175,9 +170,10 @@ class PosixTests(BahaiCalendar):
         Beijing 8.0 time: 0126-16-01T07:00:59.1264+08:00
         """
         def sunset(date, coords):
-            jd = self.jd_from_badi_date(date, *coords)
+            lat, lon, zone = coords
+            jd = self.jd_from_badi_date(date, lat, lon, zone)
             mjd = self._meeus_from_exact(jd)
-            ss = self._sun_setting(mjd-1, *coords)
+            ss = self._sun_setting(mjd - 1, lat, lon)
             return ss % 1 * 86400  # fraction * seconds in a day
 
         # Find the floor of the timestamp of the naive epoch datetime
@@ -199,11 +195,87 @@ class PosixTests(BahaiCalendar):
         # 3. Subtract the GMT seconds from the local seconds
         # 4. Add the resultant value to t
         b_date = dt.b_date + dt.b_time
+        # Add coefficients for pre 1483 Gregorian
+
+        if not options.kill_coeff:
+            t += self._coeff(dt)
+
         loc_ss_diff = sunset(b_date, coords)
         gmt_ss_diff = sunset(b_date, self.GMT_COORD)
         t1 = t + loc_ss_diff - gmt_ss_diff
         #print(dt, loc_ss_diff, gmt_ss_diff, t, t1, file=sys.stderr)
         return t1
+
+    def _coeff(self, dt):
+        """
+        30 coefficients
+        """
+        year = dt.b_date[0]
+
+        if -1842 <= year <= -1745:    # 1 - 99
+            coeff = 108.489795918367
+        elif -1744 <= year <= -1644:  # 100 - 199
+            coeff = 142.37
+        elif -1645 <= year <= -1545:  # 200 - 299
+            coeff = 177.87
+        elif -1544 <= year <= -1345:  # 300 - 499
+            coeff = 234.025
+        elif -1344 <= year <= -1245:  # 500 - 599
+            coeff = 292.66
+        elif -1244 <= year <= -1145:  # 600 - 699
+            coeff = 333.48
+        elif -1144 <= year <= -945:   # 700 - 899
+            coeff = 396.795
+        elif -944 <= year <= -845:    # 899 - 999
+            coeff = 462.71
+        elif -844 <= year <= -745:    # 1000 - 1099
+            coeff = 508.08
+        elif -744 <= year <= -545:    # 1100 - 1299
+            coeff = 578.42
+        elif -544 <= year <= -445:    # 1300 - 1399
+            coeff = 650.8
+        elif -444 <= year <= -345:    # 1400 - 1499
+            coeff = 700.54
+        elif -344 <= year <= -262:    # 1500 - 1582
+            coeff = 746.698795180723
+        elif -261 <= year <= -144:    # 1583 - 1700
+            coeff = 57.242424242424
+        elif -143 <= year <= -115:    # 1701 - 1729
+            coeff = 26.862068965517
+        elif -114 <= year <= -44:     # 1730 - 1800
+            coeff = 43.619718309859
+        elif -43 <= year <= 125:      # 1801 - 1969
+            coeff = 1.183431952663
+        elif 127 <= year <= 356:      # 1971 - 2200 (1970 not touched)
+            coeff = 9.082608695652
+        elif 357 <= year <= 392:      # 2201 - 2236
+            coeff = -37.94
+        elif 393 <= year <= 454:      # 2237 - 2298
+            coeff = -20.516129032258
+        elif 455 <= year <= 560:      # 2299 - 2404
+            coeff = -50.188679245283
+        elif 561 <= year <= 655:      # 2405 - 2499
+            coeff = -15.842105263158
+        elif 656 <= year <= 728:      # 2500 - 2572
+            coeff = -45.602739726027
+        elif 729 <= year <= 756:      # 2573 - 2600
+            coeff = -28.285714285714
+        elif 757 <= year <= 858:      # 2601 - 2702
+            coeff = -65.578431372549
+        elif 859 <= year <= 932:      # 2703 - 2776
+            coeff = -92.675675675676
+        elif 933 <= year <= 1058:     # 2777 - 2902
+            coeff = -58.285714285714
+        elif 1059 <= year <= 1100:    # 1059 - 1100
+            coeff = -87.238095238095
+        elif 1101 <= year <= 1157:    # 2945 - 1157
+            coeff = -69.894736842105
+        elif 1158 <= year <= 1161:    # 3002 - 3005
+            coeff = -115.0
+        else:
+            coeff = 0
+
+        return coeff
 
     def _get_badi_hms(self, b_date, coords: tuple) -> tuple:
         """
@@ -387,7 +459,7 @@ def _m_and_t_options(options, start_time, data):
         print(f"Maximum deviation (seconds):  {fmt_float(max(min_max), 4, 1)}")
         print(f"Minimum deviation (seconds):  {fmt_float(min(min_max), 4, 1)}")
         print("Difference Average (seconds): "
-              f"{fmt_float(dt/total_years, 4, 15)}")
+              f"{fmt_float(dt/total_years, 4, 12)}")
 
     for diff in sorted(set_items):
         years = [y for d, y in diffs if d == diff]
