@@ -326,41 +326,31 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)  # hms in fraction
 
         if jd_frac > ss_frac:
-            frac = jd_frac - ss_frac
+            frac = round(jd_frac - ss_frac, self._ROUNDING_PLACES)
             # print('Stage 1 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
             #       'ss_frac', ss_frac, 'frac', frac)
         else:
             diff = ss_frac - jd_frac
             dl = self._day_length(jd - 1, lat, lon, decimal=True)
-            frac = dl - diff
+            frac = round(dl - diff, self._ROUNDING_PLACES)
             # print('Stage 2 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
             #       'ss_frac', ss_frac, 'diff', diff, 'frac', frac)
-
-        hh, mm, ss = self._hms_from_decimal_day(frac)
 
         if fraction:
             b_date = year, month, round(day + frac, 6)
         elif rtd:
             day = round(day + frac)
-
-            if month in range(2, 19) and day > 19:
-                month += 1
-                day = 1
-            elif month == 19 and day > 19:
-                year += 1
-                month = 1
-                day = 1
-            elif month == 0 and day > (4 + is_leap):  # Ayyám-i-Há
-                month = 19
-                day = 1
-
             b_date = year, month, day
 
             if not short:
                 b_date = self.long_date_from_short_date(b_date, trim=trim,
                                                         _chk_on=_chk_on)
+            assert frac < 1.0, (
+                "If this assert fires send this entire message to the "
+                f"developer: jd: {jd}, day: {day}, frac: {frac}, "
+                f"b_date: {b_date}")
         else:
-            date = year, month, day, hh, mm, ss
+            date = year, month, day, *self._hms_from_decimal_day(frac)
             l_date = self.long_date_from_short_date(date, trim=True,
                                                     _chk_on=_chk_on)
             b_date = self.kvymdhms_from_b_date(l_date, us=us, short=short,

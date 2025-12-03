@@ -498,14 +498,15 @@ if __name__ == "__main__":
         start_time = time.time()
         print(f"./contrib/misc/{basename} -bS {options.start} "
               f"-E {options.end}")
-        print(" "*78, "Orig - Badi   Orig - Ord")
-        print("Greg Date             JD             Orig Date     Badi Date"
-              "     Ordinal Date  B Date Diff   O Date Diff   HMS from JD")
-        print('-'*123)
+        print(" " * 88, "Orig - Badi   Orig - Ord")
+        print("Greg Date                   JD                 Orig Date     "
+              "Badi Date     Ordinal Date  B Date Diff   O Date Diff   "
+              "HMS from JD")
+        underline_length = 133
+        print('-' * underline_length)
         data = dt.analyze_ordinal_error_create(options)
         total_diff0 = total_diff1 = 0
         items = []
-        #print(data, file=sys.stderr)
 
         for g_date, jd, date, b_date, o_date, diff0, diff1 in data:
             if diff0 != (0, 0, 0):
@@ -514,8 +515,8 @@ if __name__ == "__main__":
             if diff1 != (0, 0, 0):
                 total_diff1 += 1
 
-        [print(f"{str(g_date):21} "
-               f"{jd:<14} "
+        [print(f"{str(g_date):27} "
+               f"{jd:<18} "
                f"{str(date):13} "
                f"{str(b_date):13} "
                f"{str(o_date):13} "
@@ -524,6 +525,7 @@ if __name__ == "__main__":
                f"{dt._hms_from_decimal_day(jd)}"
                )
          for g_date, jd, b_date, o_date, date, diff0, diff1 in data]
+        print('-' * underline_length)
         total_errors = total_diff0 + total_diff1
         print(f"Analyzing year {options.start} to year {options.end-1}.")
         print(f"Ordinal Errors: {total_diff1}")

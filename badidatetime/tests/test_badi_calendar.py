@@ -194,7 +194,7 @@ class TestBadiCalendar(unittest.TestCase):
 
         .. note::
 
-           1. All JDs are in UT1 (within 0.9 seconds of UTC) time. We  check
+           1. All JDs are in UT1 (within 0.9 seconds of UTC) time. We check
               if the code changes it to the given time zone correctly.
            2. Unless otherwise notes all test are Stage 1.
         """
@@ -344,6 +344,9 @@ class TestBadiCalendar(unittest.TestCase):
             # sunset 18:16 -> Badi time = 03:27:51
             (2460387.2596184844, *epoch_coords, False, True, True, False,
              False, (181, 1, 1, 3, 27, 4.0032)),
+            # rtd and long format
+            (2394985.2486724695, *epoch_coords, False, False, True, False,
+             True, (1, 1, 1, 0, 1)),
             # us and fraction
             (0, 0, 0, 0, True, True, False, True, False, err_msg0),
             # us and rtd
