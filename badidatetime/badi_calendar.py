@@ -335,7 +335,22 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             frac = round(dl - diff, self._ROUNDING_PLACES)
             # print('Stage 2 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
             #       'ss_frac', ss_frac, 'diff', diff, 'frac', frac)
+            day -= 1
 
+            if day == 0:
+                if 2 <= month <= 18:
+                    month -= 1
+                    day = 19
+                elif month == 19:
+                    month = 0
+                    day = ld
+                elif month == 0:  # Ayyám-i-Há
+                    month = 18
+                    day = 19
+                else:  # Month 1
+                    year -= 1
+                    month = 19
+                    day = 19
         if fraction:
             b_date = year, month, round(day + frac, 6)
         elif rtd:

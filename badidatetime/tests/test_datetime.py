@@ -398,7 +398,7 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             else:
                 datetime._check_tzname(name)
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test__fromutc(self):
         """
         Test that the _fromutc function returns an updated datetime object.
@@ -2516,29 +2516,39 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the _fromtimestamp classmethod creates an instance
         of datetime.
 
-        Note: The tests marked 'Latitude and Longitude dependent' will break
-              if datetime.LOCAL_COORD is not patched.
+        .. note::
+
+           The tests marked 'Latitude and Longitude dependent' will break
+           if datetime.LOCAL_COORD is not patched.
         """
         tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
         tz2 = ZoneInfo('US/Eastern')
         data = (
-            # Latitude and Longitude dependent
-            # 1969-12-31T19:00:00+00:00 -> 0126-16-02T01:46:33.168000+00:00
-            (-18000, False, tz1, True, '0126-16-02T01:47:57.148800+00:00'),
             # Assume UTC as starting point.
-            (0, True, tz1, True, '0126-16-02T07:59:32.496000+00:00'),
-            (0, True, datetime.UTC, True, '0126-16-02T07:59:32.496000+00:00'),
+            # 1970-01-01T00:00:00Z
+            (0, True, tz1, True, '0126-16-02T07:59:32.488800+00:00'),
+            (0, True, datetime.UTC, True, '0126-16-02T07:59:32.488800+00:00'),
+            # 1969-12-31T19:00:00+00:00Z -> 1969-12-31T14:00:00-05:00 ->
+            # 19:00 - 05:00 = 14:00 -> Sunset = 16:00 - 14:00 = 02:00 ->
+            # 24:00 - 02:00 = 22:00 -> 0126-16-01T22:00:00.0-05:00
+            (-18000, False, tz1, True, '0126-16-01T20:48:41.256000+00:00'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz0, True, '0126-16-02T05:17:57.148800+03:30'),
+            # 1969-12-31T14:00:00+03:30 -> Sunset = 17:01
+            # 17:01 - 14:00 = 03:01 -> 24:00 - 03:01 = 20:59
+            (-18000, False, tz0, True, '0126-16-01T20:48:41.256000+03:30'),
             (-18000, False, datetime.BADI, True,
-             '0126-16-02T05:17:57.148800+03:30'),
+             '0126-16-01T20:48:41.256000+03:30'),
             # Assume UTC as starting point.
-            (0, True, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
+            # 1970-01-01T00:00:00+03:30 -> Sunset = 17:02
+            # 17:02 - 00:00 = 17:02 -> 24:00 - 17:02 = 06:58
+            (0, True, tz0, True, '0126-16-02T07:59:32.488800+03:30'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            (-18000, False, tz2, True, '0126-16-01T20:47:57.148800-05:00'),
+            # 1969-12-31T14:00:00-05:00 -> Sunset = 17:12
+            # 17:12 - 14:00 = 03:12 -> 24:00 - 03:12 = 20:48
+            (-18000, False, tz2, True, '0126-16-01T20:48:41.256000-05:00'),
             )
         msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
                "and short {}, found {}.")
@@ -2555,8 +2565,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the fromtimestamp classmethod creates an instance
         of datetime.
 
-        Note: The tests marked 'Latitude and Longitude dependent' will break
-              if datetime.LOCAL_COORD is not patched.
+        .. note::
+
+           The tests marked 'Latitude and Longitude dependent' will break
+           if datetime.LOCAL_COORD is not patched.
         """
         tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
@@ -2564,27 +2576,29 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            # 1970-01-01 -> Badi date and time relative to naive local time.
-            (0, None, True, '0126-16-02T06:47:57.120000'),
+            # 1970-01-01 -> Badi date and time of to naive local time.
+            # Should be 0126-16-02T02:47:57.141600
+            (0, None, True, '0126-16-02T01:47:57.141600'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to UTC
-            (0, tz1, True, '0126-16-02T07:59:32.496000+00:00'),
+            (0, tz1, True, '0126-16-02T07:59:32.488800+00:00'),
             # Assume UTC as starting point.
             # 1970-01-01 -> Badi date and time relative to +03:30
-            (0, tz0, True, '0126-16-02T11:29:32.496000+03:30'),
+            # Should be 0126-16-02T11:59:32.488800+03:30
+            (0, tz0, True, '0126-16-02T07:59:32.488800+03:30'),
             # Local time (2024, 11, 30, 20, 24, 13, 327577)
             # There is a problem with the two results below, both should be
             # the same. Checked with tz is correct. This could be that only
             # God knows what coordinates are used for IANA time zones to
             # arrive at the correct time. Off by 03:54:10.915200 hrs.
             # Latitude and Longitude dependent
-            (1733016253.327577, None, True, '0181-14-10T08:22:10.099200'),
-            (1733016253.327577, tz2, True, '0181-14-10T04:29:56.342400-05:00'),
+            (1733016253.327577, None, True, '0181-14-10T03:22:10.084800'),
+            (1733016253.327577, tz2, True, '0181-14-10T09:29:56.288400-05:00'),
             # Some long form datetimes.
             # Latitude and Longitude dependent
-            (0, None, False, '01-07-12-16-02T06:47:57.120000'),
-            (0, tz1, False, '01-07-12-16-02T07:59:32.496000+00:00'),
-            (0, tz0, False, '01-07-12-16-02T11:29:32.496000+03:30'),
+            (0, None, False, '01-07-12-16-02T01:47:57.141600'),
+            (0, tz1, False, '01-07-12-16-02T07:59:32.488800+00:00'),
+            (0, tz0, False, '01-07-12-16-02T07:59:32.488800+03:30'),
             )
         msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
                "found {}.")

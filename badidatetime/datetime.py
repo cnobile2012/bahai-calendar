@@ -203,53 +203,53 @@ def _check_tzname(name: str) -> None:
                         f"not {type(name).__name__!r}")
 
 
-def _fromutc(this: tzinfo, dt):
-    """
-    The method fromutc() in tzinfo will not accept the Badí' datetime object,
-    so this method needs to fill the role.
+# def _fromutc(this: tzinfo, dt):
+#     """
+#     The method fromutc() in tzinfo will not accept the Badí' datetime object,
+#     so this method needs to fill that role. It handles ZoneInfo objects only.
 
-    .. note::
+#     .. note::
 
-       This function needs to be implemented outside the `tzinfo` class so
-       that the `tzinfo` class can be used with the `zoneinfo` class. Normally
-       the tzinfo class would just be overridden with this function added.
+#        This function needs to be implemented outside the `tzinfo` class so
+#        that the `tzinfo` class can be used with the `zoneinfo` class. Normally
+#        the tzinfo class would just be overridden with this function added.
 
-    :param tzinfo this: The tzinfo instance.
-    :param datetime dt: A datetime instance.
-    :returns: The adjusted datetime from the provided UTC datetime.
-    :rtype: datetime
-    :raises TypeError: If `dt` is not a `datetime` instance.
-    :raises ValueError: If dt.tzinfo is not self.
-    :raises ValueError: If a `None` value returned from utcoffset().
-    :raises ValueError: If a `None` value returned from dst().
-    """
-    if not isinstance(dt, datetime):
-        raise TypeError("_fromutc() requires a datetime argument.")
+#     :param tzinfo this: The tzinfo instance.
+#     :param datetime dt: A datetime instance.
+#     :returns: The adjusted datetime from the provided UTC datetime.
+#     :rtype: datetime
+#     :raises TypeError: If `dt` is not a `datetime` instance.
+#     :raises ValueError: If dt.tzinfo is not self.
+#     :raises ValueError: If a `None` value returned from utcoffset().
+#     :raises ValueError: If a `None` value returned from dst().
+#     """
+#     if not isinstance(dt, datetime):
+#         raise TypeError("_fromutc() requires a datetime argument.")
 
-    if dt.tzinfo is not this:
-        raise ValueError("_fromutc() dt.tzinfo is not this.")
+#     if dt.tzinfo is not this:
+#         raise ValueError("_fromutc() dt.tzinfo is not this.")
 
-    dtoff = dt.utcoffset()
+#     dtoff = dt.utcoffset()
 
-    if dtoff is None:
-        raise ValueError("_fromutc() requires a non-None utcoffset() result.")
+#     if dtoff is None:
+#         raise ValueError("_fromutc() requires a non-None utcoffset() result.")
 
-    dtdst = dt.dst()
+#     dtdst = dt.dst()
 
-    if dtdst is None:
-        raise ValueError("_fromutc() requires a non-None dst() result.")
+#     if dtdst is None:
+#         raise ValueError("_fromutc() requires a non-None dst() result.")
 
-    delta = dtoff - dtdst
+#     delta = dtoff - dtdst
 
-    if delta:
-        dt += delta
-        dtdst = dt.dst()
+#     if delta:
+#         dt += delta
+#         dtdst = dt.dst()
 
-        if dtdst is None:  # pragma: no cover
-            raise ValueError("_fromutc(): dt.dst gave inconsistent "
-                             "results; cannot convert.")
+#         if dtdst is None:  # pragma: no cover
+#             raise ValueError("_fromutc(): dt.dst gave inconsistent "
+#                              "results; cannot convert.")
 
-    return dt + dtdst
+#     return dt + dtdst
 
 
 def _get_class_module(self):
@@ -1879,8 +1879,8 @@ class datetime(date):
 
         bc = BahaiCalendar()
         coord = GMT_COORD if utc else LOCAL_COORD
-        dt = bc.posix_timestamp(t, *coord, us=True, short=short, trim=False)
-        date = _fix_short_date(dt, short)
+        b_date = bc.posix_timestamp(t, *coord, us=True, short=short, trim=False)
+        date = _fix_short_date(b_date, short)
         # Clamp out leap seconds if the platform has them.
         date = date[:7] + (min(date[7], 59),) + date[8:]
         result = cls(*date, tzinfo=tz)
@@ -1899,26 +1899,26 @@ class datetime(date):
                 del bc  # pragma: no cover
                 return result  # pragma: no cover
 
-            dt = bc.posix_timestamp(t - max_fold_seconds, *LOCAL_COORD,
+            b_date = bc.posix_timestamp(t - max_fold_seconds, *LOCAL_COORD,
                                     us=True, short=short, trim=False)
-            date = _fix_short_date(dt, short)
+            date = _fix_short_date(b_date, short)
             probe1 = cls(*date, tzinfo=tz)
             trans = result - probe1 - timedelta(0, max_fold_seconds)
 
             if trans.days < 0:
                 t += trans // timedelta(0, 1)
-                dt = bc.posix_timestamp(t, *LOCAL_COORD, us=True, short=short,
-                                        trim=False)
-                date = _fix_short_date(dt, short)
+                b_date = bc.posix_timestamp(t, *LOCAL_COORD, us=True,
+                                            short=short, trim=False)
+                date = _fix_short_date(b_date, short)
                 probe2 = cls(*date, tzinfo=tz)
 
                 if probe2 == result:  # pragma: no cover
                     result._fold = 1
-        elif tz is not None:
-            if isinstance(tz, timezone):
-                result = tz.fromutc(result)
-            else:
-                result = _fromutc(tz, result)
+        # elif tz is not None:
+        #     if isinstance(tz, timezone):
+        #         result = tz.fromutc(result)  # timezone
+        #     else:
+        #         result = _fromutc(tz, result)  # ZoneInfo
 
         del bc
         return result
@@ -2943,5 +2943,5 @@ timezone.max = timezone._create(timedelta(hours=23, minutes=59))
 # GregorianCalendar.jd_from_gregorian_date((1970, 1, 1), exact=True) ==
 # 2440585.5 to BahaiCalendar.jd_from_badi_date((126, 16, 2, 7, 57, 27.7),
 # 51.477928, -0.001545, 0) == 2440585.5
-_EPOCH = datetime(126, 16, 2, None, None, 7, 57, 27, 700000,
+_EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 488800,
                   tzinfo=timezone.utc)
