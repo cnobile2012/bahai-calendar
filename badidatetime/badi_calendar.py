@@ -517,9 +517,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
     def badi_date_from_gregorian_date(self, g_date: tuple, lat: float=None,
                                       lon: float=None, zone: float=None, *,
-                                      short: bool=False, trim: bool=False,
-                                      rtd: bool=False, _exact: bool=True
-                                      ) -> tuple:
+                                      us: bool=False, short: bool=False,
+                                      trim: bool=False, rtd: bool=False,
+                                      _exact: bool=True,
+                                      _chk_on: bool=True) -> tuple:
         """
         Get the Badi date from the Gregorian date.
 
@@ -527,6 +528,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.
+        :param bool us: If True the seconds are split to seconds amd
+                        microseconds else if False the seconds has a partial
+                        day as a decimal.
         :param bool short: If True then parse for a short date else if False
                            (default) parse for a long date.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
@@ -535,17 +539,22 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                             Default is True. This should generally be set to
                             True, a False value will give inaccurate results
                             and is used for testing only.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :returns: A Badi date long or short form.
         :rtype: tuple
         """
         jd = self._gc.jd_from_gregorian_date(g_date, exact=_exact)
-        return self.badi_date_from_jd(jd, lat=lat, lon=lon, zone=zone,
-                                      short=short, trim=trim, rtd=rtd)
+        return self.badi_date_from_jd(jd, lat=lat, lon=lon, zone=zone, us=us,
+                                      short=short, trim=trim, rtd=rtd,
+                                      _chk_on=_chk_on)
 
     def gregorian_date_from_badi_date(self, b_date: tuple, lat: float=None,
                                       lon: float=None, zone: float=None, *,
-                                      _exact: bool=True, _chk_on: bool=True
-                                      ) -> tuple:
+                                      us: bool=False, _exact: bool=True,
+                                      _chk_on: bool=True) -> tuple:
         """
         Get the Gregorian date from the Badi date.
 
@@ -553,6 +562,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.
+        :param bool us: If True the seconds are split to seconds amd
+                        microseconds else if False the seconds has a partial
+                        day as a decimal.
         :param bool _exact: Use the more exact Julian Period algorithm.
                             Default is True. This should generally be set to
                             True, a False value, in this method will give
@@ -565,7 +577,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = self.jd_from_badi_date(b_date, lat, lon, zone, _chk_on=_chk_on)
-        return self._gc.gregorian_date_from_jd(jd, hms=True, us=True,
+        return self._gc.gregorian_date_from_jd(jd, hms=True, us=us,
                                                exact=_exact)
 
     def posix_timestamp(self, t: float, lat: float=None, lon: float=None,

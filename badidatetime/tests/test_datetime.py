@@ -2510,8 +2510,58 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 expected_result, date, tz, fold, str(result)))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (51.477928, -0.001545, 0))
+    def test__fromtimestamp_gmt(self):
+        """
+        Test that the _fromtimestamp classmethod creates an instance
+        of datetime.
+
+        .. note::
+
+           The tests marked 'Latitude and Longitude dependent' will break
+           if datetime.LOCAL_COORD is not patched.
+        """
+        tz0 = ZoneInfo(datetime.BADI_IANA)
+        tz1 = ZoneInfo('UTC')
+        tz2 = ZoneInfo('US/Eastern')
+        data = (
+            # Assume UTC as starting point.
+            # 1970-01-01T00:00:00Z
+            (0, True, tz1, True, '0126-16-02T07:59:32.488800+00:00'),
+            (0, True, datetime.UTC, True, '0126-16-02T07:59:32.488800+00:00'),
+            # 1969-12-31T19:00:00+00:00Z -> 1969-12-31T14:00:00+00:00Z
+            # 19:00 - 05:00 (18000) = 14:00 ->
+            # Sunset = 16:00 - 14:00 = 02:00 ->
+            # 24:00 - 02:00 = 22:00 -> 0126-16-01T22:00:00.0+00:00
+            (-18000, False, tz1, True, '0126-16-01T22:00:00.0+00:00'),
+            # Latitude and Longitude dependent
+            # Assume local time as starting point.
+            # 1969-12-31T14:00:00+03:30 -> Sunset = 17:01
+            # 17:01 - 14:00 = 03:01 -> 24:00 - 03:01 = 20:59
+            #(-18000, False, tz0, True, '0126-16-01T20:48:41.256000+03:30'),
+            #(-18000, False, datetime.BADI, True,
+            # '0126-16-01T20:48:41.256000+03:30'),
+            # Assume UTC as starting point.
+            # 1970-01-01T00:00:00+03:30 -> Sunset = 17:02
+            # 17:02 - 00:00 = 17:02 -> 24:00 - 17:02 = 06:58
+            #(0, True, tz0, True, '0126-16-02T07:59:32.488800+03:30'),
+            # Latitude and Longitude dependent
+            # Assume local time as starting point.
+            # 1969-12-31T14:00:00-05:00 -> Sunset = 17:12
+            # 17:12 - 14:00 = 03:12 -> 24:00 - 03:12 = 20:48
+            #(-18000, False, tz2, True, '0126-16-01T20:48:41.256000-05:00'),
+            )
+        msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
+               "and short {}, found {}.")
+
+        for t, utc, tz, short, expected_result in data:
+            result = datetime.datetime._fromtimestamp(t, utc, tz, short=short)
+            self.assertEqual(expected_result, str(result), msg.format(
+                expected_result, t, utc, tz, short, result))
+
+    @unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
-    def test__fromtimestamp(self):
+    def test__fromtimestamp_local(self):
         """
         Test that the _fromtimestamp classmethod creates an instance
         of datetime.

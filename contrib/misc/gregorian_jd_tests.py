@@ -182,10 +182,7 @@ class JulianPeriodTests:
             leap = GLY(year)
 
             for month, days in enumerate(self.MONTHS, start=1):
-                if month == 2 and not leap:
-                    max_days = days - 1
-                else:
-                    max_days = days
+                max_days = days -1 if month == 2 and not leap else days
 
                 for day in range(1, max_days + 1):
                     date = (year, month, day)

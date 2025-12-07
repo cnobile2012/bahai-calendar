@@ -388,9 +388,7 @@ class date(BahaiCalendar):
         :returns: The instantiated class.
         :rtype: date
         """
-        bc = BahaiCalendar()
         date = _td_utils._ord2ymd(n, short=short)
-        del bc
         return cls(*date)
 
     @classmethod
@@ -1879,7 +1877,8 @@ class datetime(date):
 
         bc = BahaiCalendar()
         coord = GMT_COORD if utc else LOCAL_COORD
-        b_date = bc.posix_timestamp(t, *coord, us=True, short=short, trim=False)
+        b_date = bc.posix_timestamp(t, *coord, us=True, short=short,
+                                    trim=False)
         date = _fix_short_date(b_date, short)
         # Clamp out leap seconds if the platform has them.
         date = date[:7] + (min(date[7], 59),) + date[8:]

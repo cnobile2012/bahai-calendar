@@ -15,6 +15,7 @@ sys.path.append(BASE_DIR)
 from _timestamp import TimestampUtils
 from badidatetime import (BahaiCalendar, GregorianCalendar, datetime, timezone,
                           timedelta)
+from badidatetime._timedateutils import _td_utils
 
 
 class DatetimeTests(BahaiCalendar, TimestampUtils):
@@ -294,6 +295,8 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         """
         Find the errors between conversion between badi dates to JD and
         vice versa. This tests the BahaiCalendar.badi_date_from_jd() method.
+        Both the jd_from_badi_date() and badi_date_from_jd() methods default
+        to the the time zone in Tehran.
 
         -b
         Also if -S and -E are used they must be used together and refer
@@ -373,6 +376,103 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
 
         return data
 
+    def check_dates(self, optiuons):
+        """
+        Check for correct dates bt different methods.
+
+        -d with -S and -E (Gregorian) -A -O -Z
+        """
+        data = []
+        start = options.start
+        end = options.end
+        lat = options.latitude
+        lon = options.longitude
+        zone = options.zone
+        tz = dtime.timezone(dtime.timedelta(hours=zone))
+
+        for year in range(start, end):
+            leap = self.gc._GREGORIAN_LEAP_YEAR(year)
+
+            for month, days in enumerate(self.gc._MONTHS, start=1):
+                max_days = days -1 if month == 2 and not leap else days
+
+                for day in range(1, max_days + 1):
+                    if year == 1 and (month < 3 or month == 3 and day < 19):
+                        continue
+
+                    date = (year, month, day)
+                    jd = self.gc.jd_from_gregorian_date(date, exact=False)
+                    ss = self._sun_setting(jd, lat, lon)
+
+                    if year == 1844 and month == 3 and day == 19:
+                        print(jd, ss, file=sys.stderr)
+
+                    date += self._hms_from_decimal_day(ss + 0.5, us=True)
+                    # Get Badi date from ordinal.
+                    g_ord = dtime.datetime(*date, tzinfo=tz).toordinal()
+                    dt0 = datetime.fromordinal(g_ord, short=True)
+                    b_date0 = self._trim_hms(dt0.b_date + dt0.b_time)
+                    # Get Badi date from JD.
+                    a_ss = self._exact_from_meeus(ss)
+                    b_date1 = self.badi_date_from_jd(
+                        a_ss, lat, lon, zone, us=True, short=True, trim=True,
+                        _chk_on=False)
+                    # Get Badi date from the Gregorian date.
+                    b_date2 = self.badi_date_from_gregorian_date(
+                        date, lat, lon, zone, us=True, short=True, trim=True,
+                        _chk_on=False)
+                    # Get Badi date from timestamp.
+                    g_ts = dtime.datetime(*date, tzinfo=tz).timestamp()
+                    dt1 = datetime.fromtimestamp(g_ts, short=True)
+                    b_date3 = dt1.b_date + dt1.b_time
+                    data.append((date, b_date0, b_date1, b_date2, b_date3))
+
+        return data
+
+    def test_ordinals(self, options):
+        """
+        Check that the ordinals are correct.
+
+        -o with -S and -E
+        """
+        data = []
+        start = options.start
+        end = options.end
+        assert (self.MINYEAR - 1) < start < (self.MAXYEAR + 1), (
+            f"Start '{start}' must be from {self.MINYEAR} "
+            f"to {self.MAXYEAR}.")
+        assert self.MINYEAR < end < (self.MAXYEAR + 2), (
+            f"End '{end}' must be from {self.MINYEAR} "
+            f"to {self.MAXYEAR}")
+        prev_ord = 0
+
+        for year in range(start, end):
+            is_leap = self._is_leap_year(year)
+
+            for month in self.MONTHS:
+                dm = 19 if month != 0 else 4 + is_leap
+
+                for day in range(1, dm + 1):
+                    date0 = (year, month, day)
+                    ordinal = _td_utils._ymd2ord(*date0)
+                    date1 = _td_utils._ord2ymd(ordinal, short=True)
+
+                    if (options.previous and
+                       (prev_ord != 0 and (prev_ord + 1) != ordinal)):
+                        data.append((date0, prev_ord, date1, ordinal))
+                    elif not options.previous:
+                        flag = date0 != date1
+
+                        if flag:
+                            data.append((date0, ordinal, date1, is_leap, flag))
+
+                    prev_ord = ordinal
+
+            if not year % 100:
+                print(year, file=sys.stderr)
+
+        return data
+
     def analyze_timestamp_for_today(self, options):
         """
         See if we get close to the correct time after sunset so we can prove
@@ -443,6 +543,13 @@ if __name__ == "__main__":
         '-c', '--analyze2', action='store_true', default=False,
         dest='analyze2', help="Analyze timestamps relative to sunset.")
     parser.add_argument(
+        '-d', '--date', action='store_true', default=False,
+        dest='date', help="Check dates by different methods.")
+    parser.add_argument(
+        '-o', '--ordinal', action='store_true', default=False,
+        dest='ordinal', help="Test that _ymd2ord and _ord2ymd produce "
+        "the correct dates.")
+    parser.add_argument(
         '-t', '--analyze3', action='store_true', default=False,
         dest='analyze3', help="Analyze timestamps relative to sunset.")
     parser.add_argument(
@@ -460,6 +567,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '-O', '--logitude', type=float, default=None, dest='longitude',
         help="Longitude")
+    parser.add_argument(
+        '-P', '--previous', action='store_true', default=False,
+        dest='previous', help="Dump the previous and current ordinals.")
     parser.add_argument(
         '-Z', '--zone', type=float, default=None, dest='zone',
         help="Time zone.")
@@ -597,6 +707,88 @@ if __name__ == "__main__":
             end_time - start_time)
         print(f"  Elapsed time: {hours:02} hours, {minutes:02} minutes, "
               f"{round(seconds, 6):02.6} seconds.")
+    elif options.date:  # -d
+        if None in (options.start, options.end):
+            print("If option -d is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        elif None in (options.latitude, options.longitude, options.zone):
+            print("If option -d is used, -A, -O and -Z must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            start_time = time.time()
+            data = dt.check_dates(options)
+            print(f"./contrib/misc/{basename} -dS {options.start} "
+                  f"-E {options.end} -A {options.latitude} "
+                  f"-O {options.longitude} -Z {options.zone}")
+            print("\nGregorian Date", ' ' * 19, "Badi Date from  "
+                  "Badi Date from JD",
+                  ' ' * 16, "Badi Date from Gregorian",
+                  ' ' * 9, "Badi Date from Timestamp")
+            print(' ' * 34, "Ordinal")
+            underline_length = 151
+            print('-' * underline_length)
+            [print(f"{str(date):34} "
+                   f"{str(b_date0):15} "
+                   f"{str(b_date1):34} "
+                   f"{str(b_date2):34} "
+                   f"{str(b_date3):34}"
+                   ) for date, b_date0, b_date1, b_date2, b_date3 in data]
+            print('-' * underline_length)
+
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"Elapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
+    elif options.ordinal:  # -o
+        if options.start is None or options.end is None:
+            print("If option -o is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        elif options.previous:  # with -P
+            start_time = time.time()
+            data = dt.test_ordinals(options)
+            print(f"./contrib/misc/{basename} -oPS{options.start} "
+                  f"-E{options.end}")
+            print("Start Date      Prev Ord Result Date     Cur Ord")
+            underline_length = 48
+            print('-' * underline_length)
+            [print(f"{str(date0):15}  "
+                   f"{prev_ord:>7} "
+                   f"{str(date1):15} "
+                   f"{ordinal:>7} "
+                   ) for date0, prev_ord, date1, ordinal in data]
+            print('-' * underline_length)
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
+        else:
+            start_time = time.time()
+            data = dt.test_ordinals(options)
+            print(f"./contrib/misc/{basename} -oS{options.start} "
+                  f"-E{options.end}")
+            print("Start Date      Ordinal Result Date     Leap  Error")
+            underline_length = 51
+            print('-' * underline_length)
+            [print(f"{str(date0):15} "
+                   f"{ordinal:>7} "
+                   f"{str(date1):15} "
+                   f"{str(leap):5} "
+                   f"{str(flag):5}"
+                   ) for date0, ordinal, date1, leap, flag in data]
+            print('-' * underline_length)
+            print(f"    Total Years Tested: {options.end-options.start}")
+            errors = [l[4] is True for l in data].count(True)
+            print(f"Total Number of Errors: {errors}")
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
     elif options.analyze3:  # -t
         if options.start is None or options.end is None:
             # Set default Gregorian years.
