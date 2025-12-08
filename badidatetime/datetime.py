@@ -2938,9 +2938,5 @@ BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-# The below date was found using the Julian Period day derived from the
-# GregorianCalendar.jd_from_gregorian_date((1970, 1, 1), exact=True) ==
-# 2440585.5 to BahaiCalendar.jd_from_badi_date((126, 16, 2, 7, 57, 27.7),
-# 51.477928, -0.001545, 0) == 2440585.5
 _EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 488800,
                   tzinfo=timezone.utc)

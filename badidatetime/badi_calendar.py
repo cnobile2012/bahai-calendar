@@ -159,7 +159,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # time since a Badi day starts at sunset not at midnight.
         jd1 = self._meeus_from_exact(jd)
         ss = self._sun_setting(jd1, lat, lon)
-        local_ss = self._local_zone_correction(ss, zone, lon, mod_jd=True)
+        local_ss = self._local_zone_correction(ss, zone, mod_jd=True)
         a_ss = self._exact_from_meeus(local_ss)
         return round(a_ss + self._get_jd_coeff(year), self._ROUNDING_PLACES)
 
@@ -567,8 +567,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                         day as a decimal.
         :param bool _exact: Use the more exact Julian Period algorithm.
                             Default is True. This should generally be set to
-                            True, a False value, in this method will give
-                            inaccurate results and is used for testing only.
+                            True, a False value, will give inaccurate results
+                            and is used for testing only.
         :param bool _chk_on: If True (default) all date checks are enforced
                              else if False they are turned off. This is only
                              used internally. Do not use unless you know what
@@ -608,6 +608,22 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         jd = t / 86400 + self._POSIX_EPOCH
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim, rtd=rtd, _chk_on=_chk_on)
+
+    def timestamp_from_badi_date(self, date: tuple, lat: float, lon: float,
+                                 zone: float) -> float:
+        """
+        Convert a Badi date to a timestamp.
+        """
+        jd = self.jd_from_badi_date(date, lat, lon, zone)
+        jd_midnight = self._meeus_from_exact(jd)
+
+        # g_date = self.gregorian_date_from_badi_date(date[:3])
+        # jd_midnight = self._gc.jd_from_gregorian_date(g_date)
+        ss_frac = self._sun_setting(jd_midnight, lat, lon)
+        badi_time_frac = (date[3] + date[4] / 60 + date[5] / 3600) / 24
+        jd_actual = jd_midnight + ss_frac + badi_time_frac
+        print(jd_midnight, ss_frac, badi_time_frac, jd_actual)
+        return (jd_actual - 2440587.5) * 86400
 
     def midday(self, date: tuple, *, hms: bool=False, _short: bool,
                _chk_on: bool=True) -> tuple:

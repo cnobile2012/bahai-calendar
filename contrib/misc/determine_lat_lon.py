@@ -351,8 +351,8 @@ if __name__ == "__main__":
                   "the VE Diff is the difference\nbetween the Julian Period "
                   "days of the USNO Vernal Equinox, and my Vernal Equinox. "
                   "The USNO Vernal Equinox date and time was originally in "
-                  "UTC\ntime which I converted to Tehran standard time. "
-                  "(+03:30)\n")
+                  "UTC\ntime which I converted to Tehran standard time "
+                  "(+03:30).\n")
             print("Year WC Sunset     My Gregorian Sunset            "
                   "SS VE Dif USNO's Vernal Equinox (Tehran) "
                   "My Vernal Equinox (Tehran)     VE Diff  HH:MM:SS Diff")

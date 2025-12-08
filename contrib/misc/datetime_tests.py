@@ -394,38 +394,35 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
             leap = self.gc._GREGORIAN_LEAP_YEAR(year)
 
             for month, days in enumerate(self.gc._MONTHS, start=1):
-                max_days = days -1 if month == 2 and not leap else days
+                max_days = days - 1 if month == 2 and not leap else days
 
                 for day in range(1, max_days + 1):
                     if year == 1 and (month < 3 or month == 3 and day < 19):
                         continue
 
                     date = (year, month, day)
-                    jd = self.gc.jd_from_gregorian_date(date, exact=False)
-                    ss = self._sun_setting(jd, lat, lon)
-
-                    if year == 1844 and month == 3 and day == 19:
-                        print(jd, ss, file=sys.stderr)
-
-                    date += self._hms_from_decimal_day(ss + 0.5, us=True)
                     # Get Badi date from ordinal.
                     g_ord = dtime.datetime(*date, tzinfo=tz).toordinal()
                     dt0 = datetime.fromordinal(g_ord, short=True)
                     b_date0 = self._trim_hms(dt0.b_date + dt0.b_time)
                     # Get Badi date from JD.
-                    a_ss = self._exact_from_meeus(ss)
+                    jd = self.gc.jd_from_gregorian_date(date, exact=True)
                     b_date1 = self.badi_date_from_jd(
-                        a_ss, lat, lon, zone, us=True, short=True, trim=True,
-                        _chk_on=False)
+                        jd, lat, lon, zone, us=True, short=True, _chk_on=False)
                     # Get Badi date from the Gregorian date.
                     b_date2 = self.badi_date_from_gregorian_date(
-                        date, lat, lon, zone, us=True, short=True, trim=True,
+                        date, lat, lon, zone, us=True, short=True,
                         _chk_on=False)
                     # Get Badi date from timestamp.
                     g_ts = dtime.datetime(*date, tzinfo=tz).timestamp()
                     dt1 = datetime.fromtimestamp(g_ts, short=True)
                     b_date3 = dt1.b_date + dt1.b_time
-                    data.append((date, b_date0, b_date1, b_date2, b_date3))
+                    diff0 = [(i, a, b) for i, (a, b) in enumerate(
+                        zip(b_date1, b_date2)) if a != b]
+                    diff1 = [(i, a, b) for i, (a, b) in enumerate(
+                        zip(b_date1, b_date3)) if a != b]
+                    data.append((date, b_date0, b_date1, b_date2, b_date3,
+                                 diff0, diff1))
 
         return data
 
@@ -632,7 +629,7 @@ if __name__ == "__main__":
                f"{str(o_date):13} "
                f"{str(diff0):13} "
                f"{str(diff1):13} "
-               f"{dt._hms_from_decimal_day(jd)}"
+               f"{dt._hms_from_decimal_day(jd + 0.5)}"
                )
          for g_date, jd, b_date, o_date, date, diff0, diff1 in data]
         print('-' * underline_length)
@@ -722,19 +719,25 @@ if __name__ == "__main__":
             print(f"./contrib/misc/{basename} -dS {options.start} "
                   f"-E {options.end} -A {options.latitude} "
                   f"-O {options.longitude} -Z {options.zone}")
-            print("\nGregorian Date", ' ' * 19, "Badi Date from  "
-                  "Badi Date from JD",
-                  ' ' * 16, "Badi Date from Gregorian",
-                  ' ' * 9, "Badi Date from Timestamp")
-            print(' ' * 34, "Ordinal")
-            underline_length = 151
+            underline_length = 198
             print('-' * underline_length)
-            [print(f"{str(date):34} "
+            print("Gregorian Date|Badi Date from |"
+                  "Badi Date from JD",
+                  ' ' * 15, "|Badi Date from Gregorian",
+                  ' ' * 8, "|Badi Date from Timestamp",
+                  ' ' * 8, "|Tuples are:")
+            print("at Midnight   |Ordinal        |", ' ' * 32, "|",
+                  ' ' * 32, "|", ' ' * 32, "|(idx, diff val 0, diff val 1)")
+            print('-' * underline_length)
+            [print(f"{str(date):14} "
                    f"{str(b_date0):15} "
                    f"{str(b_date1):34} "
                    f"{str(b_date2):34} "
-                   f"{str(b_date3):34}"
-                   ) for date, b_date0, b_date1, b_date2, b_date3 in data]
+                   f"{str(b_date3):34} "
+                   f"{diff0} "
+                   f"{diff1}"
+                   ) for (date, b_date0, b_date1, b_date2,
+                          b_date3, diff0, diff1) in data]
             print('-' * underline_length)
 
             end_time = time.time()

@@ -108,7 +108,7 @@ class PosixTests(BahaiCalendar):
                 g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
                 bd = datetime.fromtimestamp(g_ts)
                 b_date = bd.b_date
-                ss, utc_hms, badi_hms = self._get_badi_hms(b_date, coords)
+                ss, utc_hms, badi_hms = self._get_badi_hms(b_date, coords[:2])
                 data.append((g_date, b_date, ss, utc_hms, badi_hms))
 
         return data
@@ -546,7 +546,7 @@ if __name__ == "__main__":
             print("Gregorian DT Badi Date      UTC Sunset JD  UTC Sunset HMS",
                   "      Badí' HMS equal")
             print(" " * 62, " to UTC midnight")
-            underline_length = 83
+            underline_length = 84
             print('-' * underline_length)
             data = pt.sunset(options)
             [print(f"{str(g_date):>12} "
@@ -561,7 +561,7 @@ if __name__ == "__main__":
                 end_time - start_time)
             print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
                 f"{round(seconds, 6):02.6} seconds.")
-    elif options.timezones:  # -t
+    elif options.timezones:  # -t (Runs -m for each timezone)
         if options.start is None or options.end is None:
             print("If option -t is used, -S and -E must also be used.",
                   file=sys.stderr)
