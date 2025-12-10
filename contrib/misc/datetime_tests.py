@@ -605,11 +605,11 @@ if __name__ == "__main__":
         start_time = time.time()
         print(f"./contrib/misc/{basename} -bS {options.start} "
               f"-E {options.end}")
-        print(" " * 88, "Orig - Badi   Orig - Ord")
-        print("Greg Date                   JD                 Orig Date     "
-              "Badi Date     Ordinal Date  B Date Diff   O Date Diff   "
+        print(" " * 94, "Orig - Badi   Orig - Ord")
+        print("Greg Date                   JD                 Orig Date       "
+              "Badi Date       Ordinal Date    B Date Diff   O Date Diff   "
               "HMS from JD")
-        underline_length = 133
+        underline_length = 140
         print('-' * underline_length)
         data = dt.analyze_ordinal_error_create(options)
         total_diff0 = total_diff1 = 0
@@ -624,9 +624,9 @@ if __name__ == "__main__":
 
         [print(f"{str(g_date):27} "
                f"{jd:<18} "
-               f"{str(date):13} "
-               f"{str(b_date):13} "
-               f"{str(o_date):13} "
+               f"{str(date):15} "
+               f"{str(b_date):15} "
+               f"{str(o_date):15} "
                f"{str(diff0):13} "
                f"{str(diff1):13} "
                f"{dt._hms_from_decimal_day(jd + 0.5)}"

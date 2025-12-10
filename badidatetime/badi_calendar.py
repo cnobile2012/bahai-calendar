@@ -121,7 +121,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         return self._gc.gregorian_date_from_jd(jd, hms=hms, exact=True)
 
     def jd_from_badi_date(self, b_date: tuple, lat: float=None,
-                          lon: float=None, zone: float=None,
+                          lon: float=None, zone: float=None, *,
                           _chk_on: bool=True) -> float:
         """
         Convert a Badí' short form date to Julian period day.
@@ -137,9 +137,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: The Julian Period day.
         :rtype: float
         """
-        year, month, day = self.date_from_kvymdhms(
-            self.long_date_from_short_date(b_date, trim=True, _chk_on=_chk_on),
-            short=True, _chk_on=_chk_on)
+        _chk_on and self._check_valid_badi_date(b_date, short_in=True)
+        year, month, day = b_date[:3]
+        hh, mm, ss, ms = self._get_hms(b_date, short_in=True)
+        day += self._decimal_day_from_hms(hh, mm, ss + self._US(ms))
 
         if month == 0:    # Ayyam-i-Ha
             days = 18 * 19
@@ -282,7 +283,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         def check_and_fix_day(cjd, y, lat=None, lon=None, zone=None,
                               _chk_on=True):
-            fjdy = self.jd_from_badi_date((y, 1, 1), lat, lon, zone, _chk_on)
+            fjdy = self.jd_from_badi_date((y, 1, 1), lat, lon, zone,
+                                          _chk_on=_chk_on)
             return y-1 if (math.floor(fjdy) - math.floor(cjd)) > 0 else y
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
@@ -365,6 +367,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                 f"developer: jd: {jd}, day: {day}, frac: {frac}, "
                 f"b_date: {b_date}")
         else:
+            trim = trim if us else True
             date = year, month, day, *self._hms_from_decimal_day(frac)
             l_date = self.long_date_from_short_date(date, trim=True,
                                                     _chk_on=_chk_on)
@@ -614,16 +617,22 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         """
         Convert a Badi date to a timestamp.
         """
-        jd = self.jd_from_badi_date(date, lat, lon, zone)
-        jd_midnight = self._meeus_from_exact(jd)
+        # jd = self.jd_from_badi_date(date, lat, lon, zone)
+        # jd_midnight = self._meeus_from_exact(jd)
 
-        # g_date = self.gregorian_date_from_badi_date(date[:3])
-        # jd_midnight = self._gc.jd_from_gregorian_date(g_date)
-        ss_frac = self._sun_setting(jd_midnight, lat, lon)
+        g_date = self.gregorian_date_from_badi_date(date, lat, lon, zone)
+        print(f"Gregorian date: {g_date}")  # Should be (1969, 12, 31)
+        jd_midnight = self._gc.jd_from_gregorian_date(g_date)
+        print(f"JD midnight: {jd_midnight}")  # Should be 2440587.5
+        ss_jd = self._sun_setting(jd_midnight, lat, lon)
+        print(f"Sunset JD (full): {ss_jd}")
+        ss_frac = ss_jd % 1
+        print(f"Sunset fraction: {ss_frac}")  # Should be ~0.67-0.71 for Greenwich
         badi_time_frac = (date[3] + date[4] / 60 + date[5] / 3600) / 24
+        print(f"Badi time frac: {badi_time_frac}")  # Should be 0.333..
         jd_actual = jd_midnight + ss_frac + badi_time_frac
-        print(jd_midnight, ss_frac, badi_time_frac, jd_actual)
-        return (jd_actual - 2440587.5) * 86400
+        print(f"JD actual: {jd_actual}")  # Should be 2440588.0
+        return (jd_actual - 2440587.5) * 86400  # Should be 0.0 (or very close)
 
     def midday(self, date: tuple, *, hms: bool=False, _short: bool,
                _chk_on: bool=True) -> tuple:

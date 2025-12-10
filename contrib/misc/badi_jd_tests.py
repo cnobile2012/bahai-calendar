@@ -8,6 +8,7 @@ import os
 import sys
 import math
 import pprint
+from unittest.mock import patch
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
@@ -619,8 +620,8 @@ class DateTests(BahaiCalendar):
         # 365 + 1/4 − 1/128 = 365.2421875 or 365 + 31/128
         # 365.2421897
         self.gc = GregorianCalendar()
-        #self.BADI_COORDS = self._BAHAI_LOCATION[:3]
         self.BADI_COORDS = (35.69435, 51.288701, 3.5)
+        self.GMT_COORDS = (51.477928, -0.001545, 0.0)
 
     def analyze_date_error(self, options):
         """
@@ -762,6 +763,33 @@ class DateTests(BahaiCalendar):
 
         return data
 
+    def day_inremental_change(self, options):
+        """
+        Check that the incremental times of a day are correct.
+
+        -i and -S (Badi years) -M (Start month) -D (Start day) -H (Start hour)
+        """
+        data = []
+        year = options.start
+        month = options.month
+        day = options.start_day
+        hour = options.hour
+        lat, lon, zone = self.GMT_COORDS
+
+        # badi_date_from_jd below will try to use jd_from_badi_date from
+        # BahaiCalendar so we need to patch it.
+        with patch.object(self, 'jd_from_badi_date', self._jd_from_badi_date):
+            for current_hour in range(hour, 25):
+                for minute in range(1, 60):
+                    date = (year, month, day, current_hour, minute)
+                    jd = self._jd_from_badi_date(date, lat, lon, zone,
+                                                 coeffon=options.coff)
+                    b_date = self.badi_date_from_jd(jd, lat, lon, zone,
+                                                    short=True)
+                    data.append((date, jd, b_date))
+
+        return data
+
     def create_date_lists(self, options):
         """
         Generate a list of Badí' dates both long and short versions.
@@ -870,28 +898,6 @@ class DateTests(BahaiCalendar):
 
         return items
 
-    def get_range(self, end):
-        """
-        Dump an analysis of date ranges. Takes an integer value.
-
-        -r or --range
-        """
-        seq = {-159: -259, -64: -159, 35: -64, 134: 35, 233: 134, 332: 233,
-               386: 332, 617: 517, 716: 617, 815: 716, 914: 815, 1013: 914,
-               1112: 1013, 1211: 1112}
-        valid_dates = list(seq.keys())
-        start = seq.get(end)
-        assert start is not None, (f"You must use valid dates, found {end}, "
-                                   f"Valid dates are {valid_dates}.")
-        data = []
-
-        for y in range(start, end):
-            yj = end - y
-            jump = yj if yj in (1, 34, 67, 100) else 0  # jump values
-            data.append((y, (end - y) % 4, jump))       # mod 4 values
-
-        return data
-
     def twenty_four_hours(self, options):
         """
         Dump the hours, minutes, and seconds of the day.
@@ -981,9 +987,11 @@ class DateTests(BahaiCalendar):
     # Supporting methods
     #
     def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None, *,
-                           coeffon=True):
-        year, month, day = self.date_from_kvymdhms(
-            self.long_date_from_short_date(b_date, trim=True), short=True)
+                           _chk_on=True, coeffon=True):
+        self._check_valid_badi_date(b_date, short_in=True)
+        year, month, day = b_date[:3]
+        hh, mm, ss, ms = self._get_hms(b_date, short_in=True)
+        day += self._decimal_day_from_hms(hh, mm, ss + self._US(ms))
 
         if month == 0:    # Ayyam-i-Ha
             days = 18 * 19
@@ -1319,6 +1327,9 @@ if __name__ == "__main__":
         '-g', '--g-dates', action='store_true', default=False, dest='g_dates',
         help="Convert Badí' to Gregorian dates.")
     parser.add_argument(
+        '-i', '--increment', action='store_true', default=False,
+        dest='increment', help="Convert Badí' to Gregorian dates.")
+    parser.add_argument(
         '-l', '--list', action='store_true', default=False, dest='list',
         help="Generate a list of Badí' dates both long and short versions.")
     parser.add_argument(
@@ -1328,9 +1339,6 @@ if __name__ == "__main__":
     parser.add_argument(
         '-q', '--coeff', action='store_true', default=False, dest='coeff',
         help="Dump data for determining coefficients.")
-    parser.add_argument(
-        '-r', '--range', type=int, default=0, dest='range',
-        help="Dump an analysis of date ranges. Takes an integer value.")
     parser.add_argument(
         '-t', '--twenty-four', action='store_true', default=False,
         dest='twenty_four', help="Find day length.")
@@ -1345,6 +1353,9 @@ if __name__ == "__main__":
         '-C', '--coff', action='store_true', default=False, dest='coff',
         help="Turn off all coefficients during an analysis.")
     parser.add_argument(
+        '-D', '--start-day', type=int, default=1, dest='start_day',
+        help="Day to analyze.")
+    parser.add_argument(
         '-E', '--end', type=int, default=None, dest='end',
         help="End Badí' year of sequence.")
     parser.add_argument(
@@ -1352,12 +1363,15 @@ if __name__ == "__main__":
         help=("Turn off all coefficients and dump output appropriate for "
               "graphing."))
     parser.add_argument(
-        '-H', '--hours', action='store_true', default=False, dest='hours',
-        help="Test for the consecutive hours.")
+        '-H', '--hour', type=int, default=1, dest='hour',
+        help="Start hour.")
     parser.add_argument(
         '-J', '--jd', action='store_true', default=False, dest='jd',
         help=("Test for consecutive Julian Period days between start and "
               "end Badí' years."))
+    parser.add_argument(
+        '-M', '--month', type=int, default=1, dest='month',
+        help="Start month.")
     parser.add_argument(
         '-R', '--ref-day', type=str, default='Jalál', dest='ref_day',
         help="Change the reference day. Default is Jalál.")
@@ -1565,6 +1579,7 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            data = dt.find_gregorian_dates(options)
             X = 'X' if options.exact else ''
             print(f"./contrib/misc/{basename} -g{X}S{options.start} "
                   f"-E{options.end}")
@@ -1576,9 +1591,28 @@ if __name__ == "__main__":
                    f"{gjd:<18} "
                    f"{diff:>4} "
                    f"{offby}"
-                   )
-             for (b_date, bjd, g_date,
-                  gjd, diff, offby) in dt.find_gregorian_dates(options)]
+                   ) for b_date, bjd, g_date, gjd, diff, offby in data]
+    elif options.increment:  # -i
+        if options.start is None:
+            print("If option -i is used, -S must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            data = dt.day_inremental_change(options)
+            year = options.start
+            month = options.month
+            day = options.start_day
+            hour = options.hour
+            print(f"./contrib/misc/{basename} -iS {year} -M {month} -D {day} "
+                  f"-H {hour}")
+            underline_length = 68
+            print('-' * underline_length)
+            [print(f"{str(date):22} "
+                   f"{fmt_float(jd, 7, 10)} "
+                   f"{str(b_date):28}"
+                   ) for date, jd, b_date in data]
+            print('-' * underline_length)
+            print(f"Total HMS: {len(data)}")
     elif options.list:  # -l
         if options.start is None or options.end is None:
             print("If option -l is used, -S and -E must also be used.",
@@ -1610,11 +1644,6 @@ if __name__ == "__main__":
             print(f"./contrib/misc/{basename} -qS{options.start} "
                   f"-E{options.end}")
             [print(item) for item in dt.find_coefficents(options)]
-    elif options.range != 0:  # -r
-        print(f"./contrib/misc/{basename} -r")
-        data = dt.get_range(options.range)
-        [print(item) for item in data]
-        print(f"Total years: {len(data)}")
     elif options.twenty_four:  # -t
         if options.start is None or options.end is None:
             print("If option -t is used, -S and -E must also be used.",
