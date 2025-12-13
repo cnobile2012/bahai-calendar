@@ -1307,16 +1307,29 @@ class TestBaseCalendar(unittest.TestCase):
         Test that the _decimal_day_from_hms method returns the correct
         decimal part of the day.
         """
+        err_msg0 = ("Seconds cannot have a decimal value if microseconds "
+                    "are used.")
         data = (
             ((12, 0, 0.0), 0.5),
             ((6, 0, 0.0), 0.25),
             ((2, 24, 0.0), 0.1),
             ((4, 15, 30), 0.17743055555555556),
+            ((4, 15, 30, 500000), 0.17743634259259258),
+            ((4, 15, 30.5), 0.17743634259259258),
+            ((4, 15, 30.5, 500000), err_msg0),
+            ((4, 15, 30.5, 500000), err_msg0),
             )
         msg = "Expected {} with hms {}, found {}."
 
         for hms, expected_result in data:
-            result = self.bc._decimal_day_from_hms(*hms)
+            if isinstance(expected_result, str):
+                with self.assertRaises(AssertionError) as cm:
+                    self.bc._decimal_day_from_hms(*hms)
+
+                result = str(cm.exception)
+            else:
+                result = self.bc._decimal_day_from_hms(*hms)
+
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, hms, result))
 

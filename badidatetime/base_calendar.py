@@ -1267,18 +1267,23 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return (hour, minute, second) + microsec
 
-    def _decimal_day_from_hms(self, h: int, m: int, s: float) -> float:
+    def _decimal_day_from_hms(self, h: int, m: int, s: float, us: int=0
+                              ) -> float:
         """
         Convert hours, minutes, and seconds to a decimal day.
 
         :param ine h: The hour.
         :param int m: The minute.
         :param float s: The second.
+        :param int us: The microseconds.
         :returns: A decimal value representing the day with a partial that
                   indicates the hours, minutes, and seconds.
         :rtype: float
         """
-        return (h * 60 * 60 + m * 60 + s) / 86400
+        assert ((s % 1 and us == 0) or (s % 1 == 0 and us) or
+                (s % 1 == 0 and us == 0)), (
+            "Seconds cannot have a decimal value if microseconds are used.")
+        return (h * 3600 + m * 60 + s  + self._US(us)) / 86400
 
     def _sec_microsec_from_seconds(self, second: float) -> tuple:
         """
@@ -1565,7 +1570,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         return jd if exact else self._meeus_from_exact(jd)
 
     def _local_zone_correction(self, jd_ut: float, zone: float=None,
-                               lon: float=None, *,
+                               lon: float=None, *, inverse: bool=False,
                                mod_jd: bool=False) -> float:
         """
         Convert the UT time to local time.
@@ -1584,6 +1589,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float jd_ut: UT time as a fractional part of a JD.
         :param float zone: The time zone in hours.
         :param float lon: The longitude.
+        :param bool inverse: Subtract the zone instead of adding it.
         :param bool mod_jd: If `False` (default) a correction value is returned
                             else if `True` the jd_ut is updatyed to local time.
         :returns: The local time corrected from the UT time as a fraction.
@@ -1595,7 +1601,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         assert (zone, lon).count(None) in (0, 1), (
             "Both the time zone and longitude cannot be None.")
         zone = lon / 15 if zone is None else zone
-        modified_jd = jd_ut + self._HR(zone)
+        dec_hr = self._HR(zone)
+        modified_jd = jd_ut - dec_hr if inverse else jd_ut + dec_hr
 
         if mod_jd:
             result = modified_jd

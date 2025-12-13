@@ -139,8 +139,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         """
         _chk_on and self._check_valid_badi_date(b_date, short_in=True)
         year, month, day = b_date[:3]
-        hh, mm, ss, ms = self._get_hms(b_date, short_in=True)
-        day += self._decimal_day_from_hms(hh, mm, ss + self._US(ms))
+        hh, mm, ss, us = self._get_hms(b_date, short_in=True)
 
         if month == 0:    # Ayyam-i-Ha
             days = 18 * 19
@@ -149,7 +148,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         else:             # month 19
             days = 18 * 19 + 4 + self._is_leap_year(year, _chk_on=_chk_on)
 
-        td = self._days_in_years(year-1)
+        td = self._days_in_years(year - 1)
         jd = td + math.floor(self._BADI_EPOCH + 1) + days + day
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
@@ -159,10 +158,12 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # This day is relative to UTC time, so we need to compensate for Badi
         # time since a Badi day starts at sunset not at midnight.
         jd1 = self._meeus_from_exact(jd)
-        ss = self._sun_setting(jd1, lat, lon)
-        local_ss = self._local_zone_correction(ss, zone, mod_jd=True)
+        jd_ss = self._sun_setting(jd1, lat, lon)
+        local_ss = self._local_zone_correction(jd_ss, zone, mod_jd=True)
         a_ss = self._exact_from_meeus(local_ss)
-        return round(a_ss + self._get_jd_coeff(year), self._ROUNDING_PLACES)
+        day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
+        coeff = self._get_jd_coeff(year)
+        return round(a_ss + day_frac + coeff, self._ROUNDING_PLACES)
 
     def _get_jd_coeff(self, year: int) -> int:
         """
@@ -281,12 +282,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             leap = self._is_leap_year(year, _chk_on=_chk_on)
             return leap, 365 + leap, 4 + leap
 
-        def check_and_fix_day(cjd, y, lat=None, lon=None, zone=None,
-                              _chk_on=True):
-            fjdy = self.jd_from_badi_date((y, 1, 1), lat, lon, zone,
-                                          _chk_on=_chk_on)
-            return y-1 if (math.floor(fjdy) - math.floor(cjd)) > 0 else y
-
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
@@ -297,14 +292,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # Find the year
         year = math.floor(md / self._MEAN_TROPICAL_YEAR) + y
         leap, yds, ld = get_leap_year_info(year, _chk_on)
+        # Get 1st day of year so we can find the number of days to the JD.
+        fdy = (year, 1, 1)
+        # Fix day if needed.
+        fjdy = self.jd_from_badi_date(fdy, lat, lon, zone, _chk_on=_chk_on)
+        yr = year - 1 if (math.floor(fjdy) - math.floor(jd)) > 0 else year
 
-        if (y := check_and_fix_day(jd, year, lat, lon, zone, _chk_on)):
-            year = y
+        if yr:
+            year = yr
             leap, yds, ld = get_leap_year_info(year, _chk_on)
 
-        # Get 1st day of year so we can find the number of days to the JD.
-        fjdy = self.jd_from_badi_date((year, 1, 1), lat, lon, zone,
-                                      _chk_on=_chk_on)
         days = math.floor(jd) - math.floor(fjdy) + 1
 
         if days <= 342:  # Month 1 - 18
@@ -322,37 +319,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             if days <= ds: break
             days -= ds
 
-        jd_frac = round(jd % 1, self._ROUNDING_PLACES)  # hms in fraction
-        jd0 = self._meeus_from_exact(math.floor(jd))
-        ss0 = self._sun_setting(jd0, lat, lon)
-        ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)  # hms in fraction
+        year, month, day, frac = self._adjust_date(jd, year, month, day,
+                                                   lat, lon, zone)
 
-        if jd_frac > ss_frac:
-            frac = round(jd_frac - ss_frac, self._ROUNDING_PLACES)
-            # print('Stage 1 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
-            #       'ss_frac', ss_frac, 'frac', frac)
-        else:
-            diff = ss_frac - jd_frac
-            dl = self._day_length(jd - 1, lat, lon, decimal=True)
-            frac = round(dl - diff, self._ROUNDING_PLACES)
-            # print('Stage 2 jd0', jd0, 'jd_frac', jd_frac, 'ss0', ss0,
-            #       'ss_frac', ss_frac, 'diff', diff, 'frac', frac)
-            day -= 1
-
-            if day == 0:
-                if 2 <= month <= 18:
-                    month -= 1
-                    day = 19
-                elif month == 19:
-                    month = 0
-                    day = ld
-                elif month == 0:  # Ayyám-i-Há
-                    month = 18
-                    day = 19
-                else:  # Month 1
-                    year -= 1
-                    month = 19
-                    day = 19
         if fraction:
             b_date = year, month, round(day + frac, 6)
         elif rtd:
@@ -375,6 +344,65 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                                                trim=trim, _chk_on=_chk_on)
 
         return b_date
+
+    def _adjust_date(self, jd, year, month, day, lat, lon, zone):
+        """
+        """
+        def day_before(year, month, day):
+            if 2 <= month <= 18:  # Months 2 - 18
+                month -= 1
+                day = 19
+            elif month == 19:     # Month 19
+                month = 0
+                day = ld
+            elif month == 0:      # Ayyám-i-Há
+                month = 18
+                day = 19
+            else:                 # Month 1
+                year -= 1
+                month = 19
+                day = 19
+
+            return year, month, day
+
+        jd_frac = round(jd % 1, self._ROUNDING_PLACES)  # hms as a fraction
+        jd0 = self._meeus_from_exact(math.floor(jd))
+        ss0 = self._sun_setting(jd0, lat, lon)
+        ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)  # hms as a fraction
+
+        if jd_frac > ss_frac:
+            frac = round(jd_frac - ss_frac, self._ROUNDING_PLACES)
+            frac0 = self._local_zone_correction(frac, zone, inverse=True)
+
+            if frac0 > frac:
+                print('Stage 1 jd0:', jd0, 'date:', (year, month, day),
+                      'ss0:', ss0, 'jd_frac:', jd_frac, 'ss_frac:', ss_frac,
+                      'frac0:', frac0, 'frac:', frac)
+                day -= 1
+
+                if day == 0:
+                    year, month, day = day_before(year, month, day)
+
+                frac = 0
+            else:
+                #year, month, day = day_before(year, month, day)
+                print('Stage 2 jd0:', jd0, 'date:', (year, month, day),
+                      'ss0:', ss0, 'jd_frac:', jd_frac, 'ss_frac:', ss_frac,
+                      'frac0:', frac0, 'frac:', frac)
+                frac = frac0
+        else:
+            diff = ss_frac - jd_frac
+            dl = self._day_length(jd - 1, lat, lon, decimal=True)
+            frac = round(dl - diff, self._ROUNDING_PLACES)
+            print('Stage 3 jd0:', jd0, 'date:', (year, month, day),
+                  'ss0:', ss0, 'jd_frac:', jd_frac, 'ss_frac:', ss_frac,
+                  'diff:', diff, 'frac:', frac)
+            day -= 1
+
+            if day == 0:
+                year, month, day = day_before(year, month, day)
+
+        return year, month, day, frac
 
     def short_date_from_long_date(self, b_date: tuple, *, trim: bool=False,
                                   _chk_on: bool=True) -> tuple:

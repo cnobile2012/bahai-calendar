@@ -774,19 +774,22 @@ class DateTests(BahaiCalendar):
         month = options.month
         day = options.start_day
         hour = options.hour
-        lat, lon, zone = self.GMT_COORDS
+        #lat, lon, zone = self.GMT_COORDS
+        lat, lon, zone = self.BADI_COORDS
 
-        # badi_date_from_jd below will try to use jd_from_badi_date from
-        # BahaiCalendar so we need to patch it.
+        # The badi_date_from_jd() method below will try to use
+        # BahaiCalendar.jd_from_badi_date() so we need to patch it.
         with patch.object(self, 'jd_from_badi_date', self._jd_from_badi_date):
-            for current_hour in range(hour, 25):
-                for minute in range(1, 60):
+            for current_hour in range(hour, 24):
+                for minute in range(0, 60):
                     date = (year, month, day, current_hour, minute)
                     jd = self._jd_from_badi_date(date, lat, lon, zone,
-                                                 coeffon=options.coff)
+                                                 coeffon=False)
+                    g_date = self.gc.gregorian_date_from_jd(jd, hms=True,
+                                                            exact=True)
                     b_date = self.badi_date_from_jd(jd, lat, lon, zone,
                                                     short=True)
-                    data.append((date, jd, b_date))
+                    data.append((date, g_date, jd, b_date))
 
         return data
 
@@ -984,23 +987,22 @@ class DateTests(BahaiCalendar):
         return data
 
     #
-    # Supporting methods
+    # Support methods
     #
     def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None, *,
-                           _chk_on=True, coeffon=True):
+                           _chk_on=True, coeffon=False):
         self._check_valid_badi_date(b_date, short_in=True)
         year, month, day = b_date[:3]
-        hh, mm, ss, ms = self._get_hms(b_date, short_in=True)
-        day += self._decimal_day_from_hms(hh, mm, ss + self._US(ms))
+        hh, mm, ss, us = self._get_hms(b_date, short_in=True)
 
         if month == 0:    # Ayyam-i-Ha
             days = 18 * 19
         elif month < 19:  # month 1 - 18
             days = (month - 1) * 19
         else:             # month == 19
-            days = 18 * 19 + 4 + self._is_leap_year(year)
+            days = 18 * 19 + 4 + self._is_leap_year(year, _chk_on=_chk_on)
 
-        td = self._days_in_years(year-1)
+        td = self._days_in_years(year - 1)
         jd = td + math.floor(self._BADI_EPOCH + 1) + days + day
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
@@ -1008,14 +1010,15 @@ class DateTests(BahaiCalendar):
 
         # We convert the more exact jd to the Meeus algorithm for determining
         # the sunset jd. The fractional day is never affected.
-        jd = self._meeus_from_exact(jd)
-        ss = self._sun_setting(jd, lat, lon)
-        local_ss = self._local_zone_correction(ss, zone, mod_jd=True)
+        jd1 = self._meeus_from_exact(jd)
+        jd_ss = self._sun_setting(jd1, lat, lon)
+        local_ss = self._local_zone_correction(jd_ss, zone, mod_jd=True)
         #print(f"{str(b_date):<15} {day:<9} {jd:<14} {local_ss:<20}",
         #      file=sys.stderr)
-        coeff = 0 if coeffon else self._get_jd_coeff(year)
         a_ss = self._exact_from_meeus(local_ss)
-        return round(a_ss + coeff, 12)
+        day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
+        coeff = 0 if coeffon else self._get_jd_coeff(year)
+        return round(a_ss + day_frac + coeff, self._ROUNDING_PLACES)
 
     def _get_jd_coeff(self, year):
         def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
@@ -1363,7 +1366,7 @@ if __name__ == "__main__":
         help=("Turn off all coefficients and dump output appropriate for "
               "graphing."))
     parser.add_argument(
-        '-H', '--hour', type=int, default=1, dest='hour',
+        '-H', '--hour', type=int, default=0, dest='hour',
         help="Start hour.")
     parser.add_argument(
         '-J', '--jd', action='store_true', default=False, dest='jd',
@@ -1598,6 +1601,7 @@ if __name__ == "__main__":
                   file=sys.stderr)
             ret = 1
         else:
+            start_time = time.time()
             data = dt.day_inremental_change(options)
             year = options.start
             month = options.month
@@ -1605,14 +1609,23 @@ if __name__ == "__main__":
             hour = options.hour
             print(f"./contrib/misc/{basename} -iS {year} -M {month} -D {day} "
                   f"-H {hour}")
-            underline_length = 68
+            underline_length = 102
+            print('-' * underline_length)
+            print("Reference Date", ' ' * 7, "Gregorian Date", ' ' * 16,
+                  "JD", ' ' * 15, "Derived Date")
             print('-' * underline_length)
             [print(f"{str(date):22} "
+                   f"{str(g_date):31} "
                    f"{fmt_float(jd, 7, 10)} "
                    f"{str(b_date):28}"
-                   ) for date, jd, b_date in data]
+                   ) for date, g_date, jd, b_date in data]
             print('-' * underline_length)
             print(f"Total HMS: {len(data)}")
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                  f"{round(seconds, 6):02.6} seconds.")
     elif options.list:  # -l
         if options.start is None or options.end is None:
             print("If option -l is used, -S and -E must also be used.",

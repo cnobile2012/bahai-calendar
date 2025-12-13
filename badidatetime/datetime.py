@@ -2938,5 +2938,7 @@ BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-_EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 488800,
+# _EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 488800,
+#                   tzinfo=timezone.utc)
+_EPOCH = datetime(126, 16, 2, None, None, 7, 58, 31, 504770,
                   tzinfo=timezone.utc)
