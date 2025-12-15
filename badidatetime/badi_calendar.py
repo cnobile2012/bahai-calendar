@@ -391,11 +391,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             ss1 = self._sun_setting(jd1 - 1, lat, lon)
             ss_frac1 = round(self._local_zone_correction(ss1, zone),
                                  self._ROUNDING_PLACES)
+            o_jd = self._local_zone_correction(jd, zone, inverse=True,
+                                               mod_jd=True)
+
+            
+
             day -= 1
             # Calculate the time between sunset and the following midnight of
             # the JD day before then add it to the JD day fraction to get the
             # Badi time.
-            d, frac = divmod(1 - ss_frac1 + jd_frac, 1)
+            frac = (1 - ss_frac1 + jd_frac) % 1
 
             if day == 0:
                 print('Stage 2 jd:', jd, 'jd1:', jd1,
@@ -410,7 +415,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         else:
             diff = ss_frac - jd_frac
             dl = self._day_length(jd - 1, lat, lon, decimal=True)
-            frac = round(dl - diff, self._ROUNDING_PLACES)
+            frac = round(dl - diff, self._ROUNDING_PLACES) % 1
             print('Stage 3 jd:', jd, 'jd0:', jd0, 'date:', (year, month, day),
                   'ss0:', ss0, 'jd_frac:', jd_frac, 'ss_frac:', ss_frac,
                   'diff:', diff, 'frac:', frac)
