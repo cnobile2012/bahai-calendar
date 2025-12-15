@@ -391,27 +391,31 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             ss1 = self._sun_setting(jd1 - 1, lat, lon)
             ss_frac1 = round(self._local_zone_correction(ss1, zone),
                                  self._ROUNDING_PLACES)
+            # Calculate the time between sunset and the following midnight
+            # of the JD day before then add it to the JD day fraction to
+            # get the Badi time.
+            frac = (1 - ss_frac1 + jd_frac) % 1
             o_jd = self._local_zone_correction(jd, zone, inverse=True,
                                                mod_jd=True)
 
-            
-
-            day -= 1
-            # Calculate the time between sunset and the following midnight of
-            # the JD day before then add it to the JD day fraction to get the
-            # Badi time.
-            frac = (1 - ss_frac1 + jd_frac) % 1
-
-            if day == 0:
-                print('Stage 2 jd:', jd, 'jd1:', jd1,
-                      'date:', (year, month, day), 'ss0:', ss0, 'jd_frac:',
-                      jd_frac, 'ss_frac:', ss_frac, 'frac:', frac)
-                year, month, day = day_before(year, month)
+            of_jd, o_jd_f = divmod(o_jd, 1)
+            nf_jd, n_jd_f = divmod(jd, 1)
+            if of_jd == nf_jd and o_jd_f < 0.5 and n_jd_f >= 0.5:
+                pass
             else:
-                print('Stage 1 jd:', jd, 'jd1:', jd1,
-                      'date:', (year, month, day), 'ss1:', ss1, 'jd_frac:',
-                      jd_frac, 'ss_frac', ss_frac, 'ss_frac1:',
-                      ss_frac1, 'frac:', frac)
+                day -= 1
+
+                if day == 0:
+                    print('Stage 2 jd:', jd, 'jd1:', jd1,
+                        'date:', (year, month, day), 'ss1:', ss1, 'jd_frac:',
+                        jd_frac, 'ss_frac:', ss_frac,'ss_frac1:', ss_frac1,
+                        'frac:', frac)
+                    year, month, day = day_before(year, month)
+                else:
+                    print('Stage 1 jd:', jd, 'jd1:', jd1,
+                        'date:', (year, month, day), 'ss1:', ss1, 'jd_frac:',
+                        jd_frac, 'ss_frac', ss_frac, 'ss_frac1:', ss_frac1,
+                        'frac:', frac)
         else:
             diff = ss_frac - jd_frac
             dl = self._day_length(jd - 1, lat, lon, decimal=True)
