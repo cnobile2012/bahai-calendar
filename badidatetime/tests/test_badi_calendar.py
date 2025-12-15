@@ -210,79 +210,89 @@ class TestBadiCalendar(unittest.TestCase):
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
         local_coords = (35.5894, -78.7792, -5.0)
         data = (
-            # 0001-03-20T18:10:43.8Z -> 0001-03-20T21:40:43.8+03:30
-            # Sunset = 18:16 Tehran -> Badi time = 03:24:43.8
-            (1721502.2574517454, *epoch_coords, False, True, True, False,
-             False, (-1842, 1, 2, 3, 25, 26.778)),
-            # 0001-04-08T18:40:46.5Z -> 0001-04-08T22:10:46.5+03:30
-            # Sunset = 18:27 Tehran -> Badi time = 03:43:46.5
-            (1721521.2783162275, *epoch_coords, False, True, True, False,
-             False, (-1842, 2, 2, 3, 41, 26.5236)),
-            # 0002-02-24T17:30:50.7Z -> 0002-02-24T21:00:50.7+03:30
-            # Sunset = 17:57 Tehran -> Badi time = 03:03:50.7
-            (1721843.2297538682, *epoch_coords, False, True, True, False,
-             False, (-1842, 0, 1, 3, 5, 1.3704)),
-            # 0002-02-25T17:32:33.0Z -> 0002-02-25T21:02:33.0+03:30
-            # Sunset = 17:58 -> Badi time = 03:04:33
-            (1721844.2309374965, *epoch_coords, False, True, True, False,
-             False, (-1842, 0, 2, 3, 5, 51.6876)),
-            # 0002-02-26T17:34:14.9Z -> 0002-02-26T21:04:14.9+03:30
-            # Sunset = 17:59 -> Badi time = 03:05:14.9
-            (1721845.2321173307, *epoch_coords, False, True, True, False,
-             False, (-1842, 0, 3, 3, 6, 42.0552)),
-            # 0002-03-02T17:40:59.4Z -> 0002-03-02T21:10:59.4+03:30
-            # Sunset = 18:02 -> Badi time = 03:08:59.4
-            (1721849.236798515, *epoch_coords, False, True, True, False, False,
-             (-1842, 19, 2, 3, 10, 3.8892)),
-            # 0002-03-06T17:47:38.6Z -> 0002-03-06T21:17:38.2+03:30
-            # Sunset = 18:05 -> Badi time = 03:12:38.2
-            (1721853.24141933, *epoch_coords, False, True, True, False, False,
-             (-1842, 19, 6, 3, 13, 26.1084)),
-            # 1583-03-20T18:13:54.4Z -> 1583-03-20T21:43:54.4+03:30
-            # Sunset = 18:16 -> Badi time = 03:27:54.4
-            (2299315.2596576316, *epoch_coords, False, True, True, False,
-             False, (-260, 1, 1, 3, 26, 57.8544)),
-            # 1844-03-19T18:13:21.1Z -> 1844-03-19T21:43:21.1+03:30
-            # Sunset = 18:16 -> Badi time = 03:27:21.1
-            (2394643.2592724077, *epoch_coords, False, True, True, False,
-             False, (1, 1, 1, 3, 26, 45.1284)),
-            # Stage 2
-            # 1844-03-19T14:46:00.0+03:30
-            # Sunset = 18:16, Badi time = 00:00:00
-            (2394643.115278, *epoch_coords, False, True, True, False, False,
-             (0, 19, 19)),
-            # 1844-03-19T18:11:40.057Z -> 1844-03-19T21:41:40.5+03:30
-            # Sunset = 18:16 -> Badi time = 03:25:40.5
-            (2394643.2581025115, *epoch_coords, False, True, True, False,
-             False, (1, 1, 1, 3, 25, 4.0512)),
-            # 1845-03-20T18:14:37.5Z -> 1845-03-20T21:44:37.5+03:30
-            # Sunset = 18:17 -> Badi time = 03:27:37.5
-            (2395009.2601561244, *epoch_coords, False, True, True,  False,
-             False, (2, 1, 1, 3, 27, 23.7744)),
-            # 1863-03-20T18:14:00.3Z -> 1863-03-20T21:44:00.0+03:30
-            # Sunset = 18:16 -> Badi time = 03:28:00
-            (2401583.2597260755, *epoch_coords, False, True, True, False,
-             False, (20, 1, 1, 3, 27, 5.3028)),
-            # Three consecutive days that gave me trouble
-            # 1844-03-18T00:00:00Z -> 1844-03-18T03:30:00.0+03:30
-            # Sunset = 18:15 -> Badi date & time = 09:15:00 -> round to day
-            (2394641.5, *epoch_coords, False, True, True, False, True,
-             (0, 19, 18)),
+            # Stage 1
             # 1844-03-19T00:00:00Z -> 1844-03-19T03:30:00.0+03:30
-            # 24:00:00 - 18:16:00 + 03:30:00 = 09:14
-            # Sunset = 18:16 -> Badi time = 09:14:00 -> round to day
-            (2394642.5, *epoch_coords, False, True, True, False, True,
-             (0, 19, 19)),
+            # Sunset day before = 18:15 -> 24:00 - 18:15 = 05:45 ->
+            # 05:45 + 03:30 = Badi time 09:15 -> 0000-19-19T09:15:00
+            (2394643.115278, *epoch_coords, False, True, True, False, False,
+             (0, 19, 19, 0, 0, 14.0436)),
+
             # 1844-03-19T18:17:26.6Z -> 1844-03-19T21:47:26.6+03:30
             # Sunset = 18:16 -> Badi time = 03:31:26.6
             (2394643.262113, *epoch_coords, False, True, True, False, True,
              (1, 1, 1)),
-            # Stage 2
-            # 1969-12-30T16:00:27.5-05:00
-            # Sunset day before = 17:11 -> 24:00 - 17:11 + 11:00:27.5
-            # Badi time = 17:49:27.5
+
+            # 1844-03-18T00:00:00Z -> 1844-03-18T03:30:00.0+03:30
+            # Sunset day before = 18:14 -> 24:00 - 18:14 = 05:46 ->
+            # 05:46 + 03:30 = Badi time 09:16 -> 0000-19-17T09:16:00
+
+            # (2394641.5, *epoch_coords, False, True, True, False, True,
+            #  (0, 19, 17, 9, 16)),
+
+
+
+            # Stage 3
+            # 0001-03-20T18:10:43.8Z -> 0001-03-20T21:40:43.8+03:30
+            # Sunset = 18:17 -> 21:40:43.8 - 18:17 = Badi time 03:23:43.8
+            (1721502.2574517454, *epoch_coords, False, True, True, False,
+             False, (-1842, 1, 2, 3, 26, 11.976)),
+            # 0001-04-08T18:40:46.5Z -> 0001-04-08T22:10:46.5+03:30
+            # Sunset = 18:27 Tehran -> Badi time = 03:43:46.5
+            (1721521.2783162275, *epoch_coords, False, True, True, False,
+             False, (-1842, 2, 2, 3, 42, 10.8)),
+            # 0002-02-24T17:30:50.7Z -> 0002-02-24T21:00:50.7+03:30
+            # Sunset = 17:57 Tehran -> Badi time = 03:03:50.7
+            (1721843.2297538682, *epoch_coords, False, True, True, False,
+             False, (-1842, 0, 1, 3, 5, 53.7)),
+            # 0002-02-25T17:32:33.0Z -> 0002-02-25T21:02:33.0+03:30
+            # Sunset = 17:58 -> Badi time = 03:04:33
+            (1721844.2309374965, *epoch_coords, False, True, True, False,
+             False, (-1842, 0, 2, 3, 6, 43.6392)),
+            # 0002-02-26T17:34:14.9Z -> 0002-02-26T21:04:14.9+03:30
+            # Sunset = 17:59 -> Badi time = 03:05:14.9
+            (1721845.2321173307, *epoch_coords, False, True, True, False,
+             False, (-1842, 0, 3, 3, 7, 33.6252)),
+            # 0002-03-02T17:40:59.4Z -> 0002-03-02T21:10:59.4+03:30
+            # Sunset = 18:02 -> Badi time = 03:08:59.4
+            (1721849.236798515, *epoch_coords, False, True, True, False, False,
+             (-1842, 19, 2, 3, 10, 54.0048)),
+            # 0002-03-06T17:47:38.6Z -> 0002-03-06T21:17:38.2+03:30
+            # Sunset = 18:05 -> Badi time = 03:12:38.2
+            (1721853.24141933, *epoch_coords, False, True, True, False, False,
+             (-1842, 19, 6, 3, 14, 14.8596)),
+            # 1583-03-20T18:13:54.4Z -> 1583-03-20T21:43:54.4+03:30
+            # Sunset = 18:16 -> Badi time = 03:27:54.4
+            (2299315.2596576316, *epoch_coords, False, True, True, False,
+             False, (-260, 1, 1, 3, 27, 47.1456)),
+            # 1844-03-19T18:13:21.1Z -> 1844-03-19T21:43:21.1+03:30
+            # Sunset = 18:16 -> Badi time = 03:27:21.1
+            (2394643.2592724077, *epoch_coords, False, True, True, False,
+             False, (1, 1, 1, 3, 27, 35.1612)),
+            # 1844-03-19T18:11:40.057Z -> 1844-03-19T21:41:40.5+03:30
+            # Sunset = 18:16 -> Badi time = 03:25:40.5
+            (2394643.2581025115, *epoch_coords, False, True, True, False,
+             False, (1, 1, 1, 3, 25, 54.084)),
+            # 1845-03-20T18:14:37.5Z -> 1845-03-20T21:44:37.5+03:30
+            # Sunset = 18:17 -> Badi time = 03:27:37.5
+            (2395009.2601561244, *epoch_coords, False, True, True,  False,
+             False, (2, 1, 1, 3, 28, 13.6884)),
+            # 1863-03-20T18:14:00.3Z -> 1863-03-20T21:44:00.0+03:30
+            # Sunset = 18:16 -> Badi time = 03:28:00
+            (2401583.2597260755, *epoch_coords, False, True, True, False,
+             False, (20, 1, 1, 3, 27, 55.3248)),
+            # 1844-03-19T00:00:00Z -> 1844-03-19T03:30:00.0+03:30
+            # 24:00:00 - 18:16:00 + 03:30:00 = 09:14:00
+            # Sunset = 18:16 -> Badi time = 09:14:00 -> round to day
+            (2394642.5, *epoch_coords, False, True, True, False, True,
+             (0, 19, 19)),
+
+            # Stage 1
+            # 1969-12-30T16:00:27.5Z -> 1969-12-30T11:00:27.5-05:00
+            # Sunset day before = 17:15 -> 24:00 - 17:15 = 06:15 ->
+            # 06:15 + 11:00:27.5 = Badi time 17:45:27.5
             (2440584.1669850457, *local_coords, True, True, True, False, False,
-             (126, 15, 19, 17, 49, 51, 538800)),
+             (126, 15, 18, 17, 45, 27.5)),
+
             # Stage 2
             # 2024-08-21T19:33:46.246101Z -> 2024-08-21T14:33:46.246101-05:00
             # Sunset day before = 18:58 -> 24:00 - 18:58 + 14:33:46.246101
@@ -385,22 +395,32 @@ class TestBadiCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test__adjust_date(self):
         """
+        Test that the _adjust_date method correctly fixes the time and date.
+        The date parameter below can be found in the 'Stage 0' print statement
+        from the badi_date_from_jd test above.
         """
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
         local_coords = (35.5894, -78.7792, -5.0)
         data = (
-            # Stage 1 -- 0001-03-20T18:10:43.8Z -> 0001-03-20T21:40:43.8+03:30
-            # Sunset = 18:16 Tehran -> Badi time = 03:24:43.8
+            # Stage 1 -- 1844-03-19T00:00:00Z -> 1844-03-19T03:30:00.0+03:30
+            # Sunset day before = 18:15 -> 24:00 - 18:15 = 05:45 ->
+            # 05:45 + 03:30 = Badi time 09:15
+            (2394642.5, (0, 19, 19), *epoch_coords,
+             (0, 19, 18, 9, 15, 4.212)),
+            # Stage 1 -- The previous JD when adding -5.0
+            # 1969-12-30T16:00:27.5Z -> 1969-12-30T11:00:27.5-05:00
+            # Sunset day before = 17:11 -> 24:00 - 17:11 = 06:49 ->
+            # 06:49 + 11:00:27.5 = Badi time 17:49:27.5
+            (2440584.1669850457, (126, 15, 19), *local_coords,
+             (126, 15, 18, 17, 50, 32.928)),
+            # Stage 2 -- 1844-03-19T14:46:00Z -> 1844-03-19T18:16:00.0+03:30
+            # Sunset = 18:16 -> 18:16 - 18:16 = 00:00:00
+            (2394643.115278, (1, 1, 1), *epoch_coords,
+             (0, 19, 19, 0, 0, 14.0436)),
+            # Stage 3 -- 0001-03-20T18:10:43.8Z -> 0001-03-20T21:40:43.8+03:30
+            # Sunset = 18:17 -> 21:40:43.8 - 18:17 = Badi time 03:23:43.8
             (1721502.2574517454, (-1842, 1, 2), *epoch_coords,
-             (-1842, 1, 2, 3, 25, 26.778)),
-            # Stage 2 -- 1844-03-19T14:46:00.0+03:30
-            # Sunset = 18:16 Tehran -> Badi time = 00:00:00
-            (2394643.115278, (1, 1, 1), *epoch_coords, (0, 19, 19, 0, 0, 0)),
-            # Stage 2 -- 1844-03-19T00:00:00Z -> 1844-03-19T03:30:00.0+03:30
-            # Sunset = 18:16 -> 24:00:00 - 18:16:00 + 03:30:00 =
-            # (Badi time) 09:14:00 -> 0000-19-19T09:14:00
-            (2394642.5, (1, 1, 19), *epoch_coords,
-             (0, 19, 19, 9, 14, 14.0244)),
+             (-1842, 1, 2, 3, 26, 11.976)),
             )
         msg = "Expected {} for jd {}, date {}, found {}"
 

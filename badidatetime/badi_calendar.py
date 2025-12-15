@@ -27,7 +27,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     #                 lattude    longitude  zone IANA name      elevation
     _BAHAI_LOCATION = (35.69435, 51.288701, 3.5, 'Asia/Tehran', 0)
     _GMT_LOCATION = (51.477928, -0.001545, 0, 0)
-    _BADI_EPOCH = 2394643.5  # 2394645.5 using Meeus' algorithm
+    _BADI_EPOCH = 2394643.262681068  # 2394645.262681068 using Meeus' algorithm
     _BADI_MONTH_NUM_DAYS = [
         (1, 19), (2, 19), (3, 19), (4, 19), (5, 19), (6, 19), (7, 19),
         (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
@@ -280,45 +280,48 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         def get_leap_year_info(year, _chk_on):
             leap = self._is_leap_year(year, _chk_on=_chk_on)
+            # *** TODO *** Maybe not need (diy) 365 + leap
             return leap, 365 + leap, 4 + leap
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
-        md = jd - (self._BADI_EPOCH - 1)
+        md = jd - self._BADI_EPOCH
         # This is only needed for the last two days of Badi year 1161
         # and the day before the epoch.
         y = 1 if md < 424046 and md != 0 else 0
         # Find the year
         year = math.floor(md / self._MEAN_TROPICAL_YEAR) + y
-        leap, yds, ld = get_leap_year_info(year, _chk_on)
+        leap, diy, ld = get_leap_year_info(year, _chk_on)
         # Get 1st day of year so we can find the number of days to the JD.
-        fdy = (year, 1, 1)
+        fdoy = (year, 1, 1)
+        fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone, _chk_on=_chk_on)
         # Fix day if needed.
-        fjdy = self.jd_from_badi_date(fdy, lat, lon, zone, _chk_on=_chk_on)
-        yr = year - 1 if (math.floor(fjdy) - math.floor(jd)) > 0 else year
+        yr = year - 1 if (math.floor(fjdoy) - math.floor(jd)) > 0 else year
 
         if yr:
             year = yr
-            leap, yds, ld = get_leap_year_info(year, _chk_on)
+            leap, diy, ld = get_leap_year_info(year, _chk_on)
 
-        days = math.floor(jd) - math.floor(fjdy) + 1
+        days = math.floor(jd) - math.floor(fjdoy) + 1
 
-        if days <= 342:  # Month 1 - 18
+        if days <= 342:                 # Month 1 - 18
             m_days = days % 19
             day = 19 if m_days == 0 else m_days
-        elif (342 + ld) < days <= yds:  # Month 19
+        elif (342 + ld) < days <= 366:  # Month 19
             day = days - (342 + ld)
-        else:  # Ayyam-i-Ha
+        else:                           # Ayyam-i-Ha
             day = days % 342
 
-        month_days = self._BADI_MONTH_NUM_DAYS
+        month_days = list(self._BADI_MONTH_NUM_DAYS)
         month_days[18] = (0, ld)  # Fix Ayyám-i-Há days
 
         for month, ds in month_days:
             if days <= ds: break
             days -= ds
 
+        print('Stage 0 jd:', jd, 'date:', (year, month, day), 'days:', days,
+              'fjdoy:', fjdoy, 'md:', md, 'y:', y, 'leap:', leap)
         year, month, day, frac = self._adjust_date(jd, year, month, day,
                                                    lat, lon, zone)
 
@@ -332,7 +335,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                 b_date = self.long_date_from_short_date(b_date, trim=trim,
                                                         _chk_on=_chk_on)
             assert frac < 1.0, (
-                "If this assert fires send this entire message to the "
+                "If this assertion fires send this entire message to the "
                 f"developer: jd: {jd}, day: {day}, frac: {frac}, "
                 f"b_date: {b_date}")
         else:
@@ -347,60 +350,70 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
     def _adjust_date(self, jd, year, month, day, lat, lon, zone):
         """
+        Adjust the date based on the latitude, longitude, and zone. The JD
+        value is in local time so all JDs that are compared to it must also
+        be in local time.
+
+        :param float jd:
+        :param int year:
+        :param int, month:
+        :param int day:
+        :param float lat:
+        :param float lon:
+        :param float zone:
+        :returns: The year, month, day, frag in a tuple.
+        :rtype: tuple
         """
-        def day_before(year, month, day):
-            if 2 <= month <= 18:  # Months 2 - 18
+        def day_before(year, month):
+            if 2 <= month <= 18:  # Months 2 - 18 -> to previous month
                 month -= 1
                 day = 19
-            elif month == 19:     # Month 19
+            elif month == 19:     # Month 19 -> Ayyám-i-Há
                 month = 0
-                day = ld
+                day = 4 + self._is_leap_year(year)
             elif month == 0:      # Ayyám-i-Há
                 month = 18
                 day = 19
-            else:                 # Month 1
+            else:                 # Month 1 -> Month 19 & year to previous year
                 year -= 1
                 month = 19
                 day = 19
 
             return year, month, day
 
-        jd_frac = round(jd % 1, self._ROUNDING_PLACES)  # hms as a fraction
-        jd0 = self._meeus_from_exact(math.floor(jd))
-        ss0 = self._sun_setting(jd0, lat, lon)
-        ss_frac = round(ss0 % 1, self._ROUNDING_PLACES)  # hms as a fraction
+        jd0, jd_frac = divmod(jd, 1)
+        jd1 = self._meeus_from_exact(jd0)
+        ss0 = self._sun_setting(jd1, lat, lon)
+        ss_frac = round(self._local_zone_correction(ss0, zone),
+                        self._ROUNDING_PLACES)
 
-        if jd_frac > ss_frac:
-            frac = round(jd_frac - ss_frac, self._ROUNDING_PLACES)
-            frac0 = self._local_zone_correction(frac, zone, inverse=True)
+        if (jd_frac + 0.5) % 1 < (ss_frac + 0.5) % 1:
+            ss1 = self._sun_setting(jd1 - 1, lat, lon)
+            ss_frac1 = round(self._local_zone_correction(ss1, zone),
+                                 self._ROUNDING_PLACES)
+            day -= 1
+            # Calculate the time between sunset and the following midnight of
+            # the JD day before then add it to the JD day fraction to get the
+            # Badi time.
+            d, frac = divmod(1 - ss_frac1 + jd_frac, 1)
 
-            if frac0 > frac:
-                print('Stage 1 jd0:', jd0, 'date:', (year, month, day),
-                      'ss0:', ss0, 'jd_frac:', jd_frac, 'ss_frac:', ss_frac,
-                      'frac0:', frac0, 'frac:', frac)
-                day -= 1
-
-                if day == 0:
-                    year, month, day = day_before(year, month, day)
-
-                frac = 0
+            if day == 0:
+                print('Stage 2 jd:', jd, 'jd1:', jd1,
+                      'date:', (year, month, day), 'ss0:', ss0, 'jd_frac:',
+                      jd_frac, 'ss_frac:', ss_frac, 'frac:', frac)
+                year, month, day = day_before(year, month)
             else:
-                #year, month, day = day_before(year, month, day)
-                print('Stage 2 jd0:', jd0, 'date:', (year, month, day),
-                      'ss0:', ss0, 'jd_frac:', jd_frac, 'ss_frac:', ss_frac,
-                      'frac0:', frac0, 'frac:', frac)
-                frac = frac0
+                print('Stage 1 jd:', jd, 'jd1:', jd1,
+                      'date:', (year, month, day), 'ss1:', ss1, 'jd_frac:',
+                      jd_frac, 'ss_frac', ss_frac, 'ss_frac1:',
+                      ss_frac1, 'frac:', frac)
         else:
             diff = ss_frac - jd_frac
             dl = self._day_length(jd - 1, lat, lon, decimal=True)
             frac = round(dl - diff, self._ROUNDING_PLACES)
-            print('Stage 3 jd0:', jd0, 'date:', (year, month, day),
+            print('Stage 3 jd:', jd, 'jd0:', jd0, 'date:', (year, month, day),
                   'ss0:', ss0, 'jd_frac:', jd_frac, 'ss_frac:', ss_frac,
                   'diff:', diff, 'frac:', frac)
-            day -= 1
-
-            if day == 0:
-                year, month, day = day_before(year, month, day)
 
         return year, month, day, frac
 

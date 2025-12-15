@@ -1511,14 +1511,17 @@ if __name__ == "__main__":
             options.end = 1162     # Gregorian Calendar year 3005
 
         start_time = time.time()
-        print(f"./contrib/misc/{basename} -dS{options.start} "
-              f"-E{options.end}")
+        print(f"./contrib/misc/{basename} -dS {options.start} "
+              f"-E {options.end}")
         (short_day, short_hms,
          long_day, long_hms) = dt.find_longest_and_shortest_days(options)
-        print("Shortest Day  Length              Longest Day   Length")
-        print('-'*67)
-        print(f"{str(short_day):13} {str(short_hms):19} "
-              f"{str(long_day):13} {str(long_hms):19}")
+        underline_length = 69
+        print('-' * underline_length)
+        print("Shortest Day    Length             Longest Day     Length")
+        print('-' * underline_length)
+        print(f"{str(short_day):15} {str(short_hms):18} "
+              f"{str(long_day):15} {str(long_hms):18}")
+        print('-' * underline_length)
         end_time = time.time()
         days, hours, minutes, seconds = dt._dhms_from_seconds(
             end_time - start_time)
@@ -1533,8 +1536,8 @@ if __name__ == "__main__":
             start_time = time.time()
             data = dt.find_weekdays(options)
             C = 'C' if options.coff else ''
-            print(f"./contrib/misc/{basename} -e{C}S{options.start} "
-                  f"-E{options.end}")
+            print(f"./contrib/misc/{basename} -e{C}S {options.start} "
+                  f"-E {options.end}")
             print("Badí'            Gregorian                          Week "
                   "Week Day      Month      Leap  Days Day in")
             print("Date             Date                               Num  "
