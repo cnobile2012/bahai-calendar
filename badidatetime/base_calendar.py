@@ -5,6 +5,8 @@
 __docformat__ = "restructuredtext en"
 
 import math
+import sys
+import os
 
 from badidatetime.julian_period import JulianPeriod
 from badidatetime._astronomical_terms import AstronomicalTerms
@@ -54,8 +56,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _SUN_OFFSET = 0.8333
     _STARS_PLANET_OFFSET = 0.5667
     _ROUNDING_PLACES = 12
-    # Meus value is 2440587.5
-    _POSIX_EPOCH = 2440585.5  # This is using the more exact algorithm.
+    # This is using the astronomically exact algorithm.
+    # The Meeus value is 2440587.5
+    _POSIX_EPOCH = 2440585.5
     _JULIAN_CAL_EPOCH = 1721423.5
 
     def __init__(self, *args, **kwargs):
@@ -1610,3 +1613,19 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             result = round(modified_jd % 1, self._ROUNDING_PLACES)
 
         return result
+
+    def _debug_print(self, msg: str, values: tuple) -> None:
+        """
+        The print statement is activated only when the DEBUG variable is
+        `True`. This can be passed on the command line with a
+        `make tests DEBUG=True`.
+
+        This can become extreamly verbose if run on all tests as above. In
+        general run with a single unit test. See the Makefile on how to do
+        this.
+
+        :param str msg: The text to be printed.
+        :param tuple values: A tuple of values: (value0, value1, ...)
+        """
+        if os.getenv('DEBUG', default=False):
+            print(msg.format(*values), file=sys.stderr)

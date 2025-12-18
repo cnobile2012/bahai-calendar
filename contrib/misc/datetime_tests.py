@@ -360,15 +360,15 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
             g_ts_ss = dtime.datetime(*g_date, tzinfo=tz).timestamp()
             #g_ts_ss = self.timestamp_at_sunset(g_date, lat, lon)
             # Timestamp only methods, 1st get UTC timestamp for sunset.
-            ts_b_date = self.posix_timestamp(g_ts_ss, lat, lon, zone,
-                                             short=True, trim=True, rtd=False)
+            ts_b_date = self.badi_date_from_timestamp(
+                g_ts_ss, lat, lon, zone, short=True, trim=True, rtd=False)
             # Julian Period day methods.
             year, month, day, hour, minute, second = b_date
             jd_ts_ss = datetime(year, month, day, hour=hour, minute=minute,
                                 second=second).timestamp()
-            jd_b_date = self.posix_timestamp(jd_ts_ss, lat, lon, zone,
-                                             short=True, trim=True, rtd=False,
-                                             _chk_on=False)
+            jd_b_date = self.badi_date_from_timestamp(
+                jd_ts_ss, lat, lon, zone, short=True, trim=True, rtd=False,
+                _chk_on=False)
             ts_diff = g_ts_ss - ts
             jd_diff = jd_ts_ss - ts
             data.append((b_date, ts, g_date, g_ts_ss, ts_diff, ts_b_date,
@@ -641,7 +641,7 @@ if __name__ == "__main__":
         end_time = time.time()
         days, hours, minutes, seconds = dt._dhms_from_seconds(
             end_time - start_time)
-        print(f"  Elapsed time: {hours:02} hours, {minutes:02} minutes, "
+        print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
               f"{round(seconds, 6):02.6} seconds.")
     elif options.analyze2:  # -c
         start_time = time.time()

@@ -320,8 +320,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             if days <= ds: break
             days -= ds
 
-        print('Stage 0 jd:', jd, 'date:', (year, month, day), 'days:', days,
-              'fjdoy:', fjdoy, 'md:', md, 'y:', y, 'leap:', leap)
+        self._debug_print(
+            "Stage 0--jd: {}, date: {}, days: {}, fjdoy: {}, md: {}, y: {}, "
+            "leap: {}", (jd, (year, month, day), days, fjdoy, md, y, leap))
         year, month, day, frac = self._adjust_date(jd, year, month, day,
                                                    lat, lon, zone)
 
@@ -391,38 +392,48 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             ss1 = self._sun_setting(jd1 - 1, lat, lon)
             ss_frac1 = round(self._local_zone_correction(ss1, zone),
                                  self._ROUNDING_PLACES)
-            # Calculate the time between sunset and the following midnight
-            # of the JD day before then add it to the JD day fraction to
-            # get the Badi time.
+            # Calculate the time between the previous sunset and the
+            # following midnight of the JD day then add the results to
+            # the JD day fraction to get the Badi time.
             frac = (1 - ss_frac1 + jd_frac) % 1
+            # Get the original GMT by reversing the time zone value.
             o_jd = self._local_zone_correction(jd, zone, inverse=True,
                                                mod_jd=True)
+            oi_jd, o_jd_f = divmod(o_jd, 1)
+            ni_jd, n_jd_f = divmod(jd, 1)
 
-            of_jd, o_jd_f = divmod(o_jd, 1)
-            nf_jd, n_jd_f = divmod(jd, 1)
-            if of_jd == nf_jd and o_jd_f < 0.5 and n_jd_f >= 0.5:
-                pass
-            else:
+            if not (oi_jd == ni_jd and (o_jd_f < 0.5 and n_jd_f >= 0.5) or
+                    (o_jd_f == n_jd_f)):
                 day -= 1
 
                 if day == 0:
-                    print('Stage 2 jd:', jd, 'jd1:', jd1,
-                        'date:', (year, month, day), 'ss1:', ss1, 'jd_frac:',
-                        jd_frac, 'ss_frac:', ss_frac,'ss_frac1:', ss_frac1,
-                        'frac:', frac)
+                    self._debug_print(
+                        "Stage 2--jd: {}, jd1: {}, date: {}, ss1: {}, "
+                        "jd_frac: {}, ss_frac: {}, ss_frac1: {}, frac: {}",
+                        (jd, jd1, (year, month, day), ss1, jd_frac, ss_frac,
+                         ss_frac1, frac))
                     year, month, day = day_before(year, month)
                 else:
-                    print('Stage 1 jd:', jd, 'jd1:', jd1,
-                        'date:', (year, month, day), 'ss1:', ss1, 'jd_frac:',
-                        jd_frac, 'ss_frac', ss_frac, 'ss_frac1:', ss_frac1,
-                        'frac:', frac)
+                    self._debug_print(
+                        "Stage 1--jd: {}, jd1: {}, date: {}, ss1: {}, "
+                        "jd_frac: {}, ss_frac: {}, ss_frac1: {}, frac: {}",
+                        (jd, jd1, (year, month, day), ss1, jd_frac, ss_frac,
+                         ss_frac1, frac))
+            else:
+                self._debug_print(
+                    "Stage 3--jd: {}, jd1: {}, date: {}, ss1: {}, "
+                    "jd_frac: {}, ss_frac: {}, ss_frac1: {}, frac: {}",
+                    (jd, jd1, (year, month, day), ss1, jd_frac, ss_frac,
+                     ss_frac1, frac))
         else:
             diff = ss_frac - jd_frac
             dl = self._day_length(jd - 1, lat, lon, decimal=True)
             frac = round(dl - diff, self._ROUNDING_PLACES) % 1
-            print('Stage 3 jd:', jd, 'jd0:', jd0, 'date:', (year, month, day),
-                  'ss0:', ss0, 'jd_frac:', jd_frac, 'ss_frac:', ss_frac,
-                  'diff:', diff, 'frac:', frac)
+            self._debug_print(
+                "Stage 4--jd: {}, jd0: {}, date: {}, ss0: {}, jd_frac: {}, "
+                "ss_frac: {}, diff: {}, frac: {}",
+                (jd, jd0, (year, month, day), ss0, jd_frac, ss_frac, diff,
+                 frac))
 
         return year, month, day, frac
 
@@ -633,10 +644,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         return self._gc.gregorian_date_from_jd(jd, hms=True, us=us,
                                                exact=_exact)
 
-    def posix_timestamp(self, t: float, lat: float=None, lon: float=None,
-                        zone: float=None, *, us: bool=False, short: bool=False,
-                        trim: bool=False, rtd: bool=False,
-                        _chk_on: bool=True) -> tuple:
+    def badi_date_from_timestamp(self, t: float, lat: float=None,
+                                 lon: float=None, zone: float=None, *,
+                                 us: bool=False, short: bool=False,
+                                 trim: bool=False, rtd: bool=False,
+                                 _chk_on: bool=True) -> tuple:
         """
         Get the Badi date from a POSIX timestamp.
 
@@ -659,7 +671,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = t / 86400 + self._POSIX_EPOCH
-        return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
+        jd0 = self._local_zone_correction(jd, zone, mod_jd=True)
+        return self.badi_date_from_jd(jd0, lat, lon, zone, us=us, short=short,
                                       trim=trim, rtd=rtd, _chk_on=_chk_on)
 
     def timestamp_from_badi_date(self, date: tuple, lat: float, lon: float,
