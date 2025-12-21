@@ -610,6 +610,8 @@ class TestTimeDateUtils(unittest.TestCase):
             (444, True, (-1841, 1, 1)),
             (673219, True, (0, 19, 19)),
             (673220, True, (1, 1, 1)),
+            (675045, True, (5, 19, 18)),
+            (675046, True, (5, 19, 19)),
             (738964, True, (181, 1, 1)),
             # 1st week of 181
             (738961, True, (180, 19, 17)),

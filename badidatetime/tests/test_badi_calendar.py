@@ -209,6 +209,7 @@ class TestBadiCalendar(unittest.TestCase):
         err_msg0 = "Cannot set more than one of fraction, us, or rtd to True."
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
         local_coords = (35.5894, -78.7792, -5.0)
+        gmt_coords = (51.477928, -0.001545, 0)
         data = (
             # Stage 1
             # 1844-03-19T00:00:00Z -> 1844-03-19T03:30:00.0+03:30
@@ -231,6 +232,7 @@ class TestBadiCalendar(unittest.TestCase):
             # 06:15 + 11:00:27.5 = Badi time 17:45:27.5
             (2440584.1669850457, *local_coords, True, True, True, False, False,
              (126, 15, 18, 17, 50, 32, 928000)),
+            # Stage 2
             # 2024-08-21T19:33:46.246101Z -> 2024-08-21T14:33:46.246101-05:00
             # Sunset day before = 18:58 -> 24:00 - 18:58 + 14:33:46.246101
             # Badi time = 19:35:46.246101
@@ -239,8 +241,12 @@ class TestBadiCalendar(unittest.TestCase):
             # 2440585.5 -- 1970-01-01T:00:00:00Z
             # Sunset day before = 16:00 -> 24:00 - 16:00 = 08:00
             # 08:00 + 00:00 = Badi time = 08:00:00
-            (self._bc._POSIX_EPOCH, 51.477928, -0.001545, 0, False, True, True,
-             False, False, (126, 16, 2, 8, 0, 30.6684)),
+            (self._bc._POSIX_EPOCH, *gmt_coords, False, True, True, False,
+             False, (126, 16, 2, 8, 0, 30.6684)),
+            # 1849-03-19T18:14:39.7716Z
+            # Sunset day before = 18:11 -> 18:14 - 18:11 = 00:03
+            (2396469.5, *gmt_coords, False, True, True, False, False,
+             (5, 19, 19, 5, 50, 23.5788)),
             # Stage 3
             # 2025-11-30T22:00:00.0Z -> 2025-12-01T01:30.00.0+03:30
             # Sunset day before = 16:52 -> 24:00 - 16:52 = 07:08 ->
@@ -391,6 +397,7 @@ class TestBadiCalendar(unittest.TestCase):
         """
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
         local_coords = (35.5894, -78.7792, -5.0)
+        gmt_coords = (51.477928, -0.001545, 0)
         data = (
             # Stage 1
             # 1844-03-19T00:00:00Z -> 1844-03-19T03:30:00.0+03:30
@@ -430,6 +437,9 @@ class TestBadiCalendar(unittest.TestCase):
             # 07:08 + 01:30 = Badi date & time = 0182-14-10T08:38:00
             (2461008.416667, (182, 14, 10), *epoch_coords,
              (182, 14, 10, 8, 38, 22.632)),
+            # 1849-03-19T18:14:39.7716Z
+            # Sunset day before = 18:11 -> 18:14 - 18:11 = 00:03
+            (2396469.5, (5, 19, 19), *gmt_coords, (5, 19, 19, 5, 50, 23.5788)),
             # Stage 3
             # 0001-03-20T18:10:43.8Z -> 0001-03-20T21:40:43.8+03:30
             # Sunset = 18:17 -> 21:40:43.8 - 18:17 = Badi time 03:23:43.8

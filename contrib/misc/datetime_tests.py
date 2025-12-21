@@ -339,7 +339,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
                     g_date = self.gc.gregorian_date_from_jd(
                         jd, hms=True, exact=True)
 
-                    data.append((g_date, jd, date, b_date, o_date,
+                    data.append((g_date, jd, ord, date, b_date, o_date,
                                  diff0, diff1))
 
         return data
@@ -609,19 +609,20 @@ if __name__ == "__main__":
 
         start_time = time.time()
         data = dt.analyze_ordinal_error_create(options)
-        underline_length = 141
+        underline_length = 149
         print(f"./contrib/misc/{basename} -bS {options.start} "
               f"-E {options.end}")
         print('-' * underline_length)
-        print(" " * 115, "Orig - Badi   Orig - Ord")
-        print("Greg Date", ' ' * 21, "JD", ' ' * 15, "Orig Date       "
+        print(" " * 123, "Orig - Badi   Orig - Ord")
+        print("Greg Date", ' ' * 21, "JD", ' ' * 15, "Ordinal",
+              "Orig Date       "
               "Badi Date", ' ' * 22, "Ordinal Date    B Date Diff   "
               "O Date Diff")
         print('-' * underline_length)
         total_diff0 = total_diff1 = 0
         items = []
 
-        for g_date, jd, date, b_date, o_date, diff0, diff1 in data:
+        for g_date, jd, ord, date, b_date, o_date, diff0, diff1 in data:
             if diff0 != (0, 0, 0):
                 total_diff0 += 1
 
@@ -630,13 +631,14 @@ if __name__ == "__main__":
 
         [print(f"{str(g_date):31} "
                f"{jd:<18} "
+               f"{ord:7} "
                f"{str(date):15} "
                f"{str(b_date):32} "
                f"{str(o_date):15} "
                f"{str(diff0):13} "
                f"{str(diff1):13} "
                )
-         for g_date, jd, date, b_date, o_date, diff0, diff1 in data]
+         for g_date, jd, ord, date, b_date, o_date, diff0, diff1 in data]
         print('-' * underline_length)
         total_errors = total_diff0 + total_diff1
         print(f"Analyzing year {options.start} to year {options.end-1}.")
@@ -645,25 +647,26 @@ if __name__ == "__main__":
         print(f"  Total Errors: {total_errors}")
         errors = []
 
-        for g_date, jd, date, b_date, o_date, diff0, diff1 in data:
+        for g_date, jd, ord, date, b_date, o_date, diff0, diff1 in data:
             if diff0 != (0, 0, 0):
-                errors.append((date, jd, b_date[:3], diff0, ''))
+                errors.append((date, jd, ord, b_date[:3], diff0, ''))
 
             if diff1 != (0, 0, 0):
-                errors.append((date, jd, o_date, '', diff1))
+                errors.append((date, jd, ord, o_date, '', diff1))
 
         if errors:
-            print("\nDate            JD                 Offending Date  "
-                  "Badi Diff 0  Ordinal Diff 1")
-            print('-' * 78)
+            print("\nDate            JD                 Ordinal "
+                  "Offending Date  Badi Diff 0  Ordinal Diff 1")
+            print('-' * 86)
             [print(f"{str(date):15} "
                    f"{jd:<18} "
+                   f"{ord:7} "
                    f"{str(offending_date):15} "
                    f"{str(diff0):13}"
                    f"{str(diff1):13}"
                    )
-             for date, jd, offending_date, diff0, diff1 in errors]
-            print('-' * 78)
+             for date, jd, ord, offending_date, diff0, diff1 in errors]
+            print('-' * 86)
 
         end_time = time.time()
         days, hours, minutes, seconds = dt._dhms_from_seconds(

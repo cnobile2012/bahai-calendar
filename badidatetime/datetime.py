@@ -343,7 +343,8 @@ class date(BahaiCalendar):
     # Additional constructors
 
     @classmethod
-    def fromtimestamp(cls, t: float, *, short: bool=True) -> object:
+    def fromtimestamp(cls, t: float, *, short: bool=True, _chk_on: bool=True
+                      ) -> object:
         """
         Construct a date from a POSIX timestamp (like time.time()).
 
@@ -351,6 +352,10 @@ class date(BahaiCalendar):
         :param float t: The POSIX timestamp.
         :param bool short: If True (default) the short form date is returned
                            else False the long form date is returned.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :returns: The instantiated class.
         :rtype: date
         """
@@ -387,6 +392,10 @@ class date(BahaiCalendar):
         :param int n: The ordinal value.
         :param bool short: If True (default) the short form date is returned
                            else False the long form date is returned.
+        :param bool _chk_on: If True (default) all date checks are enforced
+                             else if False they are turned off. This is only
+                             used internally. Do not use unless you know what
+                             you are doing.
         :returns: The instantiated class.
         :rtype: date
         """

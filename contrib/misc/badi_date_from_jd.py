@@ -41,12 +41,12 @@ class BadiDateFromJD(BahaiCalendar):
 
                 for day in range(1, dm + 1):
                     date = (year, month, day)
-                    jd = self.jd_from_badi_date(o_date, lat, lon, zone)
+                    jd = self.jd_from_badi_date(date, lat, lon, zone)
                     b_date = self._badi_date_from_jd(
                         jd, lat, lon, zone, short=True, _chk_on=False)
                     g_date = self.gc.gregorian_date_from_jd(jd, hms=True,
                                                             exact=True)
-                    diff = self._subtract_tuples(o_date, b_date[:3])
+                    diff = self._subtract_tuples(date, b_date[:3])
                     data.append((g_date, date, jd, b_date, diff))
 
         return data
@@ -79,8 +79,11 @@ class BadiDateFromJD(BahaiCalendar):
         # Fix day if needed.
         yr = year - 1 if (math.floor(fjdoy) - math.floor(jd)) > 0 else year
 
-        if yr:
+        if yr != year:
             year = yr
+            fdoy = (year, 1, 1)
+            fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone,
+                                           _chk_on=_chk_on)
             leap, ld = get_leap_year_info(year, _chk_on)
 
         days = math.floor(jd) - math.floor(fjdoy) + 1

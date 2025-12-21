@@ -295,11 +295,15 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # Get 1st day of year so we can find the number of days to the JD.
         fdoy = (year, 1, 1)
         fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone, _chk_on=_chk_on)
-        # Fix day if needed.
+
+        # Fix year if needed.
         yr = year - 1 if (math.floor(fjdoy) - math.floor(jd)) > 0 else year
 
-        if yr:
+        if yr != year:
             year = yr
+            fdoy = (year, 1, 1)
+            fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone,
+                                           _chk_on=_chk_on)
             leap, ld = get_leap_year_info(year, _chk_on)
 
         days = math.floor(jd) - math.floor(fjdoy) + 1
