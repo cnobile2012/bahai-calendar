@@ -280,8 +280,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         def get_leap_year_info(year, _chk_on):
             leap = self._is_leap_year(year, _chk_on=_chk_on)
-            # *** TODO *** Maybe not need (diy) 365 + leap
-            return leap, 365 + leap, 4 + leap
+            return leap, 4 + leap
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
@@ -292,7 +291,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         y = 1 if md < 424046 and md != 0 else 0
         # Find the year
         year = math.floor(md / self._MEAN_TROPICAL_YEAR) + y
-        leap, diy, ld = get_leap_year_info(year, _chk_on)
+        leap, ld = get_leap_year_info(year, _chk_on)
         # Get 1st day of year so we can find the number of days to the JD.
         fdoy = (year, 1, 1)
         fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone, _chk_on=_chk_on)
@@ -301,7 +300,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         if yr:
             year = yr
-            leap, diy, ld = get_leap_year_info(year, _chk_on)
+            leap, ld = get_leap_year_info(year, _chk_on)
 
         days = math.floor(jd) - math.floor(fjdoy) + 1
 
@@ -365,20 +364,41 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: The year, month, day, frag in a tuple.
         :rtype: tuple
         """
-        def day_before(year, month):
-            if 2 <= month <= 18:  # Months 2 - 18 -> to previous month
-                month -= 1
-                day = 19
-            elif month == 19:     # Month 19 -> Ayyám-i-Há
-                month = 0
-                day = 4 + self._is_leap_year(year)
-            elif month == 0:      # Ayyám-i-Há
-                month = 18
-                day = 19
-            else:                 # Month 1 -> Month 19 & year to previous year
-                year -= 1
-                month = 19
-                day = 19
+        def day_before(year, month, day):
+            if day <= 0:
+                if 2 <= month <= 18:  # Months 2 - 18 -> to previous month
+                    month -= 1
+                    day = 19
+                elif month == 19:  # Month 19 -> Ayyám-i-Há
+                    month = 0
+                    day = 4 + self._is_leap_year(year)
+                elif month == 0:  # Ayyám-i-Há
+                    month = 18
+                    day = 19
+                else:  # Month 1 -> Month 19 & year to previous year
+                    year -= 1
+                    month = 19
+                    day = 19
+
+            return year, month, day
+
+        def day_after(year, month, day):
+            dim = 4 + self._is_leap_year(year) if month == 0 else 19
+
+            if day > dim:
+                if 1 <= month <= 17:
+                    month += 1
+                    day = 1
+                elif month == 18:
+                    month = 0
+                    day = 1
+                elif month == 0:
+                    month = 19
+                    day = 1
+                else:  # Month 19
+                    year += 1
+                    month = 1
+                    day = 1
 
             return year, month, day
 
@@ -405,23 +425,14 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             if not (oi_jd == ni_jd and (o_jd_f < 0.5 and n_jd_f >= 0.5) or
                     (o_jd_f == n_jd_f)):
                 day -= 1
-
-                if day == 0:
-                    self._debug_print(
-                        "Stage 2--jd: {}, jd1: {}, date: {}, ss1: {}, "
-                        "jd_frac: {}, ss_frac: {}, ss_frac1: {}, frac: {}",
-                        (jd, jd1, (year, month, day), ss1, jd_frac, ss_frac,
-                         ss_frac1, frac))
-                    year, month, day = day_before(year, month)
-                else:
-                    self._debug_print(
-                        "Stage 1--jd: {}, jd1: {}, date: {}, ss1: {}, "
-                        "jd_frac: {}, ss_frac: {}, ss_frac1: {}, frac: {}",
-                        (jd, jd1, (year, month, day), ss1, jd_frac, ss_frac,
-                         ss_frac1, frac))
+                self._debug_print(
+                    "Stage 1--jd: {}, jd1: {}, date: {}, ss1: {}, "
+                    "jd_frac: {}, ss_frac: {}, ss_frac1: {}, frac: {}",
+                    (jd, jd1, (year, month, day), ss1, jd_frac, ss_frac,
+                     ss_frac1, frac))
             else:
                 self._debug_print(
-                    "Stage 3--jd: {}, jd1: {}, date: {}, ss1: {}, "
+                    "Stage 2--jd: {}, jd1: {}, date: {}, ss1: {}, "
                     "jd_frac: {}, ss_frac: {}, ss_frac1: {}, frac: {}",
                     (jd, jd1, (year, month, day), ss1, jd_frac, ss_frac,
                      ss_frac1, frac))
@@ -430,11 +441,13 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             dl = self._day_length(jd - 1, lat, lon, decimal=True)
             frac = round(dl - diff, self._ROUNDING_PLACES) % 1
             self._debug_print(
-                "Stage 4--jd: {}, jd0: {}, date: {}, ss0: {}, jd_frac: {}, "
+                "Stage 3--jd: {}, jd0: {}, date: {}, ss0: {}, jd_frac: {}, "
                 "ss_frac: {}, diff: {}, frac: {}",
                 (jd, jd0, (year, month, day), ss0, jd_frac, ss_frac, diff,
                  frac))
 
+        year, month, day = day_before(year, month, day)
+        year, month, day = day_after(year, month, day)
         return year, month, day, frac
 
     def short_date_from_long_date(self, b_date: tuple, *, trim: bool=False,
@@ -690,7 +703,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         ss_jd = self._sun_setting(jd_midnight, lat, lon)
         print(f"Sunset JD (full): {ss_jd}")
         ss_frac = ss_jd % 1
-        print(f"Sunset fraction: {ss_frac}")  # Should be ~0.67-0.71 for Greenwich
+        print(f"Sunset frac: {ss_frac}")  # Should be ~0.67-0.71 for Greenwich
         badi_time_frac = (date[3] + date[4] / 60 + date[5] / 3600) / 24
         print(f"Badi time frac: {badi_time_frac}")  # Should be 0.333..
         jd_actual = jd_midnight + ss_frac + badi_time_frac

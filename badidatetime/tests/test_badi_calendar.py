@@ -385,7 +385,7 @@ class TestBadiCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test__adjust_date(self):
         """
-        Test that the _adjust_date method correctly fixes the time and date.
+        Test that the _adjust_date method correctly fixes the date and time.
         The date parameter below can be found in the 'Stage 0' print statement
         from the badi_date_from_jd test above.
         """
@@ -414,12 +414,12 @@ class TestBadiCalendar(unittest.TestCase):
             # 05:02 + 13:33:46.2 = Badi date & time 0181-09-03T18:35:46.2
             (2460542.2734519225, (181, 9, 4), *local_coords,
              (181, 9, 3, 18, 36, 11.8944)),
-            # Stage 2
+            # Stage 1a
             #1844-03-19T14:46:00Z -> 1844-03-19T18:16:00.0+03:30
             # Sunset = 18:16 -> 18:16 - 18:16 = 00:00:00
             (2394643.115278, (1, 1, 1), *epoch_coords,
              (0, 19, 19, 0, 0, 14.0436)),
-            # Stage 3
+            # Stage 2
             # 2440585.5 -- 1970-01-01T:00:00:00Z
             # Sunset day before = 16:00 -> 24:00 - 16:00 = 08:00
             # 08:00 + 00:00 = Badi time = 08:00:00
@@ -430,7 +430,7 @@ class TestBadiCalendar(unittest.TestCase):
             # 07:08 + 01:30 = Badi date & time = 0182-14-10T08:38:00
             (2461008.416667, (182, 14, 10), *epoch_coords,
              (182, 14, 10, 8, 38, 22.632)),
-            # Stage 4
+            # Stage 3
             # 0001-03-20T18:10:43.8Z -> 0001-03-20T21:40:43.8+03:30
             # Sunset = 18:17 -> 21:40:43.8 - 18:17 = Badi time 03:23:43.8
             (1721502.2574517454, (-1842, 1, 2), *epoch_coords,
@@ -439,6 +439,10 @@ class TestBadiCalendar(unittest.TestCase):
             # Sunset 17:22 -> 17:34:01 - 17:22 = Badi time 01:00:12.01
             (2460686.440292719197, (181, 16, 15), *local_coords,
              (181, 16, 15, 0, 12, 8.82)),
+            # 1844-03-19T18:18:15.6Z -> 1844-03-19T21:48:15.6+03:30
+            # Sunset = 18:16 -> 21:48:15.6 - 18:16 = 03:32:15.6
+            (2394643.262681068, (0, 19, 20), *epoch_coords,
+             (1, 1, 1, 3, 32, 29.67)),
             )
         msg = "Expected {} for jd {}, date {}, found {}"
 

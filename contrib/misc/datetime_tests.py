@@ -19,8 +19,9 @@ from badidatetime._timedateutils import _td_utils
 
 
 class DatetimeTests(BahaiCalendar, TimestampUtils):
-    LOCAL_COORDS = (35.5894, -78.7792, -5.0)
+    GMT_COORDS = (51.477928, -0.001545, 0)
     BADI_COORDS = BahaiCalendar._BAHAI_LOCATION[:3]
+    LOCAL_COORDS = (35.5894, -78.7792, -5.0)
     MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
               12, 13, 14, 15, 16, 17, 18, 0, 19)
     GREG_BADI_DATES = (
@@ -302,6 +303,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         Also if -S and -E are used they must be used together and refer
         to Badi years.
         """
+        lat, lon, zone = self.GMT_COORDS
         data = []
         start = options.start
         end = options.end
@@ -314,26 +316,29 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
 
                 for day in range(1, dm + 1):
                     date = (year, month, day)
-                    #print(date, file=sys.stderr)
-                    # We default to the Epoch Coordinates.
-                    jd = self.jd_from_badi_date(date)
+                    jd = self.jd_from_badi_date(date, lat, lon, zone)
+
                     # Get the Badi date from the Julian Period day.
                     b_date = self.badi_date_from_jd(
-                        jd, short=True, trim=True, rtd=True)
-                    # Difference of the date converted to a JD then back to a
-                    # date again then subtract the converted date from the
+                        jd, lat, lon, zone, short=True, _chk_on=False)
+                    # Difference of the date converted to a JD then back to
+                    # a date again then subtract the converted date from the
                     # original date. They should be the same.
                     diff0 = self._subtract_tuples(b_date, date)
-                    # The ordinal date for visual comparison.
-                    ordinal = self._ordinal_from_jd(jd)
-                    o = datetime.fromordinal(ordinal, short=True)
+
+                    # The ordinal date.
+                    ord = self._ordinal_from_jd(jd)
+                    o = datetime.fromordinal(ord, short=True, _chk_on=False)
                     o_date = (o.year, o.month, o.day)
                     # Difference of the Badi datetime derived from an ordinal
                     # then subtract the derived date original date. They
                     # should be the same.
                     diff1 = self._subtract_tuples(o_date, date)
+
                     # Get the Gregorian date.
-                    g_date = self.gc.gregorian_date_from_jd(jd, exact=True)
+                    g_date = self.gc.gregorian_date_from_jd(
+                        jd, hms=True, exact=True)
+
                     data.append((g_date, jd, date, b_date, o_date,
                                  diff0, diff1))
 
@@ -603,15 +608,16 @@ if __name__ == "__main__":
             options.end = 1162     # Gregorian year 3005
 
         start_time = time.time()
+        data = dt.analyze_ordinal_error_create(options)
+        underline_length = 141
         print(f"./contrib/misc/{basename} -bS {options.start} "
               f"-E {options.end}")
-        print(" " * 94, "Orig - Badi   Orig - Ord")
-        print("Greg Date                   JD                 Orig Date       "
-              "Badi Date       Ordinal Date    B Date Diff   O Date Diff   "
-              "HMS from JD")
-        underline_length = 140
         print('-' * underline_length)
-        data = dt.analyze_ordinal_error_create(options)
+        print(" " * 115, "Orig - Badi   Orig - Ord")
+        print("Greg Date", ' ' * 21, "JD", ' ' * 15, "Orig Date       "
+              "Badi Date", ' ' * 22, "Ordinal Date    B Date Diff   "
+              "O Date Diff")
+        print('-' * underline_length)
         total_diff0 = total_diff1 = 0
         items = []
 
@@ -622,22 +628,43 @@ if __name__ == "__main__":
             if diff1 != (0, 0, 0):
                 total_diff1 += 1
 
-        [print(f"{str(g_date):27} "
+        [print(f"{str(g_date):31} "
                f"{jd:<18} "
                f"{str(date):15} "
-               f"{str(b_date):15} "
+               f"{str(b_date):32} "
                f"{str(o_date):15} "
                f"{str(diff0):13} "
                f"{str(diff1):13} "
-               f"{dt._hms_from_decimal_day(jd + 0.5)}"
                )
-         for g_date, jd, b_date, o_date, date, diff0, diff1 in data]
+         for g_date, jd, date, b_date, o_date, diff0, diff1 in data]
         print('-' * underline_length)
         total_errors = total_diff0 + total_diff1
         print(f"Analyzing year {options.start} to year {options.end-1}.")
         print(f"Ordinal Errors: {total_diff1}")
         print(f"   Badi Errors: {total_diff0}")
         print(f"  Total Errors: {total_errors}")
+        errors = []
+
+        for g_date, jd, date, b_date, o_date, diff0, diff1 in data:
+            if diff0 != (0, 0, 0):
+                errors.append((date, jd, b_date[:3], diff0, ''))
+
+            if diff1 != (0, 0, 0):
+                errors.append((date, jd, o_date, '', diff1))
+
+        if errors:
+            print("\nDate            JD                 Offending Date  "
+                  "Badi Diff 0  Ordinal Diff 1")
+            print('-' * 78)
+            [print(f"{str(date):15} "
+                   f"{jd:<18} "
+                   f"{str(offending_date):15} "
+                   f"{str(diff0):13}"
+                   f"{str(diff1):13}"
+                   )
+             for date, jd, offending_date, diff0, diff1 in errors]
+            print('-' * 78)
+
         end_time = time.time()
         days, hours, minutes, seconds = dt._dhms_from_seconds(
             end_time - start_time)

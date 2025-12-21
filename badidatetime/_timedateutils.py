@@ -1072,10 +1072,8 @@ class TimeDateUtils(BahaiCalendar):
         # The reason we need to do this is that the first date that this
         # package can provide is equivalent to Julian year 1, March, 19th.
         jd = self.ORDINAL_1ST_YEAR_EPOCH - 1 - self.DAYS_BEFORE_1ST_YEAR + n
-        return self.badi_date_from_jd(math.floor(jd) + 0.5,
-                                      #51.477928, -0.001545, 0.0,
-                                      short=short, trim=True, rtd=True,
-                                      _chk_on=False)
+        return self.badi_date_from_jd(math.floor(jd) + 0.5, short=short,
+                                      trim=True, rtd=True, _chk_on=False)
 
     def _build_struct_time(self, date: tuple, dstflag: int, *, tzinfo=None,
                            short_in: bool=False) -> NamedTuple:

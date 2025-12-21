@@ -1546,22 +1546,22 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Convert a Julian Period day to an ordinal number.
 
         :param float jd: The Julian Period day.
-        :param bool _exact: If True (default) the incoming JD is the more
-                            astronomically exact Julin Period day else it
-                            is the historically correct (Meeus) JD.
+        :param bool _exact: If True (default) the incoming JD is the
+                            astronomically Julin Period day else it is the
+                            historically correct (Meeus) JD.
         :returns: The ordinal number relating to the Julian Period day.
         :rtype: int
         """
         jd = jd if _exact else self._exact_from_meeus(jd)
         # We add 1 because ordinal date representations starts at 1 not 0.
-        return math.floor(jd - self._JULIAN_CAL_EPOCH) + 1
+        return math.floor(jd - self._JULIAN_CAL_EPOCH + 1)
 
     def _jd_from_ordinal(self, ordinal: int, *, exact: bool=True) -> float:
         """
         Convert an ordinal number to a Julian Period day.
 
-        :param int ordinal: The ordinal number of days starting with one on the
-                            first day of the Julian Calendar.
+        :param int ordinal: The ordinal number of days starting with one on
+                            the first day of the Julian Calendar.
         :param bool exact: If True (default) the outgoing Julian Period day is
                            the more astronomically exact Julin Period day else
                            if False it is the historically correct (Meeus) JD.
