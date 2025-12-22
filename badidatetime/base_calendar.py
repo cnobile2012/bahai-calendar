@@ -1286,7 +1286,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         assert ((s % 1 and us == 0) or (s % 1 == 0 and us) or
                 (s % 1 == 0 and us == 0)), (
             "Seconds cannot have a decimal value if microseconds are used.")
-        return (h * 3600 + m * 60 + s  + self._US(us)) / 86400
+        return (h * 3600 + m * 60 + s + self._US(us)) / 86400
 
     def _sec_microsec_from_seconds(self, second: float) -> tuple:
         """

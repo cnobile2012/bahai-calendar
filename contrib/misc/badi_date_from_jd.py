@@ -26,7 +26,9 @@ class BadiDateFromJD(BahaiCalendar):
 
     def analyze(self, options):
         """
-        
+        Analyze the validity of the badi_date_from_jd method.
+
+        -a with -s and -E
         """
         lat, lon, zone = self.GMT_COORDS
         data = []
@@ -195,7 +197,7 @@ class BadiDateFromJD(BahaiCalendar):
         if (jd_frac + 0.5) % 1 < (ss_frac + 0.5) % 1:
             ss1 = self._sun_setting(jd1 - 1, lat, lon)
             ss_frac1 = round(self._local_zone_correction(ss1, zone),
-                                 self._ROUNDING_PLACES)
+                             self._ROUNDING_PLACES)
             # Calculate the time between the previous sunset and the
             # following midnight of the JD day then add the results to
             # the JD day fraction to get the Badi time.
@@ -306,7 +308,7 @@ if __name__ == "__main__":
 
             for g_date, date, jd, b_date, diff in data:
                 if diff != (0, 0, 0):
-                    errors.append((o_date, jd, b_date[:3], diff))
+                    errors.append((date, jd, b_date[:3], diff))
 
             if errors:
                 print("\nOriginal Date   JD                 Badi Date       "
