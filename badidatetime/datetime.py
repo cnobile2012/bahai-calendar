@@ -2039,24 +2039,27 @@ class datetime(date):
         :returns: The POSIX timestamp.
         :rtype: float
         """
-        tz = timezone(timedelta(hours=LOCAL_COORD[-1]))
-        self = self.replace(tzinfo=tz)
-        t = (self - _EPOCH) // timedelta(0, 1)
-        # Compensate for off-by-one days on the 1st day of the POSIX epoch
-        # per year.
-        greg_epoch = (1970, 1, 1)
-        badi_epoch = self.badi_date_from_gregorian_date(
-            greg_epoch, *LOCAL_COORD, short=True)
+        return self.timestamp_from_badi_date(self.b_date + self.B_time,
+                                             *LOCAL_COORD)
 
-        if badi_epoch[2] != self.day:
-            self = self.replace(day=badi_epoch[2])
+        # tz = timezone(timedelta(hours=LOCAL_COORD[-1]))
+        # self = self.replace(tzinfo=tz)
+        # t = (self - _EPOCH) // timedelta(0, 1)
+        # # Compensate for off-by-one days on the 1st day of the POSIX epoch
+        # # per year.
+        # greg_epoch = (1970, 1, 1)
+        # badi_epoch = self.badi_date_from_gregorian_date(
+        #     greg_epoch, *LOCAL_COORD, short=True)
 
-        # Compensate for different sunsets.
-        ss0 = self._seconds_from_dhms(_EPOCH.day, *_EPOCH.b_time)
-        ss1 = self._seconds_from_dhms(self.day, *self.b_time)
-        t1 = t + ss0 - ss1
-        #print(self, _EPOCH, badi_epoch, t, t1)
-        return t1
+        # if badi_epoch[2] != self.day:
+        #     self = self.replace(day=badi_epoch[2])
+
+        # # Compensate for different sunsets.
+        # ss0 = self._seconds_from_dhms(_EPOCH.day, *_EPOCH.b_time)
+        # ss1 = self._seconds_from_dhms(self.day, *self.b_time)
+        # t1 = t + ss0 - ss1
+        # #print(self, _EPOCH, badi_epoch, t, t1)
+        # return t1
 
     def timestamp(self) -> float:
         """
@@ -2956,7 +2959,5 @@ BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-# _EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 488800,
-#                   tzinfo=timezone.utc)
 _EPOCH = datetime(126, 16, 2, None, None, 7, 58, 31, 504770,
                   tzinfo=timezone.utc)

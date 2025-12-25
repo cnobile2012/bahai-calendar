@@ -157,13 +157,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # The day may have a decimal component. ex. 1.5 = (1 day and 12 hours)
         # This day is relative to UTC time, so we need to compensate for Badi
         # time since a Badi day starts at sunset not at midnight.
-        jd1 = self._meeus_from_exact(jd)
+        jd0 = self._meeus_from_exact(jd)
+        coeff = self._get_jd_coeff(year)
+        jd1 = jd0 + coeff
         jd_ss = self._sun_setting(jd1, lat, lon)
         local_ss = self._local_zone_correction(jd_ss, zone, mod_jd=True)
         a_ss = self._exact_from_meeus(local_ss)
         day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
-        coeff = self._get_jd_coeff(year)
-        return round(a_ss + day_frac + coeff, self._ROUNDING_PLACES)
+        # print(f"{str(b_date):<15} {day:<9} {jd:<14} {local_ss:<20} "
+        #       f"{a_ss:<20} {day_frac} {coeff}")
+        return round(a_ss + day_frac, self._ROUNDING_PLACES)
 
     def _get_jd_coeff(self, year: int) -> int:
         """
@@ -211,37 +214,25 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         coeff = 0
 
         if not coeff:
-            coeff = process_segments(year, self.P1, -1, (0, 1, 2, 3))
+            coeff = process_segments(year, self.N1, -1, (0, 1, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self.P1011, -1, (0, 1, 2))
+            coeff = process_segments(year, self.N1100, -1, (0, 3))
 
         if not coeff:
-            coeff = process_segments(year, self.P1100, -1, (0, 3))
+            coeff = process_segments(year, self.N1110, -1, (0, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self.P1110, -1, (0, 2, 3))
+            coeff = process_segments(year, self.N2, -2, (0, 1, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self.P1122, -1, (0, 3), -2, (1, 2))
+            coeff = process_segments(year, self.N2111, -2, (0,), -1, (1, 2, 3))
 
         if not coeff:
-            coeff = process_segments(year, self.P2, -2, (0, 1, 2, 3))
+            coeff = process_segments(year, self.N2211, -2, (0, 3), -1, (1, 2))
 
         if not coeff:
-            coeff = process_segments(year, self.P2111, -2, (0,), -1, (1, 2, 3))
-
-        if not coeff:
-            coeff = process_segments(year, self.P2122, -2, (0, 1, 2), -1, (3,))
-
-        if not coeff:
-            coeff = process_segments(year, self.P2211, -2, (0, 3), -1, (1, 2))
-
-        if not coeff:
-            coeff = process_segments(year, self.P2221, -2, (0, 2, 3), -1, (1,))
-
-        if not coeff:
-            coeff = process_segments(year, self.P2222, -2, (0, 1, 2, 3))
+            coeff = process_segments(year, self.N2221, -2, (0, 2, 3), -1, (1,))
 
         return coeff
 
@@ -415,7 +406,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         if (jd_frac + 0.5) % 1 < (ss_frac + 0.5) % 1:
             ss1 = self._sun_setting(jd1 - 1, lat, lon)
             ss_frac1 = round(self._local_zone_correction(ss1, zone),
-                                 self._ROUNDING_PLACES)
+                             self._ROUNDING_PLACES)
             # Calculate the time between the previous sunset and the
             # following midnight of the JD day then add the results to
             # the JD day fraction to get the Badi time.
@@ -600,8 +591,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                                       lon: float=None, zone: float=None, *,
                                       us: bool=False, short: bool=False,
                                       trim: bool=False, rtd: bool=False,
-                                      _exact: bool=True,
-                                      _chk_on: bool=True) -> tuple:
+                                      _exact: bool=True, _chk_on: bool=True
+                                      ) -> tuple:
         """
         Get the Badi date from the Gregorian date.
 
@@ -696,23 +687,18 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                                  zone: float) -> float:
         """
         Convert a Badi date to a timestamp.
-        """
-        # jd = self.jd_from_badi_date(date, lat, lon, zone)
-        # jd_midnight = self._meeus_from_exact(jd)
 
-        g_date = self.gregorian_date_from_badi_date(date, lat, lon, zone)
-        print(f"Gregorian date: {g_date}")  # Should be (1969, 12, 31)
-        jd_midnight = self._gc.jd_from_gregorian_date(g_date)
-        print(f"JD midnight: {jd_midnight}")  # Should be 2440587.5
-        ss_jd = self._sun_setting(jd_midnight, lat, lon)
-        print(f"Sunset JD (full): {ss_jd}")
-        ss_frac = ss_jd % 1
-        print(f"Sunset frac: {ss_frac}")  # Should be ~0.67-0.71 for Greenwich
-        badi_time_frac = (date[3] + date[4] / 60 + date[5] / 3600) / 24
-        print(f"Badi time frac: {badi_time_frac}")  # Should be 0.333..
-        jd_actual = jd_midnight + ss_frac + badi_time_frac
-        print(f"JD actual: {jd_actual}")  # Should be 2440588.0
-        return (jd_actual - 2440587.5) * 86400  # Should be 0.0 (or very close)
+        :param tuple date: The Badi date.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
+        :returns: The timestamp corrected for the time zone.
+        :rtype: float
+        """
+        jd = self.jd_from_badi_date(date, *self._GMT_LOCATION[:3])
+        jd -= zone / 24
+        jd_diff = jd - self._POSIX_EPOCH
+        return round(jd_diff * 86400, self._ROUNDING_PLACES)
 
     def midday(self, date: tuple, *, hms: bool=False, _short: bool,
                _chk_on: bool=True) -> tuple:

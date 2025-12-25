@@ -69,9 +69,11 @@ class PosixTests(BahaiCalendar):
             for year in range(start, end):
                 g_date = (year, 1, 1)
                 g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
+
                 b_date = self.badi_date_from_gregorian_date(
                     g_date, *coords, short=True, trim=True)
                 bd = datetime(*b_date[:3], None, None, *b_date[3:])
+
                 # *** TODO *** Check for off-by-one day error in method below
                 # bd = datetime.fromtimestamp(g_ts)
                 # b_date = bd.b_date
@@ -160,49 +162,49 @@ class PosixTests(BahaiCalendar):
         libraries).
         https://en.wikipedia.org/wiki/Time_zone
 
-        Derived Badi time on the epoch 1970-01-01
+        Derived Badi time for the epoch 1970-01-01
         ------------------------------------------------
-        GMT 0.0 time:     0126-16-02T07:58:31.4976+00:00
+        GMT 0.0 time:     0126-16-02T07:58:31.50477+00:00
         EST -5.0 time:    0126-16-02T06:47:57.12-05:00
         Tehran 3.5 time:  0126-16-02T06:57:58.5504+03:30
         Beijing 8.0 time: 0126-16-01T07:00:59.1264+08:00
         """
-        def sunset(date, coords):
-            lat, lon, zone = coords
-            jd = self.jd_from_badi_date(date, lat, lon, zone)
-            mjd = self._meeus_from_exact(jd)
-            ss = self._sun_setting(mjd - 1, lat, lon)
-            return ss % 1 * 86400  # fraction * seconds in a day
+        # def sunset(date, coords):
+        #     lat, lon, zone = coords
+        #     jd = self.jd_from_badi_date(date, lat, lon, zone)
+        #     mjd = self._meeus_from_exact(jd)
+        #     ss = self._sun_setting(mjd - 1, lat, lon)
+        #     return ss % 1 * 86400  # fraction * seconds in a day
 
-        # Find the floor of the timestamp of the naive epoch datetime
-        # subtracted from the local datetime.
-        tz = timezone(timedelta(hours=coords[-1]))
-        dt = dt.replace(tzinfo=tz)
-        t = (dt - self.EPOCH) // timedelta(0, 1)
-        # Compensate for off-by-one days on the 1st day of the POSIX epoch
-        # per year.
-        greg_epoch = (1970, 1, 1)
-        badi_epoch = self.badi_date_from_gregorian_date(greg_epoch, *coords,
-                                                        short=True)
-        if badi_epoch[2] != dt.day:
-            dt = dt.replace(day=badi_epoch[2])
+        # # Find the floor of the timestamp of the naive epoch datetime
+        # # subtracted from the local datetime.
+        # tz = timezone(timedelta(hours=coords[-1]))
+        # dt = dt.replace(tzinfo=tz)
+        # t = (dt - self.EPOCH) // timedelta(0, 1)
+        # # Compensate for off-by-one days on the 1st day of the POSIX epoch
+        # # per year.
+        # greg_epoch = (1970, 1, 1)
+        # badi_epoch = self.badi_date_from_gregorian_date(greg_epoch, *coords,
+        #                                                 short=True)
+        # if badi_epoch[2] != dt.day:
+        #     dt = dt.replace(day=badi_epoch[2])
 
-        # Compensate for different sunsets.
-        # 1. Get date at GMT
-        # 2. Get the number of seconds after noon for sunset for the date
-        # 3. Subtract the GMT seconds from the local seconds
-        # 4. Add the resultant value to t
-        b_date = dt.b_date + dt.b_time
-        # Add coefficients for pre 1483 Gregorian
+        # # Compensate for different sunsets.
+        # # 1. Get date at GMT
+        # # 2. Get the number of seconds after noon for sunset for the date
+        # # 3. Subtract the GMT seconds from the local seconds
+        # # 4. Add the resultant value to t
+        # b_date = dt.b_date + dt.b_time
+        # # Add coefficients for pre 1483 Gregorian
 
-        if not options.kill_coeff:
-            t += self._coeff(dt)
+        # if not options.kill_coeff:
+        #     t += self._coeff(dt)
 
-        loc_ss_diff = sunset(b_date, coords)
-        gmt_ss_diff = sunset(b_date, self.GMT_COORD)
-        t1 = t + loc_ss_diff - gmt_ss_diff
-        #print(dt, loc_ss_diff, gmt_ss_diff, t, t1, file=sys.stderr)
-        return t1
+        # loc_ss_diff = sunset(b_date, coords)
+        # gmt_ss_diff = sunset(b_date, self.GMT_COORD)
+        # t1 = t + loc_ss_diff - gmt_ss_diff
+        # #print(dt, loc_ss_diff, gmt_ss_diff, t, t1, file=sys.stderr)
+        return self.timestamp_from_badi_date(dt.b_date + dt.b_time, *coords)
 
     def _coeff(self, dt):
         """

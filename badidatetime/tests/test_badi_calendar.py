@@ -40,15 +40,15 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc._BAHAI_LOCATION[:3]
         data = (
             # Should be 1844-03-19T18:16:00
-            ((1, 1, 1), None, None, None, (18, 18, 15.6456)),
+            ((1, 1, 1), None, None, None, (18, 16, 36.0048)),
             # Should be 2024-03-19T18:13:00
-            ((180, 19, 19), lat, lon, zone, (18, 16, 47.0352)),
+            ((180, 19, 19), lat, lon, zone, (18, 15, 56.592)),
             # Should be 2064-03-19T18:16:00
-            ((221, 1, 1), lat, lon, zone, (18, 17, 51.3384)),
+            ((221, 1, 1), lat, lon, zone, (18, 17, 0.96)),
             # Should be 2024-04-20T19:53:00 DST in Raleigh NC
-            ((181, 2, 13), 35.7796, -78.6382, -4, (19, 53, 28.122)),
+            ((181, 2, 13), 35.7796, -78.6382, -4, (19, 51, 47.2068)),
             # Should be 2024-07-22T20:26:00 DST in Raleigh NC
-            ((181, 7, 11), 35.7796, -78.6382, -4, (20, 25, 47.3628)),
+            ((181, 7, 11), 35.7796, -78.6382, -4, (20, 27, 9.0504)),
             )
         msg = "Expected {}, date {}, found {}"
 
@@ -65,35 +65,35 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc._BAHAI_LOCATION[:3]
         data = (
             # 1844-03-19T18:16:00+03:30
-            (1, lat, lon, zone, False, True, (1844, 3, 19.762681067921)),
+            (1, lat, lon, zone, False, True, (1844, 3, 19.761527850293)),
             # 1844-03-19T18:16:00:00+03:30
-            (1, lat, lon, zone, True, True, (1844, 3, 19, 18, 18, 15.6456)),
+            (1, lat, lon, zone, True, True, (1844, 3, 19, 18, 16, 36.0048)),
             # 2024-03-19T18:26:00-05:00
             (181, 35.7796, -78.6382, -5, True, True,
-             (2024, 3, 19, 18, 27, 38.5848)),
+             (2024, 3, 19, 18, 25, 57.5004)),
             # 2025-03-19T18:16:00+03:30
-            (182, lat, lon, zone, False, True, (2025, 3, 19.762679148)),
+            (182, lat, lon, zone, False, True, (2025, 3, 19.761515351478)),
             # 2026-03-20T18:16:00+03:30
-            (183, lat, lon, zone, False, True, (2026, 3, 20.762539365795)),
+            (183, lat, lon, zone, False, True, (2026, 3, 20.761957752053)),
             # The following years are the ones that had errors.
             # 2021-03-19T18:16:00+03:30
-            (178, lat, lon, zone, False, True, (2021, 3, 19.762659180444)),
+            (178, lat, lon, zone, False, True, (2021, 3, 19.761495645624)),
             # 2030-03-20T18:16:00:+03:30
-            (187, lat, lon, zone, False, True, (2030, 3, 19.762557186186)),
+            (187, lat, lon, zone, False, True, (2030, 3, 19.761392393149)),
             # 2034-03-19T18:16:00+03:30
-            (191, lat, lon, zone, False, True, (2034, 3, 19.762569336686)),
+            (191, lat, lon, zone, False, True, (2034, 3, 19.761404516641)),
             # 2038-03-19T18:16:00+03:30
-            (195, lat, lon, zone, False, True, (2038, 3, 19.762581459247)),
+            (195, lat, lon, zone, False, True, (2038, 3, 19.761416388676)),
             # 2054-03-19T18:16:00+03:30
-            (211, lat, lon, zone, False, True, (2054, 3, 19.762064724695)),
+            (211, lat, lon, zone, False, True, (2054, 3, 19.761481280904)),
             # 2059-03-20T18:16:21.590400
-            (216, lat, lon, zone, False, True, (2059, 3, 19.761936932337)),
+            (216, lat, lon, zone, False, True, (2059, 3, 19.76135294186)),
             # 2063-03-19T18:16:23.318400
-            (220, lat, lon, zone, False, True, (2063, 3, 19.761957366485)),
+            (220, lat, lon, zone, False, True, (2063, 3, 19.761373266578)),
             # Test default latitude, longitude, and zone.
-            (1, lat, lon, zone, False, False, (1844, 3, 19.762681067921)),
+            (1, lat, lon, zone, False, False, (1844, 3, 19.761527850293)),
             # 1993-03-19T18:16:24.960000 Test sunset before Vernal Equinox
-            (150, lat, lon, zone, False, True, (1993, 3, 19.762555095367)),
+            (150, lat, lon, zone, False, True, (1993, 3, 19.761392470915)),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -115,15 +115,15 @@ class TestBadiCalendar(unittest.TestCase):
         lat, lon, zone = self._bc._BAHAI_LOCATION[:3]
         data = (
             # 0001-02-13T00:00:00 -> 1844-04-20T18:42:00
-            (1, lat, lon, zone, False, True, (1844, 4, 19.780365471262)),
-            (1, lat, lon, zone, True, True, (1844, 4, 19, 18, 43, 43.5756)),
+            (1, lat, lon, zone, False, True, (1844, 4, 19.779212918598)),
+            (1, lat, lon, zone, True, True, (1844, 4, 19, 18, 42, 3.996)),
             # 0181-02-13T19:41:00-04:00 DST at Raleigh NC, USA
             (181, 35.7796, -78.6382, -4, False, True,
-             (2024, 4, 19.828797717579)),
+             (2024, 4, 19.82762969844)),
             (181, 35.7796, -78.6382, -4, True, True,
-             (2024, 4, 19, 19, 53, 28.122)),
+             (2024, 4, 19, 19, 51, 47.2068)),
             # Test default latitude, longitude, and zone.
-            (1, lat, lon, zone, False, False, (1844, 4, 19.780365471262)),
+            (1, lat, lon, zone, False, False, (1844, 4, 19.779212918598)),
             )
         msg = "Expected {} for hms {}, found {}"
 
@@ -151,36 +151,32 @@ class TestBadiCalendar(unittest.TestCase):
         data = (
             # Real epoch at sunset 01-01-01T00:00:00 B.E.
             # 1583-03-20T18:17:00+03:30
-            ((-260, 1, 1), BADI_COORDS, 2299315.2623346695),
+            ((-260, 1, 1), BADI_COORDS, 2299315.261765808),
             # 1844-03-19T12:00:00+03:30
-            ((0, 19, 19, 17, 43.399901), BADI_COORDS, 2394643.0000000037),
+            ((0, 19, 19, 17, 43.399901), BADI_COORDS, 2394642.9994209353),
             # 1844-03-19T18:16:00+03:30
-            ((1, 1, 1), BADI_COORDS, 2394643.262681068),
+            ((1, 1, 1), BADI_COORDS, 2394643.2615278503),
             # 1863-03-18T18:14:00+03:30
-            ((19, 19, 19), BADI_COORDS, 2401582.261748015),
+            ((19, 19, 19), BADI_COORDS, 2401582.261169055),
             # POSIX Timestamp epoch
-            ((126, 16, 2, 7, 58, 31.50477), GMT_COORDS, 2440585.5),
+            ((126, 16, 2, 8, 0, 30.6684), GMT_COORDS, 2440585.500673376),
             # A day in Ayyám-i-Há 2022-02-24T17:57:55.152000
-            ((178, 0, 1), BADI_COORDS, 2459633.2485395027),
+            ((178, 0, 1), BADI_COORDS, 2459633.247243571),
             # 2024-03-18T18:15:00+03:30
-            ((180, 19, 19), BADI_COORDS, 2460386.2616554843),
+            ((180, 19, 19), BADI_COORDS, 2460386.261071657),
             # 2024-04-27T18:48:00+03:30
-            ((181, 3, 2), BADI_COORDS, 2460426.2853480815),
+            ((181, 3, 2), BADI_COORDS, 2460426.2841804847),
             # 2024-05-15T20:03:00+03:30
             # Sunset = 20:03
-            ((181, 4, 1), BADI_COORDS, 2460444.2955937176),
+            ((181, 4, 1), BADI_COORDS, 2460444.2945027407),
             # Test one date for each coefficient.
-            ((-1842, 1, 1), BADI_COORDS, 1721501.2611352967),
-            ((-1841, 1, 1), BADI_COORDS, 1721867.2610094287),
-            ((-1813, 1, 1), BADI_COORDS, 1732093.2611315844),
-            ((-1801, 1, 1), BADI_COORDS, 1736476.2611916426),
-            ((-1797, 1, 1), BADI_COORDS, 1737937.2606832578),
-            ((-1781, 1, 1), BADI_COORDS, 1743781.2607598111),
-            ((-1715, 1, 1), BADI_COORDS, 1767887.261852178),
-            ((-1699, 1, 1), BADI_COORDS, 1773731.261398498),
-            ((-1683, 1, 1), BADI_COORDS, 1779575.2614695076),
-            ((-1551, 1, 1), BADI_COORDS, 1827787.262602002),
-            ((-497, 1, 1), BADI_COORDS, 2212753.26650604),
+            ((-1842, 1, 1), BADI_COORDS, 1721501.260090917),
+            ((-1815, 1, 1), BADI_COORDS, 1731363.2603384315),
+            ((-1799, 1, 1), BADI_COORDS, 1737207.2604142027),
+            ((-1783, 1, 1), BADI_COORDS, 1743051.2604908743),
+            ((-1747, 1, 1), BADI_COORDS, 1756199.2601314953),
+            ((-1699, 1, 1), BADI_COORDS, 1773731.2608731608),
+            ((-1519, 1, 1), BADI_COORDS, 1839475.2622210926),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -616,7 +612,7 @@ class TestBadiCalendar(unittest.TestCase):
            4. https://www.calculatorsoup.com/calculators/time/sunrise_sunset.php
         """
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
-        local_coords = (35.5894, -78.7792, -5.0)
+        # local_coords = (35.5894, -78.7792, -5.0)
         data = (
             # 1844-03-19T21:41:40.05+03:30
             # Sunset = 18:16 -> 21:41:40.05 - 18:16 = 03:25:40.05
@@ -661,23 +657,23 @@ class TestBadiCalendar(unittest.TestCase):
         data = (
             # 1844-03-19T18:16:36.710400
             ((1, 1, 1), lat, lon, zone, True, True,
-             (1844, 3, 19, 18, 18, 15, 645600)),
+             (1844, 3, 19, 18, 16, 36, 4800)),
             ((126, 16, 1), lat, lon, zone, True, True,
-             (1969, 12, 30, 17, 1, 58, 872000)),
+             (1969, 12, 30, 17, 1, 13, 861200)),
             ((181, 3, 18, 20), lat, lon, zone, True, True,
-             (2024, 5, 14, 15, 4, 5, 37600)),
+             (2024, 5, 14, 15, 2, 29, 277600)),
             ((181, 3, 19, 20), lat, lon, zone, True, True,
-             (2024, 5, 15, 15, 4, 52, 370400)),
+             (2024, 5, 15, 15, 3, 17, 330400)),
             ((181, 4, 1, 17), lat, lon, zone, True, True,
-             (2024, 5, 16, 12, 5, 39, 296400)),
+             (2024, 5, 16, 12, 4, 5, 37600)),
             ((181, 4, 1, 20), lat, lon, zone, True, True,
-             (2024, 5, 16, 15, 5, 39, 296400)),
+             (2024, 5, 16, 15, 4, 5, 37600)),
             # The next tests show the wrong day if exact=False is used.
             # The exact=False condition is generally used in testing.
             ((1, 1, 1), lat, lon, zone, True, False,
-             (1844, 3, 17, 18, 18, 15, 645600)),
+             (1844, 3, 17, 18, 16, 36, 4800)),
             ((181, 3, 18, 20), lat, lon, zone, True, False,
-             (2024, 5, 12, 15, 4, 5, 37600)),
+             (2024, 5, 12, 15, 2, 29, 277600)),
             )
         msg = "Expected {} for date {} and exact {}, found {}"
 
@@ -760,6 +756,32 @@ class TestBadiCalendar(unittest.TestCase):
                 t, lat, lon, zone, us=us, short=short, trim=trim)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, t, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_timestamp_from_badi_date(self):
+        """
+        Test that the timestamp_from_badi_date method correctly converts
+        a Badi date to a timestamp.
+        """
+        utc_coords = (51.477928, -0.001545, 0)
+        epoch_coords = self._bc._BAHAI_LOCATION[:3]
+        local_coords = (35.5894, -78.7792, -5.0)
+        data = (
+            # 1970-01-01T00:00:00Z -> approx 0.0
+            ((126, 16, 2, 8, 0, 30.6684), utc_coords, 0.0),
+            # 1970-01-01T00:00:00Z -> 1970-01-01T03:30:00+03:30 ->
+            # approximately -12600
+            ((126, 16, 2, 7, 58, 31.50477), epoch_coords, -12600.000013411045),
+            # 1970-01-01T00:00:00Z -> 1969-12-31T19:00:00-05:00 ->
+            # approximately 18000
+            ((126, 16, 2, 7, 58, 31.50477), local_coords, 18000.000013411045),
+            )
+        msg = "Expected {} for date {} and coords {}, found {}."
+
+        for date, coords, expected_result in data:
+            result = self._bc.timestamp_from_badi_date(date, *coords)
+            self.assertEqual(expected_result, result,
+                             msg.format(expected_result, date, coords, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_midday(self):
