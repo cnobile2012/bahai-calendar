@@ -2039,7 +2039,7 @@ class datetime(date):
         :returns: The POSIX timestamp.
         :rtype: float
         """
-        return self.timestamp_from_badi_date(self.b_date + self.B_time,
+        return self.timestamp_from_badi_date(self.b_date + self.b_time,
                                              *LOCAL_COORD)
 
         # tz = timezone(timedelta(hours=LOCAL_COORD[-1]))
@@ -2959,5 +2959,5 @@ BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-_EPOCH = datetime(126, 16, 2, None, None, 7, 58, 31, 504770,
+_EPOCH = datetime(126, 16, 2, None, None, 8, 0, 30, 668400,
                   tzinfo=timezone.utc)

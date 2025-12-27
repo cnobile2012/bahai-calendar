@@ -158,83 +158,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # This day is relative to UTC time, so we need to compensate for Badi
         # time since a Badi day starts at sunset not at midnight.
         jd0 = self._meeus_from_exact(jd)
-        coeff = self._get_jd_coeff(year)
+        coeff = self._get_day_coeff(year)
         jd1 = jd0 + coeff
         jd_ss = self._sun_setting(jd1, lat, lon)
         local_ss = self._local_zone_correction(jd_ss, zone, mod_jd=True)
         a_ss = self._exact_from_meeus(local_ss)
         day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
+        f_coeff = self._get_frac_coeff(year)
         # print(f"{str(b_date):<15} {day:<9} {jd:<14} {local_ss:<20} "
         #       f"{a_ss:<20} {day_frac} {coeff}")
-        return round(a_ss + day_frac, self._ROUNDING_PLACES)
-
-    def _get_jd_coeff(self, year: int) -> int:
-        """
-        Generate the coefficients for correcting Badí' vernal equinox dates.
-
-        .. note::
-
-           | General ranges are determined with:
-           | ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
-
-           Where -S is the 1st year and -E is the nth year + 1 that needs to
-           be process. Use the following command to test the results of each
-           segment.
-           ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
-
-           Full range is -1842 to 1161.
-
-        :param int year: The year to find a coefficient for.
-        :returns: The coefficient.
-        :rtype: int
-        """
-        def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
-            func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
-            coeff = 0
-
-            if a and func(y, onoff0):    # Whatever is passed in onoff0.
-                coeff = a
-            elif b and func(y, onoff1):  # Whatever is passed in onoff1.
-                coeff = b
-
-            return coeff
-
-        def process_segments(year, pn, a=0, onoff0=(), b=0, onoff1=()):
-            coeff = 0
-
-            for start, end in pn:
-                if year in range(start, end):
-                    # Start to end (range -S start -E end)
-                    coeff0 = process_segment(end - year, a=a, onoff0=onoff0)
-                    coeff1 = process_segment(end - year, b=b, onoff1=onoff1)
-                    coeff = coeff0 if coeff0 != 0 else coeff1
-
-            return coeff
-
-        coeff = 0
-
-        if not coeff:
-            coeff = process_segments(year, self.N1, -1, (0, 1, 2, 3))
-
-        if not coeff:
-            coeff = process_segments(year, self.N1100, -1, (0, 3))
-
-        if not coeff:
-            coeff = process_segments(year, self.N1110, -1, (0, 2, 3))
-
-        if not coeff:
-            coeff = process_segments(year, self.N2, -2, (0, 1, 2, 3))
-
-        if not coeff:
-            coeff = process_segments(year, self.N2111, -2, (0,), -1, (1, 2, 3))
-
-        if not coeff:
-            coeff = process_segments(year, self.N2211, -2, (0, 3), -1, (1, 2))
-
-        if not coeff:
-            coeff = process_segments(year, self.N2221, -2, (0, 2, 3), -1, (1,))
-
-        return coeff
+        return round(a_ss + day_frac + f_coeff, self._ROUNDING_PLACES)
 
     def badi_date_from_jd(self, jd: float, lat: float=None, lon: float=None,
                           zone: float=None, *, us: bool=False,

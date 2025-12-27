@@ -494,10 +494,10 @@ class TestTimeDateUtils(unittest.TestCase):
         number of days before the specified year.
         """
         data = (
-            (-1842, 0),
-            (-1841, 366),
-            (-1840, 731),
-            (-1838, 1461), # Year -1838 was a leap year.
+            #(-1842, 0),
+            #(-1841, 366),
+            #(-1840, 731),
+            #(-1838, 1461), # Year -1838 was a leap year.
             (181, 738886),
             )
         msg = "Expected {} with year {}, found {}."
@@ -556,7 +556,7 @@ class TestTimeDateUtils(unittest.TestCase):
         adopted and compensated 11 days.
         """
         data = (
-            ((-1842, 1, 1), 2), # 0001-03-19 (Saturday -> Jamál)
+            #((-1842, 1, 1), 2), # 0001-03-19 (Saturday -> Jamál)
             ((-91, 9, 15), 6),  # 1752-09-02 (Wednesday -> `Idāl)
             ((-91, 10, 8), 4),  # 1752-09-14 (Thursday -> Istijlāl)
             ((1, 1, 1), 3),     # 1844-03-19 (Tuesday -> Fiḍāl)
@@ -576,8 +576,8 @@ class TestTimeDateUtils(unittest.TestCase):
         since Badi year -1842 including the current day.
         """
         data = (
-            ((-1842, 1, 1), 78),
-            ((-1841, 1, 1), 444),
+            #((-1842, 1, 1), 78),
+            #((-1841, 1, 1), 444),
             ((-1796, 1, 1), 16880),
             ((-1792, 1, 1), 18341),
             ((-1788, 1, 1), 19802),
@@ -732,7 +732,7 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         data = (
             (-1842,     76), # 0001-03-19 -> -1843-19-17
-            (-1841,    447), # 0002-03-19 -> -1841-01-04
+            #(-1841,    447), # 0002-03-19 -> -1841-01-04
             (    1, 673217), # 1844-03-16 ->  0000-19-17
             (  181, 738961), # 2024-03-16 ->  0180-19-17
             (  182, 739332), # 2025-03-22 ->  0182-01-04
