@@ -295,15 +295,23 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         def day_before(year, month, day):
             if day <= 0:
                 if 2 <= month <= 18:  # Months 2 - 18 -> to previous month
+                    self._debug_print("Day Before 1: jd: {}, year: {}, month: "
+                                      "{}, day: {}", (jd, year, month, day))
                     month -= 1
                     day = 19
                 elif month == 19:  # Month 19 -> Ayyám-i-Há
+                    self._debug_print("Day Before 2: jd: {}, year: {}, month: "
+                                      "{}, day: {}", (jd, year, month, day))
                     month = 0
                     day = 4 + self._is_leap_year(year)
                 elif month == 0:  # Ayyám-i-Há
+                    self._debug_print("Day Before 3: jd: {}, year: {}, month: "
+                                      "{}, day: {}", (jd, year, month, day))
                     month = 18
                     day = 19
                 else:  # Month 1 -> Month 19 & year to previous year
+                    self._debug_print("Day Before 4: jd: {}, year: {}, month: "
+                                      "{}, day: {}", (jd, year, month, day))
                     year -= 1
                     month = 19
                     day = 19
@@ -315,15 +323,23 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
             if day > dim:
                 if 1 <= month <= 17:
+                    self._debug_print("Day After 1: jd: {}, year: {}, month: "
+                                      "{}, day: {}", (jd, year, month, day))
                     month += 1
                     day = 1
                 elif month == 18:
+                    self._debug_print("Day After 2: jd: {}, year: {}, month: "
+                                      "{}, day: {}", (jd, year, month, day))
                     month = 0
                     day = 1
                 elif month == 0:
+                    self._debug_print("Day After 3: jd: {}, year: {}, month: "
+                                      "{}, day: {}", (jd, year, month, day))
                     month = 19
                     day = 1
                 else:  # Month 19
+                    self._debug_print("Day After 4: jd: {}, year: {}, month: "
+                                      "{}, day: {}", (jd, year, month, day))
                     year += 1
                     month = 1
                     day = 1

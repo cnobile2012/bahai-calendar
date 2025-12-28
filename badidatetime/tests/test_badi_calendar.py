@@ -357,6 +357,9 @@ class TestBadiCalendar(unittest.TestCase):
             # rtd and long format
             (2394985.2486724695, *epoch_coords, False, False, True, False,
              True, (1, 1, 1, 0, 1)),
+            # Use default coordinents
+            (2394985.2486724695, None, None, None, False, False, True, False,
+             True, (1, 1, 1, 0, 1)),
             # us and fraction
             (0, 0, 0, 0, True, True, False, True, False, err_msg0),
             # us and rtd
@@ -377,7 +380,11 @@ class TestBadiCalendar(unittest.TestCase):
                 message = str(cm.exception)
                 self.assertEqual(expected_result, message)
             else:
-                jd0 = self._bc._local_zone_correction(jd, zone, mod_jd=True)
+                if zone is None:
+                    jd0 = jd
+                else:
+                    jd0 = self._bc._local_zone_correction(jd, zone, mod_jd=True)
+
                 result = self._bc.badi_date_from_jd(
                     jd0, lat, lon, zone, us=us, short=short, trim=trim,
                     fraction=fraction, rtd=rtd, _chk_on=False)
@@ -418,7 +425,7 @@ class TestBadiCalendar(unittest.TestCase):
             (2460542.2734519225, (181, 9, 4), *local_coords,
              (181, 9, 3, 18, 36, 11.8944)),
             # Stage 1a
-            #1844-03-19T14:46:00Z -> 1844-03-19T18:16:00.0+03:30
+            # 1844-03-19T14:46:00Z -> 1844-03-19T18:16:00.0+03:30
             # Sunset = 18:16 -> 18:16 - 18:16 = 00:00:00
             (2394643.115278, (1, 1, 1), *epoch_coords,
              (0, 19, 19, 0, 0, 14.0436)),
@@ -449,6 +456,32 @@ class TestBadiCalendar(unittest.TestCase):
             # Sunset = 18:16 -> 21:48:15.6 - 18:16 = 03:32:15.6
             (2394643.262681068, (0, 19, 20), *epoch_coords,
              (1, 1, 1, 3, 32, 29.67)),
+            # Tests for the day_before() closure.
+            # 2 <= month <= 18
+            (1721805.6458333333, (-1842, 17, 1), *epoch_coords,
+             (-1842, 16, 19, 13, 41, 30.1092)),
+            # month == 19
+            (1721848.6458333333, (-1842, 19, 1), *epoch_coords,
+             (-1842, 0, 5, 13, 0, 45.0828)),
+            # month == 0
+            (1721843.6458333333, (-1842, 0, 1), *epoch_coords,
+             (-1842, 18, 19, 13, 5, 2.9652)),
+            # Month 1 -> Month 19
+            (1721867.6458333333, (-1841, 1, 1), *epoch_coords,
+             (-1842, 19, 19, 12, 45, 39.114)),
+            # Tests for the day_after() closure.
+            # 1 <= month <= 17
+            (2394662.272353196, (1, 1, 20), *epoch_coords,
+             (1, 2, 1, 3, 30, 49.0572)),
+            # month == 18
+            (2394985.2473844443, (1, 18, 20), *epoch_coords,
+             (1, 0, 1, 3, 30, 56.1528)),
+            # month == 0
+            (2394990.2505755094, (1, 0, 20), *epoch_coords,
+             (1, 19, 1, 3, 30, 54.4788)),
+            # Month 19
+            (2394643.3, (0, 19, 20), *epoch_coords,
+             (1, 1, 1, 4, 26, 14.0244)),
             )
         msg = "Expected {} for jd {}, date {}, found {}"
 

@@ -749,27 +749,26 @@ if __name__ == "__main__":
             print(f"./contrib/misc/{basename} -dS {options.start} "
                   f"-E {options.end} -A {options.latitude} "
                   f"-O {options.longitude} -Z {options.zone}")
-            underline_length = 198
+            underline_length = 215
             print('-' * underline_length)
             print("Gregorian Date|Badi Date from |"
                   "Badi Date from JD",
-                  ' ' * 15, "|Badi Date from Gregorian",
-                  ' ' * 8, "|Badi Date from Timestamp",
-                  ' ' * 8, "|Tuples are:")
-            print("at Midnight   |Ordinal        |", ' ' * 32, "|",
-                  ' ' * 32, "|", ' ' * 32, "|(idx, diff val 0, diff val 1)")
+                  ' ' * 16, "|Badi Date from Gregorian",
+                  ' ' * 9, "|Badi Date from Timestamp",
+                  ' ' * 9, "|Tuples are:")
+            print("at Midnight   |Ordinal        |", ' ' * 33, "|",
+                  ' ' * 33, "|", ' ' * 33, "|(idx, diff val 0, diff val 1)")
             print('-' * underline_length)
             [print(f"{str(date):14} "
                    f"{str(b_date0):15} "
-                   f"{str(b_date1):34} "
-                   f"{str(b_date2):34} "
-                   f"{str(b_date3):34} "
+                   f"{str(b_date1):35} "
+                   f"{str(b_date2):35} "
+                   f"{str(b_date3):35} "
                    f"{diff0} "
                    f"{diff1}"
                    ) for (date, b_date0, b_date1, b_date2,
                           b_date3, diff0, diff1) in data]
             print('-' * underline_length)
-
             end_time = time.time()
             days, hours, minutes, seconds = dt._dhms_from_seconds(
                 end_time - start_time)
