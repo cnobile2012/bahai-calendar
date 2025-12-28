@@ -398,58 +398,6 @@ class TestBadiDatetimeFunctions(unittest.TestCase):
             else:
                 datetime._check_tzname(name)
 
-    @unittest.skip("Temporarily skipped")
-    def test__fromutc(self):
-        """
-        Test that the _fromutc function returns an updated datetime object.
-        """
-        none_value_timezone0 = NoneTimeZone()
-        err_msg0 = "_fromutc() requires a datetime argument."
-        err_msg1 = "_fromutc() dt.tzinfo is not this."
-        err_msg2 = "_fromutc() requires a non-None utcoffset() result."
-        err_msg3 = "_fromutc() requires a non-None dst() result."
-        # err_msg4 = ("_fromutc(): dt.dst gave inconsistent results; cannot "
-        #             "convert.")
-        tz0 = ZoneInfo(datetime.BADI_IANA)
-        tz1 = ZoneInfo('UTC')
-        tz2 = ZoneInfo('US/Eastern')
-        data = (
-            ((181, 14, 11), tz0, 0, False, '0181-14-11T03:30:00+03:30'),
-            ((181, 14, 11), tz1, 0, False, '0181-14-11T00:00:00+00:00'),
-            ((181, 14, 11), tz2, 0, False, '0181-14-10T19:00:00-05:00'),
-            ((), None, 0, True, err_msg0),
-            ((181, 14, 9), None, 0, True, err_msg1),
-            ((181, 14, 10), none_value_timezone0, 0, True, err_msg2),
-            ((181, 14, 11), datetime.UTC, 0, True, err_msg3),
-            # ((181, 14, 12), none_value_timezone1, 0, True, err_msg4),
-            )
-        msg = "Expected {} with date {} and timezone {}, found {}."
-
-        for date, tz, fold, validity, expected_result in data:
-            if validity:
-                dt = (datetime.datetime(*date, tzinfo=tz, fold=fold)
-                      if date else None)
-
-                if tz is None and not dt:  # err_msg0
-                    this = None
-                elif tz is None:  # err_msg1
-                    this = tz2
-                else:
-                    this = dt.tzinfo
-
-                try:
-                    result = datetime._fromutc(this, dt)
-                except (TypeError, ValueError) as e:
-                    self.assertEqual(expected_result, str(e), f"Error: {date}")
-                else:
-                    raise AssertionError(f"With {date} an error is not "
-                                         f"raised, with result {result}.")
-            else:
-                dt = datetime.datetime(*date, tzinfo=tz, fold=fold)
-                result = datetime._fromutc(dt.tzinfo, dt)
-                self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, date, tz, result))
-
     #@unittest.skip("Temporarily skipped")
     def test__get_class_module(self):
         """
@@ -2514,7 +2462,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
                 expected_result, date, tz, fold, str(result)))
 
     #@unittest.skip("Temporarily skipped")
-    @patch.object(datetime, 'LOCAL_COORD', (51.477928, -0.001545, 0))
+    @patch.object(datetime, 'LOCAL_COORD', (51.477928, -0.001545, 0.0))
     def test__fromtimestamp_gmt(self):
         """
         Test that the _fromtimestamp classmethod creates an instance
@@ -2525,35 +2473,32 @@ class TestBadiDatetime_datetime(unittest.TestCase):
            The tests marked 'Latitude and Longitude dependent' will break
            if datetime.LOCAL_COORD is not patched.
         """
-        # tz0 = ZoneInfo(datetime.BADI_IANA)
+        tz0 = ZoneInfo(datetime.BADI_IANA)
         tz1 = ZoneInfo('UTC')
-        # tz2 = ZoneInfo('US/Eastern')
+        tz2 = ZoneInfo('US/Eastern')
         data = (
             # Assume UTC as starting point.
             # 1970-01-01T00:00:00Z
             (0, True, tz1, True, '0126-16-02T08:00:30.668400+00:00'),
             (0, True, datetime.UTC, True, '0126-16-02T08:00:30.668400+00:00'),
-            # 1969-12-31T19:00:00+00:00Z -> 1969-12-31T14:00:00Z
-            # Sunset day before = 16:00 -> 24:00 - 16:00 = 08:00 ->
-            # 08:00 + 14:00 = 22:00 
-            # 24:00 - 02:00 = 22:00 -> 0126-16-01T22:00:00.0+00:00
-            (-18000, False, tz1, True, '0126-16-01T22:00:00.0+00:00'),
+            # 1970-01-01T00:00:00+00:00Z -> 1969-12-31T19:00:00Z
+            # Sunset = 16:00 -> 19:00 - 16:00 = 03:00 ->
+            # 0126-16-02T03:00:00.0+00:00
+            (-18000, False, tz1, True, '0126-16-02T03:00:30.668400+00:00'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
-            # 1969-12-31T14:00:00+03:30 -> Sunset = 17:01
-            # 17:01 - 14:00 = 03:01 -> 24:00 - 03:01 = 20:59
-            #(-18000, False, tz0, True, '0126-16-01T20:48:41.256000+03:30'),
-            #(-18000, False, datetime.BADI, True,
-            # '0126-16-01T20:48:41.256000+03:30'),
+            # 1970-01-01T00:00:00+00:00Z -> 1969-12-31T03:30:00+03:30
+            # Sunset = 17:01
+            (-18000, False, tz0, True, '0126-16-02T03:00:30.668400+03:30'),
+            (-18000, False, datetime.BADI, True,
+             '0126-16-02T03:00:30.668400+03:30'),
             # Assume UTC as starting point.
             # 1970-01-01T00:00:00+03:30 -> Sunset = 17:02
-            # 17:02 - 00:00 = 17:02 -> 24:00 - 17:02 = 06:58
-            #(0, True, tz0, True, '0126-16-02T07:59:32.488800+03:30'),
+            (0, True, tz0, True, '0126-16-02T08:00:30.668400+03:30'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
             # 1969-12-31T14:00:00-05:00 -> Sunset = 17:12
-            # 17:12 - 14:00 = 03:12 -> 24:00 - 03:12 = 20:48
-            #(-18000, False, tz2, True, '0126-16-01T20:48:41.256000-05:00'),
+            (-18000, False, tz2, True, '0126-16-02T03:00:30.668400-05:00'),
             )
         msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
                "and short {}, found {}.")
@@ -2563,7 +2508,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, str(result), msg.format(
                 expected_result, t, utc, tz, short, result))
 
-    @unittest.skip("Temporarily skipped")
+    #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test__fromtimestamp_local(self):
         """
@@ -2581,8 +2526,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             # Assume UTC as starting point.
             # 1970-01-01T00:00:00Z
-            (0, True, tz1, True, '0126-16-02T07:59:32.488800+00:00'),
-            (0, True, datetime.UTC, True, '0126-16-02T07:59:32.488800+00:00'),
+            (0, True, tz1, True, '0126-16-02T08:00:30.668400+00:00'),
+            (0, True, datetime.UTC, True, '0126-16-02T08:00:30.668400+00:00'),
             # 1969-12-31T19:00:00+00:00Z -> 1969-12-31T14:00:00-05:00 ->
             # 19:00 - 05:00 = 14:00 -> Sunset = 16:00 - 14:00 = 02:00 ->
             # 24:00 - 02:00 = 22:00 -> 0126-16-01T22:00:00.0-05:00
@@ -2597,7 +2542,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Assume UTC as starting point.
             # 1970-01-01T00:00:00+03:30 -> Sunset = 17:02
             # 17:02 - 00:00 = 17:02 -> 24:00 - 17:02 = 06:58
-            (0, True, tz0, True, '0126-16-02T07:59:32.488800+03:30'),
+            (0, True, tz0, True, '0126-16-02T08:00:30.668400+03:30'),
             # Latitude and Longitude dependent
             # Assume local time as starting point.
             # 1969-12-31T14:00:00-05:00 -> Sunset = 17:12
@@ -2905,9 +2850,10 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # 1970-01-01T05:00:00.0Z -> 1970-01-01T00:00:00-05:00
             # 0126-16-02T03:00:30.6684-05:00
             ((126, 16, 2, None, None, 3, 0, 30.6684), 7.89490789175),
-            # 2025-02-25T00:00:00-05:00 -> 1st day of Ayyam-i-Ha
-            # Sunset = 17:08 -> 24:00 - 17:08 = 06:52
-            ((181, 0, 1, None, None, 6, 52), 1740460977.0048962),
+            # 2025-02-25T05:00:00Z -> 2025-02-25T00:00:00-05:00
+            # 1st day of Ayyam-i-Ha -> 1740459600
+            # Sunset day before = 18:07 -> 24:00 - 18:07 = 05:53
+            ((181, 0, 1, None, None, 5, 53), 1740457437.0048656),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -2917,27 +2863,28 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, result))
 
-    @unittest.skip("Temporarily skipped")
-    @patch.object(datetime, 'LOCAL_COORD', (35.682376, 51.285817, 3.5))
+    #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.69435, 51.288701, 3.5))
     def test__mktime_tehran(self):
         """
         Test that the _mktime method finds the POSIX time in seconds for
         local time in Terhan. All tests below will only work with Terhan
         set as the local time set in the above patch.
+        https://www.epochconverter.com/timezones
         """
         # All results below indicate local time.
         data = (
             # Sunset in Terhan was 17:01 UTC
             # Badi time was 24 - 17:01 = 6:59, 6:59 + 3:30 == 10:29
             # POSIX epoch local time 1970-01-01T03:50:00+03:30
-            ((126, 16, 2, None, None, 10, 29), -12600.299999999988),
-            # POSIX epoch 1970-01-01T00:00:00
-            ((126, 16, 2, None, None, 6, 59), -12600.299999999988),
-            # Both test below are off by -25200
-            # 2024-31-30T00:00:00 -> 1735702200
-            ((181, 16, 2, None, None, 10, 29), 1735590599.7),
-            # 2024-31-30T00:00:00 -> 1735689600
-            ((181, 16, 2, None, None, 6, 59), 1735590599.7),
+            # Approximatly 0.0
+            ((126, 16, 2, None, None, 11, 30, 30.6684), 7.89490789175),
+            # POSIX epoch 1970-01-01T00:00:00 Approximatly -12600
+            ((126, 16, 2, None, None, 8, 0, 30.6684), -12592.105105519295),
+            # 2025-01-01T00:00:00Z -> 2025-01-01T03:30:00+03:30
+            # Sunset day before 17:02 -> 24:00 - 17:02 = 06:58 ->
+            # 06:58 + 03:30 = 10:28 -> 1735707600
+            ((181, 16, 2, None, None, 10, 28), 1735599431.404066),
             )
         msg = "Expected {} with date {}, found {}."
 

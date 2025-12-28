@@ -494,10 +494,10 @@ class TestTimeDateUtils(unittest.TestCase):
         number of days before the specified year.
         """
         data = (
-            #(-1842, 0),
-            #(-1841, 366),
-            #(-1840, 731),
-            #(-1838, 1461), # Year -1838 was a leap year.
+            (-1842, 0),
+            (-1841, 366),
+            (-1840, 731),
+            (-1838, 1461), # Year -1838 was a leap year.
             (181, 738886),
             )
         msg = "Expected {} with year {}, found {}."
@@ -556,7 +556,7 @@ class TestTimeDateUtils(unittest.TestCase):
         adopted and compensated 11 days.
         """
         data = (
-            #((-1842, 1, 1), 2), # 0001-03-19 (Saturday -> Jamál)
+            ((-1842, 1, 1), 2), # 0001-03-19 (Saturday -> Jamál)
             ((-91, 9, 15), 6),  # 1752-09-02 (Wednesday -> `Idāl)
             ((-91, 10, 8), 4),  # 1752-09-14 (Thursday -> Istijlāl)
             ((1, 1, 1), 3),     # 1844-03-19 (Tuesday -> Fiḍāl)
@@ -576,11 +576,11 @@ class TestTimeDateUtils(unittest.TestCase):
         since Badi year -1842 including the current day.
         """
         data = (
-            #((-1842, 1, 1), 78),
-            #((-1841, 1, 1), 444),
-            ((-1796, 1, 1), 16880),
-            ((-1792, 1, 1), 18341),
-            ((-1788, 1, 1), 19802),
+            ((-1842, 1, 1), 78),
+            ((-1841, 1, 1), 444),
+            ((-1796, 1, 1), 16881),
+            ((-1792, 1, 1), 18342),
+            ((-1788, 1, 1), 19803),
             ((181, 1, 1), 738964),
             # 1st week of 181
             ((180, 19, 17), 738961),
@@ -605,8 +605,8 @@ class TestTimeDateUtils(unittest.TestCase):
         from the Badi year -1842.
         """
         data = (
-            # (78, False, (-5, 18, 1, 1, 1)),
-            # (78, True, (-1842, 1, 1)),
+            (78, False, (-5, 18, 1, 1, 1)),
+            (78, True, (-1842, 1, 1)),
             (444, True, (-1841, 1, 1)),
             (673219, True, (0, 19, 19)),
             (673220, True, (1, 1, 1)),
@@ -677,17 +677,15 @@ class TestTimeDateUtils(unittest.TestCase):
         err_msg1 = "Invalid weekday: {} (range is [1, 7])"
         data = (
             # year  week day
-            # ((-1842,  1,  1), False, False, (-5, 17, 19, 19, 18)),
-            # ((-1842,  1,  1), True,  False, (-1843, 19, 18)),
+            ((-1842,  1,  1), False, False, (-5, 17, 19, 19, 18)),
+            ((-1842,  1,  1), True,  False, (-1843, 19, 18)),
             ((    1, 52,  1), True,  False, (1, 19, 15)),
             ((   46, 52,  1), True,  False, (46, 19, 15)),
             ((  175, 52,  1), True,  False, (175, 19, 16)),
             ((  176, 52,  1), True,  False, (176, 19, 15)),
             ((  181,  1,  1), True,  False, (180, 19, 17)),
-
             ((  181,  1,  7), True,  False, (181, 1, 4)),
             ((  181, 20,  7), True,  False, (181, 8, 4)),
-
             ((  181, 52,  1), True,  False, (181, 19, 16)),
             ((  181, 52,  7), True,  False, (182, 1, 3)),
             ((  182, 52,  1), True,  False, (182, 19, 14)),
@@ -732,7 +730,7 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         data = (
             (-1842,     76), # 0001-03-19 -> -1843-19-17
-            #(-1841,    447), # 0002-03-19 -> -1841-01-04
+            (-1841,    447), # 0002-03-19 -> -1841-01-04
             (    1, 673217), # 1844-03-16 ->  0000-19-17
             (  181, 738961), # 2024-03-16 ->  0180-19-17
             (  182, 739332), # 2025-03-22 ->  0182-01-04
@@ -756,7 +754,6 @@ class TestTimeDateUtils(unittest.TestCase):
             ('-1842-01-01T12:00:00', (-1842, 1, 1, 12, 0, 0), 'None'),
             ('11610101T120000', (1161, 1, 1, 12, 0, 0), 'None'),
             ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0), 'None'),
-            #('0181-W20T12:00:00', (181, 8, 17, 12, 0, 0), 'None'),
             ('0181-W20-5T12:00:00', (181, 8, 2, 12, 0, 0), 'None'),
             ('0001-01-01B', (1, 1, 1), 'UTC+03:30'),
             ('0001-01-01T00:00:00.0+03:30', (1, 1, 1, 0, 0, 0), 'UTC+03:30'),
@@ -787,14 +784,14 @@ class TestTimeDateUtils(unittest.TestCase):
                     "(-) in the date format or there can be one uppercase "
                     "(W) week identifier and between 0 and 2 hyphens (-) "
                     "used.")
-        err_msg3 = "Invalid ISO string {}."
+        err_msg3 = ("Day information must be included for a complete date "
+                    "to be generated, found {}.")
+        err_msg4 = "Invalid ISO string {}."
         data = (
             ('', False, ()),
             ('0181-01', False, (181, 1, 1)),
             ('01810101', False, (181, 1, 1)),
             ('0181-01-01', False, (181, 1, 1)),
-            ('0181W01', False, (180, 19, 17)),
-            ('0181-W01', False, (180, 19, 17)),
             ('0181-W01-1', False, (180, 19, 17)),
             ('0181-W01-2', False, (180, 19, 18)),
             ('0181-W01-3', False, (180, 19, 19)),
@@ -803,7 +800,6 @@ class TestTimeDateUtils(unittest.TestCase):
             ('0181-W01-6', False, (181, 1, 3)),
             ('0181-W01-7', False, (181, 1, 4)),
             ('0181W017', False, (181, 1, 4)),
-            ('0181W20', False, (181, 7, 17)),
             ('0181W207', False, (181, 8, 4)),
             ('0181001', False, (181, 1, 1)),
             ('0181019', False, (181, 1, 19)),
@@ -829,7 +825,8 @@ class TestTimeDateUtils(unittest.TestCase):
                                               self._tdu.MAXYEAR)),
             ('0181-01-01-', True, err_msg2),
             ('0181-W10-1-', True, err_msg2),
-            ('0181-W101', True, err_msg3.format('0181-W101')),
+            ('0181W20', True, err_msg3.format('0181W20')),
+            ('0181-W101', True, err_msg4.format('0181-W101')),
             )
         msg = "Expected {} with ISO date {}, found {}."
 

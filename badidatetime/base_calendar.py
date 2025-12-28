@@ -1627,5 +1627,5 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param str msg: The text to be printed.
         :param tuple values: A tuple of values: (value0, value1, ...)
         """
-        if os.getenv('DEBUG', default=False):
+        if os.getenv('DEBUG', default=False):  # pragma: no cover
             print(msg.format(*values), file=sys.stderr)

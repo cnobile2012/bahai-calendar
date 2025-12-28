@@ -985,7 +985,7 @@ class TimeDateUtils(BahaiCalendar):
         """
         jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False)
         jd1 = self.jd_from_badi_date((year, 1, 1), _chk_on=False)
-        return math.floor(jd1 - jd0) + 1
+        return math.floor(jd1 - jd0) - 1
 
     def _days_before_month(self, year: int, month: int) -> int:
         """
@@ -1249,6 +1249,9 @@ class TimeDateUtils(BahaiCalendar):
             wday = int(dtstr[pos:pos+2])
             pos += 2 if dc == 0 else 3
             d = dtstr[pos:]
+            assert d_len > 7, (
+                "Day information must be included for a "
+                f"complete date to be generated, found {dtstr}.")
             assert (dc == 1 and d_len == 8) or dc in (0, 2), (
                 f"Invalid ISO string {dtstr}.")
             day = int(d) if d.isdigit() else 1

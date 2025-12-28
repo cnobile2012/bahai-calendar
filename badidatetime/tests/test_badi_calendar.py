@@ -388,8 +388,8 @@ class TestBadiCalendar(unittest.TestCase):
     def test__adjust_date(self):
         """
         Test that the _adjust_date method correctly fixes the date and time.
-        The date parameter below can be found in the 'Stage 0' print statement
-        from the badi_date_from_jd test above.
+        The date parameters below can be found in the 'Stage 0' print
+        statement from the badi_date_from_jd test above.
         """
         epoch_coords = self._bc._BAHAI_LOCATION[:3]
         local_coords = (35.5894, -78.7792, -5.0)

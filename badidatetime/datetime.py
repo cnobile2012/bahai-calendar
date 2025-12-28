@@ -203,55 +203,6 @@ def _check_tzname(name: str) -> None:
                         f"not {type(name).__name__!r}")
 
 
-# def _fromutc(this: tzinfo, dt):
-#     """
-#     The method fromutc() in tzinfo will not accept the Badí' datetime object,
-#     so this method needs to fill that role. It handles ZoneInfo objects only.
-
-#     .. note::
-
-#        This function needs to be implemented outside the `tzinfo` class so
-#        that the `tzinfo` class can be used with the `zoneinfo` class. Normally
-#        the tzinfo class would just be overridden with this function added.
-
-#     :param tzinfo this: The tzinfo instance.
-#     :param datetime dt: A datetime instance.
-#     :returns: The adjusted datetime from the provided UTC datetime.
-#     :rtype: datetime
-#     :raises TypeError: If `dt` is not a `datetime` instance.
-#     :raises ValueError: If dt.tzinfo is not self.
-#     :raises ValueError: If a `None` value returned from utcoffset().
-#     :raises ValueError: If a `None` value returned from dst().
-#     """
-#     if not isinstance(dt, datetime):
-#         raise TypeError("_fromutc() requires a datetime argument.")
-
-#     if dt.tzinfo is not this:
-#         raise ValueError("_fromutc() dt.tzinfo is not this.")
-
-#     dtoff = dt.utcoffset()
-
-#     if dtoff is None:
-#         raise ValueError("_fromutc() requires a non-None utcoffset() result.")
-
-#     dtdst = dt.dst()
-
-#     if dtdst is None:
-#         raise ValueError("_fromutc() requires a non-None dst() result.")
-
-#     delta = dtoff - dtdst
-
-#     if delta:
-#         dt += delta
-#         dtdst = dt.dst()
-
-#         if dtdst is None:  # pragma: no cover
-#             raise ValueError("_fromutc(): dt.dst gave inconsistent "
-#                              "results; cannot convert.")
-
-#     return dt + dtdst
-
-
 def _get_class_module(self):
     module_name = self.__class__.__module__
 
@@ -1931,11 +1882,6 @@ class datetime(date):
 
                 if probe2 == result:  # pragma: no cover
                     result._fold = 1
-        # elif tz is not None:
-        #     if isinstance(tz, timezone):
-        #         result = tz.fromutc(result)  # timezone
-        #     else:
-        #         result = _fromutc(tz, result)  # ZoneInfo
 
         del bc
         return result
@@ -2041,25 +1987,6 @@ class datetime(date):
         """
         return self.timestamp_from_badi_date(self.b_date + self.b_time,
                                              *LOCAL_COORD)
-
-        # tz = timezone(timedelta(hours=LOCAL_COORD[-1]))
-        # self = self.replace(tzinfo=tz)
-        # t = (self - _EPOCH) // timedelta(0, 1)
-        # # Compensate for off-by-one days on the 1st day of the POSIX epoch
-        # # per year.
-        # greg_epoch = (1970, 1, 1)
-        # badi_epoch = self.badi_date_from_gregorian_date(
-        #     greg_epoch, *LOCAL_COORD, short=True)
-
-        # if badi_epoch[2] != self.day:
-        #     self = self.replace(day=badi_epoch[2])
-
-        # # Compensate for different sunsets.
-        # ss0 = self._seconds_from_dhms(_EPOCH.day, *_EPOCH.b_time)
-        # ss1 = self._seconds_from_dhms(self.day, *self.b_time)
-        # t1 = t + ss0 - ss1
-        # #print(self, _EPOCH, badi_epoch, t, t1)
-        # return t1
 
     def timestamp(self) -> float:
         """

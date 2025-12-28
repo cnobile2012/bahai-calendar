@@ -17,8 +17,7 @@ PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
-from badidatetime import (BahaiCalendar, GregorianCalendar, datetime, timezone,
-                          timedelta)
+from badidatetime import BahaiCalendar, GregorianCalendar, datetime, timezone
 badidt = importlib.import_module('badidatetime.datetime')
 
 
