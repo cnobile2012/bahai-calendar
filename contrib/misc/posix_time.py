@@ -4,7 +4,6 @@
 # contrib/misc/posix_time.py
 #
 
-#import importlib
 import os
 import sys
 import importlib

@@ -33,11 +33,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
         (15, 19), (16, 19), (17, 19), (18, 19), (0, 0), (19, 19)
         ]
-    KULL_I_SHAY_MIN = -5
+    KULLISHAY_MIN = -5
     """
     int: Constant indicating the minimum Kull-i-shay the API supports.
     """
-    KULL_I_SHAY_MAX = 4
+    KULLISHAY_MAX = 4
     """
     int: Constant indicating the maximum Kull-i-shay the API supports.
     """
@@ -121,8 +121,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         return self._gc.gregorian_date_from_jd(jd, hms=hms, exact=True)
 
     def jd_from_badi_date(self, b_date: tuple, lat: float=None,
-                          lon: float=None, zone: float=None, *,
-                          _chk_on: bool=True) -> float:
+                          lon: float=None, zone: float=None) -> float:
         """
         Convert a Badí' short form date to Julian period day.
 
@@ -130,14 +129,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The time zone.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The Julian Period day.
         :rtype: float
         """
-        _chk_on and self._check_valid_badi_date(b_date, short_in=True)
+        self._check_valid_badi_date(b_date, short_in=True)
         year, month, day = b_date[:3]
         hh, mm, ss, us = self._get_hms(b_date, short_in=True)
 
@@ -146,7 +141,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         elif month < 19:  # month 1 - 18
             days = (month - 1) * 19
         else:             # month 19
-            days = 18 * 19 + 4 + self._is_leap_year(year, _chk_on=_chk_on)
+            days = 18 * 19 + 4 + self._is_leap_year(year)
 
         td = self._days_in_years(year - 1)
         jd = td + math.floor(self._BADI_EPOCH + 1) + days + day
@@ -172,8 +167,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     def badi_date_from_jd(self, jd: float, lat: float=None, lon: float=None,
                           zone: float=None, *, us: bool=False,
                           short: bool=False, fraction: bool=False,
-                          trim: bool=False, rtd: bool=False,
-                          _chk_on: bool=True) -> tuple:
+                          trim: bool=False, rtd: bool=False) -> tuple:
         """
         Convert a Julian Period day to a Badi date.
 
@@ -191,10 +185,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                               fraction on the day.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
         :param bool rtd: Round to day.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The Badi date from an Astronomically correct Julian
                   Period day.
         :rtype: tuple
@@ -202,8 +192,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         assert self._xor_boolean((fraction, us, rtd)), (
             "Cannot set more than one of fraction, us, or rtd to True.")
 
-        def get_leap_year_info(year, _chk_on):
-            leap = self._is_leap_year(year, _chk_on=_chk_on)
+        def get_leap_year_info(year):
+            leap = self._is_leap_year(year)
             return leap, 4 + leap
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
@@ -215,10 +205,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         y = 1 if md < 424046 and md != 0 else 0
         # Find the year
         year = math.floor(md / self._MEAN_TROPICAL_YEAR) + y
-        leap, ld = get_leap_year_info(year, _chk_on)
+        leap, ld = get_leap_year_info(year)
         # Get 1st day of year so we can find the number of days to the JD.
         fdoy = (year, 1, 1)
-        fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone, _chk_on=_chk_on)
+        fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone)
 
         # Fix year if needed.
         yr = year - 1 if (math.floor(fjdoy) - math.floor(jd)) > 0 else year
@@ -226,9 +216,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         if yr != year:
             year = yr
             fdoy = (year, 1, 1)
-            fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone,
-                                           _chk_on=_chk_on)
-            leap, ld = get_leap_year_info(year, _chk_on)
+            fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone)
+            leap, ld = get_leap_year_info(year)
 
         days = math.floor(jd) - math.floor(fjdoy) + 1
 
@@ -260,8 +249,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             b_date = year, month, day
 
             if not short:
-                b_date = self.long_date_from_short_date(b_date, trim=trim,
-                                                        _chk_on=_chk_on)
+                b_date = self.long_date_from_short_date(b_date, trim=trim)
             assert frac < 1.0, (
                 "If this assertion fires send this entire message to the "
                 f"developer: jd: {jd}, day: {day}, frac: {frac}, "
@@ -269,10 +257,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         else:
             trim = trim if us else True
             date = year, month, day, *self._hms_from_decimal_day(frac)
-            l_date = self.long_date_from_short_date(date, trim=True,
-                                                    _chk_on=_chk_on)
+            l_date = self.long_date_from_short_date(date, trim=True)
             b_date = self.kvymdhms_from_b_date(l_date, us=us, short=short,
-                                               trim=trim, _chk_on=_chk_on)
+                                               trim=trim)
 
         return b_date
 
@@ -395,39 +382,58 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         return year, month, day, frac
 
     def short_date_from_long_date(self, b_date: tuple, *, trim: bool=False,
-                                  _chk_on: bool=True) -> tuple:
+                                  ) -> tuple:
         """
         Convert a long date (kvymdhms) to a short date (ymdhms). In either
         case microseconds could also be provided.
 
         :param tuple b_date: A long form date with or without microseconds.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The short form Badi date.
         :rtype: tuple
         """
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hh, mm, ss, us = self._get_hms(b_date)
         y = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
+        dm = 19 if month in range(1, 20) else 4 + self._is_leap_year(y)
+
+        # The ShortFormStruct and LongFormStruct accept seconds up to 61.
+        if ss >= 60:
+            mm += 1
+            ss -= 1
+
+        if mm >= 60:
+            hh += 1
+            mm -= 1
+
+        if hh >= 24:
+            day += 1
+            hh -= 1
+
+        if day > dm:
+            if dm in (4, 5):
+                month = 19
+                day = 1
+            else:
+                month += 1
+                day -= 1
+
+        if month > 19:
+            month = 1
+            y += 1
+
         hmsms = self._trim_hms((hh, mm, ss, us)) if trim else (hh, mm, ss, us)
         date = (y, month, day) + hmsms
-        _chk_on and self._check_valid_badi_date(date, short_in=True)
+        self._check_valid_badi_date(date, short_in=True)
         return date
 
     def long_date_from_short_date(self, date: tuple, *, trim: bool=False,
-                                  _chk_on: bool=True) -> tuple:
+                                  ) -> tuple:
         """
         Convert a date to a short date (ymdhms) to a long date (kvymdhms).
 
         :param tuple b_date: A short form date with or without microseconds.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
-        :param bool _chk_on: If True (default) all date check are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The long form Badi date.
         :rtype: tuple
         """
@@ -447,11 +453,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         hmsms = self._trim_hms((hh, mm, ss, us)) if trim else (hh, mm, ss, us)
         b_date = (kull_i_shay, vahid, year, month, day) + hmsms
-        _chk_on and self._check_valid_badi_date(b_date)
+        self._check_valid_badi_date(b_date)
         return b_date
 
-    def date_from_kvymdhms(self, b_date: tuple, *, short: bool=False,
-                           _chk_on: bool=True) -> tuple:
+    def date_from_kvymdhms(self, b_date: tuple, *, short: bool=False) -> tuple:
         """
         Convert (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second,
         us) into a (Kull-i-Shay, Váḥid, year, month, day.fraction) or
@@ -460,26 +465,21 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param tuple b_date: The Badi date in long form.
         :param bool short: If True then parse for a short date else if False
                            (default) parse for a long date.
-        :param bools _chk_on: If True (default) all date checks are enforced
-                              else if False they are turned off. This is only
-                              used internally. Do not use unless you know what
-                              you are doing.
         :returns: The long or short form Badi date with hours, minutes,
                   seconds, and microseconds if set.
         :rtype: tuple
         """
-        _chk_on and self._check_valid_badi_date(b_date)
+        self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
         hour, minute, second, us = self._get_hms(b_date)
         day += round(self._HR(hour) + self._MN(minute) + self._SEC(second) +
                      self._US(us), 6)  # Round to 6 decimal places
         date = (kull_i_shay, vahid, year, month, day)
         return (self.short_date_from_long_date(
-            date, trim=True, _chk_on=_chk_on) if short else date)
+            date, trim=True) if short else date)
 
     def kvymdhms_from_b_date(self, b_date: tuple, *, us: bool=False,
-                             short: bool=False, trim: bool=False,
-                             _chk_on: bool=True) -> tuple:
+                             short: bool=False, trim: bool=False) -> tuple:
         """
         Convert (Kull-i-Shay, Váḥid, year, month, day.fraction) into
         (Kull-i-Shay, Váḥid, year, month, day, hour, minute, second) or if
@@ -493,10 +493,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param bool short: If True then parse for a short date else if False
                            (default) parse for a long date.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The long or short form Badi date with hours, minutes,
                   seconds, and microseconds if set.
         :rtype: tuple
@@ -510,7 +506,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             b_date = b_date[:5] + hms
             dlen = len(b_date)
 
-        _chk_on and self._check_valid_badi_date(b_date)
+        self._check_valid_badi_date(b_date)
         kull_i_shay, vahid, year, month, day = b_date[:5]
 
         if dlen == 5:
@@ -533,15 +529,14 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             hmsms = (hour, minute, second)
 
         date += self._trim_hms(hmsms) if trim else hmsms
-        return (self.short_date_from_long_date(date, trim=trim, _chk_on=_chk_on)
+        return (self.short_date_from_long_date(date, trim=trim)
                 if short else date)
 
     def badi_date_from_gregorian_date(self, g_date: tuple, lat: float=None,
                                       lon: float=None, zone: float=None, *,
                                       us: bool=False, short: bool=False,
                                       trim: bool=False, rtd: bool=False,
-                                      _exact: bool=True, _chk_on: bool=True
-                                      ) -> tuple:
+                                      _exact: bool=True) -> tuple:
         """
         Get the Badi date from the Gregorian date.
 
@@ -560,22 +555,17 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                             Default is True. This should generally be set to
                             True, a False value will give inaccurate results
                             and is used for testing only.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: A Badi date long or short form.
         :rtype: tuple
         """
         jd = self._gc.jd_from_gregorian_date(g_date, exact=_exact)
         return self.badi_date_from_jd(jd, lat=lat, lon=lon, zone=zone, us=us,
-                                      short=short, trim=trim, rtd=rtd,
-                                      _chk_on=_chk_on)
+                                      short=short, trim=trim, rtd=rtd)
 
     def gregorian_date_from_badi_date(self, b_date: tuple, lat: float=None,
                                       lon: float=None, zone: float=None, *,
                                       us: bool=False, _exact: bool=True,
-                                      _chk_on: bool=True) -> tuple:
+                                      ) -> tuple:
         """
         Get the Gregorian date from the Badi date.
 
@@ -590,22 +580,17 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                             Default is True. This should generally be set to
                             True, a False value, will give inaccurate results
                             and is used for testing only.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The Gregorian date.
         :rtype: tuple
         """
-        jd = self.jd_from_badi_date(b_date, lat, lon, zone, _chk_on=_chk_on)
+        jd = self.jd_from_badi_date(b_date, lat, lon, zone)
         return self._gc.gregorian_date_from_jd(jd, hms=True, us=us,
                                                exact=_exact)
 
     def badi_date_from_timestamp(self, t: float, lat: float=None,
                                  lon: float=None, zone: float=None, *,
                                  us: bool=False, short: bool=False,
-                                 trim: bool=False, rtd: bool=False,
-                                 _chk_on: bool=True) -> tuple:
+                                 trim: bool=False, rtd: bool=False) -> tuple:
         """
         Get the Badi date from a POSIX timestamp.
 
@@ -620,17 +605,13 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                            (default) parse for a long date.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
         :param bool rtd: Round to day.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: A Badi date long or short form.
         :rtype: tuple
         """
         jd = t / 86400 + self._POSIX_EPOCH
         jd0 = self._local_zone_correction(jd, zone, mod_jd=True)
         return self.badi_date_from_jd(jd0, lat, lon, zone, us=us, short=short,
-                                      trim=trim, rtd=rtd, _chk_on=_chk_on)
+                                      trim=trim, rtd=rtd)
 
     def timestamp_from_badi_date(self, date: tuple, lat: float, lon: float,
                                  zone: float) -> float:
@@ -649,8 +630,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         jd_diff = jd - self._POSIX_EPOCH
         return round(jd_diff * 86400, self._ROUNDING_PLACES)
 
-    def midday(self, date: tuple, *, hms: bool=False, _short: bool,
-               _chk_on: bool=True) -> tuple:
+    def midday(self, date: tuple, *, hms: bool=False, _short: bool) -> tuple:
         """
         Find the midday time in hours, minutes, and seconds with fraction.
         All calculations are done in GMT.
@@ -659,16 +639,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param bool hms: If True return the hours, minutes, and seconds else
                          if False return the decimal value.
         :param bool _short: Indicates the incoming date format.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: Midday in hours, minutes, and seconds.
         :rtype: tuple
         """
         if not _short:
-            b_date = self.short_date_from_long_date(date, trim=True,
-                                                    _chk_on=_chk_on)
+            b_date = self.short_date_from_long_date(date, trim=True)
         else:
             b_date = date
 
@@ -740,10 +715,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         if not short_in:  # Long Badi date
             kull_i_shay, vahid, year, month, day = b_date[:5]
             hour, minute, second, us = self._get_hms(b_date)
-            assert (self.KULL_I_SHAY_MIN <= kull_i_shay
-                    <= self.KULL_I_SHAY_MAX), (
+            assert (self.KULLISHAY_MIN-1 <= kull_i_shay
+                    <= self.KULLISHAY_MAX+1), (
                 f"Invalid kull-i-shay {kull_i_shay}, it must be in the range "
-                f"of [{self.KULL_I_SHAY_MIN}, {self.KULL_I_SHAY_MAX}].")
+                f"of [{self.KULLISHAY_MIN}, {self.KULLISHAY_MAX}].")
             assert 1 <= vahid < cycle, (
                 f"Invalid Váḥids '{vahid}' in a Kull-i-Shay’, it must be in "
                 "the range of [1, 19].")
@@ -754,7 +729,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         else:  # Short Badi date
             year, month, day = b_date[:3]
             hour, minute, second, us = self._get_hms(b_date, short_in=True)
-            assert self.MINYEAR <= year <= self.MAXYEAR, (
+            assert self.MINYEAR-1 <= year <= self.MAXYEAR+1, (
                 f"Invalid year '{year}' it must be in the range of ["
                 f"{self.MINYEAR}, {self.MAXYEAR}].")
             ly = year
@@ -807,37 +782,28 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             f"Invalid microseconds '{us}', it must be in the range of "
             "[0, 999999].")
 
-    def _is_leap_year(self, year: int, _chk_on: bool=True) -> bool:
+    def _is_leap_year(self, year: int) -> bool:
         """
         Return a Boolean True if a Badí' leap year, False if not.
 
         :param int year: This value must be a Badí' short form year.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: A Boolean indicating if a leap year or not.
         :rtype: bool
         """
-        return self._days_in_year(year, _chk_on=_chk_on) == 366
+        return self._days_in_year(year) == 366
 
-    def _days_in_year(self, year: int, _chk_on: bool=True) -> int:
+    def _days_in_year(self, year: int) -> int:
         """
         Determine the number of days in the provided Badi year.
 
         :param int year: The Badi year to process.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The number of days.
         :rtype: int
         """
-        jd_n0 = self.jd_from_badi_date((year, 1, 1), _chk_on=_chk_on)
+        jd_n0 = self.jd_from_badi_date((year, 1, 1))
         # For year 1162 we need to turn off the date check so we can get
         # the leap year for 1161.
-        on = False if (year + 1) == 1162 else True
-        jd_n1 = self.jd_from_badi_date((year + 1, 1, 1), _chk_on=on)
+        jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
         return int(math.floor(jd_n1) - math.floor(jd_n0))
 
     def _get_hms(self, date: tuple, *, short_in: bool=False) -> tuple:
@@ -949,7 +915,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
     #     for y in range(self.MINYEAR, self.MAXYEAR + 1):
     #         self._leap_map[y] = count
-    #         is_leap = self._is_leap_year(y, _chk_on=False)
+    #         is_leap = self._is_leap_year(y)
     #         self._lys_map[y] = 5 if is_leap else 4
 
     #         if is_leap:

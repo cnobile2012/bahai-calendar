@@ -525,13 +525,18 @@ class TestBadiDatetime_date(unittest.TestCase):
         date from a POSIX timestamp for UTC time.
         """
         data = (
-            # 2025-10-28T16:38:10Z
-            # Sunset = 16:40 -> Badi date = 0182-12-15
-            (1761669490.5360037, True, '0182-12-15'),
-            (1761690180, True, '0182-12-15'),  # Sunset and day change
-            # Wrong is almost 5 hours early ()
-            #(1762103916.6480098, True, '0182-12-19'),
-            (1762121940, True, '0182-13-01'),  # Sunset and day change
+            # 2025-10-28T20:38:10Z -> 1761683890 -> 0182-12-14T23:24:27.7812
+            # Sunset = 16:40 -> 1761684000 -> 0182-12-14T23:26:17.7828
+            (1761683890, True, '0182-12-15'),
+
+            # 2025-11-02T06:59:00Z -> Sunset bay before = 16:33
+            # This about 10.5 hours too early.
+            #(1762084740, True, '0182-12-19'),
+
+            # 2025-11-02T16:00:00Z -> Sunset = 16:31
+            (1762117200, True, '0182-13-01'),
+            # 2025-11-02T22:19:00Z -> Sunset = 16:31
+            (1762121940, True, '0182-13-01'),
             )
         msg = "Expected {} with timestamp {}, found {}."
 

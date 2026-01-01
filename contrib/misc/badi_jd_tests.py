@@ -991,8 +991,8 @@ class DateTests(BahaiCalendar):
     # Support methods
     #
     def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None, *,
-                           _chk_on=False, coeffon=False, kill=False):
-        _chk_on and self._check_valid_badi_date(b_date, short_in=True)
+                           coeffon=False, kill=False):
+        self._check_valid_badi_date(b_date, short_in=True)
         year, month, day = b_date[:3]
         hh, mm, ss, us = self._get_hms(b_date, short_in=True)
 
@@ -1001,7 +1001,7 @@ class DateTests(BahaiCalendar):
         elif month < 19:  # month 1 - 18
             days = (month - 1) * 19
         else:             # month == 19
-            days = 18 * 19 + 4 + self._is_leap_year(year, _chk_on=_chk_on)
+            days = 18 * 19 + 4 + self._is_leap_year(year)
 
         td = self._days_in_years(year - 1)
         jd = td + math.floor(self._BADI_EPOCH + 1) + days + day
@@ -1523,9 +1523,9 @@ class DateTests(BahaiCalendar):
 
     def _week_of_year(self, year, month, day, weekday, week):
         def _offset(year, day):
-            leap = self._is_leap_year(year, _chk_on=False)
+            leap = self._is_leap_year(year)
             # Weekday on 1st of year.
-            fwd = ddate(year, 1, 1, _chk_on=False).weekday() + 1
+            fwd = ddate(year, 1, 1).weekday() + 1
             return self._OFFSETS.get((day, fwd, leap), 0)
 
         def _last_year_day(doy, day):

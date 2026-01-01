@@ -28,7 +28,7 @@ class BadiDateFromJD(BahaiCalendar):
         """
         Analyze the validity of the badi_date_from_jd method.
 
-        -a with -s and -E
+        -a with -S and -E
         """
         lat, lon, zone = self.GMT_COORDS
         data = []
@@ -45,7 +45,7 @@ class BadiDateFromJD(BahaiCalendar):
                     date = (year, month, day)
                     jd = self.jd_from_badi_date(date, lat, lon, zone)
                     b_date = self._badi_date_from_jd(
-                        jd, lat, lon, zone, short=True, _chk_on=False)
+                        jd, lat, lon, zone, short=True)
                     g_date = self.gc.gregorian_date_from_jd(jd, hms=True,
                                                             exact=True)
                     diff = self._subtract_tuples(date, b_date[:3])
@@ -56,13 +56,12 @@ class BadiDateFromJD(BahaiCalendar):
     def _badi_date_from_jd(self, jd: float, lat: float=None, lon: float=None,
                            zone: float=None, *, us: bool=False,
                            short: bool=False, fraction: bool=False,
-                           trim: bool=False, rtd: bool=False,
-                           _chk_on: bool=True) -> tuple:
+                           trim: bool=False, rtd: bool=False) -> tuple:
         assert self._xor_boolean((fraction, us, rtd)), (
             "Cannot set more than one of fraction, us, or rtd to True.")
 
-        def get_leap_year_info(year, _chk_on):
-            leap = self._is_leap_year(year, _chk_on=_chk_on)
+        def get_leap_year_info(year):
+            leap = self._is_leap_year(year)
             return leap, 4 + leap
 
         if any([True if l is None else False for l in (lat, lon, zone)]):
@@ -74,19 +73,18 @@ class BadiDateFromJD(BahaiCalendar):
         y = 1 if md < 424046 and md != 0 else 0
         # Find the year
         year = math.floor(md / self._MEAN_TROPICAL_YEAR) + y
-        leap, ld = get_leap_year_info(year, _chk_on)
+        leap, ld = get_leap_year_info(year)
         # Get 1st day of year so we can find the number of days to the JD.
         fdoy = (year, 1, 1)
-        fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone, _chk_on=_chk_on)
+        fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone)
         # Fix day if needed.
         yr = year - 1 if (math.floor(fjdoy) - math.floor(jd)) > 0 else year
 
         if yr != year:
             year = yr
             fdoy = (year, 1, 1)
-            fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone,
-                                           _chk_on=_chk_on)
-            leap, ld = get_leap_year_info(year, _chk_on)
+            fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone)
+            leap, ld = get_leap_year_info(year)
 
         days = math.floor(jd) - math.floor(fjdoy) + 1
 
@@ -118,8 +116,7 @@ class BadiDateFromJD(BahaiCalendar):
             b_date = year, month, day
 
             if not short:
-                b_date = self.long_date_from_short_date(b_date, trim=trim,
-                                                        _chk_on=_chk_on)
+                b_date = self.long_date_from_short_date(b_date, trim=trim)
             assert frac < 1.0, (
                 "If this assertion fires send this entire message to the "
                 f"developer: jd: {jd}, day: {day}, frac: {frac}, "
@@ -127,10 +124,9 @@ class BadiDateFromJD(BahaiCalendar):
         else:
             trim = trim if us else True
             date = year, month, day, *self._hms_from_decimal_day(frac)
-            l_date = self.long_date_from_short_date(date, trim=True,
-                                                    _chk_on=_chk_on)
+            l_date = self.long_date_from_short_date(date, trim=True)
             b_date = self.kvymdhms_from_b_date(l_date, us=us, short=short,
-                                               trim=trim, _chk_on=_chk_on)
+                                               trim=trim)
 
         return b_date
 

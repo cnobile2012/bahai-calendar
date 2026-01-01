@@ -375,7 +375,7 @@ class TestBadiCalendar(unittest.TestCase):
                 with self.assertRaises(AssertionError) as cm:
                     self._bc.badi_date_from_jd(
                         jd, lat, lon, zone, us=us, short=short, trim=trim,
-                        fraction=fraction, rtd=rtd, _chk_on=False)
+                        fraction=fraction, rtd=rtd)
 
                 message = str(cm.exception)
                 self.assertEqual(expected_result, message)
@@ -387,7 +387,7 @@ class TestBadiCalendar(unittest.TestCase):
 
                 result = self._bc.badi_date_from_jd(
                     jd0, lat, lon, zone, us=us, short=short, trim=trim,
-                    fraction=fraction, rtd=rtd, _chk_on=False)
+                    fraction=fraction, rtd=rtd)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, jd, lat, lon, zone, result))
 
@@ -500,35 +500,48 @@ class TestBadiCalendar(unittest.TestCase):
         """
         data = (
             # 1844-03-20T00:00:00
-            ((1, 1, 1, 1, 1), False, True, (1, 1, 1, 0, 0, 0, 0)),
-            ((1, 1, 1, 1, 1), True, True, (1, 1, 1)),
+            ((1, 1, 1, 1, 1), False, (1, 1, 1, 0, 0, 0, 0)),
+            ((1, 1, 1, 1, 1), True, (1, 1, 1)),
             # 2024-04-20T20:17:45
-            ((1, 10, 10, 2, 14, 20, 17, 45), False, True,
+            ((1, 10, 10, 2, 14, 20, 17, 45), False,
              (181, 2, 14, 20, 17, 45, 0)),
             # 1844-03-19T00:00:00 Before the Badi epoch
-            ((0, 19, 19, 19, 19), False, True, (0, 19, 19, 0, 0, 0, 0)),
+            ((0, 19, 19, 19, 19), False, (0, 19, 19, 0, 0, 0, 0)),
             # 1484-03-11T00:00:00 Before the Badi epoch
-            ((0, 1, 1, 1, 1), False, True, (-360, 1, 1, 0, 0, 0, 0)),
+            ((0, 1, 1, 1, 1), False, (-360, 1, 1, 0, 0, 0, 0)),
             # 1843-03-21T00:00:00
-            ((0, 19, 18, 1, 1), False, True, (-1, 1, 1, 0, 0, 0, 0)),
+            ((0, 19, 18, 1, 1), False, (-1, 1, 1, 0, 0, 0, 0)),
             # 1444-05-17T00:00:00
-            ((-1, 17, 18, 4, 3), False, True, (-400, 4, 3, 0, 0, 0, 0)),
+            ((-1, 17, 18, 4, 3), False, (-400, 4, 3, 0, 0, 0, 0)),
             # 1483-03-12T00:00:00
-            ((-1, 19, 19, 1, 1), False, True, (-361, 1, 1, 0, 0, 0, 0)),
-            ((-2, 19, 19, 1, 1), False, True, (-722, 1, 1, 0, 0, 0, 0)),
+            ((-1, 19, 19, 1, 1), False, (-361, 1, 1, 0, 0, 0, 0)),
+            ((-2, 19, 19, 1, 1), False, (-722, 1, 1, 0, 0, 0, 0)),
             # 2024-08-27T13:37:58.651870-4:00
-            ((1, 10, 10, 9, 8, 19, 1, 3, 532799), False, True,
+            ((1, 10, 10, 9, 8, 19, 1, 3, 532799), False,
              (181, 9, 8, 19, 1, 3, 532799)),
-            ((1, 10, 10, 9, 8, 19, 1, 3, 532799), True, True,
+            ((1, 10, 10, 9, 8, 19, 1, 3, 532799), True,
              (181, 9, 8, 19, 1, 3, 532799)),
+            # Overage on any date part.
+            ((1, 10, 10, 9, 8, 19, 1, 60.5), True, (181, 9, 8, 19, 2, 59.5)),
+            ((1, 10, 10, 9, 8, 19, 59, 60.5), True, (181, 9, 8, 20, 59, 59.5)),
+            ((1, 10, 10, 9, 8, 23, 59, 60.5), True, (181, 9, 9, 23, 59, 59.5)),
+            ((1, 10, 10, 9, 19, 23, 59, 60.5), True,
+             (181, 10, 19, 23, 59, 59.5)),
+            # Normal month 1 - 19
+            ((1, 10, 10, 19, 19, 23, 59, 60.5), True,
+             (182, 1, 19, 23, 59, 59.5)),
+            # Month 0
+            ((1, 10, 10, 0, 4, 23, 59, 60.5), True,
+             (181, 19, 1, 23, 59, 59.5)),  # Not leap year
+            ((1, 10, 11, 0, 5, 23, 59, 60.5), True,
+             (182, 19, 1, 23, 59, 59.5)),  # Leap year
             )
-        msg = "Expected {} for date {}, trim {}, and _chk_on {}, found {}"
+        msg = "Expected {} for date {}, and trim {}, found {}"
 
-        for date, trim, _chk_on, expected_result in data:
-            result = self._bc.short_date_from_long_date(date, trim=trim,
-                                                        _chk_on=_chk_on)
+        for date, trim, expected_result in data:
+            result = self._bc.short_date_from_long_date(date, trim=trim)
             self.assertEqual(expected_result, result, msg.format(
-                expected_result, date, trim, _chk_on, result))
+                expected_result, date, trim, result))
 
     #@unittest.skip("Temporarily skipped")
     def test_long_date_from_short_date(self):
@@ -865,8 +878,8 @@ class TestBadiCalendar(unittest.TestCase):
         Note: The Boolean below in the data statements determines whether
               or not the data is valid or invalid.
         """
-        MIN_K = self._bc.KULL_I_SHAY_MIN
-        MAX_K = self._bc.KULL_I_SHAY_MAX
+        MIN_K = self._bc.KULLISHAY_MIN
+        MAX_K = self._bc.KULLISHAY_MAX
         MIN_Y = self._bc.MINYEAR
         MAX_Y = self._bc.MAXYEAR
         err_msg0 = ("Invalid kull-i-shay {}, it must be in the range "
@@ -900,11 +913,11 @@ class TestBadiCalendar(unittest.TestCase):
             # During Ayyám-i-Há non leap year
             ((1, 10, 2, 0, 1), False, False, ''),
             ((1, 10, 3, 0, 1), False, False, ''), # During Ayyám-i-Há leap year
-            #((174, 0, 1), True, False, ''), # During Ayyám-i-Há leap year
+            ((174, 0, 1), True, False, ''), # During Ayyám-i-Há leap year
             ((1, 10, 10, 9, 8, 19, 1, 3, 532799), False, False, ''),
             # Invalid kull-i-shay
-            ((MIN_K-1, 2, 19, 19, 19), False, True, err_msg0.format(MIN_K-1)),
-            ((MAX_K+1, 1, 1, 1, 1), False, True, err_msg0.format(MAX_K+1)),
+            ((MIN_K-2, 2, 19, 19, 19), False, True, err_msg0.format(MIN_K-2)),
+            ((MAX_K+2, 1, 1, 1, 1), False, True, err_msg0.format(MAX_K+2)),
             # Invalid Váḥid
             ((1, 0, 1, 1, 1, 1, 1, 1), False, True, err_msg1.format(0)),
             ((1, 20, 1, 1, 1, 1, 1, 1), False, True, err_msg1.format(20)),
@@ -912,8 +925,8 @@ class TestBadiCalendar(unittest.TestCase):
             ((1, 10, 0, 1, 1, 1, 0, 0), False, True, err_msg2.format(0)),
             ((1, 10, 20, 1, 1, 1, 0, 0), False, True, err_msg2.format(20)),
             # Invalid short date
-            ((MIN_Y-1, 1, 1), True, True, err_msg3.format(MIN_Y-1)),
-            ((MAX_Y+1, 1, 1), True, True, err_msg3.format(MAX_Y+1)),
+            ((MIN_Y-2, 1, 1), True, True, err_msg3.format(MIN_Y-2)),
+            ((MAX_Y+2, 1, 1), True, True, err_msg3.format(MAX_Y+2)),
             # Invalid month
             ((1, 10, 10, -1, 1, 1, 0, 0), False, True, err_msg4.format(-1)),
             ((1, 10, 10, 20, 1, 1, 0, 0), False, True, err_msg4.format(20)),

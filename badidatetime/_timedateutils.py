@@ -186,9 +186,9 @@ class TimeDateUtils(BahaiCalendar):
                 f"The ttup argument {ttup.__class__} is not a proper tuple.")
 
         def process_long_form(ttup: tuple):
-            assert (self.KULL_I_SHAY_MIN <= ttup[0] <= self.KULL_I_SHAY_MAX), (
+            assert (self.KULLISHAY_MIN <= ttup[0] <= self.KULLISHAY_MAX), (
                 f"Invalid kull-i-shay {ttup[0]}, it must be in the range of "
-                f"[{self.KULL_I_SHAY_MIN}, {self.KULL_I_SHAY_MAX}].")
+                f"[{self.KULLISHAY_MIN}, {self.KULLISHAY_MAX}].")
             assert 1 <= ttup[1] < 20, (
                 f"Invalid Váḥids '{ttup[1]}' in a Kull-i-Shay’, it must be in "
                 "the range of [1, 19].")
@@ -983,8 +983,8 @@ class TimeDateUtils(BahaiCalendar):
                   calendar.
         :rtype: int
         """
-        jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False)
-        jd1 = self.jd_from_badi_date((year, 1, 1), _chk_on=False)
+        jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19))
+        jd1 = self.jd_from_badi_date((year, 1, 1))
         return math.floor(jd1 - jd0) - 1
 
     def _days_before_month(self, year: int, month: int) -> int:
@@ -1073,8 +1073,7 @@ class TimeDateUtils(BahaiCalendar):
         # package can provide is equivalent to Julian year 1, March, 19th.
         jd = self.ORDINAL_1ST_YEAR_EPOCH - 1 - self.DAYS_BEFORE_1ST_YEAR + n
         jd0 = math.floor(jd) + 0.5
-        return self.badi_date_from_jd(jd0, short=short,
-                                      trim=True, rtd=True, _chk_on=False)
+        return self.badi_date_from_jd(jd0, short=short, trim=True, rtd=True)
 
     def _build_struct_time(self, date: tuple, dstflag: int, *, tzinfo=None,
                            short_in: bool=False) -> NamedTuple:
@@ -1094,8 +1093,7 @@ class TimeDateUtils(BahaiCalendar):
             y, m, d, hh, mm, ss = date
         else:
             # Microsecond (ms) is not used.
-            y, m, d, hh, mm, ss, ms = self.short_date_from_long_date(
-                date, _chk_on=False)
+            y, m, d, hh, mm, ss, ms = self.short_date_from_long_date(date)
 
         wday = self._day_of_week(y, m, d)
         dnum = self._days_before_month(y, m) + d

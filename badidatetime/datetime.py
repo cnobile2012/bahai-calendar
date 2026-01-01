@@ -232,7 +232,7 @@ class date(BahaiCalendar):
                  '_hashcode', '__date', '__short')
 
     def __new__(cls, a: int, b: int=None, c: int=None, d: int=None,
-                e: int=None, _chk_on: bool=True):
+                e: int=None):
         """
         Instantiate the class.
 
@@ -248,10 +248,6 @@ class date(BahaiCalendar):
                       it's not used.
         :param int e: Long form this value is the day and in the short form
                       it's not used.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The instantiated class.
         :rtype: date
         """
@@ -284,18 +280,14 @@ class date(BahaiCalendar):
                 self.__short = True
 
         super().__init__(self)
-
-        if _chk_on:
-            _td_utils._check_date_fields(*self.__date, short_in=self.__short)
-
+        _td_utils._check_date_fields(*self.__date, short_in=self.__short)
         self._hashcode = -1
         return self
 
     # Additional constructors
 
     @classmethod
-    def fromtimestamp(cls, t: float, *, short: bool=True, _chk_on: bool=True
-                      ) -> object:
+    def fromtimestamp(cls, t: float, *, short: bool=True) -> object:
         """
         Construct a date from a POSIX timestamp (like time.time()).
 
@@ -303,10 +295,6 @@ class date(BahaiCalendar):
         :param float t: The POSIX timestamp.
         :param bool short: If True (default) the short form date is returned
                            else False the long form date is returned.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The instantiated class.
         :rtype: date
         """
@@ -315,7 +303,7 @@ class date(BahaiCalendar):
                                            trim=True)
         del bc
         date = date[:3] if short else date[:5]
-        return cls(*date, _chk_on=_chk_on)  # We do not want time values.
+        return cls(*date)  # We do not want time values.
 
     @classmethod
     def today(cls, *, short: bool=True) -> object:
@@ -331,8 +319,7 @@ class date(BahaiCalendar):
         return cls.fromtimestamp(_time.time(), short=short)
 
     @classmethod
-    def fromordinal(cls, n: int, *, short: bool=True, _chk_on: bool=True
-                    ) -> object:
+    def fromordinal(cls, n: int, *, short: bool=True) -> object:
         """
         Construct a date from a proleptic Badi ordinal.
 
@@ -343,15 +330,11 @@ class date(BahaiCalendar):
         :param int n: The ordinal value.
         :param bool short: If True (default) the short form date is returned
                            else False the long form date is returned.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The instantiated class.
         :rtype: date
         """
         date = _td_utils._ord2ymd(n, short=short)
-        return cls(*date, _chk_on=_chk_on)
+        return cls(*date)
 
     @classmethod
     def fromisoformat(cls, date_string: str, *, short: bool=True) -> object:
@@ -1612,7 +1595,7 @@ class datetime(date):
     def __new__(cls, a: int, b: int=None, c: int=None, d: int=None,
                 e: int=None, hour: float=0, minute: float=0, second: float=0,
                 microsecond: int=0, tzinfo: tzinfo=None, *,
-                fold: int=0, _chk_on=True) -> object:
+                fold: int=0) -> object:
         """
         Check if there is pickle data. If so parse and create the objcet. If
         not pickle data create the instance from the incoming date data.
@@ -1637,10 +1620,6 @@ class datetime(date):
         :param int fold: If *0* there is no fold in time, this is the more
                          common situation, however, if it is *1* there is a
                          fold in time.
-        :param bool _chk_on: If True (default) all date checks are enforced
-                             else if False they are turned off. This is only
-                             used internally. Do not use unless you know what
-                             you are doing.
         :returns: The instance of the datetime class.
         :rtype: datetime
         """
@@ -1677,10 +1656,8 @@ class datetime(date):
             self._fold = fold
             self._create_time(hour, minute, second, microsecond)
 
-        if _chk_on:
-            _td_utils._check_date_fields(*self.__date, short_in=self.__short)
-            _td_utils._check_time_fields(hour, minute, second, microsecond,
-                                         fold)
+        _td_utils._check_date_fields(*self.__date, short_in=self.__short)
+        _td_utils._check_time_fields(hour, minute, second, microsecond, fold)
         _check_tzinfo_arg(tzinfo)
         self._hashcode = -1
         return self

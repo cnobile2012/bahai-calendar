@@ -156,8 +156,8 @@ class TestTimeDateUtils(unittest.TestCase):
 
             return ttup
 
-        MIN_K = self._tdu.KULL_I_SHAY_MIN
-        MAX_K = self._tdu.KULL_I_SHAY_MAX
+        MIN_K = self._tdu.KULLISHAY_MIN
+        MAX_K = self._tdu.KULLISHAY_MAX
         MIN_Y = self._tdu.MINYEAR
         MAX_Y = self._tdu.MAXYEAR
         err_msg0 = ("Invalid kull-i-shay {}, it must be in the range "
@@ -192,8 +192,10 @@ class TestTimeDateUtils(unittest.TestCase):
             ((181, 1, 1, 0, 0, 0, 4, 1), -1, ttup_ts, False, ''),
             ### Invalid tuples
             # Long form NamedTuple errors
-            ((-6, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg0.format(-6)),
-            ((5, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg0.format(5)),
+            ((-6, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True,
+             err_msg3.format(-2526)),
+            ((5, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True,
+             err_msg3.format(1445)),
             ((1, 0, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg1.format(0)),
             ((1, 20, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg1.format(20)),
             ((1, 1, 0, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg2.format(0)),
