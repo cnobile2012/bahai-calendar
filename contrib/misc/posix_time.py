@@ -55,36 +55,60 @@ class PosixTests(BahaiCalendar):
         """
         start = options.start
         end = options.end
-        coords = (options.latitude, options.longitude, options.zone)
-        tz = dtime.timezone(dtime.timedelta(hours=coords[-1]))
+        lat = options.latitude
+        lon = options.longitude
+        zone = options.zone
+        tz = dtime.timezone(dtime.timedelta(hours=zone))
         data = []
 
         # The datetime.fromtimestamp(g_ts) method below internally needs the
         # local time, however, every run of this method could be with a
         # different set of coordinents, so we need to patch
         # badidatetime.datetime.LOCAL_COORD.
-        with patch.object(badidt, 'LOCAL_COORD', coords):
+        with patch.object(badidt, 'LOCAL_COORD', (lat, lon, zone)):
             for year in range(start, end):
                 g_date = (year, 1, 1)
                 g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
-
-                b_date = self.badi_date_from_gregorian_date(
-                    g_date, *coords, short=True, trim=True)
+                b_date = self._badi_date_from_timestamp(g_ts, zone, short=True)
                 bd = datetime(*b_date[:3], None, None, *b_date[3:])
-
-                # *** TODO *** Check for off-by-one day error in method below
-                # bd = datetime.fromtimestamp(g_ts)
-                # b_date = bd.b_date
-                # hms = self._get_badi_hms(b_date, coords)[-1]
-                # b_date += hms
-                # bd = bd.replace(hour=hms[0], minute=hms[1], second=hms[2],
-                #                 microsecond=hms[3])
-                #print(hms, bd, file=sys.stderr)
-                b_ts = self._mktime(bd, coords, options)
+                b_ts = self._mktime(bd, zone, options)
                 g_leap = self.gc._GREGORIAN_LEAP_YEAR(year)
                 b_leap = self._is_leap_year(b_date[0])
-                diff = round(b_ts - g_ts)
+                diff = round(b_ts - g_ts, 6)
                 data.append((g_date, g_leap, g_ts, b_date, b_leap, b_ts, diff))
+
+        return data
+
+    def posix(self, options):
+        """
+        Test that the resultant values from the badi_date_from_timestamp() and
+        timestamp_from_badi_date() methods work correctly with each other.
+
+        -p or --posix with -S and -E (Gregorian Dates) -A latitude
+                           -O longitude -Z zone
+        """
+        data = []
+        start = options.start
+        end = options.end
+        lat = options.latitude
+        lon = options.longitude
+        zone = options.zone
+        tz = dtime.timezone(dtime.timedelta(hours=zone))
+
+        for year in range(start, end):
+            leap = self.gc._GREGORIAN_LEAP_YEAR(year)
+
+            for month, days in enumerate(self.gc._MONTHS, start=1):
+                days += 1 if month == 2 and leap else 0
+
+                for day in range(1, days + 1):
+                    g_date = (year, month, day)
+                    g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
+                    b_date = self._badi_date_from_timestamp(
+                        g_ts, zone, short=True)
+                    b_ts = self._timestamp_from_badi_date(b_date, zone)
+                    ts_diff = b_ts - g_ts
+                    data.append((g_date, g_ts, b_date, b_ts, ts_diff))
 
         return data
 
@@ -117,10 +141,10 @@ class PosixTests(BahaiCalendar):
         """
         Dump analysis files for all defined timezones.
 
-        -t or --timezones with -S and -E (Gregorian Dates) -A latitude
-                               -O longitude -Z zone
+        -t or --timezones with -S and -E (Gregorian Dates)
         """
         zones = _epoch_for_timezone()
+        names = sorted(zones, key=lambda x: x[0])
         save_path = options.path
 
         if save_path.startswith(os.sep):
@@ -131,7 +155,8 @@ class PosixTests(BahaiCalendar):
         if not os.path.exists(path):
             os.mkdir(path)
 
-        for name, (lat, lon, zone) in zones.items():
+        for name in names:
+            lat, lon, zone = zones[name]
             start_time = time.time()
             #print(name, lat, lon, zone, file=sys.stderr)
             zone_txt = f"{zone}" if zone < 0 else f"+{zone}"
@@ -148,7 +173,7 @@ class PosixTests(BahaiCalendar):
 
     # Supporting methods
 
-    def _mktime(self, dt: datetime, coords: tuple, options) -> float:
+    def _mktime(self, dt: datetime, zone: float, options) -> float:
         """
         This is the inverse function of localtime(). Its argument is the
         struct_time or full 9-tuple (since the dst flag is needed; use -1 as
@@ -162,118 +187,12 @@ class PosixTests(BahaiCalendar):
 
         Derived Badi time for the epoch 1970-01-01
         ------------------------------------------------
-        GMT 0.0 time:     0126-16-02T07:58:31.50477+00:00
-        EST -5.0 time:    0126-16-02T06:47:57.12-05:00
-        Tehran 3.5 time:  0126-16-02T06:57:58.5504+03:30
-        Beijing 8.0 time: 0126-16-01T07:00:59.1264+08:00
+        GMT 0.0 time:     0126-16-02T08:00:30.6684+00:00
+        EST -5.0 time:    0126-16-02T01:48:23.8716-05:00
+        Tehran 3.5 time:  0126-16-01T:10:28:46.1388+03:30
+        Beijing 8.0 time: 0126-15-19T15:00:59.1084+08:00
         """
-        # def sunset(date, coords):
-        #     lat, lon, zone = coords
-        #     jd = self.jd_from_badi_date(date, lat, lon, zone)
-        #     mjd = self._meeus_from_exact(jd)
-        #     ss = self._sun_setting(mjd - 1, lat, lon)
-        #     return ss % 1 * 86400  # fraction * seconds in a day
-
-        # # Find the floor of the timestamp of the naive epoch datetime
-        # # subtracted from the local datetime.
-        # tz = timezone(timedelta(hours=coords[-1]))
-        # dt = dt.replace(tzinfo=tz)
-        # t = (dt - self.EPOCH) // timedelta(0, 1)
-        # # Compensate for off-by-one days on the 1st day of the POSIX epoch
-        # # per year.
-        # greg_epoch = (1970, 1, 1)
-        # badi_epoch = self.badi_date_from_gregorian_date(greg_epoch, *coords,
-        #                                                 short=True)
-        # if badi_epoch[2] != dt.day:
-        #     dt = dt.replace(day=badi_epoch[2])
-
-        # # Compensate for different sunsets.
-        # # 1. Get date at GMT
-        # # 2. Get the number of seconds after noon for sunset for the date
-        # # 3. Subtract the GMT seconds from the local seconds
-        # # 4. Add the resultant value to t
-        # b_date = dt.b_date + dt.b_time
-        # # Add coefficients for pre 1483 Gregorian
-
-        # if not options.kill_coeff:
-        #     t += self._coeff(dt)
-
-        # loc_ss_diff = sunset(b_date, coords)
-        # gmt_ss_diff = sunset(b_date, self.GMT_COORD)
-        # t1 = t + loc_ss_diff - gmt_ss_diff
-        # #print(dt, loc_ss_diff, gmt_ss_diff, t, t1, file=sys.stderr)
-        return self.timestamp_from_badi_date(dt.b_date + dt.b_time, *coords)
-
-    def _coeff(self, dt):
-        """
-        30 coefficients
-        """
-        year = dt.b_date[0]
-
-        if -1842 <= year <= -1745:    # 1 - 99
-            coeff = 108.489795918367
-        elif -1744 <= year <= -1644:  # 100 - 199
-            coeff = 142.37
-        elif -1645 <= year <= -1545:  # 200 - 299
-            coeff = 177.87
-        elif -1544 <= year <= -1345:  # 300 - 499
-            coeff = 234.025
-        elif -1344 <= year <= -1245:  # 500 - 599
-            coeff = 292.66
-        elif -1244 <= year <= -1145:  # 600 - 699
-            coeff = 333.48
-        elif -1144 <= year <= -945:   # 700 - 899
-            coeff = 396.795
-        elif -944 <= year <= -845:    # 899 - 999
-            coeff = 462.71
-        elif -844 <= year <= -745:    # 1000 - 1099
-            coeff = 508.08
-        elif -744 <= year <= -545:    # 1100 - 1299
-            coeff = 578.42
-        elif -544 <= year <= -445:    # 1300 - 1399
-            coeff = 650.8
-        elif -444 <= year <= -345:    # 1400 - 1499
-            coeff = 700.54
-        elif -344 <= year <= -262:    # 1500 - 1582
-            coeff = 746.698795180723
-        elif -261 <= year <= -144:    # 1583 - 1700
-            coeff = 57.242424242424
-        elif -143 <= year <= -115:    # 1701 - 1729
-            coeff = 26.862068965517
-        elif -114 <= year <= -44:     # 1730 - 1800
-            coeff = 43.619718309859
-        elif -43 <= year <= 125:      # 1801 - 1969
-            coeff = 1.183431952663
-        elif 127 <= year <= 356:      # 1971 - 2200 (1970 not touched)
-            coeff = 9.082608695652
-        elif 357 <= year <= 392:      # 2201 - 2236
-            coeff = -37.94
-        elif 393 <= year <= 454:      # 2237 - 2298
-            coeff = -20.516129032258
-        elif 455 <= year <= 560:      # 2299 - 2404
-            coeff = -50.188679245283
-        elif 561 <= year <= 655:      # 2405 - 2499
-            coeff = -15.842105263158
-        elif 656 <= year <= 728:      # 2500 - 2572
-            coeff = -45.602739726027
-        elif 729 <= year <= 756:      # 2573 - 2600
-            coeff = -28.285714285714
-        elif 757 <= year <= 858:      # 2601 - 2702
-            coeff = -65.578431372549
-        elif 859 <= year <= 932:      # 2703 - 2776
-            coeff = -92.675675675676
-        elif 933 <= year <= 1058:     # 2777 - 2902
-            coeff = -58.285714285714
-        elif 1059 <= year <= 1100:    # 1059 - 1100
-            coeff = -87.238095238095
-        elif 1101 <= year <= 1157:    # 2945 - 1157
-            coeff = -69.894736842105
-        elif 1158 <= year <= 1161:    # 3002 - 3005
-            coeff = -115.0
-        else:
-            coeff = 0
-
-        return coeff
+        return self._timestamp_from_badi_date(dt.b_date + dt.b_time, zone)
 
     def _get_badi_hms(self, b_date, coords: tuple) -> tuple:
         """
@@ -302,6 +221,43 @@ class PosixTests(BahaiCalendar):
         #       "UTC sunset time:", partial_day,
         #       "Badi time at UTC midnight:", b_time, file=sys.stderr)
         return ss, utc_hms, badi_hms
+
+    def _badi_date_from_timestamp(self, t: float, zone: float=None, *,
+                                  us: bool=False, short: bool=False,
+                                  trim: bool=False, rtd: bool=False) -> tuple:
+        """
+        Get the Badi date from a POSIX timestamp.
+
+        :param float t: Timestamp
+        :param float zone: The time zone.
+        :param bool us: If True the seconds are split to seconds and
+                        microseconds else if False the seconds has a partial
+                        day as a decimal.
+        :param bool short: If True then parse for a short date else if False
+                           (default) parse for a long date.
+        :param bool trim: Trim the us, ss, mm, and hh in that order.
+        :param bool rtd: Round to day.
+        :returns: A Badi date long or short form.
+        :rtype: tuple
+        """
+        jd = t / 86400 + self._POSIX_EPOCH
+        jd += zone / 24
+        return self.badi_date_from_jd(jd, *self.GMT_COORD, us=us, short=short,
+                                      trim=trim, rtd=rtd)
+
+    def _timestamp_from_badi_date(self, date: tuple, zone: float) -> float:
+        """
+        Convert a Badi date to a timestamp.
+
+        :param tuple date: The Badi date.
+        :param float zone: The time zone.
+        :returns: The timestamp corrected for the time zone.
+        :rtype: float
+        """
+        jd = self.jd_from_badi_date(date, *self.GMT_COORD)
+        jd -= zone / 24
+        jd0 = (jd - self._POSIX_EPOCH) * 86400
+        return round(jd0, self._ROUNDING_PLACES)
 
 
 def fmt_float(value, left=4, right=4):
@@ -450,23 +406,25 @@ def _m_and_t_options(options, start_time, data):
     print("-" * 32)
     print(f"Total Errors:               {len(diffs):>4}\n")
     set_items = set([diff for diff, year in diffs])
-    items = []
 
     if set_items:
-        min_max = set(set_items)
-        print(f"Maximum deviation (seconds):  {fmt_float(max(min_max), 4, 1)}")
-        print(f"Minimum deviation (seconds):  {fmt_float(min(min_max), 4, 1)}")
+        print(f"Maximum deviation (seconds):  "
+              f"{fmt_float(max(set_items), 4, 6)}")
+        print(f"Minimum deviation (seconds):  "
+              f"{fmt_float(min(set_items), 4, 6)}")
         print("Difference Average (seconds): "
-              f"{fmt_float(dt/total_years, 4, 12)}")
+              f"{fmt_float(dt/len(diffs), 4, 6)}")
 
-    for diff in sorted(set_items):
-        years = [y for d, y in diffs if d == diff]
-        years = _group_sequences(years)
-        items.append((diff, len(years), years))
+    # items = []
 
-    print(f"\nThere is/are {len(set_items)} sequence(s) in items "
-          f"within the year {options.start} to {options.end-1} range:")
-    pprint.pp(items, width=70, compact=True)
+    # for diff in sorted(set_items):
+    #     years = [y for d, y in diffs if d == diff]
+    #     years = _group_sequences(years)
+    #     items.append((diff, len(years), years))
+
+    # print(f"\nThere is/are {len(set_items)} sequence(s) in items "
+    #       f"within the year {options.start} to {options.end-1} range:")
+    # pprint.pp(items, width=70, compact=True)
     end_time = time.time()
     days, hours, minutes, seconds = pt._dhms_from_seconds(
         end_time - start_time)
@@ -484,6 +442,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '-m', '--mktime', action='store_true', default=False, dest='mktime',
         help="Test the _mktime() method for accuracy.")
+    parser.add_argument(
+        '-p', '--posix', action='store_true', default=False, dest='posix',
+        help="Test the compatibility between the two timezone methods.")
     parser.add_argument(
         '-s', '--sunset', action='store_true', default=False, dest='sunset',
         help="Find the sunset for given years.")
@@ -533,6 +494,61 @@ if __name__ == "__main__":
         else:
             start_time = time.time()
             _m_and_t_options(options, start_time, pt.mktime(options))
+    elif options.posix:  # -p
+        if options.start is None or options.end is None:
+            print("If option -s is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            start_time = time.time()
+            print(f"./contrib/misc/{basename} -pA {options.latitude} "
+                  f"-O {options.longitude} -Z {options.zone} "
+                  f"-S {options.start} -E {options.end}")
+            data = pt.posix(options)
+            underline_length = 100
+            print('-' * underline_length)
+            print("Gregorian Date  Greg TS      Badi Date", ' ' * 22,
+                  "Badi TS", ' ' * 10, "TS Diff (seconds)")
+            print('-' * underline_length)
+            [print(f"{str(g_date):14} "
+                   f"{fmt_float(g_ts, 11, 1)} "
+                   f"{str(b_date):32} "
+                   f"{fmt_float(b_ts, 11, 6)} "
+                   f"{fmt_float(ts_diff, 6, 12)}"
+                   ) for g_date, g_ts, b_date, b_ts, ts_diff in data]
+            print('-' * underline_length)
+            diffs = []
+            dt = p = n = 0
+
+            for item in data:
+                diff = item[4]
+                dt += diff
+
+                if diff != 0:
+                    diffs.append(diff)
+
+                if diff > 0:
+                    p += 1
+                elif diff < 0:
+                    n += 1
+
+            total_years = options.end - options.start
+            print(f"Total Years Analyzed:       {total_years:>4}")
+            print(f"Positive Errors:            {p:>4}")
+            print(f"Negative Errors:            {n:>4}")
+            print("-" * 32)
+            print(f"Total Errors:               {len(diffs):>4}\n")
+            print(f"Maximum deviation (seconds):  "
+                  f"{fmt_float(max(diffs), 4, 6)}")
+            print(f"Minimum deviation (seconds):  "
+                  f"{fmt_float(min(diffs), 4, 6)}")
+            print("Difference Average (seconds): "
+                  f"{fmt_float(dt/len(diffs), 4, 6 )}")
+            end_time = time.time()
+            days, hours, minutes, seconds = pt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
     elif options.sunset:  # -s
         if options.start is None or options.end is None:
             print("If option -s is used, -S and -E must also be used.",

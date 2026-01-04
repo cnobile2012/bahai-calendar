@@ -106,42 +106,42 @@ class DateTests(BahaiCalendar):
         ( 156, 3, 20,  3, 25), ( 157, 3, 20,  9, 14), ( 158, 3, 20, 15,  4),
         ( 159, 3, 20, 20, 53), ( 160, 3, 20,  2, 42), ( 161, 3, 20,  8, 31),
         ( 162, 3, 20, 14, 20), ( 163, 3, 20, 20, 10), ( 164, 3, 20,  1, 59),
-        ( 165, 3, 20,  7, 48),( 166, 3, 20, 13, 37), ( 167, 3, 20, 19, 26),
-        ( 168, 3, 20,  1, 16),
-        ( 169, 3, 20,  7,  5), ( 170, 3, 20, 12, 54), ( 171, 3, 20, 18, 43),
-        ( 172, 3, 20,  0, 32), ( 173, 3, 20,  6, 22), ( 174, 3, 20, 12, 11),
-        ( 175, 3, 20, 18,  0), ( 176, 3, 19, 23, 49), ( 177, 3, 20,  5, 38),
-        ( 178, 3, 20, 11, 28), ( 179, 3, 20, 17, 17), ( 180, 3, 19, 23,  6),
-        ( 181, 3, 20,  4, 55), ( 182, 3, 20, 10, 44), ( 183, 3, 20, 16, 34),
-        ( 184, 3, 19, 22, 23), ( 185, 3, 20,  4, 12), ( 186, 3, 20, 10,  1),
-        ( 187, 3, 20, 15, 50), ( 188, 3, 19, 21, 40), ( 189, 3, 20,  3, 29),
-        ( 190, 3, 20,  9, 18), ( 191, 3, 20, 15,  7), ( 192, 3, 19, 20, 56),
-        ( 193, 3, 20,  2, 46), ( 194, 3, 20,  8, 35), ( 195, 3, 20, 14, 24),
-        ( 196, 3, 19, 20, 13), ( 197, 3, 20,  2,  2), ( 198, 3, 20,  7, 52),
-        ( 199, 3, 20, 13, 41), ( 200, 3, 20, 19, 30), ( 201, 3, 21,  1, 19),
-        ( 202, 3, 21,  7,  8), ( 203, 3, 21, 12, 58), ( 204, 3, 20, 18, 47),
-        ( 205, 3, 21,  0, 36), ( 206, 3, 21,  6, 25), ( 207, 3, 21, 12, 14),
-        ( 208, 3, 20, 18,  4), ( 209, 3, 20, 23, 53), ( 210, 3, 21,  5, 42),
-        ( 211, 3, 21, 11, 31), ( 212, 3, 20, 17, 20), ( 213, 3, 20, 23, 10),
-        ( 214, 3, 21,  4, 59), ( 215, 3, 21, 10, 48), ( 216, 3, 20, 16, 37),
-        ( 217, 3, 20, 22, 26), ( 218, 3, 21,  4, 16), ( 219, 3, 21, 10,  5),
-        ( 220, 3, 20, 15, 54), ( 221, 3, 20, 21, 43), ( 222, 3, 21,  3, 32),
-        ( 223, 3, 21,  9, 22), ( 224, 3, 20, 15, 11), ( 225, 3, 20, 21,  0),
-        ( 226, 3, 21,  2, 49), ( 227, 3, 21,  8, 38), ( 228, 3, 20, 14, 28),
-        ( 229, 3, 20, 20, 17), ( 230, 3, 21,  2,  6), ( 231, 3, 21,  7, 55),
-        ( 232, 3, 20, 13, 44), ( 233, 3, 20, 19, 34), ( 234, 3, 21,  1, 23),
-        ( 235, 3, 21,  7, 12), ( 236, 3, 20, 13,  1), ( 237, 3, 20, 18, 50),
-        ( 238, 3, 21,  0, 40), ( 239, 3, 21,  6, 29), ( 240, 3, 20, 12, 18),
-        ( 241, 3, 20, 18,  7), ( 242, 3, 20, 23, 56), ( 243, 3, 21,  5, 46),
-        ( 244, 3, 20, 11, 35), ( 245, 3, 20, 17, 24), ( 246, 3, 20, 23, 13),
-        ( 247, 3, 21,  5,  2), ( 248, 3, 20, 10, 52), ( 249, 3, 20, 16, 41),
-        ( 250, 3, 20, 22, 30), ( 251, 3, 21,  4, 19), ( 252, 3, 20, 10,  8),
-        ( 253, 3, 20, 15, 58), ( 254, 3, 20, 21, 47), ( 255, 3, 21,  3, 36),
-        ( 256, 3, 20,  9, 25), ( 257, 3, 20, 15, 14), ( 258, 3, 20, 21,  4),
-        ( 259, 3, 21,  2, 53), ( 260, 3, 20,  8, 42), ( 261, 3, 20, 14, 31),
-        ( 262, 3, 20, 20, 20), ( 263, 3, 21,  2, 10), ( 264, 3, 20,  7, 59),
-        ( 265, 3, 20, 13, 48), ( 266, 3, 20, 19, 37), ( 267, 3, 21,  1, 26),
-        ( 268, 3, 20, 13,  5), ( 269, 3, 20,  7, 16), ( 270, 3, 20, 18, 54),
+        ( 165, 3, 20,  7, 48), ( 166, 3, 20, 13, 37), ( 167, 3, 20, 19, 26),
+        ( 168, 3, 20,  1, 16), ( 169, 3, 20,  7,  5), ( 170, 3, 20, 12, 54),
+        ( 171, 3, 20, 18, 43), ( 172, 3, 20,  0, 32), ( 173, 3, 20,  6, 22),
+        ( 174, 3, 20, 12, 11), ( 175, 3, 20, 18,  0), ( 176, 3, 19, 23, 49),
+        ( 177, 3, 20,  5, 38), ( 178, 3, 20, 11, 28), ( 179, 3, 20, 17, 17),
+        ( 180, 3, 19, 23,  6), ( 181, 3, 20,  4, 55), ( 182, 3, 20, 10, 44),
+        ( 183, 3, 20, 16, 34), ( 184, 3, 19, 22, 23), ( 185, 3, 20,  4, 12),
+        ( 186, 3, 20, 10,  1), ( 187, 3, 20, 15, 50), ( 188, 3, 19, 21, 40),
+        ( 189, 3, 20,  3, 29), ( 190, 3, 20,  9, 18), ( 191, 3, 20, 15,  7),
+        ( 192, 3, 19, 20, 56), ( 193, 3, 20,  2, 46), ( 194, 3, 20,  8, 35),
+        ( 195, 3, 20, 14, 24), ( 196, 3, 19, 20, 13), ( 197, 3, 20,  2,  2),
+        ( 198, 3, 20,  7, 52), ( 199, 3, 20, 13, 41), ( 200, 3, 20, 19, 30),
+        ( 201, 3, 21,  1, 19), ( 202, 3, 21,  7,  8), ( 203, 3, 21, 12, 58),
+        ( 204, 3, 20, 18, 47), ( 205, 3, 21,  0, 36), ( 206, 3, 21,  6, 25),
+        ( 207, 3, 21, 12, 14), ( 208, 3, 20, 18,  4), ( 209, 3, 20, 23, 53),
+        ( 210, 3, 21,  5, 42), ( 211, 3, 21, 11, 31), ( 212, 3, 20, 17, 20),
+        ( 213, 3, 20, 23, 10), ( 214, 3, 21,  4, 59), ( 215, 3, 21, 10, 48),
+        ( 216, 3, 20, 16, 37), ( 217, 3, 20, 22, 26), ( 218, 3, 21,  4, 16),
+        ( 219, 3, 21, 10,  5), ( 220, 3, 20, 15, 54), ( 221, 3, 20, 21, 43),
+        ( 222, 3, 21,  3, 32), ( 223, 3, 21,  9, 22), ( 224, 3, 20, 15, 11),
+        ( 225, 3, 20, 21,  0), ( 226, 3, 21,  2, 49), ( 227, 3, 21,  8, 38),
+        ( 228, 3, 20, 14, 28), ( 229, 3, 20, 20, 17), ( 230, 3, 21,  2,  6),
+        ( 231, 3, 21,  7, 55), ( 232, 3, 20, 13, 44), ( 233, 3, 20, 19, 34),
+        ( 234, 3, 21,  1, 23), ( 235, 3, 21,  7, 12), ( 236, 3, 20, 13,  1),
+        ( 237, 3, 20, 18, 50), ( 238, 3, 21,  0, 40), ( 239, 3, 21,  6, 29),
+        ( 240, 3, 20, 12, 18), ( 241, 3, 20, 18,  7), ( 242, 3, 20, 23, 56),
+        ( 243, 3, 21,  5, 46), ( 244, 3, 20, 11, 35), ( 245, 3, 20, 17, 24),
+        ( 246, 3, 20, 23, 13), ( 247, 3, 21,  5,  2), ( 248, 3, 20, 10, 52),
+        ( 249, 3, 20, 16, 41), ( 250, 3, 20, 22, 30), ( 251, 3, 21,  4, 19),
+        ( 252, 3, 20, 10,  8), ( 253, 3, 20, 15, 58), ( 254, 3, 20, 21, 47),
+        ( 255, 3, 21,  3, 36), ( 256, 3, 20,  9, 25), ( 257, 3, 20, 15, 14),
+        ( 258, 3, 20, 21,  4), ( 259, 3, 21,  2, 53), ( 260, 3, 20,  8, 42),
+        ( 261, 3, 20, 14, 31), ( 262, 3, 20, 20, 20), ( 263, 3, 21,  2, 10),
+        ( 264, 3, 20,  7, 59), ( 265, 3, 20, 13, 48), ( 266, 3, 20, 19, 37),
+        ( 267, 3, 21,  1, 26), ( 268, 3, 20, 13,  5), ( 269, 3, 20,  7, 16),
+        ( 270, 3, 20, 18, 54),
         ( 271, 3, 21,  0, 43), ( 272, 3, 20, 12, 22), ( 273, 3, 20, 12, 22),
         ( 274, 3, 20, 18, 11), ( 275, 3, 21,  0,  0), ( 276, 3, 20, 11, 38),
         ( 277, 3, 20, 11, 38), ( 278, 3, 20, 17, 28), ( 279, 3, 20, 23, 17),
@@ -718,6 +718,9 @@ class DateTests(BahaiCalendar):
         data = []
         start = options.start
         end = options.end
+        lat = options.latitude
+        lon = options.longitude
+        zone = options.zone
         assert -1843 < start < 1162, (
             f"Start '{start}' must be from -1842 to 1161.")
         assert -1842 < end < 1163, (
@@ -733,9 +736,10 @@ class DateTests(BahaiCalendar):
 
                 for day in range(1, dim + 1):
                     date = (year, month, day)
-                    g_date = self.gregorian_date_from_badi_date(date)
-                    # week, weekday, wd_name, m_name
+                    g_date = self.gregorian_date_from_badi_date(date, lat,
+                                                                lon, zone)
                     doy += 1
+                    # weektuple =  week, weekday, weekday name, month name
                     weektuple = self._day_of_week(*date, doy, options)
                     data.append((date, g_date, *weektuple,
                                  is_leap, days, doy))
@@ -746,7 +750,7 @@ class DateTests(BahaiCalendar):
         """
         Convert Badí' to Gregorian dates.
 
-        -gX or --g-dates and -S and -E
+        -g or --g-dates -XL and -S and -E
 
         Converts Badí' to Gregorian dates for the given range.
         """
@@ -1508,18 +1512,18 @@ class DateTests(BahaiCalendar):
 
         return week, weekday, wd_name, m_name
 
-    _OFFSETS = {(1, 7, False): 1, (1, 7, True): 1,      # 01 & 02
-                (1, 6, False): 2, (1, 6, True): 2,      # 03 & 04
-                (1, 5, False): 3, (1, 5, True): 3,      # 05 & 06
-                (2, 6, False): 2, (2, 6, True): 2,      # 07 & 08
-                (2, 5, False): 3, (2, 5, True): 3,      # 09 & 10
-                (3, 5, False): 3, (3, 5, True): 3,      # 11 & 12
-                (17, 2, True): -3, (17, 3, False): -3,  # 13 & 14
-                (18, 2, True): -3, (18, 3, False): -3,  # 15 & 16
-                (18, 2, False): -2, (18, 1, True): -2,  # 17 & 18
-                (19, 2, True): -3, (19, 3, False): -3,  # 19 & 20
-                (19, 2, False): -2, (19, 1, True): -2,  # 21 & 22
-                (19, 1, False): -1, (19, 7, True): -1}  # 23 & 24
+    _OFFSETS = {( 1, 7, False):  1, (1, 7, True):    1,  # 01 & 02
+                ( 1, 6, False):  2, (1, 6, True):    2,  # 03 & 04
+                ( 1, 5, False):  3, (1, 5, True):    3,  # 05 & 06
+                ( 2, 6, False):  2, (2, 6, True):    2,  # 07 & 08
+                ( 2, 5, False):  3, (2, 5, True):    3,  # 09 & 10
+                ( 3, 5, False):  3, (3, 5, True):    3,  # 11 & 12
+                (17, 2, True):  -3, (17, 3, False): -3,  # 13 & 14
+                (18, 2, True):  -3, (18, 3, False): -3,  # 15 & 16
+                (18, 2, False): -2, (18, 1, True):  -2,  # 17 & 18
+                (19, 2, True):  -3, (19, 3, False): -3,  # 19 & 20
+                (19, 2, False): -2, (19, 1, True):  -2,  # 21 & 22
+                (19, 1, False): -1, (19, 7, True):  -1}  # 23 & 24
 
     def _week_of_year(self, year, month, day, weekday, week):
         def _offset(year, day):
@@ -1528,9 +1532,9 @@ class DateTests(BahaiCalendar):
             fwd = ddate(year, 1, 1).weekday() + 1
             return self._OFFSETS.get((day, fwd, leap), 0)
 
-        def _last_year_day(doy, day):
-            wd = _td_utils._day_of_week(year-1, 19, day)
-            return (doy - (wd - 1)) // 7 + 1
+        # def _last_year_day(doy, day):
+        #     wd = _td_utils._day_of_week(year-1, 19, day)
+        #     return (doy - (wd - 1)) // 7 + 1
 
         if month == 19:
             if _offset(year, day) in (-1, -2, -3):  # Make all the 1st week
@@ -1624,9 +1628,14 @@ if __name__ == "__main__":
         '-y', '--leap-years', action='store_true', default=False,
         dest='leap_years', help="Dump leap years.")
     parser.add_argument(
-        '-A', '--alt-leap', action='store_true', default=False,
-        dest='alt_leap', help=("Use the 4|100|400 (default) or the 4|128 "
-                               "rules from Julian Calendar day one."))
+        '-A', '--latitude', type=float, default=None, dest='latitude',
+        help="Latitude")
+    parser.add_argument(
+        '-O', '--logitude', type=float, default=None, dest='longitude',
+        help="Longitude")
+    parser.add_argument(
+        '-Z', '--zone', type=float, default=None, dest='zone',
+        help="Time zone.")
     parser.add_argument(
         '-C', '--coff', action='store_true', default=False, dest='coff',
         help="Turn off all coefficients during an analysis.")
@@ -1650,6 +1659,10 @@ if __name__ == "__main__":
     parser.add_argument(
         '-K', '--kill', action='store_true', default=False, dest='kill',
         help="Turn off all secondary coefficients during an analysis.")
+    parser.add_argument(
+        '-L', '--alt-leap', action='store_true', default=False,
+        dest='alt_leap', help=("Use the 4|100|400 (default) or the 4|128 "
+                               "rules from Julian Calendar day one."))
     parser.add_argument(
         '-M', '--month', type=int, default=1, dest='month',
         help="Start month.")
@@ -1824,7 +1837,8 @@ if __name__ == "__main__":
             data = dt.find_weekdays(options)
             C = 'C' if options.coff else ''
             print(f"./contrib/misc/{basename} -e{C}S {options.start} "
-                  f"-E {options.end}")
+                  f"-E {options.end} -A {options.latitude} "
+                  f"-O {options.longitude} -Z {options.zone}")
             print("Badí'            Gregorian                          Week "
                   "Week Day      Month      Leap  Days Day in")
             print("Date             Date                               Num  "
@@ -1874,7 +1888,8 @@ if __name__ == "__main__":
         else:
             data = dt.find_gregorian_dates(options)
             X = 'X' if options.exact else ''
-            print(f"./contrib/misc/{basename} -g{X}S{options.start} "
+            L = 'L' if options.alt_leap else ''
+            print(f"./contrib/misc/{basename} -g{X}{L}S{options.start} "
                   f"-E{options.end}")
             print("b_date", " " * 9,  "bjd", " " * 14, "g_date", " " * 23,
                   "gjd", " " * 14, "diff offby")

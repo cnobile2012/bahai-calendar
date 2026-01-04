@@ -299,11 +299,11 @@ class date(BahaiCalendar):
         :rtype: date
         """
         bc = BahaiCalendar()
-        date = bc.badi_date_from_timestamp(t, *LOCAL_COORD, short=short,
+        date = bc.badi_date_from_timestamp(t, LOCAL_COORD[2], short=short,
                                            trim=True)
         del bc
-        date = date[:3] if short else date[:5]
-        return cls(*date)  # We do not want time values.
+        date = date[:3] if short else date[:5]  # We do not want time values.
+        return cls(*date)
 
     @classmethod
     def today(cls, *, short: bool=True) -> object:
@@ -1821,8 +1821,8 @@ class datetime(date):
             return date[:3] + (None, None) + date[3:] if short else date
 
         bc = BahaiCalendar()
-        coord = GMT_COORD if utc else LOCAL_COORD
-        b_date = bc.badi_date_from_timestamp(t, *coord, us=True, short=short,
+        zone = GMT_COORD[2] if utc else LOCAL_COORD[2]
+        b_date = bc.badi_date_from_timestamp(t, zone, us=True, short=short,
                                              trim=False)
         date = _fix_short_date(b_date, short)
         # Clamp out leap seconds if the platform has them.
@@ -1844,7 +1844,7 @@ class datetime(date):
                 return result  # pragma: no cover
 
             b_date = bc.badi_date_from_timestamp(
-                t - max_fold_seconds, *LOCAL_COORD, us=True, short=short,
+                t - max_fold_seconds, LOCAL_COORD[2], us=True, short=short,
                 trim=False)
             date = _fix_short_date(b_date, short)
             probe1 = cls(*date, tzinfo=tz)
@@ -1852,8 +1852,8 @@ class datetime(date):
 
             if trans.days < 0:
                 t += trans // timedelta(0, 1)
-                b_date = bc.badi_date_from_timestamp(t, *LOCAL_COORD, us=True,
-                                                     short=short, trim=False)
+                b_date = bc.badi_date_from_timestamp(
+                    t, LOCAL_COORD[2], us=True, short=short, trim=False)
                 date = _fix_short_date(b_date, short)
                 probe2 = cls(*date, tzinfo=tz)
 
@@ -1963,7 +1963,7 @@ class datetime(date):
         :rtype: float
         """
         return self.timestamp_from_badi_date(self.b_date + self.b_time,
-                                             *LOCAL_COORD)
+                                             LOCAL_COORD[2])
 
     def timestamp(self) -> float:
         """
@@ -2110,7 +2110,7 @@ class datetime(date):
         else:
             ts = (self - _EPOCH) // timedelta(seconds=1)
 
-        ts = self.badi_date_from_timestamp(ts, *LOCAL_COORD,
+        ts = self.badi_date_from_timestamp(ts, LOCAL_COORD[2],
                                            short=self.is_short, trim=True)
         ts_len = len(ts)
 
@@ -2832,10 +2832,10 @@ class timezone(tzinfo):
         else:
             sign = '+'
 
-        hours, rest = divmod(delta, timedelta(hours=1))
-        minutes, rest = divmod(rest, timedelta(minutes=1))
-        seconds = rest.seconds
-        microseconds = rest.microseconds
+        hours, mins = divmod(delta, timedelta(hours=1))
+        minutes, ss_us = divmod(mins, timedelta(minutes=1))
+        seconds = ss_us.seconds
+        microseconds = ss_us.microseconds
 
         if microseconds:
             return (f'UTC{sign}{hours:02d}:{minutes:02d}:{seconds:02d}'

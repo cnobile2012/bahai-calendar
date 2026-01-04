@@ -24,7 +24,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     | https://gml.noaa.gov/grad/solcalc/ Sunset data
     """
     # Near Mehrabad International Airport
-    #                 lattude    longitude  zone IANA name      elevation
+    #                 latitude    longitude  zone IANA name      elevation
     _BAHAI_LOCATION = (35.69435, 51.288701, 3.5, 'Asia/Tehran', 0)
     _GMT_LOCATION = (51.477928, -0.001545, 0, 0)
     _BADI_EPOCH = 2394643.262681068  # 2394645.262681068 using Meeus' algorithm
@@ -89,7 +89,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param float lon: The longitude.
         :param float zone: The time zone.
         :param bool hms: If True the output returns the hours, minutes, and
-                         seconds as seperate fields. If False the day has a
+                         seconds as separate fields. If False the day has a
                          decimal value indicating the hours, minutes, and
                          seconds.
         :returns: A Gregorian date.
@@ -111,7 +111,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param float lon: The longitude.
         :param float zone: The time zone.
         :param bool hms: If True the output returns the hours, minutes, and
-                         second as seperate fields. If False the day has a
+                         second as separate fields. If False the day has a
                          decimal value indicating the hours, minutes, and
                          seconds.
         :returns: A Gregorian date.
@@ -176,7 +176,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.
-        :param bool us: If True the seconds are split to seconds amd
+        :param bool us: If True the seconds are split to seconds and
                         microseconds else if False the seconds has a partial
                         day as a decimal.
         :param bool short: If True then parse for a short date else if False
@@ -192,10 +192,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         assert self._xor_boolean((fraction, us, rtd)), (
             "Cannot set more than one of fraction, us, or rtd to True.")
 
-        def get_leap_year_info(year):
-            leap = self._is_leap_year(year)
-            return leap, 4 + leap
-
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
@@ -205,7 +201,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         y = 1 if md < 424046 and md != 0 else 0
         # Find the year
         year = math.floor(md / self._MEAN_TROPICAL_YEAR) + y
-        leap, ld = get_leap_year_info(year)
+        ld = 4 + self._is_leap_year(year)
         # Get 1st day of year so we can find the number of days to the JD.
         fdoy = (year, 1, 1)
         fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone)
@@ -217,7 +213,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             year = yr
             fdoy = (year, 1, 1)
             fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone)
-            leap, ld = get_leap_year_info(year)
+            ld = 4 + self._is_leap_year(year)
 
         days = math.floor(jd) - math.floor(fjdoy) + 1
 
@@ -238,7 +234,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         self._debug_print(
             "Stage 0--jd: {}, date: {}, days: {}, fjdoy: {}, md: {}, y: {}, "
-            "leap: {}", (jd, (year, month, day), days, fjdoy, md, y, leap))
+            "ld: {}", (jd, (year, month, day), days, fjdoy, md, y, ld))
         year, month, day, frac = self._adjust_date(jd, year, month, day,
                                                    lat, lon, zone)
 
@@ -487,7 +483,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         True the seconds are split to second and microsecond.
 
         :param tuple b_date: The Badi date in long form.
-        :param bool us: If True the seconds are split to seconds amd
+        :param bool us: If True the seconds are split to seconds and
                         microseconds else if False the seconds has a partial
                         day as a decimal.
         :param bool short: If True then parse for a short date else if False
@@ -587,18 +583,15 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         return self._gc.gregorian_date_from_jd(jd, hms=True, us=us,
                                                exact=_exact)
 
-    def badi_date_from_timestamp(self, t: float, lat: float=None,
-                                 lon: float=None, zone: float=None, *,
+    def badi_date_from_timestamp(self, t: float, zone: float=None, *,
                                  us: bool=False, short: bool=False,
                                  trim: bool=False, rtd: bool=False) -> tuple:
         """
         Get the Badi date from a POSIX timestamp.
 
         :param float t: Timestamp
-        :param float lat: The latitude.
-        :param float lon: The longitude.
         :param float zone: The time zone.
-        :param bool us: If True the seconds are split to seconds amd
+        :param bool us: If True the seconds are split to seconds and
                         microseconds else if False the seconds has a partial
                         day as a decimal.
         :param bool short: If True then parse for a short date else if False
@@ -609,26 +602,22 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = t / 86400 + self._POSIX_EPOCH
-        jd0 = self._local_zone_correction(jd, zone, mod_jd=True)
-        return self.badi_date_from_jd(jd0, lat, lon, zone, us=us, short=short,
-                                      trim=trim, rtd=rtd)
+        jd += zone / 24
+        return self.badi_date_from_jd(jd, *self._GMT_LOCATION[:3], us=us,
+                                      short=short, trim=trim, rtd=rtd)
 
-    def timestamp_from_badi_date(self, date: tuple, lat: float, lon: float,
-                                 zone: float) -> float:
+    def timestamp_from_badi_date(self, date: tuple, zone: float) -> float:
         """
         Convert a Badi date to a timestamp.
 
         :param tuple date: The Badi date.
-        :param float lat: The latitude.
-        :param float lon: The longitude.
         :param float zone: The time zone.
         :returns: The timestamp corrected for the time zone.
         :rtype: float
         """
         jd = self.jd_from_badi_date(date, *self._GMT_LOCATION[:3])
         jd -= zone / 24
-        jd_diff = jd - self._POSIX_EPOCH
-        return round(jd_diff * 86400, self._ROUNDING_PLACES)
+        return round((jd - self._POSIX_EPOCH) * 86400, self._ROUNDING_PLACES)
 
     def midday(self, date: tuple, *, hms: bool=False, _short: bool) -> tuple:
         """
@@ -849,7 +838,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # The first day
         jd0 = self._meeus_from_exact(jd0)
         ss0 = self._sun_setting(jd0, lat, lon)
-        # Subtract the first day from the next day gived the total
+        # Subtract the first day from the next day given the total
         # hours, minutes, and seconds between them.
         ut_ss = ss1 - ss0
 
@@ -862,81 +851,29 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         return ret
 
-    # def _badi_ordinal_from_ymd(self, year: int, month: int, day: int) -> int:
-    #     """
-    #     Calculates the Badí' ordinal. Adding 77 to the result is equal to
-    #     the ordinal found in the standard Python datetime package. This is
-    #     because the Badí' calendar starts on the sunset before the vernal
-    #     equinox which is on 0001-03-19T18:14:31.8552 77 days and some hours
-    #     after 0001-01-01T00:00:00.
-    #     """
-    #     if not hasattr(self, '_leap_map'):
-    #         self._build_leap_tables()
+    def utc_to_badi_time(self, jd: float, lat: float, lon: float, zone: float
+                         ) -> float:
+        """
+        Convert UTC time to Badi time.
+        """
+        jd += zone / 24
+        jd0, jd0_frac = divmod(jd, 1)
+        ss = self._sun_setting(self._meeus_from_exact(jd), lat, lon)
 
-    #     total_years = year - self.MINYEAR
-    #     leap_years = self._leap_map[year]  # number of leap years before Y
-    #     lys = self._lys_map[year]          # 4 or 5
+        if jd0_frac < ss % 1:  # The day before.
+            ss = self._sun_setting(jd0 - 1, lat, lon)
+            time_to_midnight = 0.5 - ss % 1
+            frac = time_to_midnight + jd0_frac
+        else:  # The day of.
+            frac = jd_frac - ss % 1
 
-    #     # month offsets
-    #     if month == 1:
-    #         offset = 0
-    #     elif 2 <= month <= 18:
-    #         offset = self._month_offset[month]
-    #     elif month == 0:
-    #         offset = 18 * 19               # 342
-    #     else:
-    #         offset = 18 * 19 + lys         # Ayyam-i-Há + leap
+        return jd0 + frac
 
-    #     return total_years * 365 + leap_years + offset + day
-
-    # def _ymd_from__badi_ordinal(self, ordinal):
-    #     if not hasattr(self, '_leap_map'):
-    #         self._build_leap_tables()
-
-    #     year, doy = self._year_from_badi_ordinal(ordinal)
-    #     lys = self._lys_map[year]  # 4 or 5
-
-    #     if doy <= 342:  # Inside months 1–18
-    #         month = (doy - 1) // 19 + 1
-    #         day = (doy - 1) % 19 + 1
-    #     elif doy <= 342 + lys:  # Ayyam-i-Há (month 0)
-    #         month = 0
-    #         day = doy - 342
-    #     else:  # Final month (month 19)
-    #         month = 19
-    #         day = doy - (342 + lys)
-
-    #     return year, int(month), day
-
-    # def _build_leap_tables(self):
-    #     self._leap_map = {}
-    #     self._lys_map = {}
-    #     count = 0
-
-    #     for y in range(self.MINYEAR, self.MAXYEAR + 1):
-    #         self._leap_map[y] = count
-    #         is_leap = self._is_leap_year(y)
-    #         self._lys_map[y] = 5 if is_leap else 4
-
-    #         if is_leap:
-    #             count += 1
-
-    #     # month offsets for months 1–18
-    #     self._month_offset = {m: (m-1) * 19 for m in range(1, 19)}
-
-    # def _year_from_badi_ordinal(self, ordinal):
-    #     lo, hi = self.MINYEAR, self.MAXYEAR
-
-    #     while lo <= hi:
-    #         mid = (lo + hi) // 2
-    #         doy = (mid - self.MINYEAR) * 365 + self._leap_map[mid]
-
-    #         if doy < ordinal:
-    #             lo = mid + 1
-    #         else:
-    #             hi = mid - 1
-
-    #     year = hi
-    #     day_of_year = ordinal - (
-    #         (year - self.MINYEAR) * 365 + self._leap_map[year])
-    #     return year, day_of_year
+    def badi_to_utc_time(self, jd: float, lat: float, lon: float, zone: float
+                         ) -> float:
+        """
+        Convert Badi time to UTC time.
+        """
+        jd0, jd0_frac = divmod(jd, 1)
+        ss = self._sun_setting(self._meeus_from_exact(jd), lat, lon)
+        
