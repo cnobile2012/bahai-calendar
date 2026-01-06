@@ -103,6 +103,9 @@ class PosixTests(BahaiCalendar):
 
                 for day in range(1, days + 1):
                     g_date = (year, month, day)
+                    # bd = self.badi_date_from_gregorian_date(g_date, lat, lon,
+                    #                                         zone, short=True)
+                    # print(bd)
                     g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
                     b_date = self._badi_date_from_timestamp(
                         g_ts, zone, short=True)

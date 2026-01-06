@@ -26,7 +26,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     # Near Mehrabad International Airport
     #                 latitude    longitude  zone IANA name      elevation
     _BAHAI_LOCATION = (35.69435, 51.288701, 3.5, 'Asia/Tehran', 0)
-    _GMT_LOCATION = (51.477928, -0.001545, 0, 0)
+    _GMT_LOCATION = (51.477928, -0.001545, 0.0, 0)
     _BADI_EPOCH = 2394643.262681068  # 2394645.262681068 using Meeus' algorithm
     _BADI_MONTH_NUM_DAYS = [
         (1, 19), (2, 19), (3, 19), (4, 19), (5, 19), (6, 19), (7, 19),
@@ -159,10 +159,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         local_ss = self._local_zone_correction(jd_ss, zone, mod_jd=True)
         a_ss = self._exact_from_meeus(local_ss)
         day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
-        f_coeff = self._get_frac_coeff(year)
         # print(f"{str(b_date):<15} {day:<9} {jd:<14} {local_ss:<20} "
         #       f"{a_ss:<20} {day_frac} {coeff}")
-        return round(a_ss + day_frac + f_coeff, self._ROUNDING_PLACES)
+        return round(a_ss + day_frac, self._ROUNDING_PLACES)
 
     def badi_date_from_jd(self, jd: float, lat: float=None, lon: float=None,
                           zone: float=None, *, us: bool=False,
@@ -555,8 +554,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = self._gc.jd_from_gregorian_date(g_date, exact=_exact)
-        return self.badi_date_from_jd(jd, lat=lat, lon=lon, zone=zone, us=us,
-                                      short=short, trim=trim, rtd=rtd)
+        jd0 = self._utc_to_badi_time(jd, lat, lon, zone)
+        return self.badi_date_from_jd(jd0, lat, lon, zone, us=us, short=short,
+                                      trim=trim, rtd=rtd)
 
     def gregorian_date_from_badi_date(self, b_date: tuple, lat: float=None,
                                       lon: float=None, zone: float=None, *,
@@ -580,7 +580,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = self.jd_from_badi_date(b_date, lat, lon, zone)
-        return self._gc.gregorian_date_from_jd(jd, hms=True, us=us,
+        jd0 = self._badi_to_utc_time(jd, lat, lon, zone)
+        return self._gc.gregorian_date_from_jd(jd0, hms=True, us=us,
                                                exact=_exact)
 
     def badi_date_from_timestamp(self, t: float, zone: float=None, *,
@@ -851,29 +852,52 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         return ret
 
-    def utc_to_badi_time(self, jd: float, lat: float, lon: float, zone: float
+    def _utc_to_badi_time(self, jd: float, lat: float, lon: float, zone: float
                          ) -> float:
         """
         Convert UTC time to Badi time.
+
+        :param float jd: An Astronomically correct JD.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The standard time zone.
+        :returns: The JD with the correct Badi time.
+        :rtype: float
         """
         jd += zone / 24
         jd0, jd0_frac = divmod(jd, 1)
-        ss = self._sun_setting(self._meeus_from_exact(jd), lat, lon)
+        jd1 = self._meeus_from_exact(jd)
+        ss = self._sun_setting(jd1, lat, lon)
 
         if jd0_frac < ss % 1:  # The day before.
-            ss = self._sun_setting(jd0 - 1, lat, lon)
+            ss = self._sun_setting(jd1 - 1, lat, lon)
             time_to_midnight = 0.5 - ss % 1
             frac = time_to_midnight + jd0_frac
         else:  # The day of.
-            frac = jd_frac - ss % 1
+            frac = jd0_frac - ss % 1
 
         return jd0 + frac
 
-    def badi_to_utc_time(self, jd: float, lat: float, lon: float, zone: float
+    def _badi_to_utc_time(self, jd: float, lat: float, lon: float, zone: float
                          ) -> float:
         """
         Convert Badi time to UTC time.
+
+        :param float jd: An Astronomically correct JD.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The standard time zone.
+        :returns: The JD with the correct UTC time.
+        :rtype: float
         """
-        jd0, jd0_frac = divmod(jd, 1)
-        ss = self._sun_setting(self._meeus_from_exact(jd), lat, lon)
-        
+        jd0, frac = divmod(jd, 1)
+        jd1 = self._meeus_from_exact(jd0)
+        ss = self._sun_setting(jd1, lat, lon)
+        ss_frac = ss % 1
+
+        # Are we before or after midnight UTC?
+        if frac + ss_frac >= 1:  # The day before.
+            ss = self._sun_setting(jd1 - 1, lat, lon)
+            ss_frac = ss % 1
+
+        return jd0 + ss_frac + frac - zone / 24

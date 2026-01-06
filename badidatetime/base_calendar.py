@@ -313,8 +313,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, offset=offset, sr_ss='RISE')
-        return round(jd, self._ROUNDING_PLACES)
+        jd0 = math.floor(jd + 0.5) - 0.5
+        m = self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='RISE')
+        return round(jd0 + m, self._ROUNDING_PLACES)
 
     def _sun_setting(self, jd: float, lat: float, lon: float, *,
                      offset: float=_SUN_OFFSET) -> float:
@@ -338,8 +339,9 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, offset=offset, sr_ss='SET')
-        return round(jd, self._ROUNDING_PLACES)
+        jd0 = math.floor(jd + 0.5) - 0.5
+        m= self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='SET')
+        return round(jd0 + m, self._ROUNDING_PLACES)
 
     def _rising_setting(self, jd: float, lat: float, lon: float, *,
                         offset: float=_SUN_OFFSET, sr_ss: str='RISE') -> float:
@@ -1428,13 +1430,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         b = y - a  # Leap years
         return a * 365 + b * 366
 
-    def _meeus_from_exact(self, jd: float) -> int:
+    def _meeus_from_exact(self, jd: float) -> float:
         """
         Returns the Meeus algorithm jd converted from the exact algorithm jd.
 
         :param float jd: Exact Julian Period day.
-        :returns: The difference to subtract from an exact algorithm jd.
-        :rtype: int
+        :returns: The difference added to an Astronomically correct jd.
+        :rtype: float
         """
         jd_diff = (
             (1757641.5, 0), (1794165.5, 1), (1830689.5, 2), (1903738.5, 3),
@@ -1451,14 +1453,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return jd + diff
 
-    def _exact_from_meeus(self, jd: float) -> int:
+    def _exact_from_meeus(self, jd: float) -> float:
         """
         The returned difference value to convert a Meeus algorithm jd to
         an exact algorithm jd. This is subtracted from the meeus jd.
 
         :param float jd: Meeus Julian Period day.
-        :returns: The difference to subtract from a Meeus algorithm jd.
-        :rtype: int
+        :returns: The difference subtracted from an Historically correct
+                  algorithm jd.
+        :rtype: float
          """
         jd_diff = (
             (1757642.5, 0), (1794167.5, 1), (1830692.5, 2), (1903742.5, 3),
