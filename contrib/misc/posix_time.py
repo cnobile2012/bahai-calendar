@@ -72,7 +72,7 @@ class PosixTests(BahaiCalendar):
                 b_date = self._badi_date_from_timestamp(g_ts, zone, short=True)
                 bd = datetime(*b_date[:3], None, None, *b_date[3:])
                 b_ts = self._mktime(bd, zone, options)
-                g_leap = self.gc._GREGORIAN_LEAP_YEAR(year)
+                g_leap = self._gc._is_leap_year(year)
                 b_leap = self._is_leap_year(b_date[0])
                 diff = round(b_ts - g_ts, 6)
                 data.append((g_date, g_leap, g_ts, b_date, b_leap, b_ts, diff))
@@ -90,13 +90,13 @@ class PosixTests(BahaiCalendar):
         data = []
         start = options.start
         end = options.end
-        lat = options.latitude
-        lon = options.longitude
+        #lat = options.latitude
+        #lon = options.longitude
         zone = options.zone
         tz = dtime.timezone(dtime.timedelta(hours=zone))
 
         for year in range(start, end):
-            leap = self.gc._GREGORIAN_LEAP_YEAR(year)
+            leap = self._gc._is_leap_year(year)
 
             for month, days in enumerate(self.gc._MONTHS, start=1):
                 days += 1 if month == 2 and leap else 0
@@ -438,7 +438,6 @@ def _m_and_t_options(options, start_time, data):
 if __name__ == "__main__":
     import time
     import argparse
-    import pprint
 
     parser = argparse.ArgumentParser(
         description=("Test POSIX dates and times."))
@@ -546,7 +545,7 @@ if __name__ == "__main__":
             print(f"Minimum deviation (seconds):  "
                   f"{fmt_float(min(diffs), 4, 6)}")
             print("Difference Average (seconds): "
-                  f"{fmt_float(dt/len(diffs), 4, 6 )}")
+                  f"{fmt_float(dt/len(diffs), 4, 6)}")
             end_time = time.time()
             days, hours, minutes, seconds = pt._dhms_from_seconds(
                 end_time - start_time)

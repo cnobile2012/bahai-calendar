@@ -27,19 +27,6 @@ class TestGregorianCalendar(unittest.TestCase):
         self._gc = GregorianCalendar()
 
     #@unittest.skip("Temporarily skipped")
-    def test__GREGORIAN_LEAP_YEAR(self):
-        """
-        Test that the lambda _GREGORIAN_LEAP_YEAR function correctly
-        determines the Gregorian leap year.
-        """
-        years = ((1844, True), (1951, False), (2064, True), (2100, False))
-        msg = "Expected {} for year {}, found {}"
-
-        for year, value in years:
-            result = self._gc._GREGORIAN_LEAP_YEAR(year)
-            self.assertEqual(value, result, msg.format(value, year, result))
-
-    #@unittest.skip("Temporarily skipped")
     def test_jd_from_gregorian_date(self):
         """
         Test that the jd_from_gregorian_date method returns a
@@ -280,6 +267,30 @@ class TestGregorianCalendar(unittest.TestCase):
                              msg.format(expected_result, date, us, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test__is_leap_year(self):
+        """
+        Test that the _is_leap_year method correctly determines the Gregorian
+        leap year.
+        """
+        data = (
+            (100, False, False),
+            (128, False, True),
+            (1800, False, False),
+            (1844, False, True),
+            (1951, False, False),
+            (2064, False, True),
+            (2100, False, False),
+            (100, True, True),
+            (128, True, False),
+            (1800, True, True),
+            )
+        msg = "Expected {} for year {}, found {}"
+
+        for year, alt, value in data:
+            result = self._gc._is_leap_year(year, alt=alt)
+            self.assertEqual(value, result, msg.format(value, year, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test__check_valid_gregorian_month_day(self):
         """
         Check that the year, month, day, hour, minute, and second in a
@@ -317,7 +328,7 @@ class TestGregorianCalendar(unittest.TestCase):
                 for m in range(1, 13):
                     for days in range(self._gc._MONTHS[m - 1]):
                         if m == 2: # Subtract 0 or 1 from Febuary if leap year.
-                            days -= (0 if self._gc._GREGORIAN_LEAP_YEAR(year)
+                            days -= (0 if self._gc._is_leap_year(year)
                                      else 1)
 
                         for d in range(1, days + 1):

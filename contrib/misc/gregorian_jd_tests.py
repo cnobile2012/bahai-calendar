@@ -21,11 +21,7 @@ class JulianPeriodTests:
     #MEAN_SIDEREAL_YEAR = 365.256363004
     ROUNDING_PLACES = 6
     JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
-    GREGORIAN_LEAP_YEAR = lambda self, year: (
-        (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
-    GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
-        (year % 4 == 0) * (year % 128 != 0) == 1)
-    MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    MONTHS = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     HR = lambda self, x: x / 24
     MN = lambda self, x: x / 24 / 60
     SEC = lambda self, x: x / 24 / 60 / 60
@@ -137,13 +133,11 @@ class JulianPeriodTests:
 
         -a with optional -A for alternate leap year calculation.
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-               else self.GREGORIAN_LEAP_YEAR)
         data = []
 
         for date in self.TEST_DATES:
             date = date if isinstance(date, tuple) else (date, 1, 1)
-            leap = GLY(date[0])
+            leap = self._gc._is_leap_year(date[0], alt=options.alt_leap)
             jd0 = self.jd_from_gregorian_date_0(date)
             jd1 = self.jd_from_gregorian_date_1(date, alt=options.alt_leap)
 
@@ -174,15 +168,13 @@ class JulianPeriodTests:
         This test will display, to stderr a progress counter indicating
         every 500 years.
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-               else self.GREGORIAN_LEAP_YEAR)
         data = []
 
         for year in range(options.start, options.end):
-            leap = GLY(year)
+            leap = self._gc._is_leap_year(year, alt=options.alt_leap)
 
             for month, days in enumerate(self.MONTHS, start=1):
-                max_days = days - 1 if month == 2 and not leap else days
+                max_days = days + leap
 
                 for day in range(1, max_days + 1):
                     date = (year, month, day)
@@ -214,18 +206,13 @@ class JulianPeriodTests:
         This test will display, to stderr a progress counter indicating
         every 500 years.
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-               else self.GREGORIAN_LEAP_YEAR)
         data = []
 
         for year in range(options.start, options.end):
-            leap = GLY(year)
+            leap = self._gc._is_leap_year(year, alt=options.alt_leap)
 
             for month, days in enumerate(self.MONTHS, start=1):
-                if month == 2 and not leap:
-                    max_days = days - 1
-                else:
-                    max_days = days
+                max_days = days + leap
 
                 for day in range(1, max_days + 1):
                     date = (year, month, day)
@@ -353,14 +340,14 @@ class JulianPeriodTests:
 
         if year <= 0:
             for y in range(1, 3005):
-                y0 = self.GREGORIAN_LEAP_YEAR(y)
-                y1 = self.GREGORIAN_LEAP_YEAR_ALT(y)
+                y0 = self._gc._is_leap_year(y)
+                y1 = self._gc._is_leap_year(y, alt=True)
 
                 if y0 != y1:
                     data.append((y, y0, y1))
         else:
-            y0 = self.GREGORIAN_LEAP_YEAR(year)
-            y1 = self.GREGORIAN_LEAP_YEAR_ALT(year)
+            y0 = self._gc._is_leap_year(y)
+            y1 = self._gc._is_leap_year(y, alt=True)
             data.append((year, y0, y1))
 
         return data
@@ -384,11 +371,6 @@ class JulianPeriodTests:
         Some tests will display, to stderr a progress counter indicating
         every 500 years.
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-               else self.GREGORIAN_LEAP_YEAR)
-        LY = self.JULIAN_LEAP_YEAR if options.meeus else GLY
-        #sys.stderr.write(f" LY: {str(LY)}\nGLY: {str(GLY)}\n")
-
         method = (self.jd_from_gregorian_date_0 if options.meeus else
                   self.jd_from_gregorian_date_1)
         data = []
@@ -397,12 +379,13 @@ class JulianPeriodTests:
         if options.julian:
             for year in range(options.start, options.end):
                 for month, days in enumerate(self.MONTHS, start=1):
-                    LY = LY if (year, month) < (1582, 10) else GLY
-
-                    if month == 2 and not LY(year):
-                        max_days = days - 1
+                    if (year, month) >= (1582, 10) or options.meeus:
+                        leap = self._gc._is_leap_year(
+                            year, alt=options.alt_leap)
                     else:
-                        max_days = days
+                        leap = self.JULIAN_LEAP_YEAR(year)
+
+                    max_days = days + leap
 
                     for day in range(1, max_days + 1):
                         date = (year, month, day)
@@ -415,12 +398,11 @@ class JulianPeriodTests:
         elif options.g_date:
             items = []
             last_date = ()
-            GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-                   else self.GREGORIAN_LEAP_YEAR)
             month_days = list(self.MONTHS)
 
             for year in range(options.start, options.end):
-                month_days[1] = 29 if GLY(year) else 28
+                leap = self._gc._is_leap_year(year, alt=options.alt_leap)
+                month_days[1] = 29 if leap else 28
 
                 for month, days in enumerate(month_days, start=1):
                     for day in range(1, days+1):
@@ -488,19 +470,22 @@ class JulianPeriodTests:
 
         for year in range(options.start, options.end):
             leap = (self.JULIAN_LEAP_YEAR(year) if year < 1583
-                    else self.GREGORIAN_LEAP_YEAR(year))
+                    else self._gc._is_leap_year(year))
             lat, lon = (51.477928, -0.001545)
 
             for month, days in enumerate(self.MONTHS, start=1):
-                if month == 2 and not leap:
-                    max_days = days - 1
-                else:
-                    max_days = days
+                max_days = days + leap
 
                 for day in range(1, max_days + 1):
                     date = (year, month, day)
                     date += hm[date] if date in hm else ()
-                    jd_ut = self._gc.jd_from_gregorian_date(date)
+
+                    try:
+                        jd_ut = self._gc.jd_from_gregorian_date(date)
+                    except AssertionError:
+                        print((year, month, day))
+                        continue
+
                     jd_ss_ut = self._gc._sun_setting(jd_ut, lat, lon)
                     # Convert to Astronomically correct jd.
                     ajd = self._gc.jd_from_gregorian_date(date, exact=True)
@@ -508,6 +493,8 @@ class JulianPeriodTests:
                     data.append((date, ss))
 
         return data
+
+    # Supporting methods
 
     def jd_from_gregorian_date_0(self, g_date, alt=False):
         """
@@ -567,12 +554,12 @@ class JulianPeriodTests:
         """
         My algorithm
         """
-        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         year, month, day = self.date_from_ymdhms(g_date)
         td = self._days_in_years(year-1, alt=alt)
         days = td + (self.GREGORIAN_EPOCH - 1)  # 37
         month_days = list(self.MONTHS)
-        month_days[1] = 29 if GLY(year) else 28
+        leap = self._gc._is_leap_year(year, alt=options.alt_leap)
+        month_days[1] = 29 if leap else 28
         days += sum(month_days[:month-1]) + day
         #print(f"date: {str(g_date):<16} td: {td:<8} "
         #      f"days: {days:<10} "
@@ -617,8 +604,6 @@ class JulianPeriodTests:
         """
         My algorithm
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
-               else self.GREGORIAN_LEAP_YEAR)
         # Get the number of days since the Gregorian epoch.
         md = jd - (self.GREGORIAN_EPOCH - 1)
         year = math.floor(abs(md / self.MEAN_TROPICAL_YEAR)) + 1
@@ -638,7 +623,8 @@ class JulianPeriodTests:
             year += 1
 
         month_days = list(self.MONTHS)
-        month_days[1] = 29 if GLY(year) else 28
+        leap = self._gc._is_leap_year(year, alt=options.alt_leap)
+        month_days[1] = 29 if leap else 28
         d = day = 0
 
         for month, ds in enumerate(month_days, start=1):

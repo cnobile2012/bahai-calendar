@@ -222,7 +222,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
 
         return data
 
-    def check_dates(self, optiuons):
+    def check_dates(self, options):
         """
         Check for correct dates between different methods.
 
@@ -237,10 +237,10 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         tz = dtime.timezone(dtime.timedelta(hours=zone))
 
         for year in range(start, end):
-            leap = self.gc._GREGORIAN_LEAP_YEAR(year)
+            leap = self._gc._is_leap_year(year)
 
             for month, days in enumerate(self.gc._MONTHS, start=1):
-                max_days = days - 1 if month == 2 and not leap else days
+                max_days = days + leap
 
                 for day in range(1, max_days + 1):
                     if year == 1 and (month < 3 or month == 3 and day < 19):

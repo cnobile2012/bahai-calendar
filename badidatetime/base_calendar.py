@@ -340,7 +340,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
         jd0 = math.floor(jd + 0.5) - 0.5
-        m= self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='SET')
+        m = self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='SET')
         return round(jd0 + m, self._ROUNDING_PLACES)
 
     def _rising_setting(self, jd: float, lat: float, lon: float, *,
