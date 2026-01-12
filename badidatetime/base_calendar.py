@@ -1602,7 +1602,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :rtype: float
         """
         assert zone is None or zone is not None and (-180 <= zone <= 180), (
-            "If the zone is not None the zone value must be between -180 and "
+            "If the zone is not None, the zone value must be between -180 and "
             f"180, found zone: {zone}.")
         assert (zone, lon).count(None) in (0, 1), (
             "Both the time zone and longitude cannot be None.")
