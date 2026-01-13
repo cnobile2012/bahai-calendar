@@ -18,3 +18,4 @@ Sphinx
 sphinx_rtd_theme
 sphinx_new_tab_link
 skyfield
+urllib3>=2.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
