@@ -1672,7 +1672,7 @@ class TestBaseCalendar(unittest.TestCase):
         day fraction to the without zone information to one with zone
         information.
         """
-        err_msg0 = ("If the zone is not None the zone value must be between "
+        err_msg0 = ("If the zone is not None, the zone value must be between "
                     "-180 and 180, found zone: {}.")
         err_msg1 = "Both the time zone and longitude cannot be None."
         data = (

@@ -1405,16 +1405,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Find the number of days up to the provided year.
 
         :param int y: The year to count to.
-        :param bool alt: If True use the 4|128 rule else if False use the
-                         4|100|400 rule. The default is False.
+        :param bool alt: If True use the 4|128 rule else if False (default)
+                         use the 4|100|400 rule
         :returns: The count of days including year one to the given year.
         :rtype: int
 
         .. note::
 
-           This method starts the count from year 1 of the Julian Calendar,
-           however, it uses one of the two leap rules described above instead
-           of the usual Julian Calendar leap year rule of every 4 year.
+           This method starts the count from year 1 of the Proleptic Gregorian
+           Calendar, however, it uses one of the two leap rules described
+           above instead of the usual Julian Calendar leap year rule of every
+           4 year.
         """
         n_4 = y // 4
 

@@ -27,7 +27,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     #                 latitude    longitude  zone IANA name      elevation
     _BAHAI_LOCATION = (35.69435, 51.288701, 3.5, 'Asia/Tehran', 0)
     _GMT_LOCATION = (51.477928, -0.001545, 0.0, 0)
-    _BADI_EPOCH = 2394643.262681068  # 2394645.262681068 using Meeus' algorithm
+    # 2394645.2609488396 using Meeus' algorithm
+    _BADI_EPOCH = 2394643.2609488396
     _BADI_MONTH_NUM_DAYS = [
         (1, 19), (2, 19), (3, 19), (4, 19), (5, 19), (6, 19), (7, 19),
         (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
@@ -151,7 +152,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         # The day may have a decimal component. ex. 1.5 = (1 day and 12 hours)
         # This day is relative to UTC time, so we need to compensate for Badi
-        # time since a Badi day starts at sunset not at midnight.
+        # time since a Badi day starts at sunset, not at midnight.
         jd0 = self._meeus_from_exact(jd)
         coeff = self._get_day_coeff(year)
         jd1 = jd0 + coeff
@@ -584,13 +585,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         return self._gc.gregorian_date_from_jd(jd0, hms=True, us=us,
                                                exact=_exact)
 
-    def badi_date_from_timestamp(self, t: float, zone: float=None, *,
+    def badi_date_from_timestamp(self, t: float, lat: float=None,
+                                 lon: float=None, zone: float=None, *,
                                  us: bool=False, short: bool=False,
                                  trim: bool=False, rtd: bool=False) -> tuple:
         """
         Get the Badi date from a POSIX timestamp.
 
         :param float t: Timestamp
+        :param float lat: The latitude.
+        :param float lon: The longitude.
         :param float zone: The time zone.
         :param bool us: If True the seconds are split to seconds and
                         microseconds else if False the seconds has a partial
@@ -603,21 +607,24 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = t / 86400 + self._POSIX_EPOCH
-        jd += zone / 24
-        return self.badi_date_from_jd(jd, *self._GMT_LOCATION[:3], us=us,
-                                      short=short, trim=trim, rtd=rtd)
+        #jd0 = self._utc_to_badi_time(jd, lat, lon, zone)
+        return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
+                                      trim=trim, rtd=rtd)
 
-    def timestamp_from_badi_date(self, date: tuple, zone: float) -> float:
+    def timestamp_from_badi_date(self, date: tuple, lat: float=None,
+                                 lon: float=None, zone: float=None) -> float:
         """
         Convert a Badi date to a timestamp.
 
         :param tuple date: The Badi date.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
         :param float zone: The time zone.
         :returns: The timestamp corrected for the time zone.
         :rtype: float
         """
-        jd = self.jd_from_badi_date(date, *self._GMT_LOCATION[:3])
-        jd -= zone / 24
+        jd = self.jd_from_badi_date(date, lat, lon, zone)
+        #jd0 = self._badi_to_utc_time(jd, lat, lon, zone)
         return round((jd - self._POSIX_EPOCH) * 86400, self._ROUNDING_PLACES)
 
     def midday(self, date: tuple, *, hms: bool=False, _short: bool) -> tuple:
@@ -853,7 +860,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         return ret
 
     def _utc_to_badi_time(self, jd: float, lat: float, lon: float, zone: float
-                         ) -> float:
+                          ) -> float:
         """
         Convert UTC time to Badi time.
 
@@ -864,40 +871,60 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: The JD with the correct Badi time.
         :rtype: float
         """
-        jd += zone / 24
+        jd += self._HR(zone)
         jd0, jd0_frac = divmod(jd, 1)
         jd1 = self._meeus_from_exact(jd)
         ss = self._sun_setting(jd1, lat, lon)
+        ss_frac = ss % 1
 
-        if jd0_frac < ss % 1:  # The day before.
+        if jd0_frac < ss_frac:  # The previous day.
             ss = self._sun_setting(jd1 - 1, lat, lon)
-            time_to_midnight = 0.5 - ss % 1
-            frac = time_to_midnight + jd0_frac
-        else:  # The day of.
-            frac = jd0_frac - ss % 1
+            frac =  0.5 - ss % 1 + jd0_frac
+            #print(f"Previous day--jd: {jd} jd0_frac: {jd0_frac} jd1: {jd1} "
+            #      f"ss_frac: {ss_frac} frac: {frac}")
+        elif jd0_frac > ss_frac: # The same day.
+            frac = jd0_frac - ss_frac
+            # print(f"Same day--jd: {jd} jd0_frac: {jd0_frac} jd1: {jd1} "
+            #       f"ss_frac: {ss_frac} frac: {frac}")
+        else:
+            frac = 0.0
+            # print(f"Start of day--jd: {jd} jd0_frac: {jd0_frac} jd1: {jd1} "
+            #       f"ss_frac: {ss_frac} frac: {frac}")
 
         return jd0 + frac
 
-    def _badi_to_utc_time(self, jd: float, lat: float, lon: float, zone: float
-                         ) -> float:
+    def _badi_to_utc_time(self, bjd: float, lat: float, lon: float, zone: float
+                          ) -> float:
         """
         Convert Badi time to UTC time.
 
-        :param float jd: An Astronomically correct JD.
+        :param float bjd: An Astronomically correct JD.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.
         :returns: The JD with the correct UTC time.
         :rtype: float
         """
-        jd0, frac = divmod(jd, 1)
-        jd1 = self._meeus_from_exact(jd0)
+        jd0, jd_frac = divmod(bjd, 1)
+        jd1 = self._meeus_from_exact(bjd)
+        # Try same-day sunset
         ss = self._sun_setting(jd1, lat, lon)
-        ss_frac = ss % 1
+        frac = jd_frac + ss % 1
+        frac -= 1 if frac >= 1 else 0
+        jd_try = jd0 + frac - self._HR(zone)
+        test_jd = self._utc_to_badi_time(jd_try, lat, lon, zone)
 
-        # Are we before or after midnight UTC?
-        if frac + ss_frac >= 1:  # The day before.
+        if not abs(test_jd - bjd) < 1e-10:
+            # Must be previous-day sunset
             ss = self._sun_setting(jd1 - 1, lat, lon)
-            ss_frac = ss % 1
+            frac = jd_frac + ss % 1 - 0.5
+            jd_try = jd0 + frac - self._HR(zone)
+        #     print(f"Previous day--bjd: {bjd} jd_frac: {jd_frac} jd1: {jd1} "
+        #           f"ss % 1: {ss % 1} frac: {frac} jd_try: {jd_try} "
+        #           f"test_jd: {test_jd}")
+        # else:
+        #     print(f"Same day--bjd: {bjd} jd_frac: {jd_frac} jd1: {jd1} "
+        #           f"ss % 1: {ss % 1} frac: {frac} jd_try: {jd_try} "
+        #           f"test_jd: {test_jd}")
 
-        return jd0 + ss_frac + frac - zone / 24
+        return jd_try
