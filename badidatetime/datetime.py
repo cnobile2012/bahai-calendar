@@ -299,7 +299,7 @@ class date(BahaiCalendar):
         :rtype: date
         """
         bc = BahaiCalendar()
-        date = bc.badi_date_from_timestamp(t, LOCAL_COORD[2], short=short,
+        date = bc.badi_date_from_timestamp(t, *LOCAL_COORD, short=short,
                                            trim=True)
         del bc
         date = date[:3] if short else date[:5]  # We do not want time values.

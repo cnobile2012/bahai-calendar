@@ -175,44 +175,44 @@ class DateTests(BahaiCalendar):
         ( 363, 3, 21,  8, 10), ( 364, 3, 20, 13, 59), ( 365, 3, 20, 19, 48),
         ( 366, 3, 21,  1, 37), ( 367, 3, 21,  7, 26), ( 368, 3, 20, 13, 16),
         ( 369, 3, 20, 19,  5), ( 370, 3, 21,  0, 54), ( 371, 3, 21,  6, 43),
-        ( 372, 3, 20, 12, 32),
-        ( 373, 3, 20, 18, 22), ( 374, 3, 21,  0, 11), ( 375, 3, 21,  6,  0),
-        ( 376, 3, 20, 11, 49), ( 377, 3, 20, 17, 38), ( 378, 3, 20, 23, 28),
-        ( 379, 3, 21,  5, 17), ( 380, 3, 20, 11,  6), ( 381, 3, 20, 16, 55),
-        ( 382, 3, 20, 22, 44), ( 383, 3, 21,  4, 34), ( 384, 3, 20, 10, 23),
-        ( 385, 3, 20, 16, 12), ( 386, 3, 20, 22,  1), ( 387, 3, 21,  3, 50),
-        ( 388, 3, 20,  9, 40), ( 389, 3, 20, 15, 29), ( 390, 3, 20, 21, 18),
-        ( 391, 3, 21,  3,  7), ( 392, 3, 20,  8, 56), ( 393, 3, 20, 14, 46),
-        ( 394, 3, 20, 20, 35), ( 395, 3, 21,  2, 24), ( 396, 3, 20,  8, 13),
-        ( 397, 3, 20, 14,  2), ( 398, 3, 20, 19, 52), ( 399, 3, 21,  1, 41),
-        ( 400, 3, 20,  7, 30), ( 401, 3, 20, 13, 19), ( 402, 3, 20, 19,  8),
-        ( 403, 3, 21,  0, 58), ( 404, 3, 20,  6, 47), ( 405, 3, 20, 12, 36),
-        ( 406, 3, 20, 18, 25), ( 407, 3, 21,  0, 14), ( 408, 3, 20,  6,  4),
-        ( 409, 3, 20, 11, 53), ( 410, 3, 20, 17, 42), ( 411, 3, 20, 23, 31),
-        ( 412, 3, 20,  5, 20), ( 413, 3, 20, 11, 10), ( 414, 3, 20, 16, 59),
-        ( 415, 3, 20, 22, 48), ( 416, 3, 20,  4, 37), ( 417, 3, 20, 10, 26),
-        ( 418, 3, 20, 16, 16), ( 419, 3, 20, 20,  5), ( 420, 3, 20,  3, 54),
-        ( 421, 3, 20,  9, 43), ( 422, 3, 20, 15, 32), ( 423, 3, 20, 21, 22),
-        ( 424, 3, 20,  3, 11), ( 425, 3, 20,  9,  0), ( 426, 3, 20, 14, 49),
-        ( 427, 3, 20, 20, 38), ( 428, 3, 20,  2, 28), ( 429, 3, 20,  8, 17),
-        ( 430, 3, 20, 14,  6), ( 431, 3, 20, 19, 55), ( 432, 3, 20,  1, 44),
-        ( 433, 3, 20,  7, 34), ( 434, 3, 20, 13, 23), ( 435, 3, 20, 19, 12),
-        ( 436, 3, 20,  1,  1), ( 437, 3, 20,  6, 50), ( 438, 3, 20, 12, 40),
-        ( 439, 3, 20, 18, 29), ( 440, 3, 20,  0, 18), ( 441, 3, 20,  6,  7),
-        ( 442, 3, 20, 11, 56), ( 443, 3, 20, 17, 46), ( 444, 3, 19, 23, 35),
-        ( 445, 3, 20,  5, 24), ( 446, 3, 20, 11, 13), ( 447, 3, 20, 17,  2),
-        ( 448, 3, 19, 22, 52), ( 449, 3, 20,  4, 41), ( 450, 3, 20, 10, 30),
-        ( 451, 3, 20, 16, 19), ( 452, 3, 19, 22,  8), ( 453, 3, 20,  3, 58),
-        ( 454, 3, 20,  9, 47), ( 455, 3, 20, 15, 36), ( 456, 3, 19, 21, 25),
-        ( 457, 3, 20,  3, 14), ( 458, 3, 20,  9,  4), ( 459, 3, 20, 14, 53),
-        ( 460, 3, 19, 20, 42), ( 461, 3, 20,  2, 31), ( 462, 3, 20,  8, 20),
-        ( 463, 3, 20, 14, 10), ( 464, 3, 19, 19, 59), ( 465, 3, 20,  1, 48),
-        ( 466, 3, 20,  7, 37), ( 467, 3, 20, 13, 26), ( 468, 3, 19, 19, 16),
-        ( 469, 3, 20,  1,  5), ( 470, 3, 20,  6, 54), ( 471, 3, 20, 12, 43),
-        ( 472, 3, 19, 18, 32), ( 473, 3, 20,  0, 22), ( 474, 3, 20,  6, 11),
-        ( 475, 3, 20, 12,  0), ( 476, 3, 19, 17, 49), ( 477, 3, 19, 23, 38),
-        ( 478, 3, 20,  5, 28), ( 479, 3, 20, 11, 17), ( 480, 3, 19, 17,  6),
-        ( 481, 3, 19, 22, 55), ( 482, 3, 20,  4, 44), ( 483, 3, 20, 10, 34),
+        ( 372, 3, 20, 12, 32), ( 373, 3, 20, 18, 22), ( 374, 3, 21,  0, 11),
+        ( 375, 3, 21,  6,  0), ( 376, 3, 20, 11, 49), ( 377, 3, 20, 17, 38),
+        ( 378, 3, 20, 23, 28), ( 379, 3, 21,  5, 17), ( 380, 3, 20, 11,  6),
+        ( 381, 3, 20, 16, 55), ( 382, 3, 20, 22, 44), ( 383, 3, 21,  4, 34),
+        ( 384, 3, 20, 10, 23), ( 385, 3, 20, 16, 12), ( 386, 3, 20, 22,  1),
+        ( 387, 3, 21,  3, 50), ( 388, 3, 20,  9, 40), ( 389, 3, 20, 15, 29),
+        ( 390, 3, 20, 21, 18), ( 391, 3, 21,  3,  7), ( 392, 3, 20,  8, 56),
+        ( 393, 3, 20, 14, 46), ( 394, 3, 20, 20, 35), ( 395, 3, 21,  2, 24),
+        ( 396, 3, 20,  8, 13), ( 397, 3, 20, 14,  2), ( 398, 3, 20, 19, 52),
+        ( 399, 3, 21,  1, 41), ( 400, 3, 20,  7, 30), ( 401, 3, 20, 13, 19),
+        ( 402, 3, 20, 19,  8), ( 403, 3, 21,  0, 58), ( 404, 3, 20,  6, 47),
+        ( 405, 3, 20, 12, 36), ( 406, 3, 20, 18, 25), ( 407, 3, 21,  0, 14),
+        ( 408, 3, 20,  6,  4), ( 409, 3, 20, 11, 53), ( 410, 3, 20, 17, 42),
+        ( 411, 3, 20, 23, 31), ( 412, 3, 20,  5, 20), ( 413, 3, 20, 11, 10),
+        ( 414, 3, 20, 16, 59), ( 415, 3, 20, 22, 48), ( 416, 3, 20,  4, 37),
+        ( 417, 3, 20, 10, 26), ( 418, 3, 20, 16, 16), ( 419, 3, 20, 20,  5),
+        ( 420, 3, 20,  3, 54), ( 421, 3, 20,  9, 43), ( 422, 3, 20, 15, 32),
+        ( 423, 3, 20, 21, 22), ( 424, 3, 20,  3, 11), ( 425, 3, 20,  9,  0),
+        ( 426, 3, 20, 14, 49), ( 427, 3, 20, 20, 38), ( 428, 3, 20,  2, 28),
+        ( 429, 3, 20,  8, 17), ( 430, 3, 20, 14,  6), ( 431, 3, 20, 19, 55),
+        ( 432, 3, 20,  1, 44), ( 433, 3, 20,  7, 34), ( 434, 3, 20, 13, 23),
+        ( 435, 3, 20, 19, 12), ( 436, 3, 20,  1,  1), ( 437, 3, 20,  6, 50),
+        ( 438, 3, 20, 12, 40), ( 439, 3, 20, 18, 29), ( 440, 3, 20,  0, 18),
+        ( 441, 3, 20,  6,  7), ( 442, 3, 20, 11, 56), ( 443, 3, 20, 17, 46),
+        ( 444, 3, 19, 23, 35), ( 445, 3, 20,  5, 24), ( 446, 3, 20, 11, 13),
+        ( 447, 3, 20, 17,  2), ( 448, 3, 19, 22, 52), ( 449, 3, 20,  4, 41),
+        ( 450, 3, 20, 10, 30), ( 451, 3, 20, 16, 19), ( 452, 3, 19, 22,  8),
+        ( 453, 3, 20,  3, 58), ( 454, 3, 20,  9, 47), ( 455, 3, 20, 15, 36),
+        ( 456, 3, 19, 21, 25), ( 457, 3, 20,  3, 14), ( 458, 3, 20,  9,  4),
+        ( 459, 3, 20, 14, 53), ( 460, 3, 19, 20, 42), ( 461, 3, 20,  2, 31),
+        ( 462, 3, 20,  8, 20), ( 463, 3, 20, 14, 10), ( 464, 3, 19, 19, 59),
+        ( 465, 3, 20,  1, 48), ( 466, 3, 20,  7, 37), ( 467, 3, 20, 13, 26),
+        ( 468, 3, 19, 19, 16), ( 469, 3, 20,  1,  5), ( 470, 3, 20,  6, 54),
+        ( 471, 3, 20, 12, 43), ( 472, 3, 19, 18, 32), ( 473, 3, 20,  0, 22),
+        ( 474, 3, 20,  6, 11), ( 475, 3, 20, 12,  0), ( 476, 3, 19, 17, 49),
+        ( 477, 3, 19, 23, 38), ( 478, 3, 20,  5, 28), ( 479, 3, 20, 11, 17),
+        ( 480, 3, 19, 17,  6), ( 481, 3, 19, 22, 55), ( 482, 3, 20,  4, 44),
+        ( 483, 3, 20, 10, 34),
         ( 484, 3, 19, 16, 33), ( 485, 3, 19, 22, 12), ( 486, 3, 20,  4,  1),
         ( 487, 3, 20,  9, 50), ( 488, 3, 19, 15, 40), ( 489, 3, 19, 21, 29),
         ( 490, 3, 20,  3, 18), ( 491, 3, 20,  9,  7), ( 492, 3, 19, 14, 56),
@@ -995,7 +995,7 @@ class DateTests(BahaiCalendar):
     # Support methods
     #
     def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None, *,
-                           coeffon=False, kill=False):
+                           coeffon=False):
         self._check_valid_badi_date(b_date, short_in=True)
         year, month, day = b_date[:3]
         hh, mm, ss, us = self._get_hms(b_date, short_in=True)
@@ -1039,6 +1039,18 @@ class DateTests(BahaiCalendar):
             return coeff
 
         def process_segments(year, pn, a=0, onoff0=(), b=0, onoff1=()):
+            """
+            Full range is -1842 to 1161
+
+            General ranges are determined with:
+            ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
+            Where -S is the 1st year and -E is the nth year + 1 that needs to
+            be process.
+
+            Use the following command to test the results of each segment,
+            this calls the command above.
+            ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
+            """
             coeff = 0
 
             for start, end in pn:
@@ -1081,13 +1093,6 @@ class DateTests(BahaiCalendar):
                  (-1151, -1119), (-1015, -999), (-751, -719), (-619, -599),
                  (-351, -319), (-211, -199), (53, 85), (185, 201), (445, 477),
                  (577, 601), (841, 873), (973, 1001), )
-
-        # General ranges are determined with:
-        # ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
-        # Where -S is the 1st year and -E is the nth year + 1 that needs to
-        # be process. Use the following command to test the results of each
-        # segment. ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
-        # Full range is -1842 to 1161
         return (process_segments(year, P1, -1, (0, 1, 2, 3))
                 or process_segments(year, P1100, -1, (0, 3))
                 or process_segments(year, P1110, -1, (0, 2, 3))
@@ -1115,8 +1120,8 @@ class DateTests(BahaiCalendar):
                 # We must use the Historical correct (Meeus) algorithm not
                 # the Astronomically correct algorithm when finding the
                 # equinox and sunset. So don't use exact=options.exact here.
-                jd = self.gc.jd_from_gregorian_date(g_date)
-                ve_jd_ut = self._find_moment_of_equinoxes_or_solstices(jd)
+                sjd = self.gc.jd_from_gregorian_date(g_date)
+                ve_jd_ut = self._find_moment_of_equinoxes_or_solstices(sjd)
 
             jd_ss_ut = self._sun_setting(ve_jd_ut, lat, lon)
 
@@ -1145,11 +1150,12 @@ class DateTests(BahaiCalendar):
         # Sunset before VE
         g_date = self.gc.gregorian_date_from_jd(a_local_jd, hms=True,
                                                 exact=True)
+        jd = self.gc.jd_from_gregorian_date(g_date, exact=True)
         bjd = self._jd_from_badi_date(b_date, coeffon=options.coff,
                                       kill=options.kill)
-        diff = round(bjd - a_local_jd, 6)
+        diff = round(bjd - jd, 12)
         offby = 0 if abs(diff) < 0 else int(diff)
-        data.append((b_date, bjd, g_date, a_local_jd, diff, offby))
+        data.append((b_date, bjd, g_date, jd, diff, offby))
 
     def _pre_process_vernal_equinoxs(self):
         data = {}
@@ -1350,9 +1356,6 @@ if __name__ == "__main__":
         help=("Test for consecutive Julian Period days between start and "
               "end Badí' years."))
     parser.add_argument(
-        '-K', '--kill', action='store_true', default=False, dest='kill',
-        help="Turn off all secondary coefficients during an analysis.")
-    parser.add_argument(
         '-L', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help=("Use the 4|100|400 (default) or the 4|128 "
                                "rules from Julian Calendar day one."))
@@ -1415,8 +1418,8 @@ if __name__ == "__main__":
             start_time = time.time()
             data = dt.analyze_date_error(options)
             print("Badí' Date    Badí' JD           Gregorian Date (Sunset)  "
-                  "      Gregorian JD        Diff      Off By")
-            underline_length = 100
+                  "      Gregorian JD        Diff            Off By")
+            underline_length = 106
             print('-' * underline_length)
 
             for b_date, bjd, g_date, gjd, diff, offby in data:
@@ -1424,7 +1427,7 @@ if __name__ == "__main__":
                       f"{bjd:<18} "
                       f"{str(g_date):<30} "
                       f"{gjd:<19} "
-                      f"{fmt_float(diff, 2, 6):<8} "
+                      f"{fmt_float(diff, 2, 12)} "
                       f"{fmt_float(offby, 2, 1)}")
 
             print('-' * underline_length)

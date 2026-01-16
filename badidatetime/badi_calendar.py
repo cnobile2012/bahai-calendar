@@ -607,7 +607,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = t / 86400 + self._POSIX_EPOCH
-        #jd0 = self._utc_to_badi_time(jd, lat, lon, zone)
+        jd += self._HR(zone)
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim, rtd=rtd)
 
@@ -624,7 +624,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: float
         """
         jd = self.jd_from_badi_date(date, lat, lon, zone)
-        #jd0 = self._badi_to_utc_time(jd, lat, lon, zone)
+        jd -= self._HR(zone)
         return round((jd - self._POSIX_EPOCH) * 86400, self._ROUNDING_PLACES)
 
     def midday(self, date: tuple, *, hms: bool=False, _short: bool) -> tuple:
@@ -879,17 +879,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         if jd0_frac < ss_frac:  # The previous day.
             ss = self._sun_setting(jd1 - 1, lat, lon)
-            frac =  0.5 - ss % 1 + jd0_frac
-            #print(f"Previous day--jd: {jd} jd0_frac: {jd0_frac} jd1: {jd1} "
-            #      f"ss_frac: {ss_frac} frac: {frac}")
-        elif jd0_frac > ss_frac: # The same day.
+            frac = 0.5 - ss % 1 + jd0_frac
+        elif jd0_frac > ss_frac:  # The same day.
             frac = jd0_frac - ss_frac
-            # print(f"Same day--jd: {jd} jd0_frac: {jd0_frac} jd1: {jd1} "
-            #       f"ss_frac: {ss_frac} frac: {frac}")
         else:
             frac = 0.0
-            # print(f"Start of day--jd: {jd} jd0_frac: {jd0_frac} jd1: {jd1} "
-            #       f"ss_frac: {ss_frac} frac: {frac}")
 
         return jd0 + frac
 
@@ -919,12 +913,5 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             ss = self._sun_setting(jd1 - 1, lat, lon)
             frac = jd_frac + ss % 1 - 0.5
             jd_try = jd0 + frac - self._HR(zone)
-        #     print(f"Previous day--bjd: {bjd} jd_frac: {jd_frac} jd1: {jd1} "
-        #           f"ss % 1: {ss % 1} frac: {frac} jd_try: {jd_try} "
-        #           f"test_jd: {test_jd}")
-        # else:
-        #     print(f"Same day--bjd: {bjd} jd_frac: {jd_frac} jd1: {jd1} "
-        #           f"ss % 1: {ss % 1} frac: {frac} jd_try: {jd_try} "
-        #           f"test_jd: {test_jd}")
 
         return jd_try
