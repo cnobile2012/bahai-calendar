@@ -1821,8 +1821,8 @@ class datetime(date):
             return date[:3] + (None, None) + date[3:] if short else date
 
         bc = BahaiCalendar()
-        zone = GMT_COORD[2] if utc else LOCAL_COORD[2]
-        b_date = bc.badi_date_from_timestamp(t, zone, us=True, short=short,
+        coords = GMT_COORD if utc else LOCAL_COORD
+        b_date = bc.badi_date_from_timestamp(t, *coords, us=True, short=short,
                                              trim=False)
         date = _fix_short_date(b_date, short)
         # Clamp out leap seconds if the platform has them.
@@ -1844,7 +1844,7 @@ class datetime(date):
                 return result  # pragma: no cover
 
             b_date = bc.badi_date_from_timestamp(
-                t - max_fold_seconds, LOCAL_COORD[2], us=True, short=short,
+                t - max_fold_seconds, *LOCAL_COORD, us=True, short=short,
                 trim=False)
             date = _fix_short_date(b_date, short)
             probe1 = cls(*date, tzinfo=tz)
@@ -1853,7 +1853,7 @@ class datetime(date):
             if trans.days < 0:
                 t += trans // timedelta(0, 1)
                 b_date = bc.badi_date_from_timestamp(
-                    t, LOCAL_COORD[2], us=True, short=short, trim=False)
+                    t, *LOCAL_COORD, us=True, short=short, trim=False)
                 date = _fix_short_date(b_date, short)
                 probe2 = cls(*date, tzinfo=tz)
 
@@ -1963,7 +1963,7 @@ class datetime(date):
         :rtype: float
         """
         return self.timestamp_from_badi_date(self.b_date + self.b_time,
-                                             LOCAL_COORD[2])
+                                             *LOCAL_COORD)
 
     def timestamp(self) -> float:
         """
@@ -2110,7 +2110,7 @@ class datetime(date):
         else:
             ts = (self - _EPOCH) // timedelta(seconds=1)
 
-        ts = self.badi_date_from_timestamp(ts, LOCAL_COORD[2],
+        ts = self.badi_date_from_timestamp(ts, *LOCAL_COORD,
                                            short=self.is_short, trim=True)
         ts_len = len(ts)
 
