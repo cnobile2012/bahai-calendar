@@ -606,7 +606,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: A Badi date long or short form.
         :rtype: tuple
         """
-        jd = t / 86400 + self._POSIX_EPOCH
+        jd = t / self._SECONDS_PER_DAY + self._POSIX_EPOCH
         jd += self._HR(zone)
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim, rtd=rtd)
@@ -625,7 +625,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         """
         jd = self.jd_from_badi_date(date, lat, lon, zone)
         jd -= self._HR(zone)
-        return round((jd - self._POSIX_EPOCH) * 86400, self._ROUNDING_PLACES)
+        return round((jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY,
+                     self._ROUNDING_PLACES)
 
     def midday(self, date: tuple, *, hms: bool=False, _short: bool) -> tuple:
         """

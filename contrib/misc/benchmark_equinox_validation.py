@@ -61,7 +61,7 @@ for year in range(1, 3001, 10):
     jd_jpl = jpl_vernal_equinox_jd(year)
     jd_badi = badidatetime_equinox_jd(year, GMT_COORD)
     diff_days = jd_badi - jd_jpl
-    diff_sec = diff_days * 86400
+    diff_sec = diff_days * bc._SECONDS_PER_DAY
     results.append((year, jd_jpl, jd_badi, diff_sec))
 
 

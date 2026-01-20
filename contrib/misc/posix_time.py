@@ -243,7 +243,7 @@ class PosixTests(BahaiCalendar):
         :returns: A Badi date long or short form.
         :rtype: tuple
         """
-        jd = t / 86400 + self._POSIX_EPOCH
+        jd = t / self._SECONDS_PER_DAY + self._POSIX_EPOCH
         jd += zone / 24
         return self.badi_date_from_jd(jd, *self.GMT_COORD, us=us, short=short,
                                       trim=trim, rtd=rtd)
@@ -259,7 +259,7 @@ class PosixTests(BahaiCalendar):
         """
         jd = self.jd_from_badi_date(date, *self.GMT_COORD)
         jd -= zone / 24
-        jd0 = (jd - self._POSIX_EPOCH) * 86400
+        jd0 = (jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY
         return round(jd0, self._ROUNDING_PLACES)
 
 

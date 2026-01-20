@@ -60,6 +60,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # The Meeus value is 2440587.5
     _POSIX_EPOCH = 2440585.5
     _JULIAN_CAL_EPOCH = 1721423.5
+    _SECONDS_PER_DAY = 86400
 
     def __init__(self, *args, **kwargs):
         self._time = None
@@ -145,7 +146,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         # Convert to seconds of a day where 66.9 dt == 2010
         # Seconds of a day are 0.0007743055555555556
-        return dt if seconds else dt / 86400
+        return dt if seconds else dt / self._SECONDS_PER_DAY
 
     def _mean_sidereal_time_greenwich(self, tc: float) -> float:
         """
@@ -283,7 +284,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :rtype: float
         """
         srt = ast + 360.98564736629 * m
-        n = m + dt / 86400
+        n = m + dt / self._SECONDS_PER_DAY
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
@@ -406,7 +407,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :rtype: float
         """
         srt = ast + 360.98564736629 * m
-        n = m + dt / 86400
+        n = m + dt / self._SECONDS_PER_DAY
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
@@ -1019,7 +1020,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         jde = jde0 + (0.00001 * s) / dl
         # Must convert from Dynamical time (JDE) to Universal Time (UT).
         delta_t_seconds = self._delta_t(jde)
-        jd_ut = jde - delta_t_seconds / 86400.0   # Divide by seconds in a day
+        jd_ut = jde - delta_t_seconds / self._SECONDS_PER_DAY
         # Now add the timezone.
         jd_local = jd_ut + self._HR(zone)
         return round(jd_local, self._ROUNDING_PLACES)
@@ -1161,7 +1162,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         else:
             sec = seconds
 
-        return days * 86400 + hours * 3600 + minutes * 60 + sec + zone * 3600
+        return (days * self._SECONDS_PER_DAY + hours * 3600 + minutes
+                * 60 + sec + zone * 3600)
 
     def _dhms_from_seconds(self, seconds: float, zone: float=0,
                            us: bool=False) -> tuple:
@@ -1193,7 +1195,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         else:
             hours -= 24
             day = 1
-            seconds -= 86400
+            seconds -= self._SECONDS_PER_DAY
 
         sec = (seconds - hours * 3600) - minutes * 60
 
@@ -1222,7 +1224,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            This method is used in determining time zones.
         """
-        return self._seconds_from_dhms(days, hours, minutes, seconds) / 86400
+        return (self._seconds_from_dhms(days, hours, minutes, seconds)
+                / self._SECONDS_PER_DAY)
 
     def _tz_dhms_from_decimal(self, dec: float) -> tuple:
         """
@@ -1239,7 +1242,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            This method is used in determining time zones.
          """
-        return self._dhms_from_seconds(dec * 86400)
+        return self._dhms_from_seconds(dec * self._SECONDS_PER_DAY)
 
     def _hms_from_decimal_day(self, dec: float, *, us: bool=False) -> tuple:
         """
@@ -1288,7 +1291,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         assert ((s % 1 and us == 0) or (s % 1 == 0 and us) or
                 (s % 1 == 0 and us == 0)), (
             "Seconds cannot have a decimal value if microseconds are used.")
-        return (h * 3600 + m * 60 + s + self._US(us)) / 86400
+        return (h * 3600 + m * 60 + s + self._US(us)) / self._SECONDS_PER_DAY
 
     def _sec_microsec_from_seconds(self, second: float) -> tuple:
         """

@@ -205,7 +205,7 @@ class GregorianCalendar(BaseCalendar):
         :rtype: tuple
         """
         t += zone * 3600
-        days = math.floor(t / 86400)
+        days = math.floor(t / self._SECONDS_PER_DAY)
         year = 1970
         leap = False
         days = abs(days) + 1
@@ -233,7 +233,7 @@ class GregorianCalendar(BaseCalendar):
 
             break
 
-        seconds = t % 86400
+        seconds = t % self._SECONDS_PER_DAY
         minutes = math.floor(seconds / 60)
         minute = minutes % 60
         hour = math.floor(minutes / 60)
@@ -306,7 +306,7 @@ class GregorianCalendar(BaseCalendar):
         microsec = date[6] if date_len > 6 else 0
         total_seconds = ((hour * 3600) + (minute * 60) + second +
                          (microsec / 1e6))
-        day += total_seconds / 86400
+        day += total_seconds / self._SECONDS_PER_DAY
         hhmmssus = self._hms_from_decimal_day(day, us=us)
         return (year, month, math.floor(day)) + hhmmssus
 
