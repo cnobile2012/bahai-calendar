@@ -1015,8 +1015,8 @@ class DateTests(BahaiCalendar):
 
         jd0 = self._meeus_from_exact(jd)
         coeff = 0 if coeffon else self._get_day_coeff(year)
-        jd1 = jd0 + coeff
-        jd_ss = self._sun_setting(jd1, lat, lon)
+        jd0 += coeff
+        jd_ss = self._sun_setting(jd0, lat, lon)
         local_ss = self._local_zone_correction(jd_ss, zone, mod_jd=True)
         a_ss = self._exact_from_meeus(local_ss)
         day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
@@ -1151,8 +1151,7 @@ class DateTests(BahaiCalendar):
         g_date = self.gc.gregorian_date_from_jd(a_local_jd, hms=True,
                                                 exact=True)
         jd = self.gc.jd_from_gregorian_date(g_date, exact=True)
-        bjd = self._jd_from_badi_date(b_date, coeffon=options.coff,
-                                      kill=options.kill)
+        bjd = self._jd_from_badi_date(b_date, coeffon=options.coff)
         diff = round(bjd - jd, 12)
         offby = 0 if abs(diff) < 0 else int(diff)
         data.append((b_date, bjd, g_date, jd, diff, offby))

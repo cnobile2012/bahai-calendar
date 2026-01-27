@@ -5,12 +5,14 @@
 __docformat__ = "restructuredtext en"
 
 import math
+import bisect
 
 from badidatetime.base_calendar import BaseCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
 from badidatetime._coefficients import Coefficients
 
 __all__ = ('BahaiCalendar',)
+_LEAP_CACHE = None
 
 
 class BahaiCalendar(BaseCalendar, Coefficients):
@@ -49,6 +51,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     MAXYEAR = 1161
     """
     int: Constant indicating the maximum year this API can represent.
+    """
+    PROLEPTIC_GREG_1ST_DAY = 1721423.5
+    """
+    float: Constant indicating the proleptic Gregorian first day or year 1.
     """
 
     def __init__(self, *args, **kwargs):
@@ -126,6 +132,13 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         """
         Convert a Badí' short form date to Julian period day.
 
+        .. note::
+
+           So that the JD is interoperable with different calendar code
+           this method returns a standard UT time not Badí' time. To convert
+           to Badí' time you will need to add the time zone divided by 24 to
+           the returned JD.
+
         :param tuple b_date: A short form Badí' date.
         :param float lat: The latitude.
         :param float lon: The longitude.
@@ -155,13 +168,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # time since a Badi day starts at sunset, not at midnight.
         jd0 = self._meeus_from_exact(jd)
         coeff = self._get_day_coeff(year)
-        jd1 = jd0 + coeff
-        jd_ss = self._sun_setting(jd1, lat, lon)
+        jd0 += coeff
+        jd_ss = self._sun_setting(jd0, lat, lon)
         local_ss = self._local_zone_correction(jd_ss, zone, mod_jd=True)
         a_ss = self._exact_from_meeus(local_ss)
         day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
-        # print(f"{str(b_date):<15} {day:<9} {jd:<14} {local_ss:<20} "
-        #       f"{a_ss:<20} {day_frac} {coeff}")
         return round(a_ss + day_frac, self._ROUNDING_PLACES)
 
     def badi_date_from_jd(self, jd: float, lat: float=None, lon: float=None,
@@ -170,6 +181,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                           trim: bool=False, rtd: bool=False) -> tuple:
         """
         Convert a Julian Period day to a Badi date.
+
+        .. note::
+
+           Only pass a UTC JD not a zone shifted JD.
 
         :param float jd: Julian Period day in the Astronomically correct
                          method and in UT time.
@@ -195,48 +210,35 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
-        md = jd - self._BADI_EPOCH
-        # This is only needed for the last two days of Badi year 1161
-        # and the day before the epoch.
-        y = 1 if md < 424046 and md != 0 else 0
-        # Find the year
-        year = math.floor(md / self._MEAN_TROPICAL_YEAR) + y
-        ld = 4 + self._is_leap_year(year)
-        # Get 1st day of year so we can find the number of days to the JD.
-        fdoy = (year, 1, 1)
-        fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone)
+        # Convert to local apparent time
+        hist_jd = self._meeus_from_exact(jd)
+        ss = self._sun_setting(hist_jd, lat, lon)
+        astro_ss = self._exact_from_meeus(ss)
+        jd_local = jd + zone / 24
+        ss_local = astro_ss + zone / 24
 
-        # Fix year if needed.
-        yr = year - 1 if (math.floor(fjdoy) - math.floor(jd)) > 0 else year
+        if jd_local < ss_local:
+            ss = self._sun_setting(hist_jd - 1, lat, lon)
+            astro_ss = self._exact_from_meeus(ss)
+            ss_local = astro_ss + zone / 24
 
-        if yr != year:
-            year = yr
-            fdoy = (year, 1, 1)
-            fjdoy = self.jd_from_badi_date(fdoy, lat, lon, zone)
-            ld = 4 + self._is_leap_year(year)
+        rd = math.floor(astro_ss - self.PROLEPTIC_GREG_1ST_DAY) + 1
+        year = self._badi_year_from_rd(rd)
+        year_start_rd = self._YEAR_START[year]
+        doy = rd - year_start_rd + 1
+        ayyamiha = 4 + self._is_leap_year(year)
 
-        days = math.floor(jd) - math.floor(fjdoy) + 1
+        if doy <= 342:  # Months 1 - 18
+            month = (doy - 1) // 19 + 1
+            day = (doy - 1) % 19 + 1
+        elif doy <= 342 + ayyamiha:  # Month 0
+            month = 0
+            day = doy - 342
+        else:  # Month 19
+            month = 19
+            day = doy - (342 + ayyamiha)
 
-        if days <= 342:                 # Month 1 - 18
-            m_days = days % 19
-            day = 19 if m_days == 0 else m_days
-        elif (342 + ld) < days <= 366:  # Month 19
-            day = days - (342 + ld)
-        else:                           # Ayyam-i-Ha
-            day = days % 342
-
-        month_days = list(self._BADI_MONTH_NUM_DAYS)
-        month_days[18] = (0, ld)  # Fix Ayyám-i-Há days
-
-        for month, ds in month_days:
-            if days <= ds: break
-            days -= ds
-
-        self._debug_print(
-            "Stage 0--jd: {}, date: {}, days: {}, fjdoy: {}, md: {}, y: {}, "
-            "ld: {}", (jd, (year, month, day), days, fjdoy, md, y, ld))
-        year, month, day, frac = self._adjust_date(jd, year, month, day,
-                                                   lat, lon, zone)
+        frac = (jd_local - ss_local) % 1
 
         if fraction:
             b_date = year, month, round(day + frac, 6)
@@ -246,10 +248,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
             if not short:
                 b_date = self.long_date_from_short_date(b_date, trim=trim)
-            assert frac < 1.0, (
-                "If this assertion fires send this entire message to the "
-                f"developer: jd: {jd}, day: {day}, frac: {frac}, "
-                f"b_date: {b_date}")
         else:
             trim = trim if us else True
             date = year, month, day, *self._hms_from_decimal_day(frac)
@@ -259,123 +257,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         return b_date
 
-    def _adjust_date(self, jd, year, month, day, lat, lon, zone):
-        """
-        Adjust the date based on the latitude, longitude, and zone. The JD
-        value is in local time so all JDs that are compared to it must also
-        be in local time.
-
-        :param float jd:
-        :param int year:
-        :param int, month:
-        :param int day:
-        :param float lat:
-        :param float lon:
-        :param float zone:
-        :returns: The year, month, day, frag in a tuple.
-        :rtype: tuple
-        """
-        def day_before(year, month, day):
-            if day <= 0:
-                if 2 <= month <= 18:  # Months 2 - 18 -> to previous month
-                    self._debug_print("Day Before 1: jd: {}, year: {}, month: "
-                                      "{}, day: {}", (jd, year, month, day))
-                    month -= 1
-                    day = 19
-                elif month == 19:  # Month 19 -> Ayyám-i-Há
-                    self._debug_print("Day Before 2: jd: {}, year: {}, month: "
-                                      "{}, day: {}", (jd, year, month, day))
-                    month = 0
-                    day = 4 + self._is_leap_year(year)
-                elif month == 0:  # Ayyám-i-Há
-                    self._debug_print("Day Before 3: jd: {}, year: {}, month: "
-                                      "{}, day: {}", (jd, year, month, day))
-                    month = 18
-                    day = 19
-                else:  # Month 1 -> Month 19 & year to previous year
-                    self._debug_print("Day Before 4: jd: {}, year: {}, month: "
-                                      "{}, day: {}", (jd, year, month, day))
-                    year -= 1
-                    month = 19
-                    day = 19
-
-            return year, month, day
-
-        def day_after(year, month, day):
-            dim = 4 + self._is_leap_year(year) if month == 0 else 19
-
-            if day > dim:
-                if 1 <= month <= 17:
-                    self._debug_print("Day After 1: jd: {}, year: {}, month: "
-                                      "{}, day: {}", (jd, year, month, day))
-                    month += 1
-                    day = 1
-                elif month == 18:
-                    self._debug_print("Day After 2: jd: {}, year: {}, month: "
-                                      "{}, day: {}", (jd, year, month, day))
-                    month = 0
-                    day = 1
-                elif month == 0:
-                    self._debug_print("Day After 3: jd: {}, year: {}, month: "
-                                      "{}, day: {}", (jd, year, month, day))
-                    month = 19
-                    day = 1
-                else:  # Month 19
-                    self._debug_print("Day After 4: jd: {}, year: {}, month: "
-                                      "{}, day: {}", (jd, year, month, day))
-                    year += 1
-                    month = 1
-                    day = 1
-
-            return year, month, day
-
-        jd0, jd_frac = divmod(jd, 1)
-        jd1 = self._meeus_from_exact(jd0)
-        ss0 = self._sun_setting(jd1, lat, lon)
-        ss_frac = round(self._local_zone_correction(ss0, zone),
-                        self._ROUNDING_PLACES)
-
-        if (jd_frac + 0.5) % 1 < (ss_frac + 0.5) % 1:
-            ss1 = self._sun_setting(jd1 - 1, lat, lon)
-            ss_frac1 = round(self._local_zone_correction(ss1, zone),
-                             self._ROUNDING_PLACES)
-            # Calculate the time between the previous sunset and the
-            # following midnight of the JD day then add the results to
-            # the JD day fraction to get the Badi time.
-            frac = (1 - ss_frac1 + jd_frac) % 1
-            # Get the original GMT by reversing the time zone value.
-            o_jd = self._local_zone_correction(jd, zone, inverse=True,
-                                               mod_jd=True)
-            oi_jd, o_jd_f = divmod(o_jd, 1)
-            ni_jd, n_jd_f = divmod(jd, 1)
-
-            if not (oi_jd == ni_jd and (o_jd_f < 0.5 and n_jd_f >= 0.5) or
-                    (o_jd_f == n_jd_f)):
-                day -= 1
-                self._debug_print(
-                    "Stage 1--jd: {}, jd1: {}, date: {}, ss1: {}, "
-                    "jd_frac: {}, ss_frac: {}, ss_frac1: {}, frac: {}",
-                    (jd, jd1, (year, month, day), ss1, jd_frac, ss_frac,
-                     ss_frac1, frac))
-            else:
-                self._debug_print(
-                    "Stage 2--jd: {}, jd1: {}, date: {}, ss1: {}, "
-                    "jd_frac: {}, ss_frac: {}, ss_frac1: {}, frac: {}",
-                    (jd, jd1, (year, month, day), ss1, jd_frac, ss_frac,
-                     ss_frac1, frac))
-        else:
-            diff = ss_frac - jd_frac
-            dl = self._day_length(jd - 1, lat, lon, decimal=True)
-            frac = round(dl - diff, self._ROUNDING_PLACES) % 1
-            self._debug_print(
-                "Stage 3--jd: {}, jd0: {}, date: {}, ss0: {}, jd_frac: {}, "
-                "ss_frac: {}, diff: {}, frac: {}",
-                (jd, jd0, (year, month, day), ss0, jd_frac, ss_frac, diff,
-                 frac))
-
-        year, month, day = day_before(year, month, day)
-        year, month, day = day_after(year, month, day)
-        return year, month, day, frac
+    def _badi_year_from_rd(self, rd):
+        years = self._YEAR_START_YEARS
+        starts = [self._YEAR_START[y] for y in years]
+        return years[bisect.bisect_right(starts, rd) - 1]
 
     def short_date_from_long_date(self, b_date: tuple, *, trim: bool=False,
                                   ) -> tuple:
@@ -536,6 +421,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         """
         Get the Badi date from the Gregorian date.
 
+        .. note::
+
+           The date that is passed in is in GMT date and time not the date
+           and time of the time zone you want.
+
         :param tuple g_date: A Gregorian date.
         :param float lat: The latitude.
         :param float lon: The longitude.
@@ -555,8 +445,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = self._gc.jd_from_gregorian_date(g_date, exact=_exact)
-        jd0 = self._utc_to_badi_time(jd, lat, lon, zone)
-        return self.badi_date_from_jd(jd0, lat, lon, zone, us=us, short=short,
+        return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim, rtd=rtd)
 
     def gregorian_date_from_badi_date(self, b_date: tuple, lat: float=None,
@@ -581,8 +470,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = self.jd_from_badi_date(b_date, lat, lon, zone)
-        jd0 = self._badi_to_utc_time(jd, lat, lon, zone)
-        return self._gc.gregorian_date_from_jd(jd0, hms=True, us=us,
+        return self._gc.gregorian_date_from_jd(jd, hms=True, us=us,
                                                exact=_exact)
 
     def badi_date_from_timestamp(self, t: float, lat: float=None,
@@ -607,7 +495,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = t / self._SECONDS_PER_DAY + self._POSIX_EPOCH
-        jd += self._HR(zone)
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim, rtd=rtd)
 
@@ -624,7 +511,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: float
         """
         jd = self.jd_from_badi_date(date, lat, lon, zone)
-        jd -= self._HR(zone)
         return round((jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY,
                      self._ROUNDING_PLACES)
 
@@ -916,3 +802,15 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             jd_try = jd0 + frac - self._HR(zone)
 
         return jd_try
+
+    FIRST_DAY_RD = 78
+
+    def _build_badi_year_start(self):
+        year_start = {}
+        rd = self.FIRST_DAY_RD
+
+        for year in range(self.MINYEAR, self.MAXYEAR + 1):
+            year_start[year] = rd
+            rd += 365 + self._is_leap_year(year)
+
+        return year_start

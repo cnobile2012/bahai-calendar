@@ -15,6 +15,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
 from _timestamp import TimestampUtils
+from _badi_rollover import Rollover
 from badidatetime import (BahaiCalendar, GregorianCalendar, datetime,
                           date as badi_date, timezone, timedelta)
 from badidatetime._timedateutils import _td_utils
@@ -87,16 +88,19 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         ((3004, 3, 20, 18, 15, 14, 630400), (1161, 1, 1)),
         )
     TIMESTAMP_DATES = (
-        # Sunset on day         min max
-        ((1, 3, 19, 18, 14), 12, 16),
-        ((1844, 3, 19, 18, 16), 14, 18),
-        ((1970, 1, 1, 0, 0), 0, 4),
-        ((2025, 3, 19, 18, 16), 14, 18),
+        # Sunset on day
+        # ((1, 3, 19), -62128860598),
+        # ((1843, 3, 20), -4000927678),
+        # ((1844, 3, 19), -3969391678),
+        ((1969, 12, 31), -28800),
+        # ((2025, 3, 19), 1742422560),
+        # ((2026, 1, 16), 1774044960),
         )
 
     def __init__(self):
         super().__init__()
         self.gc = GregorianCalendar()
+        self.ro = Rollover()
 
     def analyze_ordinal_error_list(self, options):
         """
@@ -185,38 +189,44 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         date on sunset based on local time.
         https://www.unixtimestamp.com
 
-        -c with -A, -O, and -Z
+        -c with -A, -O, -Z, and -
         """
-        def _timestamp_date(date):
-            g_ts = dtime.datetime(*date, tzinfo=g_tz).timestamp()
-            jd = self.gc.jd_from_gregorian_date(date, exact=True)
-            jd_b_date = self.badi_date_from_jd(jd, lat, lon, zone, short=True)
-            b_ts = datetime(*jd_b_date[:3], None, None,
-                            *jd_b_date[3:], tzinfo=b_tz).timestamp()
-            b_date = badi_date.fromtimestamp(b_ts)
-            #tmp_b_date = datetime.fromtimestamp(b_ts, tz=b_tz)
-            #print(tmp_b_date)
-            return g_ts, b_date, b_ts
-
         data = []
         lat = options.latitude
         lon = options.longitude
         zone = options.zone
-        g_tz = dtime.timezone(dtime.timedelta(hours=zone))
+        # g_tz = dtime.timezone(dtime.timedelta(hours=zone))
         b_tz = timezone(timedelta(hours=zone))
+        # Get Badi min and max minutes.
+        mins = options.minutes // 2
+        min = - mins
+        max = + mins + 1
 
         with patch.object(badidt, 'LOCAL_COORD', (lat, lon, zone)):
-            for g_date, m_min, m_max in self.TIMESTAMP_DATES:
-                ss_g_ts, ss_b_date, ss_b_ts = _timestamp_date(g_date)
-                ss_ts_diff = ss_g_ts - ss_b_ts
-                ss_items = (g_date, ss_g_ts, ss_b_ts, ss_ts_diff)
+            for g_date, g_ts in self.TIMESTAMP_DATES:
+                # Get JD, sunset, and Badi date
+                jd = self.gc.jd_from_gregorian_date(g_date)
+                # Get the sunset for the day
+                ss = self._sun_setting(jd, lat, lon)
+                ajd = self._exact_from_meeus(ss)
+                local_ajd = self._local_zone_correction(ajd, zone, mod_jd=True)
+                b_date = self.badi_date_from_jd(local_ajd, lat, lon, zone,
+                                                short=True)
+                # Get the timestamps and diff
+                b_ts = datetime.fromtimestamp(g_ts, b_tz).timestamp()
+                ss_ts_diff = g_ts - b_ts
+                ss_items = (g_date, g_ts, b_ts, ss_ts_diff)
+                y, m, d = b_date[:3]
+                hh, mm = b_date[3:5]
                 items = []
 
-                for minute in range(m_min, m_max + 1):
-                    test_g_date = g_date[:4] + (minute,)
-                    g_ts, b_date, b_ts = _timestamp_date(test_g_date)
-                    date_ts_diff = g_ts - b_ts
-                    items.append((g_ts, b_date, b_ts, date_ts_diff))
+                for delta in range(min, max):
+                    b_date = self.ro.add_minutes(y, m, d, hh, mm, 0, delta)
+                    nb_ts = datetime(*b_date[:3], None, None, *b_date[3:],
+                                     tzinfo=b_tz).timestamp()
+                    today = badi_date.fromtimestamp(nb_ts, short=True)
+                    tz_diff = g_ts - nb_ts
+                    items.append((b_date[:5], today, nb_ts, tz_diff))
 
                 data.append((ss_items, items))
 
@@ -410,11 +420,14 @@ if __name__ == "__main__":
         '-O', '--logitude', type=float, default=None, dest='longitude',
         help="Longitude")
     parser.add_argument(
+        '-Z', '--zone', type=float, default=None, dest='zone',
+        help="Time zone.")
+    parser.add_argument(
         '-P', '--previous', action='store_true', default=False,
         dest='previous', help="Dump the previous and current ordinals.")
     parser.add_argument(
-        '-Z', '--zone', type=float, default=None, dest='zone',
-        help="Time zone.")
+        '-M', '--minutes', type=int, default=None, dest='minutes',
+        help="The spread in minutes.")
 
     options = parser.parse_args()
     dt = DatetimeTests()
@@ -514,35 +527,38 @@ if __name__ == "__main__":
         print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
               f"{round(seconds, 6):02.6} seconds.")
     elif options.analyze2:  # -c
+        delta = options.minutes
+        assert delta < 119, ("The minutes option cannot be more that 118, "
+                             f"found {delta}.")
         start_time = time.time()
-        underline_length = 144
+        underline_length = 127
         print(f"./contrib/misc/{basename} -cA {options.latitude} "
-              f"-O {options.longitude} -Z {options.zone}")
+              f"-O {options.longitude} -Z {options.zone} -M {delta}")
         print('-' * underline_length)
-        print("Gregorian Sunset Date  Gregorian TS   Badí' Sunset TS      "
-              "Sunset TS Diff    Gregorian TS   Badí' Date  "
-              "Badí' Date (TS)      Badi TS Diff")
+        print("Gregorian Date Gregorian TS   Badí' Sunset TS   "
+              "SS TS Diff  Badí' Date              Today      "
+              "Badí' Date (TS)   Offset Greg TS")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
 
         for ss_items, items in data:
             g_date, ss_g_ts, ss_b_ts, ss_ts_diff = ss_items
-            print(f"{str(g_date):22} "
+            print(f"{str(g_date):14} "
                   f"{fmt_float(ss_g_ts, 12, 1)} "
-                  f"{fmt_float(ss_b_ts, 12, 7)} "
-                  f"{fmt_float(ss_ts_diff, 5, 11)} ",
+                  f"{fmt_float(ss_b_ts, 12, 4)} "
+                  f"{fmt_float(ss_ts_diff, 6, 4)} ",
                   end='')
             items_len = len(items)
 
-            for idx, (g_ts, b_date, b_ts, date_ts_diff) in enumerate(items):
-                print(f"{fmt_float(g_ts, 12, 1)} "
-                      f"{str(b_date):>11} "
-                      f"{fmt_float(b_ts, 12, 7)} "
-                      f"{fmt_float(date_ts_diff, 6, 12)}"
+            for idx, (b_date, today, b_ts, ts_diff) in enumerate(items):
+                print(f"{str(b_date):<23} "
+                      f"{str(today):<10} "
+                      f"{fmt_float(b_ts, 12, 4)} "
+                      f"{fmt_float(ts_diff, 5, 4)}"
                       )
 
                 if idx < items_len - 1:
-                    print(" " * 77, end='')
+                    print(" " * 60, end='')
 
             print('-' * underline_length)
 

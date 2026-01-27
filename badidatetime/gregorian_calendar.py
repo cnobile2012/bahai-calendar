@@ -36,7 +36,7 @@ class GregorianCalendar(BaseCalendar):
         :param bool alt: Use a more accurate leap year calculation, only valid
                          when the `exact` keyword is used, there is no effect
                          otherwise.
-        :returns: A Julian day.
+        :returns: A Julian day in UT time.
         :rtype: float
 
         .. note::
@@ -52,7 +52,7 @@ class GregorianCalendar(BaseCalendar):
         """
         year, month, day = self.date_from_ymdhms(g_date)
 
-        if exact:  # An astronomically correct algorithm
+        if exact:  # Astronomically correct algorithm
             td = self._days_in_years(year-1, alt=alt)
             days = td + (self._GREGORIAN_EPOCH - 1)
             month_days = list(self._MONTHS)
