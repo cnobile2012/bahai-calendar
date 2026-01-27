@@ -56,6 +56,14 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     """
     float: Constant indicating the proleptic Gregorian first day or year 1.
     """
+    _RD_START = 78
+    """
+    int: Constant indicating the minimum Rata Die.
+    """
+    _RD_END = 1096902
+    """
+    int: Constant indicating the maximum Rata Die.
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -258,6 +266,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         return b_date
 
     def _badi_year_from_rd(self, rd):
+        assert self._RD_START <= rd <= self._RD_END, (
+            f"Invalid Rata Die value {rd} it must be between "
+            f"[{self._RD_START}, {self._RD_END}].")
         years = self._YEAR_START_YEARS
         starts = [self._YEAR_START[y] for y in years]
         return years[bisect.bisect_right(starts, rd) - 1]
@@ -803,11 +814,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         return jd_try
 
-    FIRST_DAY_RD = 78
-
     def _build_badi_year_start(self):
         year_start = {}
-        rd = self.FIRST_DAY_RD
+        rd = self._RD_START
 
         for year in range(self.MINYEAR, self.MAXYEAR + 1):
             year_start[year] = rd

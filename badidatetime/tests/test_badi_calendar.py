@@ -386,6 +386,39 @@ class TestBadiCalendar(unittest.TestCase):
                     expected_result, jd, lat, lon, zone, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test__badi_year_from_rd(self):
+        """
+        Tear that the _badi_year_from_rd method returns the correct year
+        given a Rata Die (rd).
+        """
+        err_msg0 = ("Invalid Rata Die value {} it must be between "
+                    f"[{self._bc._RD_START}, {self._bc._RD_END}].")
+        data = (
+            (self._bc._RD_START, False, -1842),
+            (self._bc._RD_END, False, 1161),
+            (-1000, True, err_msg0.format(-1000)),
+            (1097267, True, err_msg0.format(1097267)),
+            )
+        msg = "Expected {} for rd {}, found {}"
+
+        for rd, validity, expected_result in data:
+            if validity:
+                try:
+                    with self.assertRaises(AssertionError) as cm:
+                        self._bc._badi_year_from_rd(rd)
+                except AssertionError as e:
+                    # Raise an error when an AssertionError is not raised.
+                    raise AssertionError(
+                        f"With rd {rd} and error was not raised, {e}")
+                else:
+                    message = str(cm.exception)
+                    self.assertEqual(expected_result, message)
+            else:
+                result = self._bc._badi_year_from_rd(rd)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, rd, result))
+
+    #@unittest.skip("Temporarily skipped")
     def test_short_date_from_long_date(self):
         """
         Test that the short_date_from_long_date method returns the correct

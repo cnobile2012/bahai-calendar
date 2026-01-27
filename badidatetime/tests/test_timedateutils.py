@@ -679,8 +679,9 @@ class TestTimeDateUtils(unittest.TestCase):
         err_msg1 = "Invalid weekday: {} (range is [1, 7])"
         data = (
             # year  week day
-            #((-1842,  1,  1), False, False, (-5, 17, 19, 19, 18)),
-            #((-1842,  1,  1), True,  False, (-1843, 19, 18)),
+            ((-1842,  1,  1), False, False, (-5, 17, 19, 19, 18)),
+            ((-1842,  1,  1), True,  False, (-1843, 19, 18)),
+
             ((    1, 52,  1), True,  False, (1, 19, 15)),
             ((   46, 52,  1), True,  False, (46, 19, 15)),
             ((  175, 52,  1), True,  False, (175, 19, 16)),
