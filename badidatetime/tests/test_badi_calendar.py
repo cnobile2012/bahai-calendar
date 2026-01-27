@@ -394,10 +394,12 @@ class TestBadiCalendar(unittest.TestCase):
         err_msg0 = ("Invalid Rata Die value {} it must be between "
                     f"[{self._bc._RD_START}, {self._bc._RD_END}].")
         data = (
-            (self._bc._RD_START, False, -1842),
+            (self._bc._RD_START, False, -1843),
             (self._bc._RD_END, False, 1161),
             (-1000, True, err_msg0.format(-1000)),
+            (self._bc._RD_START-1, True, err_msg0.format(self._bc._RD_START-1)),
             (1097267, True, err_msg0.format(1097267)),
+            (self._bc._RD_END+1, True, err_msg0.format(self._bc._RD_END+1)),
             )
         msg = "Expected {} for rd {}, found {}"
 

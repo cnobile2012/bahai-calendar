@@ -1073,7 +1073,6 @@ class TimeDateUtils(BahaiCalendar):
         # package can provide is equivalent to Julian year 1, March, 19th.
         jd = self.ORDINAL_1ST_YEAR_EPOCH - 1 - self.DAYS_BEFORE_1ST_YEAR + n
         jd0 = math.floor(jd) + 0.5
-        print(jd0)
         return self.badi_date_from_jd(jd0, short=short, trim=True, rtd=True)
 
     def _build_struct_time(self, date: tuple, dstflag: int, *, tzinfo=None,

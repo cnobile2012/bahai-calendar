@@ -56,7 +56,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     """
     float: Constant indicating the proleptic Gregorian first day or year 1.
     """
-    _RD_START = 78
+    _RD_START = -287
     """
     int: Constant indicating the minimum Rata Die.
     """
@@ -818,7 +818,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         year_start = {}
         rd = self._RD_START
 
-        for year in range(self.MINYEAR, self.MAXYEAR + 1):
+        for year in range(self.MINYEAR-1, self.MAXYEAR + 1):
             year_start[year] = rd
             rd += 365 + self._is_leap_year(year)
 
