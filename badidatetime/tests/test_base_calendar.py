@@ -1439,33 +1439,35 @@ class TestBaseCalendar(unittest.TestCase):
         and the Meeus algorithms.
         """
         data = (
-            (1757640.5, 1757640.5),  # 0
-            (1757641.5, 1757642.5),  # 1
-            (1794164.5, 1794165.5),  # 1
-            (1794165.5, 1794167.5),  # 2
-            (1830688.5, 1830690.5),  # 2
-            (1830689.5, 1830692.5),  # 3
-            (1903737.5, 1903740.5),  # 3
-            (1903738.5, 1903742.5),  # 4
-            (1940261.5, 1940265.5),  # 4
-            (1940262.5, 1940267.5),  # 5
-            (1976785.5, 1976790.5),  # 5
-            (1976786.5, 1976792.5),  # 6
-            (2049834.5, 2049840.5),  # 6
-            (2049835.5, 2049842.5),  # 7
-            (2086358.5, 2086365.5),  # 7
-            (2086359.5, 2086367.5),  # 8
-            (2122882.5, 2122890.5),  # 8
-            (2122883.5, 2122892.5),  # 9
-            (2195931.5, 2195940.5),  # 9
-            (2195932.5, 2195942.5),  # 10
-            (2232455.5, 2232465.5),  # 10
-            (2232456.5, 2232467.5),  # 11
-            (2268979.5, 2268990.5),  # 11
-            (2268980.5, 2268992.5),  # 12
-            (2299157.5, 2299169.5),  # 12
-            (2299158.5, 2299160.5),  # 2
-            (2460388.26032, 2460390.26032),  # 2
+            (1757640.5, 1757640.5),  # 0 (100, 2, 28)
+            (1757641.5, 1757642.5),  # 1 (100, 3, 1)
+            (1794164.5, 1794165.5),  # 1 (200, 2, 28)
+            (1794165.5, 1794167.5),  # 2 (200, 3, 1)
+            (1830688.5, 1830690.5),  # 2 (300, 2, 28)
+            (1830689.5, 1830692.5),  # 3 (300, 3, 1)
+            (1903737.5, 1903740.5),  # 3 (500, 2, 28)
+            (1903738.5, 1903742.5),  # 4 (500, 3, 1)
+            (1940261.5, 1940265.5),  # 4 (600, 2, 28)
+            (1940262.5, 1940267.5),  # 5 (600, 3, 1)
+            (1976786.5, 1976791.5),  # 5 (700, 2, 28)
+            (1976787.5, 1976793.5),  # 6 (700, 3, 1)
+            (2049835.5, 2049841.5),  # 6 (900, 2, 28)
+            (2049836.5, 2049843.5),  # 7 (900, 3, 1)
+            (2086359.5, 2086366.5),  # 7 (1000, 2, 28)
+            (2086360.5, 2086368.5),  # 8 (1000, 3, 1)
+            (2122883.5, 2122891.5),  # 8 (1100, 2, 28)
+            (2122884.5, 2122893.5),  # 9 (1100, 3, 1)
+            (2195932.5, 2195941.5),  # 9 (1300, 2, 28)
+            (2195933.5, 2195943.5),  # 10 (1300, 3, 1)
+            (2232456.5, 2232466.5),  # 10 (1400, 2, 28)
+            (2232457.5, 2232468.5),  # 11 (1400, 3, 1)
+            (2268980.5, 2268991.5),  # 11 (1500, 2, 28)
+            (2268981.5, 2268993.5),  # 12 (1500, 3, 1)
+            (2299147.5, 2299159.5),  # 12 (1582, 10, 4)
+            (2299148.5, 2299160.5),  # 12 (1582, 10, 5)
+            (2299157.5, 2299169.5),  # 12 (1582, 10, 14)
+            (2299158.5, 2299160.5),  # 2 (1582, 10, 15)
+            (2460388.26032, 2460390.26032),  # 2 (2024, 3, 20, 18, 14, 51.648)
             )
         msg = "Expected {} for jd {}, found {}"
 
@@ -1480,53 +1482,62 @@ class TestBaseCalendar(unittest.TestCase):
         Test that the _exact_from_meeus method returns the correct
         difference needed to compensate for the differences in the Meeus
         and the exact algorithms.
-         """
+        """
+        err_msg0 = "Invalid historicaly correct (Meeus) JD {}."
         data = (
-            (1757640.5, 1757640.5),  # 0
-            (1757641.5, 1757641.5),  # 0 -- Non existant day
-            (1757642.5, 1757641.5),  # 1
-            (1794165.5, 1794164.5),  # 1
-            (1794166.5, 1794165.5),  # 1 -- Non existant day
-            (1794167.5, 1794165.5),  # 2
-            (1830690.5, 1830688.5),  # 2
-            (1830691.5, 1830689.5),  # 2 -- Non existant day
-            (1830692.5, 1830689.5),  # 3
-            (1903740.5, 1903737.5),  # 3
-            (1903741.5, 1903738.5),  # 3 -- Non existant day
-            (1903742.5, 1903738.5),  # 4
-            (1940265.5, 1940261.5),  # 4
-            (1940266.5, 1940262.5),  # 4 -- Non existant day
-            (1940267.5, 1940262.5),  # 5
-            (1976790.5, 1976785.5),  # 5
-            (1976791.5, 1976786.5),  # 5 -- Non existant day
-            (1976792.5, 1976786.5),  # 6
-            (2049840.5, 2049834.5),  # 6
-            (2049841.5, 2049835.5),  # 6 -- Non existant day
-            (2049842.5, 2049835.5),  # 7
-            (2086365.5, 2086358.5),  # 7
-            (2086366.5, 2086359.5),  # 7 -- Non existant day
-            (2086367.5, 2086359.5),  # 8
-            (2122890.5, 2122882.5),  # 8
-            (2122891.5, 2122883.5),  # 8 -- Non existant day
-            (2122892.5, 2122883.5),  # 9
-            (2195940.5, 2195931.5),  # 9
-            (2195941.5, 2195932.5),  # 9 -- Non existant day
-            (2195942.5, 2195932.5),  # 10
-            (2232465.5, 2232455.5),  # 10
-            (2232466.5, 2232456.5),  # 10 -- Non existant day
-            (2232467.5, 2232456.5),  # 11
-            (2268990.5, 2268979.5),  # 11
-            (2268991.5, 2268980.5),  # 11 -- Non existant day
-            (2268992.5, 2268980.5),  # 12
-            (2299159.5, 2299147.5),  # 12
-            (2299160.5, 2299158.5),  # 2
+            (1757640.5, True, 1757640.5),  # 0 (100, 2, 28)
+            (1757642.5, True, 1757641.5),  # 1 (100, 3, 1)
+            (1794165.5, True, 1794164.5),  # 1 (200, 2, 28)
+            (1794167.5, True, 1794165.5),  # 2 (200, 3, 1)
+            (1830690.5, True, 1830688.5),  # 2 (300, 2, 28)
+            (1830692.5, True, 1830689.5),  # 3 (300, 3, 1)
+            (1903740.5, True, 1903737.5),  # 3 (500, 2, 28)
+            (1903742.5, True, 1903738.5),  # 4 (500, 3, 1)
+            (1940265.5, True, 1940261.5),  # 4 (600, 2, 28)
+            (1940267.5, True, 1940262.5),  # 5 (600, 3, 1)
+            (1976790.5, True, 1976785.5),  # 5 (700, 2, 28)
+            (1976792.5, True, 1976786.5),  # 6 (700, 3, 1)
+            (2049840.5, True, 2049834.5),  # 6 (900, 2, 28)
+            (2049842.5, True, 2049835.5),  # 7 (900, 3, 1)
+            (2086365.5, True, 2086358.5),  # 7 (1000, 2, 28)
+            (2086367.5, True, 2086359.5),  # 8 (1000, 3, 1)
+            (2122890.5, True, 2122882.5),  # 8 (1100, 2, 28)
+            (2122892.5, True, 2122883.5),  # 9 (1100, 3, 1)
+            (2195940.5, True, 2195931.5),  # 9 (1300, 2, 28)
+            (2195942.5, True, 2195932.5),  # 10 (1300, 3, 1)
+            (2232465.5, True, 2232455.5),  # 10 (1400, 2, 28)
+            (2232467.5, True, 2232456.5),  # 11 (1400, 3, 1)
+            (2268990.5, True, 2268979.5),  # 11 (1500, 2, 28)
+            (2268992.5, True, 2268980.5),  # 12 (1500, 3, 1)
+            (2299159.5, True, 2299147.5),  # 12 (1582, 10, 4)
+            (2299160.5, True, 2299158.5),  # 2 (1582, 10, 15)
+            # Non existant days
+            (1757641.5, False, err_msg0.format(1757641.5)),  # 0
+            (1794166.5, False, err_msg0.format(1794166.5)),  # 2
+            (1830691.5, False, err_msg0.format(1830691.5)),  # 3
+            (1903741.5, False, err_msg0.format(1903741.5)),  # 4
+            (1940266.5, False, err_msg0.format(1940266.5)),  # 5
+            (1976791.5, False, err_msg0.format(1976791.5)),  # 6
+            (2049841.5, False, err_msg0.format(2049841.5)),  # 7
+            (2086366.5, False, err_msg0.format(2086366.5)),  # 8
+            (2122891.5, False, err_msg0.format(2122891.5)),  # 9
+            (2195941.5, False, err_msg0.format(2195941.5)),  # 10
+            (2232466.5, False, err_msg0.format(2232466.5)),  # 11
+            (2268991.5, False, err_msg0.format(2268991.5)),  # 12
             )
         msg = "Expected {} for jd {}, found {}"
 
-        for jd, expected_result in data:
-            result = self.bc._exact_from_meeus(jd)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jd, result))
+        for jd, valid, expected_result in data:
+            if valid:
+                result = self.bc._exact_from_meeus(jd)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, jd, result))
+            else:
+                with self.assertRaises(AssertionError) as cm:
+                    self.bc._exact_from_meeus(jd)
+
+                message = str(cm.exception)
+                self.assertEqual(expected_result, message)
 
     #@unittest.skip("Temporarily skipped")
     def test__coterminal_angle(self):
@@ -1612,58 +1623,6 @@ class TestBaseCalendar(unittest.TestCase):
             result = self.bc._xor_boolean(booleans)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, booleans, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__ordinal_from_jd(self):
-        """
-        Test that the _ordinal_from_jd converts a Julian Period day to an
-        ordinal starting at (1, 1, 1) Gregorian.
-        """
-        data = (
-            (1721423.5, True, 1),       # Astronomically correct
-            (1721500.5, True, 78),      # Astronomically correct
-            (1721500.5, False, 78),     # Historically correct
-            (1757641.5, True, 36219),   # Astronomically correct
-            (1757641.5, False, 36219),  # Historically correct
-            (1757642.5, True, 36220),   # Astronomically correct
-            (1757642.5, False, 36219),  # Historically correct
-            (2299159.5, True, 577737),  # Astronomically correct
-            (2299159.5, False, 577725), # Historically correct
-            (2299160.5, True, 577738),  # Astronomically correct
-            (2299160.5, False, 577736), # Historically correct
-            )
-        msg = "Expected {} with jd {} and exact {}, found {}."
-
-        for jd, exact, expected_result in data:
-            result = self.bc._ordinal_from_jd(jd, _exact=exact)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, jd, exact, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__jd_from_ordinal(self):
-        """
-        Test that the _jd_from_ordinal converts the ordinal number to a
-        Julian Period day.
-        """
-        data = (
-            (1, True, 1721423.5),       # Astronomically correct
-            (78, True, 1721500.5),      # Astronomically correct
-            (78, False, 1721500.5),     # Historically correct
-            (36219, True, 1757641.5),   # Astronomically correct
-            (36219, False, 1757642.5),  # Historically correct
-            (36220, True, 1757642.5),   # Astronomically correct
-            (36219, False, 1757642.5),  # Historically correct
-            (577737, True, 2299159.5),  # Astronomically correct
-            (577725, False, 2299159.5), # Historically correct
-            (577738, True, 2299160.5),  # Astronomically correct
-            (577736, False, 2299160.5), # Historically correct
-            )
-        msg = "Expected {} with ordinal {} and exact {}, found {}."
-
-        for ordinal, exact, expected_result in data:
-            result = self.bc._jd_from_ordinal(ordinal, exact=exact)
-            self.assertEqual(expected_result, result, msg.format(
-                expected_result, ordinal, exact, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__local_zone_correction(self):

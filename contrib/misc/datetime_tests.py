@@ -164,7 +164,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
                     # original date. They should be the same.
                     diff0 = self._subtract_tuples(b_date, date)
 
-                    # The ordinal date.
+                    # The ordinal date. *** TODO *** Use the new ordinal code.
                     ord = self._ordinal_from_jd(jd)
                     o = datetime.fromordinal(ord, short=True)
                     o_date = (o.year, o.month, o.day)

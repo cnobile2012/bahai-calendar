@@ -80,6 +80,7 @@ def init_leap_cache():
     BahaiCalendar._YEAR_START = BahaiCalendar()._build_badi_year_start()
     BahaiCalendar._YEAR_START_YEARS = sorted(BahaiCalendar._YEAR_START)
 
+
 init_leap_cache()
 enable_geocoder(False)
 __all__ = ('BahaiCalendar', 'GregorianCalendar', 'enable_geocoder')+dt_objects
