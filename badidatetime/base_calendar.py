@@ -1454,12 +1454,18 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             )
         diff = 2
 
-        for j, df in jd_diff:
-            if jd <= j:
-                diff = df
-                break
+        if 2299148.5 <= jd <= 2299157.5:
+            jd0, frac = divmod(jd, 1)
+            jd = 2299160 + frac
+        else:
+            for j, df in jd_diff:
+                if jd <= j:
+                    diff = df
+                    break
 
-        return jd + diff
+            jd += diff
+
+        return jd
 
     def _exact_from_meeus(self, jd: float) -> float:
         """
@@ -1468,7 +1474,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         .. note::
 
-           The JDs below are the historically correct (Meeus) JDs.
+           1. The JDs below are the historically correct (Meeus) JDs.
+           2. This library uses a continuous proleptic solar day count for
+              the Badí' Calendar.
+           3. The exact JD numbering is uninterrupted across 1582-10-05 …
+              1582-10-14.
 
         :param float jd: Meeus Julian Period day.
         :returns: The difference subtracted from an historically correct jd.
@@ -1488,8 +1498,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         if jd0 in invalid_days:
             assert not (jd0 + 0.5) <= jd < (jd0 + 1), (
                 f"Invalid historicaly correct (Meeus) JD {jd}.")
-
-        if 2299160.5 <= jd < 2299161.5:
+        elif 2299160.5 <= jd < 2299161.5:
             jd -= diff  # Compensate for the missing days in 1582-10.
         else:
             for j, df in jd_diff:

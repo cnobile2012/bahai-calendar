@@ -24,6 +24,8 @@ import re
 import datetime
 
 sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
+sys.path.insert(0, os.path.abspath(os.path.join('..', '..',
+                                                'contrib', 'misc')))
 
 def update_file(orgname, rstname):
     orgname = os.path.join('..', '..', orgname)

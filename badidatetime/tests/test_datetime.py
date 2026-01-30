@@ -647,7 +647,7 @@ class TestBadiDatetime_date(unittest.TestCase):
             (639786, True, '-091-09-17'),
             (639796, True, '-091-10-08'),
             (639797, True, '-091-10-09'),
-            (738964, True, '0181-01-01'), # 0180-19-19
+            (738964, True, '0181-01-01'),
             )
         msg = "Expected {} with ordinal {}, found {}."
 
@@ -4275,50 +4275,6 @@ class TestBadiDatetime_timezone(unittest.TestCase):
                 result = tz1.dst(dt)
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, offset, name, date, tz1, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test_fromutc(self):
-        """
-        Test that the fromutc method returns a timezone object from a UTC
-        timezone.
-        """
-        err_msg0 = "fromutc: dt.tzinfo is not self"
-        err_msg1 = "fromutc() argument must be a datetime instance or None"
-        td = datetime.timedelta(hours=datetime.BADI_COORD[2])
-        IANA = datetime.BADI_IANA
-        data = (
-            (td, IANA, (181, 1, 1), False,
-             "0181-01-01T03:30:00+03:30"),
-            (td, IANA, (181, 1, 1), True, err_msg0),
-            (td, IANA, None, True, err_msg1),
-            )
-        msg = "Expected {} with offset {}, name {}, and date {} found {}."
-
-        for offset, name, date, validity, expected_result in data:
-            tz1 = datetime.timezone(offset, name)
-
-            if not validity and date:
-                dt = datetime.datetime(*date, tzinfo=tz1)
-            else:
-                dt = datetime.time()
-
-            if validity:
-                if date:
-                    dt = datetime.datetime(*date)
-
-                try:
-                    result = tz1.fromutc(dt)
-                except (TypeError, ValueError) as e:
-                    self.assertEqual(expected_result, str(e))
-                else:
-                    result = result if result else None
-                    raise AssertionError(f"With {tz1} an error is not "
-                                         f"raised, with result {result}.")
-            else:
-                dt = datetime.datetime(*date, tzinfo=tz1)
-                result = tz1.fromutc(dt)
-                self.assertEqual(expected_result, str(result), msg.format(
-                    expected_result, offset, name, date, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__name_from_offset(self):

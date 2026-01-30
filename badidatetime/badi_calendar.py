@@ -17,7 +17,7 @@ _LEAP_CACHE = None
 
 class BahaiCalendar(BaseCalendar, Coefficients):
     """
-    Implementation of the Baha'i (Badi) Calendar.
+    Implementation of the Baha'i (Badí') Calendar.
 
     | WGS84--https://coordinates-converter.com/
     | https://whatismyelevation.com/location/35.63735,51.72569/Tehran--Iran-
@@ -64,6 +64,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     """
     int: Constant indicating the maximum Rata Die.
     """
+    _YEAR_START = None
+    """
+    dict: Auto generated constant used to find ordinals.
+    :meta hide-value:
+    """
+    _YEAR_START_YEARS = None
+    """
+    list: Auto generated constant used to find ordinals.
+    :meta hide-value:
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -81,9 +91,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     def utc_sunset(self, date: tuple, lat: float=None, lon: float=None,
                    zone: float=None) -> tuple:
         """
-        Return the time of sunset in UTC time for the given Badi Day.
+        Return the time of sunset in UTC time for the given Badí' Day.
 
-        :param tuple date: A Badi date.
+        :param tuple date: A Badí' date.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The time zone.
@@ -97,9 +107,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     def naw_ruz_g_date(self, year: int, lat: float=None, lon: float=None,
                        zone: float=None, *, hms: bool=False) -> tuple:
         """
-        Return the Badi date for Naw-Ruz from the given Badi year.
+        Return the Badí' date for Naw-Ruz from the given Badí' year.
 
-        :param int year: A Badi year.
+        :param int year: A Badí' year.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The time zone.
@@ -121,7 +131,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         and seconds. If the latitude, longitude, and time zone are not given
         Riḍván time of day is determined for the city of Nur in Iran.
 
-        :param int year: A Badi year.
+        :param int year: A Badí' year.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The time zone.
@@ -172,8 +182,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
         # The day may have a decimal component. ex. 1.5 = (1 day and 12 hours)
-        # This day is relative to UTC time, so we need to compensate for Badi
-        # time since a Badi day starts at sunset, not at midnight.
+        # This day is relative to UTC time, so we need to compensate for Badí'
+        # time since a Badí' day starts at sunset, not at midnight.
         jd0 = self._meeus_from_exact(jd)
         coeff = self._get_day_coeff(year)
         jd0 += coeff
@@ -188,7 +198,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                           short: bool=False, fraction: bool=False,
                           trim: bool=False, rtd: bool=False) -> tuple:
         """
-        Convert a Julian Period day to a Badi date.
+        Convert a Julian Period day to a Badí' date.
 
         .. note::
 
@@ -208,7 +218,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                               fraction on the day.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
         :param bool rtd: Round to day.
-        :returns: The Badi date from an Astronomically correct Julian
+        :returns: The Badí' date from an Astronomically correct Julian
                   Period day.
         :rtype: tuple
         """
@@ -281,7 +291,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         :param tuple b_date: A long form date with or without microseconds.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
-        :returns: The short form Badi date.
+        :returns: The short form Badí' date.
         :rtype: tuple
         """
         kull_i_shay, vahid, year, month, day = b_date[:5]
@@ -326,7 +336,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         :param tuple b_date: A short form date with or without microseconds.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
-        :returns: The long form Badi date.
+        :returns: The long form Badí' date.
         :rtype: tuple
         """
         y, month, day = date[:3]
@@ -354,10 +364,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         us) into a (Kull-i-Shay, Váḥid, year, month, day.fraction) or
         (year, month, day.fraction) date.
 
-        :param tuple b_date: The Badi date in long form.
+        :param tuple b_date: The Badí' date in long form.
         :param bool short: If True then parse for a short date else if False
                            (default) parse for a long date.
-        :returns: The long or short form Badi date with hours, minutes,
+        :returns: The long or short form Badí' date with hours, minutes,
                   seconds, and microseconds if set.
         :rtype: tuple
         """
@@ -378,14 +388,14 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         short is True (year, month, day, hour, minute, second). If us is
         True the seconds are split to second and microsecond.
 
-        :param tuple b_date: The Badi date in long form.
+        :param tuple b_date: The Badí' date in long form.
         :param bool us: If True the seconds are split to seconds and
                         microseconds else if False the seconds has a partial
                         day as a decimal.
         :param bool short: If True then parse for a short date else if False
                            (default) parse for a long date.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
-        :returns: The long or short form Badi date with hours, minutes,
+        :returns: The long or short form Badí' date with hours, minutes,
                   seconds, and microseconds if set.
         :rtype: tuple
         """
@@ -430,7 +440,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                                       trim: bool=False, rtd: bool=False,
                                       _exact: bool=True) -> tuple:
         """
-        Get the Badi date from the Gregorian date.
+        Get the Badí' date from the Gregorian date.
 
         .. note::
 
@@ -452,7 +462,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                             Default is True. This should generally be set to
                             True, a False value will give inaccurate results
                             and is used for testing only.
-        :returns: A Badi date long or short form.
+        :returns: A Badí' date long or short form.
         :rtype: tuple
         """
         jd = self._gc.jd_from_gregorian_date(g_date, exact=_exact)
@@ -464,9 +474,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                                       us: bool=False, _exact: bool=True,
                                       ) -> tuple:
         """
-        Get the Gregorian date from the Badi date.
+        Get the Gregorian date from the Badí' date.
 
-        :param tuple b_date: A Badi date short form.
+        :param tuple b_date: A Badí' date short form.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.
@@ -489,7 +499,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                                  us: bool=False, short: bool=False,
                                  trim: bool=False, rtd: bool=False) -> tuple:
         """
-        Get the Badi date from a POSIX timestamp.
+        Get the Badí' date from a POSIX timestamp.
 
         :param float t: Timestamp
         :param float lat: The latitude.
@@ -502,7 +512,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                            (default) parse for a long date.
         :param bool trim: Trim the us, ss, mm, and hh in that order.
         :param bool rtd: Round to day.
-        :returns: A Badi date long or short form.
+        :returns: A Badí' date long or short form.
         :rtype: tuple
         """
         jd = t / self._SECONDS_PER_DAY + self._POSIX_EPOCH
@@ -512,9 +522,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     def timestamp_from_badi_date(self, date: tuple, lat: float=None,
                                  lon: float=None, zone: float=None) -> float:
         """
-        Convert a Badi date to a timestamp.
+        Convert a Badí' date to a timestamp.
 
-        :param tuple date: The Badi date.
+        :param tuple date: The Badí' date.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The time zone.
@@ -530,7 +540,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         Find the midday time in hours, minutes, and seconds with fraction.
         All calculations are done in GMT.
 
-        :param tuple date: Badi date short or long.
+        :param tuple date: Badí' date short or long.
         :param bool hms: If True return the hours, minutes, and seconds else
                          if False return the decimal value.
         :param bool _short: Indicates the incoming date format.
@@ -594,7 +604,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         Check that the Kull-i-Shay, Váḥids, year, month, day, hour, minute,
         second, and microsecond values are valid.
 
-        :param tuple b_date: A long form Badi date.
+        :param tuple b_date: A long form Badí' date.
         :param bool short_in: If True then parse for a short date else if
                               False parse for a long date. This is for
                               incoming dates not outgoing dates as in most
@@ -607,7 +617,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         """
         cycle = 20
 
-        if not short_in:  # Long Badi date
+        if not short_in:  # Long Badí' date
             kull_i_shay, vahid, year, month, day = b_date[:5]
             hour, minute, second, us = self._get_hms(b_date)
             assert (self.KULLISHAY_MIN-1 <= kull_i_shay
@@ -621,7 +631,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                 f"Invalid year '{year}' in a Váḥid, it must be in the "
                 "range of [1, 19].")
             ly = (kull_i_shay - 1) * 361 + (vahid - 1) * 19 + year
-        else:  # Short Badi date
+        else:  # Short Badí' date
             year, month, day = b_date[:3]
             hour, minute, second, us = self._get_hms(b_date, short_in=True)
             assert self.MINYEAR-1 <= year <= self.MAXYEAR+1, (
@@ -689,9 +699,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
     def _days_in_year(self, year: int) -> int:
         """
-        Determine the number of days in the provided Badi year.
+        Determine the number of days in the provided Badí' year.
 
-        :param int year: The Badi year to process.
+        :param int year: The Badí' year to process.
         :returns: The number of days.
         :rtype: int
         """
@@ -704,9 +714,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     def _get_hms(self, date: tuple, *, short_in: bool=False) -> tuple:
         """
         Parse the hours, minutes, seconds, and microseconds, if they exist
-        for either the short or long form Badi date.
+        for either the short or long form Badí' date.
 
-        :param tuple date: A long or short form Badi date.
+        :param tuple date: A long or short form Badí' date.
         :param bool short_in: If True then parse for a short date else if False
                               parse for a long date. This is for incoming dates
                               not outgoing dates as in most other uses of
@@ -760,13 +770,13 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     def _utc_to_badi_time(self, jd: float, lat: float, lon: float, zone: float
                           ) -> float:
         """
-        Convert UTC time to Badi time.
+        Convert UTC time to Badí' time.
 
         :param float jd: An Astronomically correct JD.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.
-        :returns: The JD with the correct Badi time.
+        :returns: The JD with the correct Badí' time.
         :rtype: float
         """
         jd += self._HR(zone)
@@ -788,7 +798,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     def _badi_to_utc_time(self, bjd: float, lat: float, lon: float, zone: float
                           ) -> float:
         """
-        Convert Badi time to UTC time.
+        Convert Badí' time to UTC time.
 
         :param float bjd: An Astronomically correct JD.
         :param float lat: The latitude.
