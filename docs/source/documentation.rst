@@ -4,7 +4,6 @@
 Additional Documentation
 ************************
 
-
 ==================
 Julian Period Days
 ==================
@@ -33,7 +32,7 @@ Since the API that I have written is for the Badí' calendar the Vernal Equinox
 calculations needed to be correct. This presented a few problems. I needed to
 find an algorithm that was Astronomically correct or write one myself. I know
 that both NASA and the USNO have an Astronomically correct formula, because
-they both have tables of the correct Vernal Eqinox, but I was not able to find
+they both have tables of the correct Vernal Equinox, but I was not able to find
 them. Even if I had found at least one of them, it would only have been for the
 Gregorian calendar. So as such I had to write my own formulas for both the
 Gregorian and Badí' calendars. This required both to-and-from formulas or four
@@ -41,13 +40,32 @@ formulas in total.
 
 As mentioned elsewhere the Gregorian calendar uses a guestimation formula to
 determine the leap years so figuring out the leap years is rather easy. It is
-both consistant and regular. The Badí' calendar, on the other hand, uses the
+both consistent and regular. The Badí' calendar, on the other hand, uses the
 sunset before the Vernal Equinox to determine the start of the year. There is
 little regularity in this, so determining leap years was a much bigger task,
 therefore the formula for the Badí' calendar needed coefficients to get it in
 line with a proper representation of the JD when checking against the Gregorian
 calendar. In my code the Astronomically formula is used by passing either
 `True` or `False` to the keyword `exact`.
+
+======================
+Gregorian Reform Dates
+======================
+
+In year 1582 the next day after October 4 was October 15. Pope Gregory
+eliminated 10 days. As mentioned above my code supports two sets of formulas
+for deriving a Julian Period day for each calendar. That's eight formulas in
+total four for each of the two calendars supported. The 10 days in the
+Gregorian calendar are just non-existent and Meeus' historical formulas just
+jump over the 10 days. In my astronomical formulas the ten days do exist both
+in the Gregorian and the Badí' calendars. However, there is a problem with
+this. I need to get the sunset for all days and only Meeus' formula can do
+this. So although the ten reform days exist in my code, some information for
+them cannot be derived, i.e. sunsets. As of now this is how my code works for
+those ten days only. How to solve this? The only correct way is to rewrite all
+the astronomical code to work with a proleptic count of days such as the
+formulas I have written, but I am no astronomer, so I cannot do this. So it is
+what it is.
 
 ================
 POSIX Timestamps
@@ -103,7 +121,7 @@ that the standard library don't support.
    %A  Full weekday name                            Jalál
    %b  Abbreviated month name                       Bah
    %B  Full month name                              Bahá
-   %c  Locale specific date and time. Equivilent
+   %c  Locale specific date and time. Equivalent
        to "%a %b %d %H:%M:%S %Y"                    Jal Bah 01 22:30:45 181
    %C  Century as a space-padded decimal number.
        (The year divided by 100 then truncated
@@ -112,7 +130,7 @@ that the standard library don't support.
        number.                                      09
    %-d Day of month as a decimal number.            9
    %D  Date where year is without century.
-       Equivilent to a localized %m/%d/%y.          19/01/81
+       Equivalent to a localized %m/%d/%y.          19/01/81
    %e  Day of the month as a space-padded decimal
        number.                                      15 or ' 1'
    %f  Microseconds as a decimal number.            000000 - 999999
@@ -161,7 +179,7 @@ that the standard library don't support.
        number. All days in a new year preceding
        the first Jalál are considered to be in
        week 0. It make no sense to start a week
-       on different day in the Badi Calendar. So
+       on different day in the Badí' Calendar. So
        this format is the same as %U.               00, 01, ..., 52
    %x  Locale defined date representation.          08/16/81 (None);
                                                     08/16/181 (en_US);

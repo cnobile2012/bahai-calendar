@@ -1438,43 +1438,53 @@ class TestBaseCalendar(unittest.TestCase):
         difference needed to compensate for the differences in the exact
         and the Meeus algorithms.
         """
+        err_msg = ("Astronomical JD {} lies in the Gregorian reform gap "
+                   "(1582-10-05 through 1582-10-14); no Meeus JD exists.")
         data = (
-            (1757640.5, 1757640.5),  # 0 (100, 2, 28)
-            (1757641.5, 1757642.5),  # 1 (100, 3, 1)
-            (1794164.5, 1794165.5),  # 1 (200, 2, 28)
-            (1794165.5, 1794167.5),  # 2 (200, 3, 1)
-            (1830688.5, 1830690.5),  # 2 (300, 2, 28)
-            (1830689.5, 1830692.5),  # 3 (300, 3, 1)
-            (1903737.5, 1903740.5),  # 3 (500, 2, 28)
-            (1903738.5, 1903742.5),  # 4 (500, 3, 1)
-            (1940261.5, 1940265.5),  # 4 (600, 2, 28)
-            (1940262.5, 1940267.5),  # 5 (600, 3, 1)
-            (1976786.5, 1976791.5),  # 5 (700, 2, 28)
-            (1976787.5, 1976793.5),  # 6 (700, 3, 1)
-            (2049835.5, 2049841.5),  # 6 (900, 2, 28)
-            (2049836.5, 2049843.5),  # 7 (900, 3, 1)
-            (2086359.5, 2086366.5),  # 7 (1000, 2, 28)
-            (2086360.5, 2086368.5),  # 8 (1000, 3, 1)
-            (2122883.5, 2122891.5),  # 8 (1100, 2, 28)
-            (2122884.5, 2122893.5),  # 9 (1100, 3, 1)
-            (2195932.5, 2195941.5),  # 9 (1300, 2, 28)
-            (2195933.5, 2195943.5),  # 10 (1300, 3, 1)
-            (2232456.5, 2232466.5),  # 10 (1400, 2, 28)
-            (2232457.5, 2232468.5),  # 11 (1400, 3, 1)
-            (2268980.5, 2268991.5),  # 11 (1500, 2, 28)
-            (2268981.5, 2268993.5),  # 12 (1500, 3, 1)
-            (2299147.5, 2299159.5),  # 12 (1582, 10, 4)
-            (2299148.5, 2299160.5),  # 12 (1582, 10, 5)
-            (2299157.5, 2299160.5),  # 3 (1582, 10, 14)
-            (2299158.5, 2299160.5),  # 2 (1582, 10, 15)
-            (2460388.26032, 2460390.26032),  # 2 (2024, 3, 20, 18, 14, 51.648)
+            (1757640.5, True, 1757640.5),  # 0 (100, 2, 28)
+            (1757641.5, True, 1757642.5),  # 1 (100, 3, 1)
+            (1794164.5, True, 1794165.5),  # 1 (200, 2, 28)
+            (1794165.5, True, 1794167.5),  # 2 (200, 3, 1)
+            (1830688.5, True, 1830690.5),  # 2 (300, 2, 28)
+            (1830689.5, True, 1830692.5),  # 3 (300, 3, 1)
+            (1903737.5, True, 1903740.5),  # 3 (500, 2, 28)
+            (1903738.5, True, 1903742.5),  # 4 (500, 3, 1)
+            (1940261.5, True, 1940265.5),  # 4 (600, 2, 28)
+            (1940262.5, True, 1940267.5),  # 5 (600, 3, 1)
+            (1976786.5, True, 1976791.5),  # 5 (700, 2, 28)
+            (1976787.5, True, 1976793.5),  # 6 (700, 3, 1)
+            (2049835.5, True, 2049841.5),  # 6 (900, 2, 28)
+            (2049836.5, True, 2049843.5),  # 7 (900, 3, 1)
+            (2086359.5, True, 2086366.5),  # 7 (1000, 2, 28)
+            (2086360.5, True, 2086368.5),  # 8 (1000, 3, 1)
+            (2122883.5, True, 2122891.5),  # 8 (1100, 2, 28)
+            (2122884.5, True, 2122893.5),  # 9 (1100, 3, 1)
+            (2195932.5, True, 2195941.5),  # 9 (1300, 2, 28)
+            (2195933.5, True, 2195943.5),  # 10 (1300, 3, 1)
+            (2232456.5, True, 2232466.5),  # 10 (1400, 2, 28)
+            (2232457.5, True, 2232468.5),  # 11 (1400, 3, 1)
+            (2268980.5, True, 2268991.5),  # 11 (1500, 2, 28)
+            (2268981.5, True, 2268993.5),  # 12 (1500, 3, 1)
+            (2299147.5, True, 2299159.5),  # 12 (1582, 10, 4)
+            (2299158.5, True, 2299160.5),  # 2 (1582, 10, 15)
+            # 2 (2024, 3, 20, 18, 14, 51.648)
+            (2460388.26032, True, 2460390.26032),
+            (2299148.5, False, err_msg.format(2299148.5)),  # 12 (1582, 10, 5)
+            (2299157.5, False, err_msg.format(2299157.5)),  # 3 (1582, 10, 14)
             )
         msg = "Expected {} for jd {}, found {}"
 
-        for jd, expected_result in data:
-            result = self.bc._meeus_from_exact(jd)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jd, result))
+        for jd, valid, expected_result in data:
+            if valid:
+                result = self.bc._meeus_from_exact(jd)
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, jd, result))
+            else:
+                with self.assertRaises(ValueError) as cm:
+                    self.bc._meeus_from_exact(jd)
+
+                message = str(cm.exception)
+                self.assertEqual(expected_result, message)
 
     #@unittest.skip("Temporarily skipped")
     def test__exact_from_meeus(self):
@@ -1483,7 +1493,7 @@ class TestBaseCalendar(unittest.TestCase):
         difference needed to compensate for the differences in the Meeus
         and the exact algorithms.
         """
-        err_msg0 = "Invalid historicaly correct (Meeus) JD {}."
+        err_msg0 = "Invalid historically correct (Meeus) JD {}."
         data = (
             (1757640.5, True, 1757640.5),  # 0 (100, 2, 28)
             (1757642.5, True, 1757641.5),  # 1 (100, 3, 1)
@@ -1533,7 +1543,7 @@ class TestBaseCalendar(unittest.TestCase):
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, jd, result))
             else:
-                with self.assertRaises(AssertionError) as cm:
+                with self.assertRaises(ValueError) as cm:
                     self.bc._exact_from_meeus(jd)
 
                 message = str(cm.exception)

@@ -66,12 +66,12 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     """
     _YEAR_START = None
     """
-    dict: Auto generated constant used to find ordinals.
+    dict: Auto-generated constant used to find ordinals.
     :meta hide-value:
     """
     _YEAR_START_YEARS = None
     """
-    list: Auto generated constant used to find ordinals.
+    list: Auto-generated constant used to find ordinals.
     :meta hide-value:
     """
 

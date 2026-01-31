@@ -1446,6 +1446,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :returns: The difference added to an astronomically correct jd.
         :rtype: float
         """
+        if 2299148.5 <= jd <= 2299157.5:
+            raise ValueError(f"Astronomical JD {jd} lies in the Gregorian "
+                             "reform gap (1582-10-05 through 1582-10-14); "
+                             "no Meeus JD exists.")
+
         jd_diff = (
             (1757640.5, 0), (1794164.5, 1), (1830688.5, 2), (1903737.5, 3),
             (1940261.5, 4), (1976786.5, 5), (2049835.5, 6), (2086359.5, 7),
@@ -1454,18 +1459,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             )
         diff = 2
 
-        if 2299148.5 <= jd <= 2299157.5:
-            jd0, frac = divmod(jd, 1)
-            jd = 2299160 + frac
-        else:
-            for j, df in jd_diff:
-                if jd <= j:
-                    diff = df
-                    break
+        for j, df in jd_diff:
+            if jd <= j:
+                diff = df
+                break
 
-            jd += diff
-
-        return jd
+        return jd + diff
 
     def _exact_from_meeus(self, jd: float) -> float:
         """
@@ -1486,6 +1485,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
          """
         invalid_days = (1757641, 1794166, 1830691, 1903741, 1940266, 1976791,
                         2049841, 2086366, 2122891, 2195941, 2232466, 2268991)
+        jd0 = math.floor(jd)
+
+        if jd0 in invalid_days:
+            raise ValueError(f"Invalid historically correct (Meeus) JD {jd}.")
+
         jd_diff = (
             (1757640.5, 0), (1794165.5, 1), (1830690.5, 2), (1903740.5, 3),
             (1940265.5, 4), (1976790.5, 5), (2049840.5, 6), (2086365.5, 7),
@@ -1493,22 +1497,13 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             (2299159.5, 12),
             )
         diff = 2
-        jd0 = math.floor(jd)
 
-        if jd0 in invalid_days:
-            assert not (jd0 + 0.5) <= jd < (jd0 + 1), (
-                f"Invalid historicaly correct (Meeus) JD {jd}.")
-        elif 2299160.5 <= jd < 2299161.5:
-            jd -= diff  # Compensate for the missing days in 1582-10.
-        else:
-            for j, df in jd_diff:
-                if jd <= j:
-                    diff = df
-                    break
+        for j, df in jd_diff:
+            if jd <= j:
+                diff = df
+                break
 
-            jd -= diff
-
-        return jd
+        return jd - diff
 
     def _coterminal_angle(self, value: float) -> float:
         """
