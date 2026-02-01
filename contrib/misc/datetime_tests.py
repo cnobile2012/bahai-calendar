@@ -705,7 +705,7 @@ if __name__ == "__main__":
 
         total_years = options.end - options.start
         mean_deviation = deviation['total'] / total_years
-        print(f"Analyzing year {options.start} to year {options.end} "
+        print(f"Analyzing year {options.start} to year {options.end-1} "
               "Gregorian.")
         print(f"Total years:                          {total_years}")
         print(f"Total Timestamp negative deviations:  {deviation['n']}")

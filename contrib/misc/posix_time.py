@@ -144,7 +144,7 @@ class PosixTests(BahaiCalendar):
         """
         Dump analysis files for all defined timezones.
 
-        -t or --timezones with -S and -E (Gregorian Dates)
+        -t or --timezones with -P path, -S, and -E (Gregorian Dates)
         """
         zones = _epoch_for_timezone()
         names = sorted(zones, key=lambda x: x[0])
@@ -174,6 +174,13 @@ class PosixTests(BahaiCalendar):
                 with redirect_stdout(f):
                     _m_and_t_options(options, start_time, self.mktime(options))
 
+        with open(os.path.join(path, 'NOTES.txt'), mode='w') as f:
+            basename = os.path.basename(__file__)
+            msg = "To run all timezones use the command below.\n\n"
+            msg += (f"./contrib/misc/{basename} -tS {options.start} "
+                    f"-E {options.end} -P {options.path}")
+            f.write(msg)
+
     # Supporting methods
 
     def _mktime(self, dt: datetime, zone: float, options) -> float:
@@ -188,12 +195,21 @@ class PosixTests(BahaiCalendar):
         libraries).
         https://en.wikipedia.org/wiki/Time_zone
 
-        Derived Badi time for the epoch 1970-01-01
-        ------------------------------------------------
-        GMT 0.0 time:     0126-16-02T08:00:30.6684+00:00
-        EST -5.0 time:    0126-16-02T01:48:23.8716-05:00
-        Tehran 3.5 time:  0126-16-01T:10:28:46.1388+03:30
-        Beijing 8.0 time: 0126-15-19T15:00:59.1084+08:00
+
+        Derived Badí' time for the epoch 1970-01-01
+        -------------------------------------------
+
+        +------------------+---------------------------------+
+        | Time Zone        | Badí' Date                      |
+        +==================+=================================+
+        | GMT 0.0 time     | 126-16-02T08:00:30.6684+00:00   |
+        +------------------+---------------------------------+
+        | EST -5.0 time    | 0126-16-02T01:48:23.8716-05:00  |
+        +------------------+---------------------------------+
+        | Tehran 3.5 time  | 0126-16-01T:10:28:46.1388+03:30 |
+        +------------------+---------------------------------+
+        | Beijing 8.0 time | 0126-15-19T15:00:59.1084+08:00  |
+        +------------------+---------------------------------+
         """
         return self._timestamp_from_badi_date(dt.b_date + dt.b_time, zone)
 
@@ -202,14 +218,20 @@ class PosixTests(BahaiCalendar):
         Find the correct Badi hour, minute, and second after sunset equal
         to UTC midnight based on the coordinents.
 
-        Correct Badi time on the epoch 1970-01-01   Sunset  Approx b_time
-                                                    before
-                                                    epoch
-        ---------------------------------------------------------------------
-        GMT 0.0 time:     0126-16-02T08:00:00+00:00 (16:00 hrs) 0.33333333
-        EST -5.0 time:    0126-16-02T06:48:00-05:00 (17:11 hrs) 0.2833101875
-        Tehran 3.5 time:  0126-16-02T06:59:00+03:30 (17:01 hrs) 0.29097220
-        Beijing 8.0 time: 0126-16-02T07:01:00+08:00 (16:59 hrs) 0.29236110416
+        +------------------+---------------------------+--------+-------------+
+        | Time Zone        | Badí' Date                | Sunset | Approx JD   |
+        |                  |                           | before |             |
+        |                  |                           | epoch  |             |
+        |                  |                           | in hrs |             |
+        +==================+===========================+========+=============+
+        | GMT 0.0 time     | 0126-16-02T08:00:00+00:00 | 16:00  | 0.33333333  |
+        +------------------+---------------------------+--------+-------------+
+        | EST -5.0 time    | 0126-16-02T06:48:00-05:00 | 17:11  | 0.283310188 |
+        +------------------+---------------------------+--------+-------------+
+        | Tehran 3.5 time  | 0126-16-02T06:59:00+03:30 | 17:01  | 0.29097220  |
+        +------------------+---------------------------+--------+-------------+
+        | Beijing 8.0 time | 0126-16-02T07:01:00+08:00 | 16:59  | 0.292361104 |
+        +------------------+---------------------------+--------+-------------+
 
         Use the last value returned, the first two are only for testing.
         """

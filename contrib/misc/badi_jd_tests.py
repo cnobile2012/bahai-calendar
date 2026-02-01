@@ -1416,9 +1416,11 @@ if __name__ == "__main__":
         else:
             start_time = time.time()
             data = dt.analyze_date_error(options)
+            diff_precision = 7
             print("Badí' Date    Badí' JD           Gregorian Date (Sunset)  "
-                  "      Gregorian JD        Diff            Off By")
-            underline_length = 106
+                  "      Gregorian JD        Diff", ' ' * (diff_precision-2),
+                  "Off By")
+            underline_length = 106 + diff_precision - 12
             print('-' * underline_length)
 
             for b_date, bjd, g_date, gjd, diff, offby in data:
@@ -1426,7 +1428,7 @@ if __name__ == "__main__":
                       f"{bjd:<18} "
                       f"{str(g_date):<30} "
                       f"{gjd:<19} "
-                      f"{fmt_float(diff, 2, 12)} "
+                      f"{fmt_float(diff, 2, diff_precision)} "
                       f"{fmt_float(offby, 2, 1)}")
 
             print('-' * underline_length)
@@ -1436,7 +1438,7 @@ if __name__ == "__main__":
 
             for item in data:
                 year = item[2][0]
-                diff = item[4]
+                diff = round(item[4], diff_precision)
                 diff_total += diff
                 offby = item[5]
 

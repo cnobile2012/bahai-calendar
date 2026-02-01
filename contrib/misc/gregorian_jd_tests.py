@@ -507,6 +507,7 @@ class JulianPeriodTests:
 
         +----------------+-----------+----------------+------------+--------+
         | Valid or       | Valid Day | Next Valid or  | Next Valid | Offset |
+        +----------------+-----------+----------------+------------+--------+
         | Invalid Day(s) | JD        | Invalid Day(s) | Day JD     |        |
         +================+===========+================+============+========+
         |  (100, 2, 28)  | 1757640.5 |  (100, 3, 1)   | 1757642.5  | 1      |
@@ -579,8 +580,7 @@ class JulianPeriodTests:
             b = 0
 
         return round(math.floor(self.JULIAN_YEAR * year) + math.floor(
-            30.6001 * (month + 1)) + day + b + 1720994.5,
-                     self.ROUNDING_PLACES)
+            30.6001 * (month + 1)) + day + b + 1720994.5, self.ROUNDING_PLACES)
 
     def jd_from_gregorian_date_1(self, g_date, alt=False):
         """
