@@ -15,7 +15,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
 from _timestamp import TimestampUtils
-from _badi_rollover import Rollover
 from badidatetime import (BahaiCalendar, GregorianCalendar, datetime,
                           date as badi_date, timezone, timedelta)
 from badidatetime._timedateutils import _td_utils
@@ -89,18 +88,17 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         )
     TIMESTAMP_DATES = (
         # Sunset on day
-        # ((1, 3, 19), -62128860598),
-        # ((1843, 3, 20), -4000927678),
-        # ((1844, 3, 19), -3969391678),
+        ((1, 3, 19), -62128860598),
+        ((1843, 3, 20), -4000927678),
+        ((1844, 3, 19), -3969391678),
         ((1969, 12, 31), -28800),
-        # ((2025, 3, 19), 1742422560),
-        # ((2026, 1, 16), 1774044960),
+        ((2025, 3, 19), 1742422560),
+        ((2026, 1, 16), 1774044960),
         )
 
     def __init__(self):
         super().__init__()
         self.gc = GregorianCalendar()
-        self.ro = Rollover()
 
     def analyze_ordinal_error_list(self, options):
         """
@@ -191,6 +189,23 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
 
         -c with -A, -O, -Z, and -
         """
+        def add_minutes(y, m, d, h, mi, s, delta_minutes):
+            # 1. Convert Badí date → JD (exact, UTC)
+            jd = self.jd_from_badi_date((y, m, d, h, mi, s), *self.GMT_COORDS)
+            jd0 = jd
+            # 2. Add minutes in JD space
+            jd += delta_minutes / 1440.0
+
+            # if delta_minutes != 0:
+            #     frac = (jd - jd0) / delta_minutes
+            # else:
+            #     frac = jd - jd0
+
+            # print(jd, frac)
+
+            # 3. Convert back
+            return jd, self.badi_date_from_jd(jd, *self.GMT_COORDS, short=True)
+
         data = []
         lat = options.latitude
         lon = options.longitude
@@ -217,16 +232,16 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
                 ss_ts_diff = g_ts - b_ts
                 ss_items = (g_date, g_ts, b_ts, ss_ts_diff)
                 y, m, d = b_date[:3]
-                hh, mm = b_date[3:5]
+                hh, mm = b_date[3:5] if len(b_date) > 3 else 0, 0
                 items = []
 
                 for delta in range(min, max):
-                    b_date = self.ro.add_minutes(y, m, d, hh, mm, 0, delta)
+                    jd0, b_date = add_minutes(y, m, d, hh, mm, 0, delta)
                     nb_ts = datetime(*b_date[:3], None, None, *b_date[3:],
                                      tzinfo=b_tz).timestamp()
                     today = badi_date.fromtimestamp(nb_ts, short=True)
                     tz_diff = g_ts - nb_ts
-                    items.append((b_date[:5], today, nb_ts, tz_diff))
+                    items.append((b_date[:5], today, jd0, nb_ts, tz_diff))
 
                 data.append((ss_items, items))
 
@@ -531,12 +546,12 @@ if __name__ == "__main__":
         assert delta < 119, ("The minutes option cannot be more that 118, "
                              f"found {delta}.")
         start_time = time.time()
-        underline_length = 127
+        underline_length = 147
         print(f"./contrib/misc/{basename} -cA {options.latitude} "
               f"-O {options.longitude} -Z {options.zone} -M {delta}")
         print('-' * underline_length)
         print("Gregorian Date Gregorian TS   Badí' Sunset TS   "
-              "SS TS Diff  Badí' Date              Today      "
+              "SS TS Diff  Badí' Date              Today       JD", ' ' * 15,
               "Badí' Date (TS)   Offset Greg TS")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
@@ -546,19 +561,20 @@ if __name__ == "__main__":
             print(f"{str(g_date):14} "
                   f"{fmt_float(ss_g_ts, 12, 1)} "
                   f"{fmt_float(ss_b_ts, 12, 4)} "
-                  f"{fmt_float(ss_ts_diff, 6, 4)} ",
+                  f"{fmt_float(ss_ts_diff, 7, 4)} ",
                   end='')
             items_len = len(items)
 
-            for idx, (b_date, today, b_ts, ts_diff) in enumerate(items):
+            for idx, (b_date, today, jd0, b_ts, ts_diff) in enumerate(items):
                 print(f"{str(b_date):<23} "
-                      f"{str(today):<10} "
+                      f"{str(today):>11} "
+                      f"{fmt_float(jd0, 7, 10)} "
                       f"{fmt_float(b_ts, 12, 4)} "
-                      f"{fmt_float(ts_diff, 5, 4)}"
+                      f"{fmt_float(ts_diff, 7, 4)}"
                       )
 
                 if idx < items_len - 1:
-                    print(" " * 60, end='')
+                    print(" " * 61, end='')
 
             print('-' * underline_length)
 
