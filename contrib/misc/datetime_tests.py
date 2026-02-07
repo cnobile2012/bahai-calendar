@@ -241,7 +241,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
                                      tzinfo=b_tz).timestamp()
                     today = badi_date.fromtimestamp(nb_ts, short=True)
                     tz_diff = g_ts - nb_ts
-                    items.append((b_date[:5], today, jd0, nb_ts, tz_diff))
+                    items.append((b_date[:6], today, jd0, nb_ts, tz_diff))
 
                 data.append((ss_items, items))
 
@@ -546,12 +546,12 @@ if __name__ == "__main__":
         assert delta < 119, ("The minutes option cannot be more that 118, "
                              f"found {delta}.")
         start_time = time.time()
-        underline_length = 147
+        underline_length = 157
         print(f"./contrib/misc/{basename} -cA {options.latitude} "
               f"-O {options.longitude} -Z {options.zone} -M {delta}")
         print('-' * underline_length)
         print("Gregorian Date Gregorian TS   Badí' Sunset TS   "
-              "SS TS Diff  Badí' Date              Today       JD", ' ' * 15,
+              "SS TS Diff  Badí' Date", ' ' * 22, "Today       JD", ' ' * 15,
               "Badí' Date (TS)   Offset Greg TS")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
@@ -566,7 +566,7 @@ if __name__ == "__main__":
             items_len = len(items)
 
             for idx, (b_date, today, jd0, b_ts, ts_diff) in enumerate(items):
-                print(f"{str(b_date):<23} "
+                print(f"{str(b_date):<32} "
                       f"{str(today):>11} "
                       f"{fmt_float(jd0, 7, 10)} "
                       f"{fmt_float(b_ts, 12, 4)} "

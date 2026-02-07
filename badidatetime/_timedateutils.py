@@ -69,6 +69,17 @@ class TimeDateUtils(BahaiCalendar):
     int: Length of the long form Badí' date and time portion of the
     struct time.
     """
+    _BADI_MONTH_NUM_DAYS = [
+        (1, 19), (2, 19), (3, 19), (4, 19), (5, 19), (6, 19), (7, 19),
+        (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
+        (15, 19), (16, 19), (17, 19), (18, 19), (0, 0), (19, 19)
+        ]
+    """
+    list: Provides a list of month number and the number of days in theat
+    month. Month 0 (zero) is in the 19th position and is modifed depending
+    on the number of days in the year.
+    """
+
 
     def __init__(self):
         """

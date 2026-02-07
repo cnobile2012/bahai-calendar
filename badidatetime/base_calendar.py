@@ -54,6 +54,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _AUTUMN = 180
     _WINTER = 270
     _SUN_OFFSET = 0.8333
+    _MOON_OFFSET = 0.125
     _STARS_PLANET_OFFSET = 0.5667
     _ROUNDING_PLACES = 12
     # This is using the astronomically exact algorithm.
