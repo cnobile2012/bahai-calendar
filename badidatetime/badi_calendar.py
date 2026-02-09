@@ -26,16 +26,24 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     | https://gml.noaa.gov/grad/solcalc/ Sunset data
     """
     # Near Mehrabad International Airport
-    #                 latitude    longitude  zone IANA name      elevation
-    _BAHAI_LOCATION = (35.69435, 51.288701, 3.5, 'Asia/Tehran', 0)
-    _GMT_LOCATION = (51.477928, -0.001545, 0.0, 0)
+    #                 latitude    longitude  zone IANA name
+    _BAHAI_LOCATION = (35.69435, 51.288701, 3.5, 'Asia/Tehran')
+    """
+    tuple: Represents the location coordinates latitude, longitude, political
+    time zone, and IANA time zone name of the Badí' orientation point in
+    Tehran.
+    """
+    _GMT_LOCATION = (51.477928, -0.001545, 0.0)
+    """
+    tuple: Represents the location coordinates latitude, longitude, and
+    political time zone of the GMT meridian.
+    """
     # 2394645.2609488396 using Meeus' algorithm
     _BADI_EPOCH = 2394643.2609488396
-    _BADI_MONTH_NUM_DAYS = [
-        (1, 19), (2, 19), (3, 19), (4, 19), (5, 19), (6, 19), (7, 19),
-        (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
-        (15, 19), (16, 19), (17, 19), (18, 19), (0, 0), (19, 19)
-        ]
+    """
+    float: The Badí' epoch represented by the astronomical proleptic JD
+    algorithm.
+    """
     KULLISHAY_MIN = -5
     """
     int: Constant indicating the minimum Kull-i-shay the API supports.
@@ -67,11 +75,13 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     _YEAR_START = None
     """
     dict: Auto-generated constant used to find ordinals.
+
     :meta hide-value:
     """
     _YEAR_START_YEARS = None
     """
     list: Auto-generated constant used to find ordinals.
+
     :meta hide-value:
     """
 
@@ -228,19 +238,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
-        # Convert to local apparent time
-        hist_jd = self._meeus_from_exact(jd)
-        ss = self._sun_setting(hist_jd, lat, lon)
-        astro_ss = self._exact_from_meeus(ss)
-        jd_local = jd + zone / 24
-        ss_local = astro_ss + zone / 24
-
-        if jd_local < ss_local:
-            ss = self._sun_setting(hist_jd - 1, lat, lon)
-            astro_ss = self._exact_from_meeus(ss)
-            ss_local = astro_ss + zone / 24
-
-        rd = math.floor(astro_ss - self.PROLEPTIC_GREG_1ST_DAY) + 1
+        jd0 = self._utc_to_badi_time(jd, lat, lon, zone)
+        rd = math.floor(jd0 - self.PROLEPTIC_GREG_1ST_DAY - 0.5) + 1
         year = self._badi_year_from_rd(rd)
         year_start_rd = self._YEAR_START[year]
         doy = rd - year_start_rd + 1
@@ -256,7 +255,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             month = 19
             day = doy - (342 + ayyamiha)
 
-        frac = (jd_local - ss_local) % 1
+        frac = jd0 % 1
 
         if fraction:
             b_date = year, month, round(day + frac, 6)
@@ -770,7 +769,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     def _utc_to_badi_time(self, jd: float, lat: float, lon: float, zone: float
                           ) -> float:
         """
-        Convert UTC time to Badí' time.
+        Convert UTC time to Badí' time. The JD must be in UT time. The
+        resultant date and time are now authoritative.
 
         :param float jd: An Astronomically correct JD.
         :param float lat: The latitude.
@@ -779,28 +779,33 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: The JD with the correct Badí' time.
         :rtype: float
         """
-        jd += self._HR(zone)
-        jd0, jd0_frac = divmod(jd, 1)
-        jd1 = self._meeus_from_exact(jd)
-        ss = self._sun_setting(jd1, lat, lon)
-        ss_frac = ss % 1
+        hist_jd = self._meeus_from_exact(jd)
+        # Sunset for the Meeus day
+        ss = self._sun_setting(hist_jd, lat, lon)
+        astro_ss = self._exact_from_meeus(ss)
 
-        if jd0_frac < ss_frac:  # The previous day.
-            ss = self._sun_setting(jd1 - 1, lat, lon)
-            frac = 0.5 - ss % 1 + jd0_frac
-        elif jd0_frac > ss_frac:  # The same day.
-            frac = jd0_frac - ss_frac
-        else:
-            frac = 0.0
+        # Ensure we subtract the most recent sunset
+        if astro_ss > jd:
+            ss = self._sun_setting(hist_jd - 1, lat, lon)
+            astro_ss = self._exact_from_meeus(ss)
 
-        return jd0 + frac
+        # Elapsed fraction since sunset
+        frac = jd - astro_ss
+
+        while frac < 0:
+            frac += 1
+
+        while frac >= 1:
+            frac -= 1
+
+        return math.floor(astro_ss) + frac
 
     def _badi_to_utc_time(self, bjd: float, lat: float, lon: float, zone: float
                           ) -> float:
         """
         Convert Badí' time to UTC time.
 
-        :param float bjd: An Astronomically correct JD.
+        :param float bjd: An Astronomically correct UT JD.
         :param float lat: The latitude.
         :param float lon: The longitude.
         :param float zone: The standard time zone.

@@ -7,7 +7,6 @@ Individual Test Scripts
 .. toctree::
    :maxdepth: 2
 
-   contrib/badi_date_from_jd
    contrib/badi_jd_tests
    contrib/_badi_rollover
    contrib/benchmark_equinox_validation
