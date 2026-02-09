@@ -75,11 +75,10 @@ class TimeDateUtils(BahaiCalendar):
         (15, 19), (16, 19), (17, 19), (18, 19), (0, 0), (19, 19)
         ]
     """
-    list: Provides a list of month number and the number of days in theat
+    list: Provides a list of month number and the number of days in that
     month. Month 0 (zero) is in the 19th position and is modifed depending
-    on the number of days in the year.
+    on if a leap year.
     """
-
 
     def __init__(self):
         """

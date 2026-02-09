@@ -246,44 +246,44 @@ class DateTests(BahaiCalendar):
         ( 576, 3, 19, 23, 49), ( 577, 3, 20,  5, 38), ( 578, 3, 20, 11, 28),
         ( 579, 3, 20, 17, 17), ( 580, 3, 19, 23,  6), ( 581, 3, 20,  4, 55),
         ( 582, 3, 20, 10, 44), ( 583, 3, 20, 16, 34), ( 584, 3, 19, 22, 23),
-        ( 585, 3, 20,  4, 12),
-        ( 586, 3, 20, 10,  1), ( 587, 3, 20, 15, 50), ( 588, 3, 19, 21, 40),
-        ( 589, 3, 20,  3, 29), ( 590, 3, 20,  9, 18), ( 591, 3, 20, 15,  7),
-        ( 592, 3, 19, 20, 56), ( 593, 3, 20,  2, 46), ( 594, 3, 20,  8, 35),
-        ( 595, 3, 20, 14, 24), ( 596, 3, 19, 20, 13), ( 597, 3, 20,  2,  2),
-        ( 598, 3, 20,  7, 52), ( 599, 3, 20, 13, 41), ( 600, 3, 20, 19, 30),
-        ( 601, 3, 21,  1, 19), ( 602, 3, 21,  7,  8), ( 603, 3, 21, 12, 58),
-        ( 604, 3, 20, 18, 47), ( 605, 3, 21,  0, 36), ( 606, 3, 21,  6, 25),
-        ( 607, 3, 21, 12, 14), ( 608, 3, 20, 18,  4), ( 609, 3, 20, 23, 53),
-        ( 610, 3, 21,  5, 42), ( 611, 3, 21, 11, 31), ( 612, 3, 20, 17, 20),
-        ( 613, 3, 20, 23, 20), ( 614, 3, 21,  4, 59), ( 615, 3, 21, 10, 48),
-        ( 616, 3, 20, 16, 37), ( 617, 3, 20, 22, 26), ( 618, 3, 21,  4, 16),
-        ( 619, 3, 21, 10,  5), ( 620, 3, 20, 15, 54), ( 621, 3, 20, 21, 43),
-        ( 622, 3, 21,  3, 32), ( 623, 3, 21,  9, 22), ( 624, 3, 20, 15, 11),
-        ( 625, 3, 20, 21,  0), ( 626, 3, 21,  2, 49), ( 627, 3, 21,  8, 38),
-        ( 628, 3, 20, 14, 28), ( 629, 3, 20, 20, 17), ( 630, 3, 21,  2,  6),
-        ( 631, 3, 21,  7, 55), ( 632, 3, 20, 13, 44), ( 633, 3, 20, 19, 34),
-        ( 634, 3, 21,  1, 23), ( 635, 3, 21,  7, 12), ( 636, 3, 20, 13,  1),
-        ( 637, 3, 20, 18, 50), ( 638, 3, 21,  0, 40), ( 639, 3, 21,  6, 29),
-        ( 640, 3, 20, 12, 18), ( 641, 3, 20, 18,  7), ( 642, 3, 20, 23, 56),
-        ( 643, 3, 21,  5, 46), ( 644, 3, 20, 11, 35), ( 645, 3, 20, 17, 24),
-        ( 646, 3, 20, 23, 13), ( 647, 3, 21,  5,  2), ( 648, 3, 20, 10, 52),
-        ( 649, 3, 20, 16, 41), ( 650, 3, 20, 22, 30), ( 651, 3, 21,  4, 19),
-        ( 652, 3, 20, 10,  8), ( 653, 3, 20, 15, 58), ( 654, 3, 20, 21, 47),
-        ( 655, 3, 21,  3, 36), ( 656, 3, 20,  9, 25), ( 657, 3, 20, 15, 14),
-        ( 658, 3, 20, 21,  4), ( 659, 3, 21,  2, 53), ( 660, 3, 20,  8, 42),
-        ( 661, 3, 20, 14, 31), ( 662, 3, 20, 20, 20), ( 663, 3, 21,  2, 10),
-        ( 664, 3, 20,  7, 59), ( 665, 3, 20, 13, 48), ( 666, 3, 20, 19, 37),
-        ( 667, 3, 21,  1, 26), ( 668, 3, 20,  7, 16), ( 669, 3, 20, 13,  5),
-        ( 670, 3, 20, 18, 54), ( 671, 3, 21,  0, 43), ( 672, 3, 20,  6, 32),
-        ( 673, 3, 20, 12, 22), ( 674, 3, 20, 18, 11), ( 675, 3, 21,  0,  0),
-        ( 676, 3, 20,  5, 49), ( 677, 3, 20, 11, 38), ( 678, 3, 20, 17, 28),
-        ( 679, 3, 20, 23, 17), ( 680, 3, 20,  5,  6), ( 681, 3, 20, 10, 55),
-        ( 682, 3, 20, 16, 44), ( 683, 3, 20, 22, 34), ( 684, 3, 20,  4, 23),
-        ( 685, 3, 20, 10, 12), ( 686, 3, 20, 16,  1), ( 687, 3, 20, 21, 50),
-        ( 688, 3, 20,  3, 40), ( 689, 3, 20,  9, 29), ( 690, 3, 20, 15, 18),
-        ( 691, 3, 20, 21,  7), ( 692, 3, 20,  2, 56), ( 693, 3, 20,  8, 46),
-        ( 694, 3, 20, 14, 35), ( 695, 3, 20, 20, 24), ( 696, 3, 20,  2, 13),
+        ( 585, 3, 20,  4, 12), ( 586, 3, 20, 10,  1), ( 587, 3, 20, 15, 50),
+        ( 588, 3, 19, 21, 40), ( 589, 3, 20,  3, 29), ( 590, 3, 20,  9, 18),
+        ( 591, 3, 20, 15,  7), ( 592, 3, 19, 20, 56), ( 593, 3, 20,  2, 46),
+        ( 594, 3, 20,  8, 35), ( 595, 3, 20, 14, 24), ( 596, 3, 19, 20, 13),
+        ( 597, 3, 20,  2,  2), ( 598, 3, 20,  7, 52), ( 599, 3, 20, 13, 41),
+        ( 600, 3, 20, 19, 30), ( 601, 3, 21,  1, 19), ( 602, 3, 21,  7,  8),
+        ( 603, 3, 21, 12, 58), ( 604, 3, 20, 18, 47), ( 605, 3, 21,  0, 36),
+        ( 606, 3, 21,  6, 25), ( 607, 3, 21, 12, 14), ( 608, 3, 20, 18,  4),
+        ( 609, 3, 20, 23, 53), ( 610, 3, 21,  5, 42), ( 611, 3, 21, 11, 31),
+        ( 612, 3, 20, 17, 20), ( 613, 3, 20, 23, 20), ( 614, 3, 21,  4, 59),
+        ( 615, 3, 21, 10, 48), ( 616, 3, 20, 16, 37), ( 617, 3, 20, 22, 26),
+        ( 618, 3, 21,  4, 16), ( 619, 3, 21, 10,  5), ( 620, 3, 20, 15, 54),
+        ( 621, 3, 20, 21, 43), ( 622, 3, 21,  3, 32), ( 623, 3, 21,  9, 22),
+        ( 624, 3, 20, 15, 11), ( 625, 3, 20, 21,  0), ( 626, 3, 21,  2, 49),
+        ( 627, 3, 21,  8, 38), ( 628, 3, 20, 14, 28), ( 629, 3, 20, 20, 17),
+        ( 630, 3, 21,  2,  6), ( 631, 3, 21,  7, 55), ( 632, 3, 20, 13, 44),
+        ( 633, 3, 20, 19, 34), ( 634, 3, 21,  1, 23), ( 635, 3, 21,  7, 12),
+        ( 636, 3, 20, 13,  1), ( 637, 3, 20, 18, 50), ( 638, 3, 21,  0, 40),
+        ( 639, 3, 21,  6, 29), ( 640, 3, 20, 12, 18), ( 641, 3, 20, 18,  7),
+        ( 642, 3, 20, 23, 56), ( 643, 3, 21,  5, 46), ( 644, 3, 20, 11, 35),
+        ( 645, 3, 20, 17, 24), ( 646, 3, 20, 23, 13), ( 647, 3, 21,  5,  2),
+        ( 648, 3, 20, 10, 52), ( 649, 3, 20, 16, 41), ( 650, 3, 20, 22, 30),
+        ( 651, 3, 21,  4, 19), ( 652, 3, 20, 10,  8), ( 653, 3, 20, 15, 58),
+        ( 654, 3, 20, 21, 47), ( 655, 3, 21,  3, 36), ( 656, 3, 20,  9, 25),
+        ( 657, 3, 20, 15, 14), ( 658, 3, 20, 21,  4), ( 659, 3, 21,  2, 53),
+        ( 660, 3, 20,  8, 42), ( 661, 3, 20, 14, 31), ( 662, 3, 20, 20, 20),
+        ( 663, 3, 21,  2, 10), ( 664, 3, 20,  7, 59), ( 665, 3, 20, 13, 48),
+        ( 666, 3, 20, 19, 37), ( 667, 3, 21,  1, 26), ( 668, 3, 20,  7, 16),
+        ( 669, 3, 20, 13,  5), ( 670, 3, 20, 18, 54), ( 671, 3, 21,  0, 43),
+        ( 672, 3, 20,  6, 32), ( 673, 3, 20, 12, 22), ( 674, 3, 20, 18, 11),
+        ( 675, 3, 21,  0,  0), ( 676, 3, 20,  5, 49), ( 677, 3, 20, 11, 38),
+        ( 678, 3, 20, 17, 28), ( 679, 3, 20, 23, 17), ( 680, 3, 20,  5,  6),
+        ( 681, 3, 20, 10, 55), ( 682, 3, 20, 16, 44), ( 683, 3, 20, 22, 34),
+        ( 684, 3, 20,  4, 23), ( 685, 3, 20, 10, 12), ( 686, 3, 20, 16,  1),
+        ( 687, 3, 20, 21, 50), ( 688, 3, 20,  3, 40), ( 689, 3, 20,  9, 29),
+        ( 690, 3, 20, 15, 18), ( 691, 3, 20, 21,  7), ( 692, 3, 20,  2, 56),
+        ( 693, 3, 20,  8, 46), ( 694, 3, 20, 14, 35), ( 695, 3, 20, 20, 24),
+        ( 696, 3, 20,  2, 13),
         ( 697, 3, 20,  8,  2), ( 698, 3, 20, 13, 52), ( 699, 3, 20, 19, 41),
         ( 700, 3, 21,  1, 30), ( 701, 3, 21,  7, 19), ( 702, 3, 21, 13,  8),
         ( 703, 3, 21, 18, 58), ( 704, 3, 21,  0, 47), ( 705, 3, 21,  6, 36),
@@ -906,7 +906,7 @@ class DateTests(BahaiCalendar):
 
         return items
 
-    def round_trip(self, options):
+    def badi_round_trip(self, options):
         """
         Test the full round trip between jd_from_badi_date() and
         badi_date_from_jd().
@@ -1324,6 +1324,11 @@ if __name__ == "__main__":
         '-a', '--analyze', action='store_true', default=False, dest='analyze',
         help="Analyze Badí' date errors when converting to jd.")
     parser.add_argument(
+        '-b', '--round-trip', action='store_true', default=False,
+        dest='badi_round_trip',
+        help=("Test the full round trip between jd_from_badi_date() and "
+              "badi_date_from_jd()."))
+    parser.add_argument(
         '-c', '--ck-dates', action='store_true', default=False, dest='ck_dates',
         help="Check that long_date_from_short_date() works correctly.")
     parser.add_argument(
@@ -1348,10 +1353,6 @@ if __name__ == "__main__":
     parser.add_argument(
         '-q', '--coeff', action='store_true', default=False, dest='coeff',
         help="Dump data for determining coefficients.")
-    parser.add_argument(
-        '-r', '--round-trip', action='store_true', default=False,
-        dest='round_trip', help=("Test the full round trip between jd_from_"
-                                 "badi_date() and badi_date_from_jd()."))
     parser.add_argument(
         '-t', '--twenty-four', action='store_true', default=False,
         dest='twenty_four', help="Find day length.")
@@ -1521,6 +1522,41 @@ if __name__ == "__main__":
                 end_time - start_time)
             print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
                 f"{round(seconds, 6):02.6} seconds.")
+    elif options.badi_round_trip:  # -b
+        if options.start is None or options.end is None:
+            print("If option -q is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            start_time = time.time()
+            data = dt.badi_round_trip(options)
+            print(f"./contrib/misc/{basename} -bS{options.start} "
+                  f"-E{options.end}")
+            print("Start Date      JD                 End Date        Valid")
+            underline_length = 56
+            print('-' * underline_length)
+            [print(f"{str(date):<15} "
+                   f"{fmt_float(jd, 7, 10)} "
+                   f"{str(b_date):<15} "
+                   f"{valid}"
+                   ) for date, jd, b_date, valid in data]
+            print('-' * underline_length)
+            print(f"Total years processed {options.end - options.start}.\n")
+            true = false = 0
+
+            for date, jd, b_date, valid in data:
+                if valid:
+                    true += 1
+                else:
+                    false += 1
+
+            print(f"  Days valid: {true}")
+            print(f"Days invalid: {false}")
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                  f"{round(seconds, 6):02.6} seconds.")
     elif options.ck_dates:  # -c
         if options.start is None or options.end is None:
             print("If option -c is used, -S and -E must also be used.",
@@ -1692,41 +1728,6 @@ if __name__ == "__main__":
             print(f"./contrib/misc/{basename} -qS{options.start} "
                   f"-E{options.end}")
             [print(item) for item in dt.find_coefficents(options)]
-    elif options.round_trip:  # -r
-        if options.start is None or options.end is None:
-            print("If option -q is used, -S and -E must also be used.",
-                  file=sys.stderr)
-            ret = 1
-        else:
-            start_time = time.time()
-            data = dt.round_trip(options)
-            print(f"./contrib/misc/{basename} -rS{options.start} "
-                  f"-E{options.end}")
-            print("Start Date      JD                 End Date        Valid")
-            underline_length = 56
-            print('-' * underline_length)
-            [print(f"{str(date):<15} "
-                   f"{fmt_float(jd, 7, 10)} "
-                   f"{str(b_date):<15} "
-                   f"{valid}"
-                   ) for date, jd, b_date, valid in data]
-            print('-' * underline_length)
-            print(f"Total years processed {options.end - options.start}.\n")
-            true = false = 0
-
-            for date, jd, b_date, valid in data:
-                if valid:
-                    true += 1
-                else:
-                    false += 1
-
-            print(f"  Days valid: {true}")
-            print(f"Days invalid: {false}")
-            end_time = time.time()
-            days, hours, minutes, seconds = dt._dhms_from_seconds(
-                end_time - start_time)
-            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
-                  f"{round(seconds, 6):02.6} seconds.")
     elif options.twenty_four:  # -t
         if options.start is None or options.end is None:
             print("If option -t is used, -S and -E must also be used.",

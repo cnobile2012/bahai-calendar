@@ -33,10 +33,12 @@ class PosixTests(BahaiCalendar):
     | Out[19]: datetime.datetime(1970, 1, 1, 0, 0)
     """
     #BADI_COORD = (35.682376, 51.285817, 3.5)
-    #FQ_COORD = (35.5894, -78.7792, -5.0)
+    #LOCAL_COORD = (35.5894, -78.7792, -5.0)
     GMT_COORD = (51.477928, -0.001545, 0)
     EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 488800,
                      tzinfo=timezone.utc)
+    _MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+               12, 13, 14, 15, 16, 17, 18, 0, 19)
 
     def __init__(self):
         super().__init__()
@@ -69,9 +71,10 @@ class PosixTests(BahaiCalendar):
             for year in range(start, end):
                 g_date = (year, 1, 1)
                 g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
-                b_date = self._badi_date_from_timestamp(g_ts, zone, short=True)
+                b_date = self.badi_date_from_timestamp(g_ts, lat, lon, zone,
+                                                       short=True)
                 bd = datetime(*b_date[:3], None, None, *b_date[3:])
-                b_ts = self._mktime(bd, zone, options)
+                b_ts = self._mktime(bd, (lat, lon, zone))
                 g_leap = self._gc._is_leap_year(year)
                 b_leap = self._is_leap_year(b_date[0])
                 diff = round(b_ts - g_ts, 6)
@@ -90,15 +93,15 @@ class PosixTests(BahaiCalendar):
         data = []
         start = options.start
         end = options.end
-        #lat = options.latitude
-        #lon = options.longitude
+        lat = options.latitude
+        lon = options.longitude
         zone = options.zone
         tz = dtime.timezone(dtime.timedelta(hours=zone))
 
         for year in range(start, end):
             leap = self._gc._is_leap_year(year)
 
-            for month, days in enumerate(self.gc._MONTHS, start=1):
+            for month, days in enumerate(self._gc._MONTHS, start=1):
                 days += 1 if month == 2 and leap else 0
 
                 for day in range(1, days + 1):
@@ -107,11 +110,42 @@ class PosixTests(BahaiCalendar):
                     #                                         zone, short=True)
                     # print(bd)
                     g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
-                    b_date = self._badi_date_from_timestamp(
+                    b_date = self.badi_date_from_timestamp(
                         g_ts, zone, short=True)
-                    b_ts = self._timestamp_from_badi_date(b_date, zone)
+                    b_ts = self.timestamp_from_badi_date(
+                        b_date, lat, lon, zone)
                     ts_diff = b_ts - g_ts
                     data.append((g_date, g_ts, b_date, b_ts, ts_diff))
+
+        return data
+
+    def round_trip(self, options) -> list:
+        """
+        Test the round trip of the timestamp methods.
+
+        -r or --round-trip with -S and -E (Badi Dates) -A latitude
+                                -O longitude -Z zone
+        """
+        data = []
+        start = options.start
+        end = options.end
+        lat = options.latitude
+        lon = options.longitude
+        zone = options.zone
+
+        for year in range(start, end):
+            is_leap = self._is_leap_year(year)
+
+            for month in self._MONTHS:
+                dm = 19 if month != 0 else 4 + is_leap
+
+                for day in range(1, dm + 1):
+                    date = (year, month, day)
+                    ts = self.timestamp_from_badi_date(date, lat, lon, zone)
+                    b_date = self.badi_date_from_timestamp(
+                        ts, lat, lon, zone, short=True)
+                    valid = date == b_date
+                    data.append((date, ts, b_date, valid))
 
         return data
 
@@ -183,7 +217,7 @@ class PosixTests(BahaiCalendar):
 
     # Supporting methods
 
-    def _mktime(self, dt: datetime, zone: float, options) -> float:
+    def _mktime(self, dt: datetime, coords: tuple) -> float:
         """
         This is the inverse function of localtime(). Its argument is the
         struct_time or full 9-tuple (since the dst flag is needed; use -1 as
@@ -211,7 +245,7 @@ class PosixTests(BahaiCalendar):
         | Beijing 8.0 time | 0126-15-19T15:00:59.1084+08:00  |
         +------------------+---------------------------------+
         """
-        return self._timestamp_from_badi_date(dt.b_date + dt.b_time, zone)
+        return self.timestamp_from_badi_date(dt.b_date + dt.b_time, *coords)
 
     def _get_badi_hms(self, b_date, coords: tuple) -> tuple:
         """
@@ -246,43 +280,6 @@ class PosixTests(BahaiCalendar):
         #       "UTC sunset time:", partial_day,
         #       "Badi time at UTC midnight:", b_time, file=sys.stderr)
         return ss, utc_hms, badi_hms
-
-    def _badi_date_from_timestamp(self, t: float, zone: float=None, *,
-                                  us: bool=False, short: bool=False,
-                                  trim: bool=False, rtd: bool=False) -> tuple:
-        """
-        Get the Badi date from a POSIX timestamp.
-
-        :param float t: Timestamp
-        :param float zone: The time zone.
-        :param bool us: If True the seconds are split to seconds and
-                        microseconds else if False the seconds has a partial
-                        day as a decimal.
-        :param bool short: If True then parse for a short date else if False
-                           (default) parse for a long date.
-        :param bool trim: Trim the us, ss, mm, and hh in that order.
-        :param bool rtd: Round to day.
-        :returns: A Badi date long or short form.
-        :rtype: tuple
-        """
-        jd = t / self._SECONDS_PER_DAY + self._POSIX_EPOCH
-        jd += zone / 24
-        return self.badi_date_from_jd(jd, *self.GMT_COORD, us=us, short=short,
-                                      trim=trim, rtd=rtd)
-
-    def _timestamp_from_badi_date(self, date: tuple, zone: float) -> float:
-        """
-        Convert a Badi date to a timestamp.
-
-        :param tuple date: The Badi date.
-        :param float zone: The time zone.
-        :returns: The timestamp corrected for the time zone.
-        :rtype: float
-        """
-        jd = self.jd_from_badi_date(date, *self.GMT_COORD)
-        jd -= zone / 24
-        jd0 = (jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY
-        return round(jd0, self._ROUNDING_PLACES)
 
 
 def fmt_float(value, left=4, right=4):
@@ -470,6 +467,9 @@ if __name__ == "__main__":
         '-p', '--posix', action='store_true', default=False, dest='posix',
         help="Test the compatibility between the two timezone methods.")
     parser.add_argument(
+        '-r', '--round-trip', action='store_true', default=False,
+        dest='round_trip', help="Round trip test for the timestamp methods.")
+    parser.add_argument(
         '-s', '--sunset', action='store_true', default=False, dest='sunset',
         help="Find the sunset for given years.")
     parser.add_argument(
@@ -568,6 +568,43 @@ if __name__ == "__main__":
                   f"{fmt_float(min(diffs), 4, 6)}")
             print("Difference Average (seconds): "
                   f"{fmt_float(dt/len(diffs), 4, 6)}")
+            end_time = time.time()
+            days, hours, minutes, seconds = pt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
+    elif options.round_trip:  # -r
+        if options.start is None or options.end is None:
+            print("If option -s is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            start_time = time.time()
+            data = pt.round_trip(options)
+            underline_length = 59
+            print(f"./contrib/misc/{basename} -rA {options.latitude} "
+                  f"-O {options.longitude} -Z {options.zone} "
+                  f"-S {options.start} -E {options.end}")
+            print("Origin Date     Timestamp              Derivd Date     "
+                  "Valid")
+            print('-' * underline_length)
+            [print(f"{str(date):<15} "
+                   f"{fmt_float(ts, 11, 10)} "
+                   f"{str(b_date):<15} "
+                   f"{valid}"
+                   ) for date, ts, b_date, valid in data]
+            print('-' * underline_length)
+            print(f"Total years processed {options.end - options.start}.\n")
+            true = false = 0
+
+            for item in data:
+                if item[-1]:
+                    true += 1
+                else:
+                    false += 1
+
+            print(f"  Days valid: {true}")
+            print(f"Days invalid: {false}")
             end_time = time.time()
             days, hours, minutes, seconds = pt._dhms_from_seconds(
                 end_time - start_time)

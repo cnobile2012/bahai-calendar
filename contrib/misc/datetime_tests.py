@@ -183,27 +183,17 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
     def analyze_timestamp_errors(self, options):
         """
         Find the errors in timestamp conversions to Badi dates. This test
-        trys to ensures that the badidatetime.date.today() method changes
+        tries to ensures that the badidatetime.date.today() method changes
         date on sunset based on local time.
         https://www.unixtimestamp.com
 
-        -c with -A, -O, -Z, and -
+        -c with -A, -O, -Z, and -M
         """
         def add_minutes(y, m, d, h, mi, s, delta_minutes):
             # 1. Convert Badí date → JD (exact, UTC)
             jd = self.jd_from_badi_date((y, m, d, h, mi, s), *self.GMT_COORDS)
-            jd0 = jd
-            # 2. Add minutes in JD space
             jd += delta_minutes / 1440.0
-
-            # if delta_minutes != 0:
-            #     frac = (jd - jd0) / delta_minutes
-            # else:
-            #     frac = jd - jd0
-
-            # print(jd, frac)
-
-            # 3. Convert back
+            # 2. Convert back (The JD is okay)
             return jd, self.badi_date_from_jd(jd, *self.GMT_COORDS, short=True)
 
         data = []
@@ -230,7 +220,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
                 # Get the timestamps and diff
                 b_ts = datetime.fromtimestamp(g_ts, b_tz).timestamp()
                 ss_ts_diff = g_ts - b_ts
-                ss_items = (g_date, g_ts, b_ts, ss_ts_diff)
+                ss_items = (g_date, g_ts, b_ts, ss_ts_diff, local_ajd)
                 y, m, d = b_date[:3]
                 hh, mm = b_date[3:5] if len(b_date) > 3 else 0, 0
                 items = []
@@ -546,22 +536,23 @@ if __name__ == "__main__":
         assert delta < 119, ("The minutes option cannot be more that 118, "
                              f"found {delta}.")
         start_time = time.time()
-        underline_length = 157
+        underline_length = 176
         print(f"./contrib/misc/{basename} -cA {options.latitude} "
               f"-O {options.longitude} -Z {options.zone} -M {delta}")
         print('-' * underline_length)
         print("Gregorian Date Gregorian TS   Badí' Sunset TS   "
-              "SS TS Diff  Badí' Date", ' ' * 22, "Today       JD", ' ' * 15,
-              "Badí' Date (TS)   Offset Greg TS")
+              "SS TS Diff   Sunset JD          Badí' Date", ' ' * 21,
+              "Today       JD", ' ' * 15, "Badí' Date (TS)   Offset Greg TS")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
 
         for ss_items, items in data:
-            g_date, ss_g_ts, ss_b_ts, ss_ts_diff = ss_items
+            g_date, ss_g_ts, ss_b_ts, ss_ts_diff, local_ajd = ss_items
             print(f"{str(g_date):14} "
                   f"{fmt_float(ss_g_ts, 12, 1)} "
                   f"{fmt_float(ss_b_ts, 12, 4)} "
-                  f"{fmt_float(ss_ts_diff, 7, 4)} ",
+                  f"{fmt_float(ss_ts_diff, 7, 4)} "
+                  f"{fmt_float(local_ajd, 7, 10)} ",
                   end='')
             items_len = len(items)
 
@@ -574,17 +565,10 @@ if __name__ == "__main__":
                       )
 
                 if idx < items_len - 1:
-                    print(" " * 61, end='')
+                    print(" " * 80, end='')
 
             print('-' * underline_length)
 
-        # print("Analyzing year")
-        # print(f"                   Total days: {len(items):>4}")
-        # print(f"Sunset derived from TS errors: {ss_ts_diff_ts:>4}")
-        # print(f"Sunset derived from JD errors: {ss_ts_diff_jd:>4}")
-        # print("=" * 35)
-        # print("                 Total errors: "
-        #       f"{ss_ts_diff_ts + ss_ts_diff_jd:>4}")
         end_time = time.time()
         days, hours, minutes, seconds = dt._dhms_from_seconds(
             end_time - start_time)

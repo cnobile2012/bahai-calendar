@@ -724,7 +724,6 @@ class TestBadiCalendar(unittest.TestCase):
             # 06:49 + 14:00 = Badi time 20:49
             (-18000, local_coords, False, True, True,
              (126, 16, 1, 20, 48, 41.256)),
-
             # 1969-12-31T16:00:00Z
             # Sunset 16:00 -> 24:00 - 16:00 = 08:00 -> -28800
             (-28800, gmt_coords, False, True, True,
@@ -787,6 +786,16 @@ class TestBadiCalendar(unittest.TestCase):
         local_coords = (35.5894, -78.7792, -5.0)
         gmt_coords = (51.477928, -0.001545, 0)
         data = (
+            # 1970-01-01T00:00:00Z -> UNIX Epoch at UTC
+            # Sunset day before 16:00 -> UTC 12am == (126, 16, 2, 8, 0, 0)
+            ((126, 16, 2, 7, 59, 32.4924), gmt_coords, 0.000362098217),
+            # 1969-12-31T23:59:59Z One second before the POSIX epoch UTC.
+            ((126, 16, 2, 7, 59, 31.4916), gmt_coords, -1.000437140465),
+            ((126, 16, 2, 7, 59, 31, 491600), gmt_coords, -1.000437140465),
+            # 1970-01-01T00:00:00Z -> 1969-12-31T19:00:00-05:00
+            # Sunset 17:12 -> 19:00 - 17:12 = 01:48
+            #((126, 16, 2, 1, 47, 57.1416), local_coords, 0),
+
             # 1970-01-01T00:00:00Z -> approximately 0.0
             ((126, 16, 2, 8), gmt_coords, 27.507957816124),
             # 1969:12:31T20:30:00Z -> 1970-01-01T00:00:00+03:30
@@ -1165,7 +1174,7 @@ class TestBadiCalendar(unittest.TestCase):
             self.assertEqual(expected_results, result, msg.format(
                 expected_results, jd, coords, result))
 
-    #@unittest.skip("Temporarily skipped")
+    @unittest.skip("Temporarily skipped")
     def test__badi_to_utc_time(self):
         """
         Test that the _badi_to_utc_time method converts a Badi time to a

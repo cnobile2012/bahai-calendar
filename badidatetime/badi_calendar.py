@@ -25,7 +25,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     | https://www.google.com/maps/place/Tehran,+Tehran+Province,+Iran/@35.9098957,51.51371,9.49z/data=!4m6!3m5!1s0x3f8e02c69b919039:0x17c26479772c5928!8m2!3d35.6891975!4d51.3889736!16s%2Fm%2F025zk75?entry=ttu
     | https://gml.noaa.gov/grad/solcalc/ Sunset data
     """
-    # Near Mehrabad International Airport
     #                 latitude    longitude  zone IANA name
     _BAHAI_LOCATION = (35.69435, 51.288701, 3.5, 'Asia/Tehran')
     """
@@ -239,6 +238,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
         jd0 = self._utc_to_badi_time(jd, lat, lon, zone)
+        # The PROLEPTIC_GREG_1ST_DAY variable is 1721423.5, but don't
+        # change it to 1721423.0 and not subtract 0.5, it will break the code.
         rd = math.floor(jd0 - self.PROLEPTIC_GREG_1ST_DAY - 0.5) + 1
         year = self._badi_year_from_rd(rd)
         year_start_rd = self._YEAR_START[year]
