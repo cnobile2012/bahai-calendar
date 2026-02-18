@@ -1603,7 +1603,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             f"180, found zone: {zone}.")
         assert (zone, lon).count(None) in (0, 1), (
             "Both the time zone and longitude cannot be None.")
-        zone = lon / 15 if zone is None else zone
+        zone = lon / 360 if zone is None else zone
         dec_hr = self._HR(zone)
         modified_jd = jd_ut - dec_hr if inverse else jd_ut + dec_hr
 

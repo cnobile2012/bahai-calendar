@@ -123,7 +123,7 @@ class PosixTests(BahaiCalendar):
         """
         Test the round trip of the timestamp methods.
 
-        -r or --round-trip with -S and -E (Badi Dates) -A latitude
+        -r or --round-trip with -S and -E (Badí' Dates) -A latitude
                                 -O longitude -Z zone
         """
         data = []
@@ -132,6 +132,7 @@ class PosixTests(BahaiCalendar):
         lat = options.latitude
         lon = options.longitude
         zone = options.zone
+        tz = dtime.timezone(dtime.timedelta(hours=zone))
 
         for year in range(start, end):
             is_leap = self._is_leap_year(year)
@@ -145,7 +146,11 @@ class PosixTests(BahaiCalendar):
                     b_date = self.badi_date_from_timestamp(
                         ts, lat, lon, zone, short=True)
                     valid = date == b_date
-                    data.append((date, ts, b_date, valid))
+                    g_date = self.gregorian_date_from_badi_date(
+                        date, lat, lon, zone, us=True)
+                    g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
+                    diff = ts - g_ts
+                    data.append((date, ts, b_date, valid, g_date, g_ts, diff))
 
         return data
 
@@ -212,7 +217,7 @@ class PosixTests(BahaiCalendar):
             basename = os.path.basename(__file__)
             msg = "To run all timezones use the command below.\n\n"
             msg += (f"./contrib/misc/{basename} -tS {options.start} "
-                    f"-E {options.end} -P {options.path}")
+                    f"-E {options.end} -P {options.path}\n")
             f.write(msg)
 
     # Supporting methods
@@ -249,7 +254,7 @@ class PosixTests(BahaiCalendar):
 
     def _get_badi_hms(self, b_date, coords: tuple) -> tuple:
         """
-        Find the correct Badi hour, minute, and second after sunset equal
+        Find the correct Badí' hour, minute, and second after sunset equal
         to UTC midnight based on the coordinents.
 
         +------------------+---------------------------+--------+-------------+
@@ -276,9 +281,9 @@ class PosixTests(BahaiCalendar):
         utc_hms = self._hms_from_decimal_day(partial_day + 0.5, us=True)
         b_time = 0.5 - partial_day
         badi_hms = self._hms_from_decimal_day(b_time, us=True)
-        # print("Badi date:", b_date, "UTC Midnight:", 0.5,
+        # print("Badí' date:", b_date, "UTC Midnight:", 0.5,
         #       "UTC sunset time:", partial_day,
-        #       "Badi time at UTC midnight:", b_time, file=sys.stderr)
+        #       "Badí' time at UTC midnight:", b_time, file=sys.stderr)
         return ss, utc_hms, badi_hms
 
 
@@ -345,8 +350,8 @@ def _epoch_for_timezone() -> tuple:
     https://latitudelongitude.org/
     """
     return {
-        'Kanton': (-2.81056, -171.67556, -12.0),         # 1 -43200
-        'Nome': (64.501114, -165.406387, -11.0),         # 2 -39600
+        'Baker_Island': (0.1958, 176.4792, -12.0),       # 1 -43200
+        'American_Samoa': (14.2705, 170.1387, -11.0),    # 2 -39600
         'Honolulu': (21.306944, -157.858333, -10.0),     # 3 -36000
         'Anchorage': (61.21806, -149.90028, -9.0),       # 4 -32400
         'Boise': (43.618881, -116.215019, -8.0),         # 5 -28800
@@ -392,8 +397,8 @@ def _m_and_t_options(options, start_time, data):
     print(f"./contrib/misc/{basename} -mA {options.latitude} "
           f"-O {options.longitude} -Z {options.zone} {k}"
           f"-S {options.start} -E {options.end}")
-    print("Gregorian DT Leap  Greg Timestamp Badi Date Equal to UTC "
-          "Midnight  Leap  Badi Timestamp      Diff")
+    print("Gregorian DT Leap  Greg Timestamp Badí' Date Equal to UTC "
+          "Midnight  Leap  Badí' Timestamp     Diff")
     print('-' * underline_length)
     [print(f"{str(g_date):>12} "
            f"{str(g_leap):5} "
@@ -531,8 +536,8 @@ if __name__ == "__main__":
             data = pt.posix(options)
             underline_length = 100
             print('-' * underline_length)
-            print("Gregorian Date  Greg TS      Badi Date", ' ' * 22,
-                  "Badi TS", ' ' * 10, "TS Diff (seconds)")
+            print("Gregorian Date  Greg TS      Badí' Date", ' ' * 21,
+                  "Badí' TS", ' ' * 9, "TS Diff (seconds)")
             print('-' * underline_length)
             [print(f"{str(g_date):14} "
                    f"{fmt_float(g_ts, 11, 1)} "
@@ -572,7 +577,7 @@ if __name__ == "__main__":
             days, hours, minutes, seconds = pt._dhms_from_seconds(
                 end_time - start_time)
             print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
-                f"{round(seconds, 6):02.6} seconds.")
+                  f"{round(seconds, 6):02.6} seconds.")
     elif options.round_trip:  # -r
         if options.start is None or options.end is None:
             print("If option -s is used, -S and -E must also be used.",
@@ -581,35 +586,54 @@ if __name__ == "__main__":
         else:
             start_time = time.time()
             data = pt.round_trip(options)
-            underline_length = 59
+            underline_length = 150
             print(f"./contrib/misc/{basename} -rA {options.latitude} "
                   f"-O {options.longitude} -Z {options.zone} "
                   f"-S {options.start} -E {options.end}")
-            print("Origin Date     Timestamp              Derivd Date     "
-                  "Valid")
+            print("Original Date   Badí' Timestamp", ' ' * 6, "Derived Date",
+                  ' ' * 19, "Valid Gregorian Date", ' ' * 19,
+                  "Gregorian Timestamp    Timestamp Diff")
             print('-' * underline_length)
             [print(f"{str(date):<15} "
                    f"{fmt_float(ts, 11, 10)} "
-                   f"{str(b_date):<15} "
-                   f"{valid}"
-                   ) for date, ts, b_date, valid in data]
+                   f"{str(b_date):<32} "
+                   f"{str(valid):<5} "
+                   f"{str(g_date):<34} "
+                   f"{fmt_float(g_ts, 11, 10)} "
+                   f"{fmt_float(diff, 2, 10)}"
+                   ) for date, ts, b_date, valid, g_date, g_ts, diff in data]
             print('-' * underline_length)
             print(f"Total years processed {options.end - options.start}.\n")
-            true = false = 0
+            mn = mx = true = false = 0
+            average_diviation = []
 
             for item in data:
-                if item[-1]:
+                valid = item[3]
+                diff = item[6]
+                average_diviation.append(diff)
+
+                if valid:
                     true += 1
                 else:
                     false += 1
 
-            print(f"  Days valid: {true}")
-            print(f"Days invalid: {false}")
+                if diff < 0 and diff < mn:
+                    mn = diff
+                elif diff > 0 and diff > mx:
+                    mx = diff
+
+            print("The valid value will only be True for the GMT time zone.")
+            print(f"            Days valid: {true}")
+            print(f"          Days invalid: {false}")
+            print(f"Max negative diviation: {fmt_float(mn, 2, 10)}")
+            print(f"Max positive diviation: {fmt_float(mx, 2, 10)}")
+            diviation = sum(average_diviation) / len(average_diviation)
+            print(f"     Average diviation: {fmt_float(diviation, 2, 10)}")
             end_time = time.time()
             days, hours, minutes, seconds = pt._dhms_from_seconds(
                 end_time - start_time)
             print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
-                f"{round(seconds, 6):02.6} seconds.")
+                  f"{round(seconds, 6):02.6} seconds.")
     elif options.sunset:  # -s
         if options.start is None or options.end is None:
             print("If option -s is used, -S and -E must also be used.",
@@ -620,7 +644,7 @@ if __name__ == "__main__":
             print(f"./contrib/misc/{basename} -sA {options.latitude} "
                   f"-O {options.longitude} -Z {options.zone} "
                   f"-S {options.start} -E {options.end}")
-            print("Gregorian DT Badi Date      UTC Sunset JD  UTC Sunset HMS",
+            print("Gregorian DT Badí' Date     UTC Sunset JD  UTC Sunset HMS",
                   "      Badí' HMS equal")
             print(" " * 62, " to UTC midnight")
             underline_length = 84
@@ -637,7 +661,7 @@ if __name__ == "__main__":
             days, hours, minutes, seconds = pt._dhms_from_seconds(
                 end_time - start_time)
             print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
-                f"{round(seconds, 6):02.6} seconds.")
+                  f"{round(seconds, 6):02.6} seconds.")
     elif options.timezones:  # -t (Runs -m for each timezone)
         if options.start is None or options.end is None:
             print("If option -t is used, -S and -E must also be used.",

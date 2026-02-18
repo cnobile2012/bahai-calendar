@@ -2860,7 +2860,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         data = (
             # 1970-01-01T:00:00:00Z -> 1970-01-01-T03:30:00+03:30
             # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59 ->
-            # 06:59 + 03:30 = 10:29 -> Approximately 12600
+            # 06:59 + 03:30 = 10:29 -> Approximately -12600
             ((126, 16, 2, None, None, 10, 29), 12613.8588398695),
             # POSIX epoch 1969-12-31T20:60:00Z -> 1970-01-01T00:00:00+03:30
             # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59 ->
@@ -2921,8 +2921,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # 0181-16-02T08:00:00-00:00 -> 0181-16-02T03:00:00-05:00
             # 2024-12-30T20:11:58.2504-05:00 -> 1735607518 (1.2079634 hrs off)
             ((181, 16, 2, None, None, 3), tz2, 0, 1735603169.3316),
-            # 1735607518 (5.0047367 hrs off)
-            ((181, 16, 2, None, None, 3), None, 0, 1735589500.9478912),
+            # 1735607518 (4.99526331 hrs off)
+            ((181, 16, 2, None, None, 3), None, 0, 1735625500.947918),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
 

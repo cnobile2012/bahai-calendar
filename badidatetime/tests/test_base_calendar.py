@@ -1652,9 +1652,9 @@ class TestBaseCalendar(unittest.TestCase):
              (0.328213376924, (19, 52, 37.6356))),
             # Same as the first except using longitude to determine zone.
             (2394645.115702063, None, self.bc.longitude, False, True,
-             (0.258162665647, (18, 11, 45.2544))),
+             (0.121637921315, (14, 55, 9.516))),
             (2394645.115702063, None, self.bc.longitude, True, True,
-             (2394645.2581626656, (18, 11, 45.2544))),
+             (2394645.1216379213, (14, 55, 9.516))),
             (2394645.0, 181, None, False, False, err_msg0.format(181)),
             (2394645.0, -181, None, False, False, err_msg0.format(-181)),
             (2394645.0, None, None, False, False, err_msg1),

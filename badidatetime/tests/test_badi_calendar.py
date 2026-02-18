@@ -140,7 +140,8 @@ class TestBadiCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_jd_from_badi_date(self):
         """
-        Test that the jd_from_badi_date method returns the correct jd day.
+        Test that the jd_from_badi_date method returns the correct jd day in
+        UT time.
 
         For a more complete test run: ./contrib/misc/badi_jd_tests.py -aX
 
@@ -151,32 +152,32 @@ class TestBadiCalendar(unittest.TestCase):
         data = (
             # Real epoch at sunset 01-01-01T00:00:00 B.E.
             # 1583-03-20T18:16:00+03:30
-            ((-260, 1, 1), BADI_COORDS, 2299315.261195329),
+            ((-260, 1, 1), BADI_COORDS, 2299315.1153619955),
             # 1844-03-19T12:00:00+03:30
-            ((0, 19, 19, 17, 43.399901), BADI_COORDS, 2394642.9988401216),
+            ((0, 19, 19, 17, 43.399901), BADI_COORDS, 2394642.853006788),
             # 1844-03-19T18:16:00+03:30
-            ((1, 1, 1), BADI_COORDS, 2394643.2609488396),
+            ((1, 1, 1), BADI_COORDS, 2394643.115115506),
             # 1863-03-18T18:14:00+03:30
-            ((19, 19, 19), BADI_COORDS, 2401582.2605884),
+            ((19, 19, 19), BADI_COORDS, 2401582.1147550666),
             # POSIX Timestamp epoch
             ((126, 16, 2, 8, 0, 30.6684), GMT_COORDS, 2440585.5006733374),
             # A day in Ayyám-i-Há 2022-02-24T17:57:55.152000
-            ((178, 0, 1), BADI_COORDS, 2459633.2465897757),
+            ((178, 0, 1), BADI_COORDS, 2459633.100756442),
             # 2024-03-18T18:15:00+03:30
-            ((180, 19, 19), BADI_COORDS, 2460386.2604860975),
+            ((180, 19, 19), BADI_COORDS, 2460386.114652764),
             # 2024-04-27T18:48:00+03:30
-            ((181, 3, 2), BADI_COORDS, 2460426.2835964654),
+            ((181, 3, 2), BADI_COORDS, 2460426.137763132),
             # 2024-05-15T20:03:00+03:30
             # Sunset = 20:03
-            ((181, 4, 1), BADI_COORDS, 2460444.293950542),
+            ((181, 4, 1), BADI_COORDS, 2460444.1481172084),
             # Test one date for each coefficient.
-            ((-1842, 1, 1), BADI_COORDS, 1721501.259565802),
-            ((-1815, 1, 1), BADI_COORDS, 1731363.2598133588),
-            ((-1799, 1, 1), BADI_COORDS, 1737207.2598888942),
-            ((-1783, 1, 1), BADI_COORDS, 1743051.2599653169),
-            ((-1747, 1, 1), BADI_COORDS, 1756199.2596033823),
-            ((-1699, 1, 1), BADI_COORDS, 1773731.260346055),
-            ((-1519, 1, 1), BADI_COORDS, 1839475.2616925763),
+            ((-1842, 1, 1), BADI_COORDS, 1721501.1137324688),
+            ((-1815, 1, 1), BADI_COORDS, 1731363.1139800255),
+            ((-1799, 1, 1), BADI_COORDS, 1737207.114055561),
+            ((-1783, 1, 1), BADI_COORDS, 1743051.1141319836),
+            ((-1747, 1, 1), BADI_COORDS, 1756199.113770049),
+            ((-1699, 1, 1), BADI_COORDS, 1773731.1145127218),
+            ((-1519, 1, 1), BADI_COORDS, 1839475.115859243),
             )
         msg = "Expected {} for date {}, found {}"
 
@@ -203,6 +204,10 @@ class TestBadiCalendar(unittest.TestCase):
         local_coords = (35.5894, -78.7792, -5.0)
         gmt_coords = (51.477928, -0.001545, 0)
         data = (
+            # 1844-03-19T15:45:45.9792Z -> 1844-03-19T19:15:45.9792+03:30
+            # Sunset = 19:15:45.9792 -> 19:15:45.9792 - 19:15:45.9792 = 00:00
+            (self._bc._BADI_EPOCH, epoch_coords, False, True, True, False,
+             False, (1, 1, 1)),
             # 1844-03-20T00:00:00Z -> 1844-03-20T03:30:00.0+03:30
             # Sunset day before = 18:16 -> 24:00 - 18:16 = 05:44 ->
             # 05:44 + 03:30 = Badi time 09:14 -> 0001-01-01T09:14:00
@@ -794,8 +799,7 @@ class TestBadiCalendar(unittest.TestCase):
             ((126, 16, 2, 7, 59, 31, 491600), gmt_coords, -1.000437140465),
             # 1970-01-01T00:00:00Z -> 1969-12-31T19:00:00-05:00
             # Sunset 17:12 -> 19:00 - 17:12 = 01:48
-            #((126, 16, 2, 1, 47, 57.1416), local_coords, 0),
-
+            ((126, 16, 2, 1, 47, 57.1416), local_coords, -0.000120699406),
             # 1970-01-01T00:00:00Z -> approximately 0.0
             ((126, 16, 2, 8), gmt_coords, 27.507957816124),
             # 1969:12:31T20:30:00Z -> 1970-01-01T00:00:00+03:30
@@ -1104,7 +1108,7 @@ class TestBadiCalendar(unittest.TestCase):
              (23, 59, 28.2192)),
             # Fall Equinox (2024, 9, 22, 12, 44)
             ((181, 10, 17, 18, 44, 5.4816), utc_coords, False,
-             (23, 57, 41.9328)),
+             (23, 57, 41.8068)),
             # Winter Solstice (2024, 12, 21, 9, 20)
             ((181, 15, 11, 16, 24, 40.6656), utc_coords, False,
              (24, 0, 29.106)),
@@ -1127,14 +1131,25 @@ class TestBadiCalendar(unittest.TestCase):
         without zone corrections. The resultant date and time are now
         authoritative.
         """
-        epoch_coords = self._bc._BAHAI_LOCATION[:3]
-        gmt_coords = (51.477928, -0.001545, 0.0)
+        epoch_coords = self._bc._BAHAI_LOCATION[:2]
+        gmt_coords = (51.477928, -0.001545)
+        local_coords = (35.5894, -78.7792)
         data = (
             # _POSIX_EPOCH = 2440585.5 -> 1970-01-01T00:00:00Z ->
             # 1970-01-01T03:30:00+03:30 -> Sunset day before = 17:01 ->
             # 24:00 - 17:01 = 06:59 -> 06:59 + 03:30 = 10:29 ->
             # 2440585.4368055555
             (self._bc._POSIX_EPOCH, epoch_coords, 2440585.4366451525),
+            # _POSIX_EPOCH = 2440585.5 -> 1970-01-01T00:00:00Z ->
+            # 1970-01-01T03:30:00+03:30 -> Sunset day before = 17:01 ->
+            # 24:00 - 17:01 = 06:59 -> 06:59 + 03:30 = 10:29 ->
+            # 2440585.4368055555
+            (self._bc._POSIX_EPOCH, epoch_coords, 2440585.4366451525),
+            # _POSIX_EPOCH = 2440585.5 -> 1970-01-01T00:00:00Z ->
+            # 1939-12-31T19:00:00-05:00 -> Sunset day before = 17:12 ->
+            # 24:00 - 17:12 = 06:48 -> 06:48 + 19:00 = 01T01:48 ->
+            # 2440585.074966918
+            (self._bc._POSIX_EPOCH, local_coords, 2440585.074966918),
             # 2026-03-20T18:17:13.1Z -> 2026-03-20T21:38:13.1+03:30
             # Sunset = 18:16 -> 21:38:13.1 - 18:16 = 03:22:13.1 ->
             # 2461118.1404293982
@@ -1163,9 +1178,12 @@ class TestBadiCalendar(unittest.TestCase):
             # Sunset day before = 18:12 -> 24:00 - 18:12 = 05:48 ->
             # 05:48 + 18:11:40.1 = 23:59:40.1 -> 2394642.9997696759
             (2394643.258103, gmt_coords, 2394643.000000564),
-            # 1844-03-19T18:10:40.1Z -> (1844-03-19T21:40:40.1+03:30)
-            # Sunset = 18:10 -> 18:10:40.1 - 18:10 = 00:00:40.1
-            (2394643.257409, gmt_coords, 2394642.000478423),
+            # 1844-03-19T18:14:00Z ->
+            # Sunset = 18:12 -> 18:14 - 18:12 = 00:02
+            (2394643.259722, gmt_coords, 2394643.001619564),
+            # 1844-03-19T23:28:00Z -> 1844-03-19T18:25:00-05:00
+            # Sunset = 18:26 -> 18:26 - 18:25 = 00:01
+            (2394643.477778, local_coords, 2394643.0011555534),
             )
         msg = "Expected {} for JD {} and coordinates {}, found {}."
 

@@ -37,11 +37,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     tuple: Represents the location coordinates latitude, longitude, and
     political time zone of the GMT meridian.
     """
-    # 2394645.2609488396 using Meeus' algorithm
-    _BADI_EPOCH = 2394643.2609488396
+    # 2394645.11511552 using Meeus' algorithm
+    _BADI_EPOCH = 2394643.11511552
     """
     float: The Badí' epoch represented by the astronomical proleptic JD
-    algorithm.
+    algorithm. It represents UT time or GMT.
     """
     KULLISHAY_MIN = -5
     """
@@ -110,7 +110,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
                  provided coordinates.
         :rtype: tuple
         """
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self._BAHAI_LOCATION[:3]
+
         jd = self.jd_from_badi_date(date[:3], lat, lon, zone)
+        jd += self._HR(zone)
         return self._hms_from_decimal_day(jd + 0.5)
 
     def naw_ruz_g_date(self, year: int, lat: float=None, lon: float=None,
@@ -129,7 +133,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: A Gregorian date.
         :rtype: tuple
         """
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self._BAHAI_LOCATION[:3]
+
         jd = self.jd_from_badi_date((year, 1, 1), lat, lon, zone)
+        jd += self._HR(zone)
         return self._gc.gregorian_date_from_jd(jd, hms=hms, exact=True)
 
     def first_day_of_ridvan_g_date(self, year: int, lat: float=None,
@@ -151,7 +159,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: A Gregorian date.
         :rtype: tuple
         """
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self._BAHAI_LOCATION[:3]
+
         jd = self.jd_from_badi_date((year, 2, 13), lat, lon, zone)
+        jd += self._HR(zone)
         return self._gc.gregorian_date_from_jd(jd, hms=hms, exact=True)
 
     def jd_from_badi_date(self, b_date: tuple, lat: float=None,
@@ -161,9 +173,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         .. note::
 
-           So that the JD is interoperable with different calendar code
-           this method returns a standard UT time not Badí' time. To convert
-           to Badí' time you will need to add the time zone divided by 24 to
+           The JD must be interoperable with different calendar code. This
+           method returns a standard UT time not Badí' time. To convert to
+           Badí' time you will need to add the time zone divided by 24 to
            the returned JD.
 
         :param tuple b_date: A short form Badí' date.
@@ -197,8 +209,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         coeff = self._get_day_coeff(year)
         jd0 += coeff
         jd_ss = self._sun_setting(jd0, lat, lon)
-        local_ss = self._local_zone_correction(jd_ss, zone, mod_jd=True)
-        a_ss = self._exact_from_meeus(local_ss)
+        a_ss = self._exact_from_meeus(jd_ss)
         day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
         return round(a_ss + day_frac, self._ROUNDING_PLACES)
 
@@ -237,14 +248,15 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
-        jd0 = self._utc_to_badi_time(jd, lat, lon, zone)
-        # The PROLEPTIC_GREG_1ST_DAY variable is 1721423.5, but don't
-        # change it to 1721423.0 and not subtract 0.5, it will break the code.
+        jd0 = self._utc_to_badi_time(jd, lat, lon)
+        # The PROLEPTIC_GREG_1ST_DAY variable is 1721423.5, but don't change it
+        # to 1721423.0 and and then not subtract 0.5, it will break the code.
         rd = math.floor(jd0 - self.PROLEPTIC_GREG_1ST_DAY - 0.5) + 1
         year = self._badi_year_from_rd(rd)
         year_start_rd = self._YEAR_START[year]
         doy = rd - year_start_rd + 1
         ayyamiha = 4 + self._is_leap_year(year)
+        frac = jd0 % 1
 
         if doy <= 342:  # Months 1 - 18
             month = (doy - 1) // 19 + 1
@@ -255,8 +267,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         else:  # Month 19
             month = 19
             day = doy - (342 + ayyamiha)
-
-        frac = jd0 % 1
 
         if fraction:
             b_date = year, month, round(day + frac, 6)
@@ -490,7 +500,11 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: The Gregorian date.
         :rtype: tuple
         """
+        if any([True if l is None else False for l in (lat, lon, zone)]):
+            lat, lon, zone = self._BAHAI_LOCATION[:3]
+
         jd = self.jd_from_badi_date(b_date, lat, lon, zone)
+        jd += self._HR(zone)
         return self._gc.gregorian_date_from_jd(jd, hms=True, us=us,
                                                exact=_exact)
 
@@ -516,6 +530,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = t / self._SECONDS_PER_DAY + self._POSIX_EPOCH
+        #jd += self._HR(zone)
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim, rtd=rtd)
 
@@ -532,6 +547,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: float
         """
         jd = self.jd_from_badi_date(date, lat, lon, zone)
+        #jd -= self._HR(zone)
         return round((jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY,
                      self._ROUNDING_PLACES)
 
@@ -767,8 +783,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         return ret
 
-    def _utc_to_badi_time(self, jd: float, lat: float, lon: float, zone: float
-                          ) -> float:
+    def _utc_to_badi_time(self, jd: float, lat: float, lon: float) -> float:
         """
         Convert UTC time to Badí' time. The JD must be in UT time. The
         resultant date and time are now authoritative.
@@ -776,7 +791,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :param float jd: An Astronomically correct JD.
         :param float lat: The latitude.
         :param float lon: The longitude.
-        :param float zone: The standard time zone.
         :returns: The JD with the correct Badí' time.
         :rtype: float
         """
@@ -820,7 +834,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         frac = jd_frac + ss % 1
         frac -= 1 if frac >= 1 else 0
         jd_try = jd0 + frac - self._HR(zone)
-        test_jd = self._utc_to_badi_time(jd_try, lat, lon, zone)
+        test_jd = self._utc_to_badi_time(jd_try, lat, lon)
 
         if not abs(test_jd - bjd) < 1e-10:
             # Must be previous-day sunset
