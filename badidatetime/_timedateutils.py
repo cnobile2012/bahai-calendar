@@ -789,10 +789,11 @@ class TimeDateUtils(BahaiCalendar):
         .. note::
 
            Some equivalents from offset to ISO standard.
-           -14400.0       == -0400
-           37080          == +1030
-           22829.4        == +063415
-           11056.44427776 == +030712.
+
+           * -14400.0 == -0400
+           * 37080 == +1030
+           * 22829.4 == +063415
+           * 11056.44427776 == +030712.
 
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
@@ -1116,11 +1117,6 @@ class TimeDateUtils(BahaiCalendar):
         (Friday) the last day of the week. This is different from the usual
         way ISO weeks are counted in the Gregorian Calendar which is Monday
         to Sunday.
-
-        .. note::
-
-           Whereas a Gregorian year can have 53 weeks in it a Badí' year can
-           have 51 weeks in it and never 53.
 
         :param int year: Badí' year.
         :param int month: Badí' month (0..19)

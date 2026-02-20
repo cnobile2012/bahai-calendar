@@ -315,7 +315,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd0 = math.floor(jd + 0.5) - 0.5
+        # We need to compinsate for the longitude alignment in the JD for
+        # time zones, this has minimul effect in most locales, but fixes some.
+        lon_frac = lon / 360.0
+        jd_local = jd + lon_frac
+        jd0 = math.floor(jd_local + 0.5) - 0.5
+        jd0 -= lon_frac
         m = self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='RISE')
         return round(jd0 + m, self._ROUNDING_PLACES)
 
@@ -341,7 +346,12 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd0 = math.floor(jd + 0.5) - 0.5
+        # We need to compensate for the longitude alignment in the JD for
+        # time zones, this has minimal effect in most locales, but fixes some.
+        lon_frac = lon / 360.0
+        jd_local = jd + lon_frac
+        jd0 = math.floor(jd_local + 0.5) - 0.5
+        jd0 -= lon_frac
         m = self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='SET')
         return round(jd0 + m, self._ROUNDING_PLACES)
 

@@ -8,7 +8,6 @@ Individual Test Scripts
    :maxdepth: 2
 
    contrib/badi_jd_tests
-   contrib/_badi_rollover
    contrib/benchmark_equinox_validation
    contrib/datetime_tests
    contrib/determine_lat_lon

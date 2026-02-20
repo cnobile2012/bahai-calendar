@@ -38,7 +38,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     political time zone of the GMT meridian.
     """
     # 2394645.11511552 using Meeus' algorithm
-    _BADI_EPOCH = 2394643.11511552
+    _BADI_EPOCH = 2394643.11511551  # 2394643.11511552
     """
     float: The Badí' epoch represented by the astronomical proleptic JD
     algorithm. It represents UT time or GMT.
@@ -248,15 +248,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         if any([True if l is None else False for l in (lat, lon, zone)]):
             lat, lon, zone = self._BAHAI_LOCATION[:3]
 
-        jd0 = self._utc_to_badi_time(jd, lat, lon)
-        # The PROLEPTIC_GREG_1ST_DAY variable is 1721423.5, but don't change it
-        # to 1721423.0 and and then not subtract 0.5, it will break the code.
-        rd = math.floor(jd0 - self.PROLEPTIC_GREG_1ST_DAY - 0.5) + 1
+        astro_ss, frac = self._utc_to_badi_time(jd, lat, lon)
+        # We need to slowly adjust the RD based on the longitude so the day
+        # stays within the local time frame.
+        local_civil_day = math.floor(astro_ss + lon / 360.0 + 0.5)
+        civil_epoch = math.floor(self.PROLEPTIC_GREG_1ST_DAY + 0.5)
+        rd = local_civil_day - civil_epoch + 1
         year = self._badi_year_from_rd(rd)
         year_start_rd = self._YEAR_START[year]
         doy = rd - year_start_rd + 1
         ayyamiha = 4 + self._is_leap_year(year)
-        frac = jd0 % 1
 
         if doy <= 342:  # Months 1 - 18
             month = (doy - 1) // 19 + 1
@@ -795,6 +796,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: float
         """
         hist_jd = self._meeus_from_exact(jd)
+        # candidates = []
+
+        # for k in range(-2, 3):
+        #     ss = self._sun_setting(hist_jd + k, lat, lon)
+        #     astro_ss = self._exact_from_meeus(ss)
+        #     candidates.append(astro_ss)
+
+        # astro_ss = max(s for s in candidates if s <= jd)
+        #print(candidates)
+
         # Sunset for the Meeus day
         ss = self._sun_setting(hist_jd, lat, lon)
         astro_ss = self._exact_from_meeus(ss)
@@ -813,7 +824,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         while frac >= 1:
             frac -= 1
 
-        return math.floor(astro_ss) + frac
+        return astro_ss, frac
 
     def _badi_to_utc_time(self, bjd: float, lat: float, lon: float, zone: float
                           ) -> float:
