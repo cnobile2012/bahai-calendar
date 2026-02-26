@@ -106,12 +106,9 @@ class PosixTests(BahaiCalendar):
 
                 for day in range(1, days + 1):
                     g_date = (year, month, day)
-                    # bd = self.badi_date_from_gregorian_date(g_date, lat, lon,
-                    #                                         zone, short=True)
-                    # print(bd)
                     g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
                     b_date = self.badi_date_from_timestamp(
-                        g_ts, zone, short=True)
+                        g_ts, lat, lon, zone, short=True)
                     b_ts = self.timestamp_from_badi_date(
                         b_date, lat, lon, zone)
                     ts_diff = b_ts - g_ts
@@ -586,17 +583,17 @@ if __name__ == "__main__":
         else:
             start_time = time.time()
             data = pt.round_trip(options)
-            underline_length = 150
+            underline_length = 135
             print(f"./contrib/misc/{basename} -rA {options.latitude} "
                   f"-O {options.longitude} -Z {options.zone} "
                   f"-S {options.start} -E {options.end}")
             print("Original Date   Badí' Timestamp", ' ' * 6, "Derived Date",
-                  ' ' * 19, "Valid Gregorian Date", ' ' * 19,
+                  ' ' * 2, "Valid Gregorian Date", ' ' * 19,
                   "Gregorian Timestamp    Timestamp Diff")
             print('-' * underline_length)
             [print(f"{str(date):<15} "
                    f"{fmt_float(ts, 11, 10)} "
-                   f"{str(b_date):<32} "
+                   f"{str(b_date):<15} "
                    f"{str(valid):<5} "
                    f"{str(g_date):<34} "
                    f"{fmt_float(g_ts, 11, 10)} "
@@ -622,7 +619,6 @@ if __name__ == "__main__":
                 elif diff > 0 and diff > mx:
                     mx = diff
 
-            print("The valid value will only be True for the GMT time zone.")
             print(f"            Days valid: {true}")
             print(f"          Days invalid: {false}")
             print(f"Max negative diviation: {fmt_float(mn, 2, 10)}")

@@ -1822,8 +1822,7 @@ class datetime(date):
 
         bc = BahaiCalendar()
         coords = GMT_COORD if utc else LOCAL_COORD
-        b_date = bc.badi_date_from_timestamp(t, *coords, us=True, short=short,
-                                             trim=False)
+        b_date = bc.badi_date_from_timestamp(t, *coords, us=True, short=short)
         date = _fix_short_date(b_date, short)
         # Clamp out leap seconds if the platform has them.
         date = date[:7] + (min(date[7], 59),) + date[8:]
@@ -2863,5 +2862,5 @@ BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
 # values. This may change in the future.
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-_EPOCH = datetime(126, 16, 2, None, None, 8, 0, 30, 668400,
+_EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 492400,
                   tzinfo=timezone.utc)

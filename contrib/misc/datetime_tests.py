@@ -88,12 +88,12 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         )
     TIMESTAMP_DATES = (
         # Sunset on day
-        ((1, 3, 19), -62128860598),
-        ((1843, 3, 20), -4000927678),
-        ((1844, 3, 19), -3969391678),
-        ((1969, 12, 31), -28800),
-        ((2025, 3, 19), 1742422560),
-        ((2026, 1, 16), 1774044960),
+        (1, 3, 19),
+        (1843, 3, 20),
+        (1844, 3, 19),
+        (1970, 1, 1),
+        (2025, 3, 19),
+        (2026, 1, 16),
         )
 
     def __init__(self):
@@ -189,49 +189,56 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
 
         -c with -A, -O, -Z, and -M
         """
-        def add_minutes(y, m, d, h, mi, s, delta_minutes):
-            # 1. Convert Badí date → JD (exact, UTC)
-            jd = self.jd_from_badi_date((y, m, d, h, mi, s), *self.GMT_COORDS)
-            jd += delta_minutes / 1440.0
-            # 2. Convert back (The JD is okay)
-            return jd, self.badi_date_from_jd(jd, *self.GMT_COORDS, short=True)
+        def get_gregorian_datetime(jd: float, delta_minute: int):
+            """
+            :param float jd: The jd is in historical algorithm.
+            :param int delta_minute: A positive or negative number indicating
+                                     minutes.
+            :returns: The Gregorian date, timestamp, and astronomical JD.
+            :rtype: tuple
+            """
+            jd += delta_minute * 0.00069444444444444444
+            date = self.gc.gregorian_date_from_jd(jd, hms=True, us=True)
+            ts = dtime.datetime(*date, tzinfo=g_tz).timestamp()
+            return date, ts, self._exact_from_meeus(jd)
 
         data = []
         lat = options.latitude
         lon = options.longitude
         zone = options.zone
-        # g_tz = dtime.timezone(dtime.timedelta(hours=zone))
+        g_tz = dtime.timezone(dtime.timedelta(hours=zone))
         b_tz = timezone(timedelta(hours=zone))
-        # Get Badi min and max minutes.
+        # Get min and max minutes.
         mins = options.minutes // 2
         min = - mins
         max = + mins + 1
 
         with patch.object(badidt, 'LOCAL_COORD', (lat, lon, zone)):
-            for g_date, g_ts in self.TIMESTAMP_DATES:
-                # Get JD, sunset, and Badi date
-                jd = self.gc.jd_from_gregorian_date(g_date)
-                # Get the sunset for the day
-                ss = self._sun_setting(jd, lat, lon)
-                ajd = self._exact_from_meeus(ss)
-                local_ajd = self._local_zone_correction(ajd, zone, mod_jd=True)
-                b_date = self.badi_date_from_jd(local_ajd, lat, lon, zone,
-                                                short=True)
+            for date in self.TIMESTAMP_DATES:
+                # Get JD, sunset and Gregorian date and time
+                jd = self.gc.jd_from_gregorian_date(date)
+                hist_ss = self._sun_setting(jd, lat, lon)
+                local_ss = self._local_zone_correction(hist_ss, zone,
+                                                       mod_jd=True)
+                g_date, g_ts, _ = get_gregorian_datetime(local_ss, 0)
+                astro_ss = self._exact_from_meeus(local_ss)
                 # Get the timestamps and diff
-                b_ts = datetime.fromtimestamp(g_ts, b_tz).timestamp()
+                b_dt = datetime.fromtimestamp(g_ts, b_tz)
+                b_ts = b_dt.timestamp()
                 ss_ts_diff = g_ts - b_ts
-                ss_items = (g_date, g_ts, b_ts, ss_ts_diff, local_ajd)
-                y, m, d = b_date[:3]
-                hh, mm = b_date[3:5] if len(b_date) > 3 else 0, 0
+                ss_items = (g_date, g_ts, b_ts, ss_ts_diff, astro_ss)
                 items = []
 
                 for delta in range(min, max):
-                    jd0, b_date = add_minutes(y, m, d, hh, mm, 0, delta)
-                    nb_ts = datetime(*b_date[:3], None, None, *b_date[3:],
-                                     tzinfo=b_tz).timestamp()
+                    _, g_ts, astro_jd = get_gregorian_datetime(hist_ss, delta)
+                    b_dt = datetime.fromtimestamp(g_ts, b_tz)
+                    nb_ts = b_dt.timestamp()
+                    b_date = (b_dt.year, b_dt.month, b_dt.day, b_dt.hour,
+                              b_dt.minute, b_dt.second)
                     today = badi_date.fromtimestamp(nb_ts, short=True)
                     tz_diff = g_ts - nb_ts
-                    items.append((b_date[:6], today, jd0, nb_ts, tz_diff))
+                    items.append((b_date[:6], today, astro_jd, nb_ts,
+                                  tz_diff))
 
                 data.append((ss_items, items))
 
@@ -536,19 +543,20 @@ if __name__ == "__main__":
         assert delta < 119, ("The minutes option cannot be more that 118, "
                              f"found {delta}.")
         start_time = time.time()
-        underline_length = 176
+        underline_length = 196
         print(f"./contrib/misc/{basename} -cA {options.latitude} "
               f"-O {options.longitude} -Z {options.zone} -M {delta}")
         print('-' * underline_length)
-        print("Gregorian Date Gregorian TS   Badí' Sunset TS   "
-              "SS TS Diff   Sunset JD          Badí' Date", ' ' * 21,
-              "Today       JD", ' ' * 15, "Badí' Date (TS)   Offset Greg TS")
+        print("Gregorian Date", ' ' * 19, "Gregorian TS   Badí' Sunset TS   "
+              "SS TS Diff   Astro Sunset JD    Badí' Date", ' ' * 21,
+              "Today       Astro JD", ' ' * 9, "Badí' Date (TS)   "
+              "Offset Greg TS")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
 
         for ss_items, items in data:
             g_date, ss_g_ts, ss_b_ts, ss_ts_diff, local_ajd = ss_items
-            print(f"{str(g_date):14} "
+            print(f"{str(g_date):34} "
                   f"{fmt_float(ss_g_ts, 12, 1)} "
                   f"{fmt_float(ss_b_ts, 12, 4)} "
                   f"{fmt_float(ss_ts_diff, 7, 4)} "
@@ -565,7 +573,7 @@ if __name__ == "__main__":
                       )
 
                 if idx < items_len - 1:
-                    print(" " * 80, end='')
+                    print(" " * 100, end='')
 
             print('-' * underline_length)
 

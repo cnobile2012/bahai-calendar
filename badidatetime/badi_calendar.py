@@ -531,7 +531,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: tuple
         """
         jd = t / self._SECONDS_PER_DAY + self._POSIX_EPOCH
-        #jd += self._HR(zone)
         return self.badi_date_from_jd(jd, lat, lon, zone, us=us, short=short,
                                       trim=trim, rtd=rtd)
 
@@ -548,7 +547,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: float
         """
         jd = self.jd_from_badi_date(date, lat, lon, zone)
-        #jd -= self._HR(zone)
         return round((jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY,
                      self._ROUNDING_PLACES)
 
@@ -712,6 +710,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: A Boolean indicating if a leap year or not.
         :rtype: bool
         """
+        #return self._YEAR_START[year + 1] - self._YEAR_START[year] == 366
         return self._days_in_year(year) == 366
 
     def _days_in_year(self, year: int) -> int:
@@ -723,8 +722,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: int
         """
         jd_n0 = self.jd_from_badi_date((year, 1, 1))
-        # For year 1162 we need to turn off the date check so we can get
-        # the leap year for 1161.
         jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
         return int(math.floor(jd_n1) - math.floor(jd_n0))
 
@@ -796,16 +793,6 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: float
         """
         hist_jd = self._meeus_from_exact(jd)
-        # candidates = []
-
-        # for k in range(-2, 3):
-        #     ss = self._sun_setting(hist_jd + k, lat, lon)
-        #     astro_ss = self._exact_from_meeus(ss)
-        #     candidates.append(astro_ss)
-
-        # astro_ss = max(s for s in candidates if s <= jd)
-        #print(candidates)
-
         # Sunset for the Meeus day
         ss = self._sun_setting(hist_jd, lat, lon)
         astro_ss = self._exact_from_meeus(ss)
@@ -859,8 +846,19 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         year_start = {}
         rd = self._RD_START
 
-        for year in range(self.MINYEAR-1, self.MAXYEAR + 1):
+        for year in range(self.MINYEAR - 1, self.MAXYEAR + 1):
             year_start[year] = rd
             rd += 365 + self._is_leap_year(year)
 
         return year_start
+
+    # def _build_badi_year_start(self):
+    #     year_start = {}
+    #     lon_div = self._BAHAI_LOCATION[1] / 360.0
+
+    #     for year in range(self.MINYEAR - 1, self.MAXYEAR + 1):
+    #         jd = self.jd_from_badi_date((year, 1, 1))
+    #         rd = math.floor(jd + lon_div + 0.5)
+    #         year_start[year] = rd
+
+    #     return year_start
