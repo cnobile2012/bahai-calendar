@@ -179,8 +179,8 @@ class struct_time:
         offset = dt.utcoffset()
         total_seconds = offset.total_seconds() if offset else None
 
-        if tzinfo and hasattr(tzinfo, 'key'):
-            tm_zone = tzinfo.key
+        if tzinfo and hasattr(tzinfo, 'tzname'):
+            tm_zone = tzinfo.tzname(dt)
         else:
             tm_zone = dt.tzname()
 

@@ -6,9 +6,9 @@ __docformat__ = "restructuredtext en"
 
 import unittest
 import importlib
+from zoneinfo import ZoneInfo
 
 from .._structures import struct_time
-from zoneinfo import ZoneInfo
 
 datetime = importlib.import_module('badidatetime.datetime')
 
@@ -26,7 +26,13 @@ class TestStructures(unittest.TestCase):
         """
         err_msg0 = "struct_time() takes a 9 or 11-sequence ({}-sequence given)"
         err_msg1 = "Invalid isdst '{}', it must be in the range of [-1, 1]."
-        tz0 = ZoneInfo('US/Eastern')
+        tz = ZoneInfo('US/Eastern')
+        coords0 = (35.5894, -78.7792, -5.0)
+        tz0 = datetime.TZWithCoords.fromzoneinfo(tz, *coords0)
+        coords1 = (35.5894, -78.7792, -4.0)
+        tz1 = datetime.TZWithCoords.fromzoneinfo(tz, *coords1)
+
+        # *** TODO *** Need to find offset from ZoneInfo
         data = (
             ((181, 9, 6, 8, 45, 1, 0, 0, -1), None, False,
              ("structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, "
@@ -39,8 +45,8 @@ class TestStructures(unittest.TestCase):
             ((1, 1, 1, 0, 0, 0, 0, 0, -1), datetime.BADI, False,
              ('structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=1, '
               'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=0, tm_yday=0, '
-              'tm_isdst=-1)', 'UTC+03:30', 12600.0)),
-            ((181, 9, 6, 8, 45, 1, 0, 0, -1), tz0, False,
+              'tm_isdst=0)', 'Asia/Tehran', 12600.0)),
+            ((181, 9, 6, 8, 45, 1, 0, 0, -1), tz1, False,
              ('structures.ShortFormStruct(tm_year=181, tm_mon=9, tm_mday=6, '
               'tm_hour=8, tm_min=45, tm_sec=1, tm_wday=0, tm_yday=0, '
               'tm_isdst=1)', 'US/Eastern', -14400)),
@@ -54,8 +60,7 @@ class TestStructures(unittest.TestCase):
             ((1, 1, 1, 1, 1, 1, 1, 1, -2), None, True, err_msg1.format(-2)),
             ((1, 1, 1, 1, 1, 1, 1, 1, 2), None, True, err_msg1.format(2)),
             )
-        msg0 = "Expected {}, with dt {}, found {}."
-        msg1 = "Expected {}, found {}."
+        msg = "Expected {}, with dt {}, found {}."
 
         for dt, tz, validity, expected_result in data:
             if validity:
@@ -69,14 +74,14 @@ class TestStructures(unittest.TestCase):
                                          f"raised, with result {result}.")
             else:
                 result = struct_time(dt, tzinfo=tz)
-                self.assertEqual(expected_result[0], str(result), msg0.format(
+                self.assertEqual(expected_result[0], str(result), msg.format(
                     expected_result[0], dt, result))
                 self.assertEqual(expected_result[1], result.tm_zone,
-                                 msg1.format(expected_result[1],
-                                             result.tm_zone))
+                                 msg.format(expected_result[1], dt,
+                                            result.tm_zone))
                 self.assertEqual(expected_result[2], result.tm_gmtoff,
-                                 msg1.format(expected_result[2],
-                                             result.tm_gmtoff))
+                                 msg.format(expected_result[2], dt,
+                                            result.tm_gmtoff))
 
     #@unittest.skip("Temporarily skipped")
     def test_short(self):

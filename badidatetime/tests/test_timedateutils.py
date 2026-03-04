@@ -353,7 +353,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%:z', (181, 1, 1, 13, 5, 2), -1, ttup_s, datetime.BADI, '+03:50'),
             ('%Z', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, None, ''),
             ('%Z', (1, 10, 10, 2, 1, 0, 0, 0), -1, ttup_l, datetime.BADI,
-             'UTC+03:30'),
+             'Asia/Tehran'),
             ('%%', (181, 1, 1, 13, 5, 2, 1, 1), -1, ttup_ts, None, '%'),
             # Some composit formats
             ('%d/%m/%Y, %H:%M:%S', (1, 10, 10, 1, 1, 12, 30, 30), -1, ttup_l,
@@ -645,15 +645,11 @@ class TestTimeDateUtils(unittest.TestCase):
             ((1, 1, 1, 0, 0, 0), -1, datetime.BADI, True,
              ("structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=1, "
               "tm_hour=0, tm_min=0, tm_sec=0, tm_wday=3, tm_yday=1, "
-              "tm_isdst=-1)", 'UTC+03:30', 12600.0)),
+              "tm_isdst=0)", 'Asia/Tehran', 12600.0)),
             ((1, 10, 10, 9, 6, 8, 45, 1), -1, None, False,
              ("structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
               "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=8, tm_min=45, "
               "tm_sec=1, tm_wday=6, tm_yday=158, tm_isdst=-1)", None, None)),
-            ((1, 1, 1, 0, 0, 0), -1, datetime.BADI, True,
-             ('structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=1, '
-              'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=3, tm_yday=1, '
-              'tm_isdst=-1)', 'UTC+03:30', 12600.0)),
             )
         msg0 = "Expected {} with dt {}, dst {}, and timezone {}, found {}."
         msg1 = "Expected {}, found {}."
@@ -757,10 +753,10 @@ class TestTimeDateUtils(unittest.TestCase):
             ('11610101T120000', (1161, 1, 1, 12, 0, 0), 'None'),
             ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0), 'None'),
             ('0181-W20-5T12:00:00', (181, 8, 2, 12, 0, 0), 'None'),
-            ('0001-01-01B', (1, 1, 1), 'UTC+03:30'),
+            ('0001-01-01B', (1, 1, 1), '35.69435, 51.288701, 3.5, Asia/Tehran'),
             ('0001-01-01T00:00:00.0+03:30', (1, 1, 1, 0, 0, 0), 'UTC+03:30'),
             ('-0126-16-02T07:58:31.4976Z', (-126, 16, 2, 7, 58, 31.4976),
-             'UTC'),
+             '51.477928, -0.001545, 0, UTC'),
             ('0181-13-09+02', (181, 13, 9), 'UTC+02:00'),
             ('0181-13-09-05', (181, 13, 9), 'UTC-05:00'),
             )
@@ -913,8 +909,8 @@ class TestTimeDateUtils(unittest.TestCase):
         err_msg3 = "Invalid number of colons (:), can be 0 - 1, found {}"
         data = (
             ('', False, 'None'),
-            ('Z', False, 'UTC'),
-            ('B', False, 'UTC+03:30'),
+            ('Z', False, '51.477928, -0.001545, 0, UTC'),
+            ('B', False, '35.69435, 51.288701, 3.5, Asia/Tehran'),
             ('+05', False, 'UTC+05:00'),
             ('-05', False, 'UTC-05:00'),
             ('A', True, err_msg0.format("'A'")),

@@ -466,7 +466,7 @@ class TestBadiDatetime_date(unittest.TestCase):
         err_msg0 = ("Invalid kull-i-shay {}, it must be in the range "
                     "of [-5, 4].")
         err_msg1 = "Invalid string {} had length of {} for pickle."
-        err_msg2 = ("A full short or long form Badi date must be used, found "
+        err_msg2 = ("A full short or long form Badí' date must be used, found "
                     "{} fields.")
         err_msg3 = ("Failed to encode latin1 string when unpickling a date or "
                     "datetime instance. pickle.load(data, encoding='latin1') "
@@ -1725,8 +1725,9 @@ class TestBadiDatetime_time(unittest.TestCase):
         Test that the tzinfo returns the correct value.
         """
         data = (
-            ((12, 30, 30), datetime.BADI, 'UTC+03:30'),
-            ((24, 10, 20), datetime.UTC, 'UTC'),
+            ((12, 30, 30), datetime.BADI,
+             '35.69435, 51.288701, 3.5, Asia/Tehran'),
+            ((24, 10, 20), datetime.UTC, '51.477928, -0.001545, 0, UTC'),
             )
         msg = "Expected {} with time {}, found {}."
 
@@ -1961,9 +1962,11 @@ class TestBadiDatetime_time(unittest.TestCase):
             ((1, 30, 30, 50000), None, 0,
              'badidatetime.time(1, 30, 30, 50000)'),
             ((1, 30, 30, 50000), datetime.BADI, 0,
-             'badidatetime.time(1, 30, 30, 50000, tzinfo=UTC+03:30)'),
+             'badidatetime.time(1, 30, 30, 50000, '
+             'tzinfo=35.69435, 51.288701, 3.5, Asia/Tehran)'),
             ((1, 30, 30, 50000), datetime.BADI, 1,
-             'badidatetime.time(1, 30, 30, 50000, tzinfo=UTC+03:30, fold=1)'),
+             'badidatetime.time(1, 30, 30, 50000, '
+             'tzinfo=35.69435, 51.288701, 3.5, Asia/Tehran, fold=1)'),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
@@ -2055,14 +2058,15 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the strftime method returns a correctly formatting string.
         """
-        tz0 = ZoneInfo(datetime.BADI_IANA)
+        tz = ZoneInfo(datetime.BADI_IANA)
+        tz0 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.BADI_COORD)
         data = (
             ((1, 30, 30), '%X', None, '01:30:30'),
             ((1, 30, 30), '%r', None, '01:30:30 AM'),
             ((1, 30, 30), '%c', None, 'Jal Bah 01 01:30:30 0001'),
             ((1, 30, 30, 500000), '%T.%f', None, '01:30:30.500000'),
             ((1, 30, 30, 500000), 'T%H:%M:%S.%f', None, 'T01:30:30.500000'),
-            ((1, 30, 30, 500000), '%z', tz0, '+034288.888888'),
+            ((1, 30, 30, 500000), '%z', tz0, '+0350'),
             ((1, 30, 30, 500000), '%Z', tz0, 'Asia/Tehran'),
             ((1, 30, 30, 500000), '%%', None, '%'),
             ((1, 30, 30, 500000), '%', None, ''),
@@ -2079,7 +2083,8 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         Test that the __format__ method returns a correctly formatting string.
         """
-        tz0 = ZoneInfo(datetime.BADI_IANA)
+        tz = ZoneInfo(datetime.BADI_IANA)
+        tz0 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.BADI_COORD)
         err_msg0 = "Must be a str, not {}."
         data = (
             ((1, 30, 30), '', None, False, '01:30:30'),
@@ -2087,7 +2092,7 @@ class TestBadiDatetime_time(unittest.TestCase):
             ((1, 30, 30, 500000), '%T.%f', None, False, '01:30:30.500000'),
             ((1, 30, 30, 500000), 'T%H:%M:%S.%f', None, False,
              'T01:30:30.500000'),
-            ((1, 30, 30, 500000), '%z', tz0, False, '+034288.888888'),
+            ((1, 30, 30, 500000), '%z', tz0, False, '+0350'),
             ((1, 30, 30, 500000), '%Z', tz0, False, 'Asia/Tehran'),
             ((1, 30, 30, 500000), 10, None, True, err_msg0.format('int')),
             )
@@ -2157,7 +2162,7 @@ class TestBadiDatetime_time(unittest.TestCase):
         tz0 = ZoneInfo('US/Eastern')
         data = (
             ((12, 30, 30), None, 0, None),
-            ((1, 30, 30, 500000), datetime.BADI, 0, 'UTC+03:30'),
+            ((1, 30, 30, 500000), datetime.BADI, 0, 'Asia/Tehran'),
             ((1, 30, 30, 500000), tz0, 0, None),
             ((1, 30, 30, 500000), datetime.UTC, 0, 'UTC'),
             )
@@ -2170,22 +2175,28 @@ class TestBadiDatetime_time(unittest.TestCase):
                 expected_result, time, tz, fold, result))
 
     #@unittest.skip("Temporarily skipped")
+    @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_dst(self):
         """
         Test that the dst method returns either 0 or 1 if DST is in effect.
         """
         tz0 = ZoneInfo('US/Eastern')
+        tz1 = datetime.TZWithCoords(*datetime.LOCAL_COORD)
+        tz2 = datetime.TZWithCoords.fromzoneinfo(tz0, *datetime.LOCAL_COORD)
         data = (
             ((12, 30, 30), None, 0, None),
-            ((1, 30, 30, 500000), datetime.BADI, 0, None),
+            ((1, 30, 30, 500000), datetime.BADI, 0, '0:00:00'),
             ((1, 30, 30, 500000), tz0, 0, None),
-            ((1, 30, 30, 500000), datetime.UTC, 0, None),
+            ((1, 30, 30, 500000), tz1, 0, '0:00:00'),
+            ((1, 30, 30, 500000), tz2, 0, '0:00:00'),
+            ((1, 30, 30, 500000), datetime.UTC, 0, '0:00:00'),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
         for time, tz, fold, expected_result in data:
             t = datetime.time(*time, tzinfo=tz, fold=fold)
-            result = t.dst()
+            dst = t.dst()
+            result = dst if dst is None else str(dst)
             self.assertEqual(expected_result, result, msg.format(
                 expected_result, time, tz, fold, result))
 
@@ -2496,40 +2507,42 @@ class TestBadiDatetime_datetime(unittest.TestCase):
            The tests marked 'Latitude and Longitude dependent' will break
            if datetime.LOCAL_COORD is not patched.
         """
-        tz0 = ZoneInfo(datetime.BADI_IANA)
-        tz1 = ZoneInfo('UTC')
-        tz2 = ZoneInfo('US/Eastern')
+        tz = ZoneInfo(datetime.BADI_IANA)
+        tz0 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.BADI_COORD)
+        tz = ZoneInfo('UTC')
+        tz1 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.GMT_COORD)
+        tz = ZoneInfo('US/Eastern')
+        tz2 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.LOCAL_COORD)
         data = (
-            # Assume UTC as starting point.
+            # 1970-01-01T00:00:00Z ->
+            # Sunset = 17:02 -> 19:00 - 17:02 = 01:58
+            (0, None, True, '0126-16-02T07:59:32.492400'),
             # 1970-01-01T00:00:00Z
-            (0, True, tz1, True, '0126-16-02T07:59:32.492400+00:00'),
-            (0, True, datetime.UTC, True, '0126-16-02T07:59:32.492400+00:00'),
+            (0, tz1, True, '0126-16-02T07:59:32.492400+00:00'),
+            (0, datetime.UTC, True, '0126-16-02T07:59:32.492400+00:00'),
             # 1970-01-01T00:00:00+00:00Z -> 1969-12-31T19:00:00Z
             # Sunset = 16:00 -> 19:00 - 16:00 = 03:00 ->
             # 0126-16-02T03:00:00.0+00:00
-            (-18000, False, tz1, True, '0126-16-02T02:59:32.492400+00:00'),
-            # Latitude and Longitude dependent
-            # Assume local time as starting point.
-            # 1970-01-01T00:00:00+00:00Z -> 1969-12-31T03:30:00+03:30
-            # Sunset = 17:01
-            (-18000, False, tz0, True, '0126-16-02T02:59:32.492400+03:30'),
-            (-18000, False, datetime.BADI, True,
-             '0126-16-02T02:59:32.492400+03:30'),
-            # Assume UTC as starting point.
-            # 1970-01-01T00:00:00+03:30 -> Sunset = 17:02
-            (0, True, tz0, True, '0126-16-02T07:59:32.492400+03:30'),
-            # Latitude and Longitude dependent
-            # Assume local time as starting point.
-            # 1969-12-31T14:00:00-05:00 -> Sunset = 17:12
-            (-18000, False, tz2, True, '0126-16-02T02:59:32.492400-05:00'),
+            (-18000, tz1, True, '0126-16-02T02:59:32.492400+00:00'),
+            # 1969-12-31T19:00:00Z -> 1969-12-31T22:30:00:00+03:30 ->
+            # Sunset = 17:01 -> 22:30 - 17:01 = 05:29
+            (-18000, tz0, True, '0126-16-02T05:28:46.142400+03:30'),
+            (-18000, datetime.BADI, True, '0126-16-02T05:28:46.142400+03:30'),
+            # 1970-01-01T00:00:00Z -> 1970-01-01T03:30:00+03:30
+            # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59
+            # 06:59 + 03:30 = 10:29
+            (0, tz0, True, '0126-16-02T10:28:46.142400+03:30'),
+            # 1969-12-31T19:00:00 -> 1969-12-31T14:00:00-05:00 ->
+            # Sunset = 17:12 -> 24:00 - 17:12 = 06:48 -> 06:48 + 14:00 = 20:48
+            (-18000, tz2, True, '0126-16-02T02:59:32.492400+00:00'),
             )
-        msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
-               "and short {}, found {}.")
+        msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
+               "found {}.")
 
-        for t, utc, tz, short, expected_result in data:
-            result = datetime.datetime._fromtimestamp(t, utc, tz, short=short)
+        for t, tz, short, expected_result in data:
+            result = datetime.datetime._fromtimestamp(t, tz, short=short)
             self.assertEqual(expected_result, str(result), msg.format(
-                expected_result, t, utc, tz, short, result))
+                expected_result, t, tz, short, result))
 
     #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
@@ -2543,84 +2556,78 @@ class TestBadiDatetime_datetime(unittest.TestCase):
            The tests marked 'Latitude and Longitude dependent' will break
            if datetime.LOCAL_COORD is not patched.
         """
-        tz0 = ZoneInfo(datetime.BADI_IANA)
-        tz1 = ZoneInfo('UTC')
-        tz2 = ZoneInfo('US/Eastern')
+        tz = ZoneInfo(datetime.BADI_IANA)
+        tz0 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.BADI_COORD)
+        tz = ZoneInfo('UTC')
+        tz1 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.GMT_COORD)
+        tz = ZoneInfo('US/Eastern')
+        tz2 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.LOCAL_COORD)
         data = (
-            # Assume UTC as starting point.
+            # 1970-01-01T00:00:00Z -> 1969-12-31T19:00:00-05:00
+            # Sunset = 17:02 -> 19:00 - 17:02 = 01:58
+            (0, None, True, '0126-16-02T01:47:57.141600'),
             # 1970-01-01T00:00:00Z
-            (0, True, tz1, True, '0126-16-02T07:59:32.492400+00:00'),
-            (0, True, datetime.UTC, True, '0126-16-02T07:59:32.492400+00:00'),
-            # 1969-12-31T19:00:00+00:00Z -> 1969-12-31T14:00:00-05:00 ->
-            # 19:00 - 05:00 = 14:00 -> Sunset = 16:00 - 14:00 = 02:00 ->
-            # 24:00 - 02:00 = 22:00 -> 0126-16-01T22:00:00.0-05:00
-            (-18000, False, tz1, True, '0126-16-01T20:48:41.256000+00:00'),
-            # Latitude and Longitude dependent
-            # Assume local time as starting point.
-            # 1969-12-31T14:00:00+03:30 -> Sunset = 17:01
-            # 17:01 - 14:00 = 03:01 -> 24:00 - 03:01 = 20:59
-            (-18000, False, tz0, True, '0126-16-01T20:48:41.256000+03:30'),
-            (-18000, False, datetime.BADI, True,
-             '0126-16-01T20:48:41.256000+03:30'),
-            # Assume UTC as starting point.
-            # 1970-01-01T00:00:00+03:30 -> Sunset = 17:02
-            # 17:02 - 00:00 = 17:02 -> 24:00 - 17:02 = 06:58
-            (0, True, tz0, True, '0126-16-02T07:59:32.492400+03:30'),
-            # Latitude and Longitude dependent
-            # Assume local time as starting point.
-            # 1969-12-31T14:00:00-05:00 -> Sunset = 17:12
-            # 17:12 - 14:00 = 03:12 -> 24:00 - 03:12 = 20:48
-            (-18000, False, tz2, True, '0126-16-01T20:48:41.256000-05:00'),
+            (0, tz1, True, '0126-16-02T07:59:32.492400+00:00'),
+            (0, datetime.UTC, True, '0126-16-02T07:59:32.492400+00:00'),
+            # 1969-12-31T19:00:00+00:00Z ->
+            # Sunset = 16:00 -> 19:00 - 16:00 = 03:00
+            (-18000, tz1, True, '0126-16-02T02:59:32.492400+00:00'),
+            # 1969-12-31T19:00:00Z -> 1969-12-31T22:30:00:00+03:30 ->
+            # Sunset = 17:01 -> 22:30 - 17:01 = 05:29
+            (-18000, tz0, True, '0126-16-02T05:28:46.142400+03:30'),
+            (-18000, datetime.BADI, True, '0126-16-02T05:28:46.142400+03:30'),
+            # 1970-01-01T00:00:00Z -> 1970-01-01T03:30:00+03:30
+            # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59
+            # 06:59 + 03:30 = 10:29
+            (0, tz0, True, '0126-16-02T10:28:46.142400+03:30'),
+            # 1969-12-31T19:00:00 -> 1969-12-31T14:00:00-05:00 ->
+            # Sunset = 17:12 -> 24:00 - 17:12 = 06:48 -> 06:48 + 14:00 = 20:48
+            (-18000, tz2, True, '0126-16-01T20:48:41.256000-05:00'),
             )
-        msg = ("Expected {} with timestamp {}, utc {}, timezone {}, "
-               "and short {}, found {}.")
+        msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
+               "found {}.")
 
-        for t, utc, tz, short, expected_result in data:
-            result = datetime.datetime._fromtimestamp(t, utc, tz, short=short)
+        for t, tz, short, expected_result in data:
+            result = datetime.datetime._fromtimestamp(t, tz, short=short)
             self.assertEqual(expected_result, str(result), msg.format(
-                expected_result, t, utc, tz, short, result))
+                expected_result, t, tz, short, result))
 
     #@unittest.skip("Temporarily skipped")
     @patch.object(datetime, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
     def test_fromtimestamp(self):
         """
         Test that the fromtimestamp classmethod creates a correct instance
-        of datetime.
+        of datetime with a -5.0 time zone.
 
         .. note::
 
            The tests marked 'Latitude and Longitude dependent' will break
-           if datetime.LOCAL_COORD is not patched.
+           if datetime.LOCAL_COORD is not patched when run in a different
+           locale.
         """
-        tz0 = ZoneInfo(datetime.BADI_IANA)
-        tz1 = ZoneInfo('UTC')
-        tz2 = ZoneInfo('US/Eastern')
+        tz = ZoneInfo(datetime.BADI_IANA)
+        tz0 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.BADI_COORD)
+        tz = ZoneInfo('UTC')
+        tz1 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.GMT_COORD)
+        tz = ZoneInfo('US/Eastern')
+        tz2 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.LOCAL_COORD)
         data = (
-            # Latitude and Longitude dependent
-            # Assume local time as starting point.
-            # 1970-01-01 -> Badi date and time of to naive local time.
-            # Should be 0126-16-02T03:00:30.6684
+            # 1970-01-01T00:00:00Z -> 1969-12-31T19:00:00-05:00
+            # Sunset = 17:12 -> 19:00 - 17:12 = 01:48
             (0, None, True, '0126-16-02T01:47:57.141600'),
-            # Assume UTC as starting point.
-            # 1970-01-01 -> Badi date and time relative to UTC
+            # 1970-01-01T00:00:00Z ->
+            # Sunset = 16:00 -> 24:00 - 16:00 = 08:00
             (0, tz1, True, '0126-16-02T07:59:32.492400+00:00'),
-            # Assume UTC as starting point.
-            # 1970-01-01 -> Badi date and time relative to +03:30
-            # Should be 0126-16-02T11:59:32.488800+03:30
-            (0, tz0, True, '0126-16-02T07:59:32.492400+03:30'),
-            # Local time (2024, 11, 30, 20, 24, 13, 327577)
-            # There is a problem with the two results below, both should be
-            # the same. Checked with tz is correct. This could be that only
-            # God knows what coordinates are used for IANA time zones to
+            # 1970-01-01T00:00:00Z
+            (0, tz0, True, '0126-16-02T10:28:46.142400+03:30'),
+            # 2024-11-30T20:24:13.327577-05:00
             # arrive at the correct time. Off by 03:54:10.915200 hrs.
-            # Latitude and Longitude dependent
             (1733016253.327577, None, True, '0181-14-10T03:22:10.081200'),
-            (1733016253.327577, tz2, True, '0181-14-10T09:29:18.488400-05:00'),
+            (1733016253.327577, tz2, True, '0181-14-10T03:22:10.081200-05:00'),
             # Some long form datetimes.
-            # Latitude and Longitude dependent
             (0, None, False, '01-07-12-16-02T01:47:57.141600'),
             (0, tz1, False, '01-07-12-16-02T07:59:32.492400+00:00'),
-            (0, tz0, False, '01-07-12-16-02T07:59:32.492400+03:30'),
+            (0, tz0, False, '01-07-12-16-02T10:28:46.142400+03:30'),
             )
         msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
                "found {}.")
@@ -2732,7 +2739,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         Test that the timetuple method returns either a short or long form
         timetuple.
         """
-        tz0 = ZoneInfo('US/Eastern')
+        tz = ZoneInfo('US/Eastern')
+        tz0 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.LOCAL_COORD)
         data = (
             ((181, 13, 9, None, None, 12, 30, 30), None, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
@@ -2745,11 +2753,11 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             ((181, 13, 9, None, None, 12, 30, 30), datetime.BADI, 0,
              'structures.ShortFormStruct(tm_year=181, tm_mon=13, tm_mday=9, '
              'tm_hour=12, tm_min=30, tm_sec=30, tm_wday=1, tm_yday=237, '
-             'tm_isdst=-1)'),
+             'tm_isdst=0)'),
             ((1, 10, 10, 13, 9, 12, 30, 30), datetime.BADI, 0,
              'structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, '
              'tm_year=10, tm_mon=13, tm_mday=9, tm_hour=12, tm_min=30, '
-             'tm_sec=30, tm_wday=1, tm_yday=237, tm_isdst=-1)'),
+             'tm_sec=30, tm_wday=1, tm_yday=237, tm_isdst=0)'),
             ((181, 2, 1), tz0, 0, 'structures.ShortFormStruct(tm_year=181, '
              'tm_mon=2, tm_mday=1, tm_hour=0, tm_min=0, tm_sec=0, tm_wday=1, '
              'tm_yday=20, tm_isdst=1)'),
@@ -2898,29 +2906,29 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # 2460387.262245 = sunset on 0181-01-01T00:00:00+03:30
             # 0.3125 = T07:30:00
             # 0.550255 = 0.5 - 0.262245 + 0.3125 = T13:12:22.032
-            ((181, 1, 1), tz0, 0, 1710851369.3316),
-            # 2024-03-19T18:15:57.312+00:00 -> 1710886557
-            # 0181-01-01T00:00:00+00:00
-            ((181, 1, 1), tz1, 0, 1710863969.3316),
+            ((181, 1, 1), tz0, 0, 1710851427.5076),
+            # 2024-03-19T18:15:57.312Z -> 1710886557
+            # 0181-01-01T00:00:00Z
+            ((181, 1, 1), tz1, 0, 1710864027.5076),
             # 2024-03-19T18:15:57.312-04:00
             # 0181-01-01T00:00:00-04:00
-            ((181, 1, 1), tz2, 0, 1710878369.3316),
+            ((181, 1, 1), tz2, 0, 1710878427.5076),
             # POSIX epoch
-            # 0126-16-02T08:00:30.6684+00:00 -> 0126-16-02T11:30:30.6684+03:30
-            ((126, 16, 2, None, None, 11, 30, 30.6684), tz0, 0, 0.0),
-            # 0126-16-02T08:00:30.6684+00:00
-            ((126, 16, 2, None, None, 8, 0, 30.6684), tz1, 0, 0.0),
-            # 0126-16-02T08:00:30.6684+00:00
-            ((126, 16, 2, None, None, 8, 0, 30.6684), datetime.UTC, 0, 0.0),
-            # 0126-16-02T08:00:30.6684+00:00 ->  0126-16-02T03:00:30.6684-05:00
-            ((126, 16, 2, None, None, 3, 0, 30.6684), tz2, 0, 0.0),
+            # 0126-16-02T07:59:32.4924Z -> 0126-16-02T11:29:32.4924+03:30
+            ((126, 16, 2, None, None, 11, 29, 32.4924), tz0, 0, 0.0),
+            # 0126-16-02T07:59:32.4924Z
+            ((126, 16, 2, None, None, 7, 59, 32.4924), tz1, 0, 0.0),
+            # 0126-16-02T07:59:32.4924Z
+            ((126, 16, 2, None, None, 7, 59, 32.4924), datetime.UTC, 0, 0.0),
+            # 0126-16-02T07:59:32.4924Z ->  0126-16-02T02:59:32.4924-05:00
+            ((126, 16, 2, None, None, 2, 59, 32.4924), tz2, 0, 0.0),
             # Local dates and times
-            # 0181-16-02T08:00:00+00:00 -> 2024-12-30T14:00:01.8648-05:00 ->
-            # 2024-12-30T19:00:01.8648 -> 1735585201 (31.6684 seconds off)
-            ((181, 16, 2, None, None, 3), tz1, 0, 1735585169.3316),
-            # 0181-16-02T08:00:00-00:00 -> 0181-16-02T03:00:00-05:00
+            # 0181-16-02T08:00:00Z -> 2024-12-30T14:00:01.8648-05:00 ->
+            # 2024-12-30T19:00:01.8648 -> 1735585201 (26.5076 seconds off)
+            ((181, 16, 2, None, None, 3), tz1, 0, 1735585227.5076),
+            # 0181-16-02T08:00:00Z -> 0181-16-02T03:00:00-05:00
             # 2024-12-30T20:11:58.2504-05:00 -> 1735607518 (1.2079634 hrs off)
-            ((181, 16, 2, None, None, 3), tz2, 0, 1735603169.3316),
+            ((181, 16, 2, None, None, 3), tz2, 0, 1735603227.5076),
             # 1735607518 (4.99526331 hrs off)
             ((181, 16, 2, None, None, 3), None, 0, 1735607500.9440825),
             )
@@ -3374,7 +3382,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         data = (
             ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0,
-             'UTC+03:30'),
+             'Asia/Tehran'),
             ((181, 1, 1, None, None, 12, 30, 30), datetime.UTC, 0, 'UTC'),
             )
         msg = "Expected {} with date {}, timezone {}, and fold {}, found {}."
@@ -4294,6 +4302,41 @@ class TestBadiDatetime_timezone(unittest.TestCase):
                     expected_result, offset, name, date, tz1, result))
 
     #@unittest.skip("Temporarily skipped")
+    def test_fromutc(self):
+        """
+        Test that the fromutc method correctly returns an updated dateime
+        object.
+        """
+        err_msg0 = "fromutc: dt.tzinfo is not self"
+        err_msg1 = "fromutc() argument must be a datetime instance or None"
+        offset0 = datetime.timedelta(hours=datetime.BADI_COORD[2])
+        data = (
+            ((1, 1, 1), offset0, datetime.BADI_IANA, False,
+             '0001-01-01T03:30:00+03:30'),
+            ((1, 1, 1), offset0, '', True, err_msg0),
+            ((1, 1, 1), offset0, 'INVALID', True, err_msg1),
+            )
+        msg = "Expected {} with date {}, offset {}, and name {}, found {}."
+
+        for date, offset, name, validity, expected_result in data:
+            tz = datetime.timezone(offset, name)
+
+            if validity:
+                dt = datetime.datetime(*date) if name == '' else None
+
+                try:
+                    tz.fromutc(dt)
+                except (TypeError, ValueError) as e:
+                    self.assertEqual(expected_result, str(e))
+            else:
+                dt = datetime.datetime(*date, tzinfo=tz)
+                result = str(tz.fromutc(dt))
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, offset, name, result))
+
+
+
+    #@unittest.skip("Temporarily skipped")
     def test__name_from_offset(self):
         """
         Test that the _name_from_offset returns a string indicating the
@@ -4364,3 +4407,115 @@ class TestBadiDatetime_timezone(unittest.TestCase):
             result = hash(tz)
             self.assertTrue(len(str(result)) > 15, msg.format(
                 offset, name, result))
+
+
+class TestBadiDatetime_TZWithCoords(unittest.TestCase):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    #@unittest.skip("Temporarily skipped")
+    def test___new__(self):
+        """
+        Test that the __new__ method returns a valid TZWithCoords object.
+        """
+        data = (
+            (datetime.BADI_COORD, None, '35.69435, 51.288701, 3.5'),
+            (datetime.BADI_COORD, 'Asia/Tehran',
+             '35.69435, 51.288701, 3.5, Asia/Tehran'),
+            )
+        msg = "Expected {} with coords {} and key {}, found {}."
+
+        for coords, key, expected_result in data:
+            result = str(datetime.TZWithCoords(*coords, key=key))
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, coords, key, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_coordinates(self):
+        """
+        Test that the coordinates property returns the coordinates.
+        """
+        data = (
+            (datetime.BADI_COORD, 'Asia/Tehran', (35.69435, 51.288701, 3.5)),
+            )
+        msg = "Expected {} with coords {} and key {}, found {}."
+
+        for coords, key, expected_result in data:
+            tz = datetime.TZWithCoords(*coords, key=key)
+            result = tz.coordinates
+            self.assertEqual(expected_result, result, msg.format(
+                expected_result, coords, key, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_dst(self):
+        """
+        Test that the dst method returns the dst (daylight-savings-time).
+        """
+        zi0 = ZoneInfo(datetime.BADI_IANA)
+        zi1 = ZoneInfo('US/Eastern')
+        data = (
+            ((1, 1, 1), None, datetime.BADI_COORD, True, '0:00:00'),
+            ((1, 1, 1), zi0, datetime.BADI_COORD, True, '0:00:00'),
+            ((182, 4, 3), zi1, (35.5894, -78.7792, -4.0), True, '1:00:00'),
+            ((182, 4, 3), zi1, (35.5894, -78.7792, -4.0), False, '0:00:00'),
+            )
+        msg = "Expected {} with date {}, zoneinfo {}, and coords {}, found {}."
+
+        for date, zi, coords, with_dt, expected_result in data:
+            if zi:
+                if with_dt:
+                    tz = datetime.TZWithCoords.fromzoneinfo(zi, *coords)
+                    dt = datetime.datetime(*date, tzinfo=tz)
+                    result = str(tz.dst(dt))
+                    self.assertEqual(expected_result, result, msg.format(
+                        expected_result, date, str(zi), coords, result))
+                else:
+                    tz = datetime.TZWithCoords.fromzoneinfo(zi, *coords)
+                    result = str(tz.dst())
+                    self.assertEqual(expected_result, result, msg.format(
+                        expected_result, date, str(zi), coords, result))
+            else:
+                tz = datetime.TZWithCoords(*coords)
+                dt = datetime.datetime(*date, tzinfo=tz)
+                result = str(tz.dst(dt))
+                self.assertEqual(expected_result, result, msg.format(
+                    expected_result, date, str(zi), coords, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___str__(self):
+        """
+        Test that the __str__ method return the correct string.
+        """
+        data = (
+            (datetime.BADI_COORD, None, '35.69435, 51.288701, 3.5'),
+            (datetime.BADI_COORD, datetime.BADI_IANA,
+             '35.69435, 51.288701, 3.5, Asia/Tehran'),
+            )
+        msg = "Expected {} with coords {} and key {}, found {}."
+
+        for coords, key, expected_result in data:
+            result = datetime.TZWithCoords(*coords, key=key)
+            self.assertEqual(expected_result, str(result), msg.format(
+                expected_result, coords, key, result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test___reduce__(self):
+        """
+        Test that the __reduce__ method returns a correct pickle object.
+        """
+        data = (
+            (datetime.BADI_COORD, None),
+            (datetime.BADI_COORD, datetime.BADI_IANA),
+            )
+        msg = "Expected {} with coords {} and key {}, found {}."
+
+        for coords, key in data:
+            tz = datetime.TZWithCoords(*coords, key=key)
+            dt = datetime.datetime(1, 1, 1, tzinfo=tz)
+            obj = pickle.dumps(tz)
+            tz_new = pickle.loads(obj)
+            data0 = (tz.key, tz.coordinates, tz.dst(dt))
+            data1 = (tz_new.key, tz_new.coordinates, tz_new.dst(dt))
+            self.assertEqual(data0, data1, msg.format(
+                data0, coords, key, data1))

@@ -42,6 +42,7 @@ class TestBadiCalendar(unittest.TestCase):
         data = (
             # Should be 1844-03-19T18:16:00
             ((1, 1, 1), epoch_coords, (18, 15, 45.9792)),
+            ((1, 1, 1), (None, None, None), (18, 15, 45.9792)),
             # Should be 2024-03-19T18:13:00
             ((180, 19, 19), epoch_coords, (18, 15, 6.0012)),
             # Should be 2064-03-19T18:16:00
@@ -651,6 +652,8 @@ class TestBadiCalendar(unittest.TestCase):
             # 0001-01-01T00:00:00+03:30 -> 1844-03-19T18:16:36.0048
             ((1, 1, 1), epoch_coords, True, True,
              (1844, 3, 19, 18, 15, 45, 979200)),
+            ((1, 1, 1), (None, None, None), True, True,
+             (1844, 3, 19, 18, 15, 45, 979200)),
             # 1970-01-01T00:00:00Z -> 1970-01-01T03:30:00+03:30
             # Sunset day before = 16:00 -> 24:00 - 16:00 = 08:00 ->
             # 08:00 + 03:30 = 11:30
@@ -799,21 +802,21 @@ class TestBadiCalendar(unittest.TestCase):
             ((126, 16, 2, 7, 59, 31, 491600), gmt_coords, -1.000437140465),
             # 1970-01-01T00:00:00Z -> 1969-12-31T19:00:00-05:00
             # Sunset 17:12 -> 19:00 - 17:12 = 01:48 -> 18000
-            ((126, 16, 2, 1, 47, 57.1416), local_coords, 17999.99920874834),
+            ((126, 16, 2, 1, 47, 57.1416), local_coords, -0.000804662704),
             # 1970-01-01T00:00:00Z -> approximately 0.0
             ((126, 16, 2, 8), gmt_coords, 27.507957816124),
             # 1969:12:31T20:30:00Z -> 1970-01-01T00:00:00+03:30
             # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59 ->
             # 06:59 + 00:00 = 06:59 -> -25200
-            ((126, 16, 2, 6, 58, 46.1424), epoch_coords, -25199.99910145998),
+            ((126, 16, 2, 6, 58, 46.1424), epoch_coords, -12599.999088048935),
             # 1970-01-01T00:00:00Z -> 1970-01-01T03:30:00+03:30
             # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59 ->
             # 06:59 + 03:30 = 10:29 -> approximately -12600
-            ((126, 16, 2, 10, 29), epoch_coords, -12586.141508817673),
+            ((126, 16, 2, 10, 29), epoch_coords, 13.858504593372),
             # 1970-01-01T00:00:00Z -> 1969-12-31T19:00:00-05:00
             # Sunset day before = 17:12 -> 19:00 - 17:12 = 01:48 ->
             # approximately 18000
-            ((126, 16, 2, 1, 48), local_coords, 18002.85761207342),
+            ((126, 16, 2, 1, 48), local_coords, 2.857598662376),
             )
         msg = "Expected {} for date {} and coords {}, found {}."
 
@@ -1201,34 +1204,4 @@ class TestBadiCalendar(unittest.TestCase):
         for jd, coords, expected_results in data:
             result = self._bc._utc_to_badi_time(jd, *coords)
             self.assertEqual(expected_results, result, msg.format(
-                expected_results, jd, coords, result))
-
-    @unittest.skip("Temporarily skipped")
-    def test__badi_to_utc_time(self):
-        """
-        Test that the _badi_to_utc_time method converts a Badi time to a
-        UTC time.
-        """
-        epoch_coords = self._bc._BAHAI_LOCATION[:3]
-        gmt_coords = (51.477928, -0.001545, 0.0)
-        data = (
-            # _POSIX_EPOCH = 2440585.5
-            (2440585.4366451525, epoch_coords, 2440585.5),
-            # Result should be = 2461118.261957752
-            (2461120.144556947, epoch_coords, 2461118.261957752),
-            # 0183-01-01T01:45:1.9188 -> 2026-03-20T14:24:00+00:00
-            # Result should be = 2461118.1  (2461118.6011763965 wrong)
-            (2461117.8421236128, gmt_coords, 2461118.1),
-            # Test min and max margins for both the SAME-DAY and
-            # PREVIOUS-DAY branchs.
-            (2394643.002940494, epoch_coords, 2394642.9692),  # Above min
-            (2394642.997965365, epoch_coords, 2394642.9693),  # Below max
-            (2394643.236273494, epoch_coords, 2394643.8541),  # Below max
-            (2394643.241828494, epoch_coords, 2394643.8542),  # Above max
-            )
-        msg = "Expected {} for JD {} and coordinantes {}, found {}."
-
-        for jd, coords, expected_results in data:
-            result = self._bc._badi_to_utc_time(jd, *coords)
-            self.assertEqual(result, expected_results, msg.format(
                 expected_results, jd, coords, result))

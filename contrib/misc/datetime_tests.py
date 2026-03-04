@@ -89,9 +89,10 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
     TIMESTAMP_DATES = (
         # Sunset on day
         (1, 3, 19),
-        (1843, 3, 20),
         (1844, 3, 19),
+        (1930, 11, 15),
         (1970, 1, 1),
+        (1970, 1, 2),
         (2025, 3, 19),
         (2026, 1, 16),
         )
@@ -189,56 +190,33 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
 
         -c with -A, -O, -Z, and -M
         """
-        def get_gregorian_datetime(jd: float, delta_minute: int):
-            """
-            :param float jd: The jd is in historical algorithm.
-            :param int delta_minute: A positive or negative number indicating
-                                     minutes.
-            :returns: The Gregorian date, timestamp, and astronomical JD.
-            :rtype: tuple
-            """
-            jd += delta_minute * 0.00069444444444444444
-            date = self.gc.gregorian_date_from_jd(jd, hms=True, us=True)
-            ts = dtime.datetime(*date, tzinfo=g_tz).timestamp()
-            return date, ts, self._exact_from_meeus(jd)
-
-        data = []
         lat = options.latitude
         lon = options.longitude
         zone = options.zone
-        g_tz = dtime.timezone(dtime.timedelta(hours=zone))
-        b_tz = timezone(timedelta(hours=zone))
         # Get min and max minutes.
         mins = options.minutes // 2
-        min = - mins
-        max = + mins + 1
+        min_delta = - mins
+        max_delta = + mins + 1
+        data = []
 
         with patch.object(badidt, 'LOCAL_COORD', (lat, lon, zone)):
-            for date in self.TIMESTAMP_DATES:
-                # Get JD, sunset and Gregorian date and time
-                jd = self.gc.jd_from_gregorian_date(date)
-                hist_ss = self._sun_setting(jd, lat, lon)
-                local_ss = self._local_zone_correction(hist_ss, zone,
-                                                       mod_jd=True)
-                g_date, g_ts, _ = get_gregorian_datetime(local_ss, 0)
-                astro_ss = self._exact_from_meeus(local_ss)
-                # Get the timestamps and diff
-                b_dt = datetime.fromtimestamp(g_ts, b_tz)
-                b_ts = b_dt.timestamp()
-                ss_ts_diff = g_ts - b_ts
-                ss_items = (g_date, g_ts, b_ts, ss_ts_diff, astro_ss)
+            for g_date in self.TIMESTAMP_DATES:
+                hist_jd = self.gc.jd_from_gregorian_date(g_date)
+                hist_ss = self._sun_setting(hist_jd, lat, lon)
+                astro_ss = self._exact_from_meeus(hist_ss)
+                ss_ts = (astro_ss - self._POSIX_EPOCH) * self._SECONDS_PER_DAY
+                ss_items = (g_date, astro_ss, ss_ts)
                 items = []
 
-                for delta in range(min, max):
-                    _, g_ts, astro_jd = get_gregorian_datetime(hist_ss, delta)
-                    b_dt = datetime.fromtimestamp(g_ts, b_tz)
-                    nb_ts = b_dt.timestamp()
-                    b_date = (b_dt.year, b_dt.month, b_dt.day, b_dt.hour,
-                              b_dt.minute, b_dt.second)
-                    today = badi_date.fromtimestamp(nb_ts, short=True)
-                    tz_diff = g_ts - nb_ts
-                    items.append((b_date[:6], today, astro_jd, nb_ts,
-                                  tz_diff))
+                for delta in range(min_delta, max_delta):
+                    test_jd = astro_ss + (delta / 1440.0)
+                    ts = (test_jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY
+                    #ts += 1 if g_date > (1970, 1, 1) else 0
+                    today = badi_date.fromtimestamp(ts, short=True)
+                    items.append((delta, test_jd, ts, today))
+
+                    #diff_seconds = (test_jd - astro_ss) * 86400
+                    #print(diff_seconds)
 
                 data.append((ss_items, items))
 
@@ -391,6 +369,14 @@ def fmt_float(value, left=4, right=4):
     return f"{left_part.rjust(left)}.{right_part.ljust(right)}"
 
 
+def find_elapse_time(start_time):
+    end_time = time.time()
+    days, hours, minutes, seconds = dt._dhms_from_seconds(
+        end_time - start_time)
+    print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+          f"{round(seconds, 6):02.6} seconds.")
+
+
 if __name__ == "__main__":
     import time
     import argparse
@@ -533,55 +519,42 @@ if __name__ == "__main__":
              for date, jd, ord, offending_date, diff0, diff1 in errors]
             print('-' * 86)
 
-        end_time = time.time()
-        days, hours, minutes, seconds = dt._dhms_from_seconds(
-            end_time - start_time)
-        print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
-              f"{round(seconds, 6):02.6} seconds.")
+        find_elapse_time(start_time)
     elif options.analyze2:  # -c
         delta = options.minutes
         assert delta < 119, ("The minutes option cannot be more that 118, "
                              f"found {delta}.")
         start_time = time.time()
-        underline_length = 196
+        underline_length = 114
         print(f"./contrib/misc/{basename} -cA {options.latitude} "
               f"-O {options.longitude} -Z {options.zone} -M {delta}")
         print('-' * underline_length)
-        print("Gregorian Date", ' ' * 19, "Gregorian TS   Badí' Sunset TS   "
-              "SS TS Diff   Astro Sunset JD    Badí' Date", ' ' * 21,
-              "Today       Astro JD", ' ' * 9, "Badí' Date (TS)   "
-              "Offset Greg TS")
+        print("Gregorian Date Astro Sunset JD    Badí' Timestamp   "
+              "Minute Offset Astro JD           Day Timestamp     Today")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
 
         for ss_items, items in data:
-            g_date, ss_g_ts, ss_b_ts, ss_ts_diff, local_ajd = ss_items
-            print(f"{str(g_date):34} "
-                  f"{fmt_float(ss_g_ts, 12, 1)} "
-                  f"{fmt_float(ss_b_ts, 12, 4)} "
-                  f"{fmt_float(ss_ts_diff, 7, 4)} "
-                  f"{fmt_float(local_ajd, 7, 10)} ",
+            g_date, astro_ss, ss_ts = ss_items
+            print(f"{str(g_date):14} "
+                  f"{fmt_float(astro_ss, 7, 10)} "
+                  f"{fmt_float(ss_ts, 12, 4)} ",
                   end='')
             items_len = len(items)
 
-            for idx, (b_date, today, jd0, b_ts, ts_diff) in enumerate(items):
-                print(f"{str(b_date):<32} "
+            for idx, (delta, test_jd, ts, today) in enumerate(items):
+                print(f"{delta:>2}            "
+                      f"{fmt_float(test_jd, 7, 10)} "
+                      f"{fmt_float(ts, 12, 4)} "
                       f"{str(today):>11} "
-                      f"{fmt_float(jd0, 7, 10)} "
-                      f"{fmt_float(b_ts, 12, 4)} "
-                      f"{fmt_float(ts_diff, 7, 4)}"
                       )
 
                 if idx < items_len - 1:
-                    print(" " * 100, end='')
+                    print(" " * 52, end='')
 
             print('-' * underline_length)
 
-        end_time = time.time()
-        days, hours, minutes, seconds = dt._dhms_from_seconds(
-            end_time - start_time)
-        print(f"Elapsed time: {hours:02} hours, {minutes:02} minutes, "
-              f"{round(seconds, 6):02.6} seconds.")
+        find_elapse_time(start_time)
     elif options.date:  # -d
         if None in (options.start, options.end):
             print("If option -d is used, -S and -E must also be used.",
@@ -617,11 +590,7 @@ if __name__ == "__main__":
                    ) for (date, b_date0, b_date1, b_date2,
                           b_date3, diff0, diff1) in data]
             print('-' * underline_length)
-            end_time = time.time()
-            days, hours, minutes, seconds = dt._dhms_from_seconds(
-                end_time - start_time)
-            print(f"Elapsed time: {hours:02} hours, {minutes:02} minutes, "
-                f"{round(seconds, 6):02.6} seconds.")
+            find_elapse_time(start_time)
     elif options.ordinal:  # -o
         if options.start is None or options.end is None:
             print("If option -o is used, -S and -E must also be used.",
@@ -664,11 +633,7 @@ if __name__ == "__main__":
             print(f"    Total Years Tested: {options.end - options.start}")
             errors = [l[4] is True for l in data].count(True)
             print(f"Total Number of Errors: {errors}")
-            end_time = time.time()
-            days, hours, minutes, seconds = dt._dhms_from_seconds(
-                end_time - start_time)
-            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
-                f"{round(seconds, 6):02.6} seconds.")
+            find_elapse_time(start_time)
     elif options.analyze3:  # -t
         if options.start is None or options.end is None:
             # Set default Gregorian years.
@@ -721,11 +686,7 @@ if __name__ == "__main__":
         print(f"Total Timestamp positive deviations:  {deviation['p']}")
         print(f"Maximum positive deviation (seconds): {deviation['max_p']}")
         print(f"Mean deviation (seconds):             {mean_deviation}")
-        end_time = time.time()
-        days, hours, minutes, seconds = dt._dhms_from_seconds(
-            end_time - start_time)
-        print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
-              f"{round(seconds, 6):02.6} seconds.")
+        find_elapse_time(start_time)
     else:
         parser.print_help()
 

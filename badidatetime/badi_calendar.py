@@ -792,55 +792,32 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: The JD with the correct Badí' time.
         :rtype: float
         """
-        hist_jd = self._meeus_from_exact(jd)
-        # Sunset for the Meeus day
-        ss = self._sun_setting(hist_jd, lat, lon)
-        astro_ss = self._exact_from_meeus(ss)
+        def get_sunset(hist_jd, inc):
+            ss = self._sun_setting(hist_jd + inc, lat, lon)
+            return self._exact_from_meeus(ss)
 
-        # Ensure we subtract the most recent sunset
-        if astro_ss > jd:
-            ss = self._sun_setting(hist_jd - 1, lat, lon)
-            astro_ss = self._exact_from_meeus(ss)
+        hist_jd = self._meeus_from_exact(jd)
+        ss_prev = get_sunset(hist_jd, -1)
+        ss_curr = get_sunset(hist_jd, 0)
+        ss_next = get_sunset(hist_jd, 1)
+
+        if jd >= ss_curr:
+            astro_ss = ss_curr
+        elif jd >= ss_prev:
+            astro_ss = ss_prev
+        else:  # pragma: no cover
+            astro_ss = ss_next
 
         # Elapsed fraction since sunset
         frac = jd - astro_ss
 
-        while frac < 0:
+        while frac < 0:  # pragma: no cover
             frac += 1
 
         while frac >= 1:
             frac -= 1
 
         return astro_ss, frac
-
-    def _badi_to_utc_time(self, bjd: float, lat: float, lon: float, zone: float
-                          ) -> float:
-        """
-        Convert Badí' time to UTC time.
-
-        :param float bjd: An Astronomically correct UT JD.
-        :param float lat: The latitude.
-        :param float lon: The longitude.
-        :param float zone: The standard time zone.
-        :returns: The JD with the correct UTC time.
-        :rtype: float
-        """
-        jd0, jd_frac = divmod(bjd, 1)
-        jd1 = self._meeus_from_exact(bjd)
-        # Try same-day sunset
-        ss = self._sun_setting(jd1, lat, lon)
-        frac = jd_frac + ss % 1
-        frac -= 1 if frac >= 1 else 0
-        jd_try = jd0 + frac - self._HR(zone)
-        test_jd = self._utc_to_badi_time(jd_try, lat, lon)
-
-        if not abs(test_jd - bjd) < 1e-10:
-            # Must be previous-day sunset
-            ss = self._sun_setting(jd1 - 1, lat, lon)
-            frac = jd_frac + ss % 1 - 0.5
-            jd_try = jd0 + frac - self._HR(zone)
-
-        return jd_try
 
     def _build_badi_year_start(self):
         year_start = {}

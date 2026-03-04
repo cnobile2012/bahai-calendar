@@ -5,14 +5,15 @@
 __docformat__ = "restructuredtext en"
 
 __all__ = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
-           'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
-           'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL', 'MONTHNAMES',
+           'TZWithCoords', 'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD',
+           'GMT_COORD', 'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL', 'MONTHNAMES',
            'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
 import sys
 import time as _time
 import math as _math
 from datetime import timedelta, tzinfo
+from zoneinfo import ZoneInfo
 from types import NoneType
 
 from .badi_calendar import BahaiCalendar
@@ -226,7 +227,7 @@ def _module_name(module: str) -> str:
 
 class date(BahaiCalendar):
     """
-    Implements the date object for the Badi datetime package.
+    Implements the date object for the Badí' datetime package.
     """
     __slots__ = ('_kull_i_shay', '_vahid', '_year', '_month', '_day',
                  '_hashcode', '__date', '__short')
@@ -260,7 +261,7 @@ class date(BahaiCalendar):
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
             date_len = len(b_date)
             assert date_len in (3, 5), (
-                "A full short or long form Badi date must be used, found "
+                "A full short or long form Badí' date must be used, found "
                 f"{date_len} fields.")
             self = object.__new__(cls)
 
@@ -321,7 +322,7 @@ class date(BahaiCalendar):
     @classmethod
     def fromordinal(cls, n: int, *, short: bool=True) -> object:
         """
-        Construct a date from a proleptic Badi ordinal.
+        Construct a date from a proleptic Badí' ordinal.
 
         Bahá 1 of year 1 is day 1. Only the year, month and day are
         non-zero in the result.
@@ -340,7 +341,7 @@ class date(BahaiCalendar):
     def fromisoformat(cls, date_string: str, *, short: bool=True) -> object:
         """
         Construct a date from a string in ISO 8601 format.
-        We only can convert from short form Badi dates.
+        We only can convert from short form Badí' dates.
 
         :param str date_string: A string representing the date.
         :param bool short: If True (default) the short form date is returned
@@ -382,9 +383,9 @@ class date(BahaiCalendar):
 
         This is the inverse of the date.isocalendar() function.
 
-        :param int year: The Badi year.
+        :param int year: The Badí' year.
         :param int week: The number of the week in the year.
-        :param int day: Badi day in week.
+        :param int day: Badí' day in week.
         :param bool short: If True (default) the short form date is returned
                            else False the long form date is returned.
         :returns: The date instance.
@@ -423,7 +424,7 @@ class date(BahaiCalendar):
 
     def _short_from_long_form(self, time: tuple=()) -> tuple:
         """
-        Convert the long form Badi date to a short form Badi date and add
+        Convert the long form Badí' date to a short form Badí' date and add
         the time if it exists.
 
         :param tuple time: A tuple representing the time. This is used by the
@@ -442,7 +443,7 @@ class date(BahaiCalendar):
 
     def ctime(self) -> str:
         """
-        Return ctime() style string in the short form Badi date.
+        Return ctime() style string in the short form Badí' date.
 
         :returns: A string representing the weekday, month name, and year.
         :rtype: str
@@ -881,7 +882,7 @@ class date(BahaiCalendar):
 
            ISO calendar algorithm taken from
            http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
-           modified for the Badi Calendar.
+           modified for the Badí' Calendar.
         """
         y, m, d = self._short_from_long_form()[:3]
         year, week, day = _td_utils._year_week_day(y, m, d)
@@ -898,7 +899,7 @@ class date(BahaiCalendar):
         :type a: int, str, or bytes
         :param b: None, Váḥid, or month
         :type b: NoneType or int
-        :returns: A Boolean if a short or long Badi date derived from pickle
+        :returns: A Boolean if a short or long Badí' date derived from pickle
                   data. A None can be returned if a and b are real date
                   information.
         :rtype: bool or NoneType
@@ -1632,7 +1633,7 @@ class datetime(date):
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
             date_len = len(b_date)
             assert date_len in (3, 5), (
-                "A full short or long form Badi date must be used, found "
+                "A full short or long form Badí' date must be used, found "
                 f"{date_len} fields.")
             self = object.__new__(cls)
             super().__init__(self)
@@ -1803,9 +1804,19 @@ class datetime(date):
         return self.__short
 
     @classmethod
-    def _fromtimestamp(cls, t, utc, tz, *, short=True):
+    def _fromtimestamp(cls, t, tz, *, short=True):
         """
         Construct a datetime from a POSIX timestamp (like time.time()).
+
+        .. note::
+
+           Without an internet connection, geographic coordinates cannot be
+           looked up by human-friendly location or timezone only. In that case,
+           the calendar will compute sunset and Badíʿ dates using the
+           configured default coordinates (e.g., Tehran). Timezone information
+           alone cannot be reliably mapped to geographic location. This
+           fallback may cause different local Badíʿ days than expected for
+           other regions.
 
         :param float t: POSIX timestamp.
         :param bool utc: If True then the result is relative to UTC time else
@@ -1817,48 +1828,28 @@ class datetime(date):
                   POSIX timestamp.
         :rtype: datetime.datetime
         """
-        def _fix_short_date(date, short):
+        def _fix_short_date(date, short=True):
             return date[:3] + (None, None) + date[3:] if short else date
 
         bc = BahaiCalendar()
-        coords = GMT_COORD if utc else LOCAL_COORD
-        b_date = bc.badi_date_from_timestamp(t, *coords, us=True, short=short)
-        date = _fix_short_date(b_date, short)
+
+        # 1. Determine coordinates
+        if tz is None:
+            lat, lon, zone = LOCAL_COORD
+        elif hasattr(tz, "coordinates"):
+            lat, lon, zone = tz.coordinates
+        else:
+            # Fallback
+            lat, lon, zone = LOCAL_COORD
+
+        # 2. Compute Badíʿ date directly for that location
+        b_date = bc.badi_date_from_timestamp(
+            t, lat, lon, zone, us=True, short=short)
+        date = _fix_short_date(b_date, short=short)
         # Clamp out leap seconds if the platform has them.
         date = date[:7] + (min(date[7], 59),) + date[8:]
+        # 3. Construct result
         result = cls(*date, tzinfo=tz)
-
-        if tz is None and not utc:
-            # As of version 2015f max fold in IANA database is
-            # 23 hours at 1969-09-30 13:00:00 in Kwajalein.
-            # Let's probe 24 hours in the past to detect a transition:
-            max_fold_seconds = 24 * 3600
-
-            # On Windows localtime_s throws an OSError for negative values,
-            # thus we can't perform fold detection for values of time less
-            # than the max time fold. See comments in _datetimemodule's
-            # version of this method for more details.
-            if t < max_fold_seconds and sys.platform.startswith('win'):
-                del bc  # pragma: no cover
-                return result  # pragma: no cover
-
-            b_date = bc.badi_date_from_timestamp(
-                t - max_fold_seconds, *LOCAL_COORD, us=True, short=short,
-                trim=False)
-            date = _fix_short_date(b_date, short)
-            probe1 = cls(*date, tzinfo=tz)
-            trans = result - probe1 - timedelta(0, max_fold_seconds)
-
-            if trans.days < 0:
-                t += trans // timedelta(0, 1)
-                b_date = bc.badi_date_from_timestamp(
-                    t, *LOCAL_COORD, us=True, short=short, trim=False)
-                date = _fix_short_date(b_date, short)
-                probe2 = cls(*date, tzinfo=tz)
-
-                if probe2 == result:  # pragma: no cover
-                    result._fold = 1
-
         del bc
         return result
 
@@ -1876,7 +1867,7 @@ class datetime(date):
         :rtype: datetime
         """
         _check_tzinfo_arg(tz)
-        return cls._fromtimestamp(t, tz is not None, tz, short=short)
+        return cls._fromtimestamp(t, tz, short=short)
 
     # Both the ustfromtimestamp() and utcnow() methods have been deprecated.
     # https://docs.python.org/3/deprecations/index.html
@@ -2546,7 +2537,7 @@ class datetime(date):
         :type a: int, str, or bytes
         :param b: None, vahid, or month
         :type b: NoneType or int
-        :returns: A Boolean if a short or long Badi date derived from pickle
+        :returns: A Boolean if a short or long Badí' date derived from pickle
                   data. A None can be returned if a and b are real date
                   information.
         :rtype: bool or NoneType
@@ -2692,7 +2683,7 @@ class timezone(tzinfo):
             raise TypeError("offset must be a timedelta")
 
         if name is cls._Omitted:
-            if not offset:
+            if not offset:  # pragma: no cover
                 return cls.utc
 
             name = None
@@ -2837,8 +2828,8 @@ class timezone(tzinfo):
         microseconds = ss_us.microseconds
 
         if microseconds:
-            return (f'UTC{sign}{hours:02d}:{minutes:02d}:{seconds:02d}'
-                    f'.{microseconds:06d}')
+            return (f"UTC{sign}{hours:02d}:{minutes:02d}:{seconds:02d}"
+                    f".{microseconds:06d}")
 
         if seconds:
             return f'UTC{sign}{hours:02d}:{minutes:02d}:{seconds:02d}'
@@ -2854,12 +2845,79 @@ class timezone(tzinfo):
         return hash(self._offset)
 
 
-UTC = timezone.utc = timezone._create(timedelta(0))
-BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
+class TZWithCoords(timezone):
+    """
+    Correct Badí' dates must have the latitude, longitude, and time zone. None
+    of publicly available packages can use coordinates, hence the need for this
+    class.
+    """
+    __slots__ = 'lat', 'lon', 'zone', 'key', '_name', '_coords', '_zi'
 
-# bpo-37642: These attributes are rounded to the nearest minute for backwards
-# compatibility, even though the constructor will accept a wider range of
-# values. This may change in the future.
+    def __new__(cls, lat: float, lon: float, zone: float=None, *, key: str=None
+                ) -> object:
+        if zone is None:
+            offset = timedelta(0)
+        else:
+            offset = timedelta(hours=zone)
+
+        name = "" if key is None else key
+        self = super().__new__(cls, offset, name)
+        self.lat = lat
+        self.lon = lon
+        self.zone = zone
+        self.key = name
+        self._name = None if name == "" else name
+        self._coords = (lat, lon, zone)
+        return self
+
+    @property
+    def coordinates(self):
+        return self._coords
+
+    def dst(self, dt: datetime=None):
+        dst = None
+
+        if hasattr(self, '_zi'):
+            dst = self._zi.dst(dt)
+
+        if not dst:
+            dst = timedelta(0)
+
+        return dst
+
+    @classmethod
+    def fromzoneinfo(cls, zoneinfo,  lat: float, lon: float, zone: float):
+        cls._zi = zoneinfo
+        return cls(lat, lon, zone, key=zoneinfo.key)
+
+    def __str__(self) -> str:
+        """
+        """
+        ret = f"{self.lat}, {self.lon}, {self.zone}"
+
+        if self.key != '':
+            ret += f', {self.key}'
+
+        return ret
+
+    def __reduce__(self):
+        return (self.__class__, (self.lat, self.lon),
+                {"zone": self._coords[2], "key": self.key})
+
+    def __setstate__(self, state):
+        # Called after __new__
+        zone = state.get("zone")
+        key = state.get("key")
+
+        if zone is not None:
+            self._offset = timedelta(hours=zone)
+
+        self.key = key
+        self._coords = (self.lat, self.lon, zone)
+
+
+UTC = timezone.utc = TZWithCoords(*GMT_COORD, key='UTC')
+BADI = timezone.badi = TZWithCoords(*BADI_COORD, key=BADI_IANA)
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
 _EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 492400,
