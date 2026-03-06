@@ -302,7 +302,6 @@ class date(BahaiCalendar):
         bc = BahaiCalendar()
         date = bc.badi_date_from_timestamp(t, *LOCAL_COORD, short=short,
                                            trim=True)
-        del bc
         date = date[:3] if short else date[:5]  # We do not want time values.
         return cls(*date)
 
@@ -372,7 +371,6 @@ class date(BahaiCalendar):
             else:
                 b_date = bc.long_date_from_short_date(date, trim=True)
 
-            del bc
             return cls(*b_date)
 
     @classmethod
@@ -393,7 +391,6 @@ class date(BahaiCalendar):
         """
         bc = BahaiCalendar()
         date = _td_utils._isoweek_to_badi(year, week, day, short=short)
-        del bc
         b_date = date[:3] if short else date[:5]
         return cls(*b_date)
 
@@ -1850,7 +1847,6 @@ class datetime(date):
         date = date[:7] + (min(date[7], 59),) + date[8:]
         # 3. Construct result
         result = cls(*date, tzinfo=tz)
-        del bc
         return result
 
     @classmethod

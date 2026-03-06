@@ -299,8 +299,8 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         # Correct if necessary
         if rd < self._YEAR_START[y]:
             y -= 1
-        elif rd >= self._YEAR_START[y + 1]:  # pragma: no cover
-            y += 1
+        elif rd >= self._YEAR_START.get(y + 1, self._RD_END + 1):
+            y += 1  # pragma: no cover
 
         return y
 

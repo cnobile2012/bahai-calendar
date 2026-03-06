@@ -82,6 +82,9 @@ def init_leap_cache():
     bc._RD_END = bc._YEAR_START[bc.MAXYEAR]
 
 
-init_leap_cache()
+if BahaiCalendar._YEAR_START is None:
+    init_leap_cache()
+
+
 enable_geocoder(False)
 __all__ = ('BahaiCalendar', 'GregorianCalendar', 'enable_geocoder')+dt_objects
