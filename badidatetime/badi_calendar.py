@@ -5,7 +5,6 @@
 __docformat__ = "restructuredtext en"
 
 import math
-import bisect
 
 from badidatetime.base_calendar import BaseCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
@@ -67,19 +66,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     """
     int: Constant indicating the minimum Rata Die.
     """
-    _RD_END = 1096902
+    _RD_END = None
     """
-    int: Constant indicating the maximum Rata Die.
+    int: Constant indicating the maximum Rata Die. Auto-generated constant
+         used to find ordinals.
+
+    :meta hide-value:
     """
     _YEAR_START = None
     """
     dict: Auto-generated constant used to find ordinals.
-
-    :meta hide-value:
-    """
-    _YEAR_START_YEARS = None
-    """
-    list: Auto-generated constant used to find ordinals.
 
     :meta hide-value:
     """
@@ -286,13 +282,27 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         return b_date
 
-    def _badi_year_from_rd(self, rd):
+    def _badi_year_from_rd(self, rd: int) -> int:
         assert self._RD_START <= rd <= self._RD_END, (
             f"Invalid Rata Die value {rd} it must be between "
             f"[{self._RD_START}, {self._RD_END}].")
-        years = self._YEAR_START_YEARS
-        starts = [self._YEAR_START[y] for y in years]
-        return years[bisect.bisect_right(starts, rd) - 1]
+
+        # Approximate year
+        y = int((rd - self._RD_START) / 365.2425) + self.MINYEAR
+
+        # Clamp
+        if y < self.MINYEAR:  # pragma: no cover
+            y = self.MINYEAR
+        elif y > self.MAXYEAR:
+            y = self.MAXYEAR
+
+        # Correct if necessary
+        if rd < self._YEAR_START[y]:
+            y -= 1
+        elif rd >= self._YEAR_START[y + 1]:  # pragma: no cover
+            y += 1
+
+        return y
 
     def short_date_from_long_date(self, b_date: tuple, *, trim: bool=False,
                                   ) -> tuple:
@@ -710,20 +720,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :returns: A Boolean indicating if a leap year or not.
         :rtype: bool
         """
-        #return self._YEAR_START[year + 1] - self._YEAR_START[year] == 366
-        return self._days_in_year(year) == 366
-
-    def _days_in_year(self, year: int) -> int:
-        """
-        Determine the number of days in the provided Badí' year.
-
-        :param int year: The Badí' year to process.
-        :returns: The number of days.
-        :rtype: int
-        """
-        jd_n0 = self.jd_from_badi_date((year, 1, 1))
-        jd_n1 = self.jd_from_badi_date((year + 1, 1, 1))
-        return int(math.floor(jd_n1) - math.floor(jd_n0))
+        return self._YEAR_START[year + 1] - self._YEAR_START[year] == 366
 
     def _get_hms(self, date: tuple, *, short_in: bool=False) -> tuple:
         """
@@ -821,21 +818,14 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
     def _build_badi_year_start(self):
         year_start = {}
-        rd = self._RD_START
+        lon_div = self._BAHAI_LOCATION[1] / 360.0
 
-        for year in range(self.MINYEAR - 1, self.MAXYEAR + 1):
+        for year in range(self.MINYEAR - 1, self.MAXYEAR + 2):
+            jd = self.jd_from_badi_date((year, 1, 1))
+            jd_int = int(jd)
+            frac = jd - jd_int
+            rd = math.floor(jd_int - self.PROLEPTIC_GREG_1ST_DAY +
+                            (frac + lon_div + 0.5 + 1e-12))
             year_start[year] = rd
-            rd += 365 + self._is_leap_year(year)
 
         return year_start
-
-    # def _build_badi_year_start(self):
-    #     year_start = {}
-    #     lon_div = self._BAHAI_LOCATION[1] / 360.0
-
-    #     for year in range(self.MINYEAR - 1, self.MAXYEAR + 1):
-    #         jd = self.jd_from_badi_date((year, 1, 1))
-    #         rd = math.floor(jd + lon_div + 0.5)
-    #         year_start[year] = rd
-
-    #     return year_start

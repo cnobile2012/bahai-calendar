@@ -1623,19 +1623,3 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
             result = round(modified_jd % 1, self._ROUNDING_PLACES)
 
         return result
-
-    def _debug_print(self, msg: str, values: tuple) -> None:
-        """
-        The print statement is activated only when the DEBUG variable is
-        `True`. This can be passed on the command line with a
-        `make tests DEBUG=True`.
-
-        This can become extreamly verbose if run on all tests as above. In
-        general run with a single unit test. See the Makefile on how to do
-        this.
-
-        :param str msg: The text to be printed.
-        :param tuple values: A tuple of values: (value0, value1, ...)
-        """
-        if os.getenv('DEBUG', default=False):  # pragma: no cover
-            print(msg.format(*values), file=sys.stderr)

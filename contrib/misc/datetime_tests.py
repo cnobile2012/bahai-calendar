@@ -188,15 +188,16 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         date on sunset based on local time.
         https://www.unixtimestamp.com
 
-        -c with -A, -O, -Z, and -M
+        -c with -A, -O, -Z, -D, and optional -U
         """
         lat = options.latitude
         lon = options.longitude
         zone = options.zone
-        # Get min and max minutes.
-        mins = options.minutes // 2
-        min_delta = - mins
-        max_delta = + mins + 1
+        # Get min and max minutes or seconds.
+        delta = options.delta // 2
+        min_delta = - delta
+        max_delta = + delta + 1
+        mult = 86400.0 if options.seconds else 1440.0
         data = []
 
         with patch.object(badidt, 'LOCAL_COORD', (lat, lon, zone)):
@@ -209,14 +210,10 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
                 items = []
 
                 for delta in range(min_delta, max_delta):
-                    test_jd = astro_ss + (delta / 1440.0)
+                    test_jd = astro_ss + (delta / mult)
                     ts = (test_jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY
-                    #ts += 1 if g_date > (1970, 1, 1) else 0
                     today = badi_date.fromtimestamp(ts, short=True)
                     items.append((delta, test_jd, ts, today))
-
-                    #diff_seconds = (test_jd - astro_ss) * 86400
-                    #print(diff_seconds)
 
                 data.append((ss_items, items))
 
@@ -424,8 +421,11 @@ if __name__ == "__main__":
         '-P', '--previous', action='store_true', default=False,
         dest='previous', help="Dump the previous and current ordinals.")
     parser.add_argument(
-        '-M', '--minutes', type=int, default=None, dest='minutes',
-        help="The spread in minutes.")
+        '-D', '--delta', type=int, default=None, dest='delta',
+        help="The spread in minutes or seconds.")
+    parser.add_argument(
+        '-U', '--seconds', action='store_true', default=False, dest='seconds',
+        help="Use seconds instead of minutes.")
 
     options = parser.parse_args()
     dt = DatetimeTests()
@@ -521,16 +521,19 @@ if __name__ == "__main__":
 
         find_elapse_time(start_time)
     elif options.analyze2:  # -c
-        delta = options.minutes
+        delta = options.delta
+        seconds = options.seconds
         assert delta < 119, ("The minutes option cannot be more that 118, "
                              f"found {delta}.")
         start_time = time.time()
         underline_length = 114
         print(f"./contrib/misc/{basename} -cA {options.latitude} "
-              f"-O {options.longitude} -Z {options.zone} -M {delta}")
+              f"-O {options.longitude} -Z {options.zone} -D {delta} "
+              f"-U {seconds}")
         print('-' * underline_length)
+        d_type = 'Second' if seconds else 'Minute'
         print("Gregorian Date Astro Sunset JD    Badí' Timestamp   "
-              "Minute Offset Astro JD           Day Timestamp     Today")
+              f"{d_type} Offset Astro JD           Day Timestamp     Today")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
 

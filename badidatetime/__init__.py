@@ -77,8 +77,9 @@ def enable_geocoder(enable=True):
 
 
 def init_leap_cache():
-    BahaiCalendar._YEAR_START = BahaiCalendar()._build_badi_year_start()
-    BahaiCalendar._YEAR_START_YEARS = sorted(BahaiCalendar._YEAR_START)
+    bc = BahaiCalendar
+    bc._YEAR_START = BahaiCalendar()._build_badi_year_start()
+    bc._RD_END = bc._YEAR_START[bc.MAXYEAR]
 
 
 init_leap_cache()

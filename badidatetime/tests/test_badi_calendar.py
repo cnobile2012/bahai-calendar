@@ -413,7 +413,6 @@ class TestBadiCalendar(unittest.TestCase):
             (self._bc._RD_END, False, 1161),
             (-1000, True, err_msg0.format(-1000)),
             (self._bc._RD_START-1, True, err_msg0.format(self._bc._RD_START-1)),
-            (1097267, True, err_msg0.format(1097267)),
             (self._bc._RD_END+1, True, err_msg0.format(self._bc._RD_END+1)),
             )
         msg = "Expected {} for rd {}, found {}"
@@ -1005,19 +1004,22 @@ class TestBadiCalendar(unittest.TestCase):
             (175, True, False),                 # 2018
             ((1, 10, 4, 1, 1), True, False),    # (2018, 3, 21)
             # End of years
-            ((1, 10, 2, 19, 19), True, False), # (2017, 3, 19)
-            ((1, 10, 3, 19, 19), True, True),  # (2017, 3, 19)
-            ((1, 10, 4, 19, 19), True, False), # (2018, 3, 20)
+            ((1, 10, 2, 19, 19), True, False),  # (2017, 3, 19)
+            ((1, 10, 3, 19, 19), True, True),   # (2017, 3, 19)
+            ((1, 10, 4, 19, 19), True, False),  # (2018, 3, 20)
+            # First and last years
+            (-1842, True, True),                # 0001
+            (1061, True, True),                 # 3004
             )
         msg = "Expected {} for day {}, found {}"
 
-        for date, validity, expected_result in data:
+        for date, valid, expected_result in data:
             if isinstance(date, int):
                 year = date
             else:
                 year = ((date[0] - 1) * 361 + (date[1] - 1) * 19 + date[2])
 
-            if validity:
+            if valid:
                 result = self._bc._is_leap_year(year)
                 self.assertEqual(expected_result, result,
                                  msg.format(expected_result, date, result))
@@ -1027,23 +1029,6 @@ class TestBadiCalendar(unittest.TestCase):
 
                 message = str(cm.exception)
                 self.assertEqual(expected_result.format(date), message)
-
-    #@unittest.skip("Temporarily skipped")
-    def test__days_in_year(self):
-        """
-        Test that the _days_in_year method returns the correct number of
-        days in the current year.
-        """
-        data = (
-            (1, 366),
-            (181, 365),
-            )
-        msg = "Expected {} for year {}, found {}"
-
-        for year, expected_result in data:
-            result = self._bc._days_in_year(year)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, year, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__get_hms(self):
@@ -1144,13 +1129,7 @@ class TestBadiCalendar(unittest.TestCase):
             # 2440585.4368055555
             (self._bc._POSIX_EPOCH, epoch_coords, (2440585.0633548438,
                                                    0.4366451562382281)),
-            # _POSIX_EPOCH = 2440585.5 -> 1970-01-01T00:00:00Z ->
-            # 1970-01-01T03:30:00+03:30 -> Sunset day before = 17:01 ->
-            # 24:00 - 17:01 = 06:59 -> 06:59 + 03:30 = 10:29 ->
-            # 2440585.4368055555
-            (self._bc._POSIX_EPOCH, epoch_coords, (2440585.0633548438,
-                                                   0.4366451562382281)),
-            # _POSIX_EPOCH = 2440585.5 -> 1970-01-01T00:00:00Z ->
+             # _POSIX_EPOCH = 2440585.5 -> 1970-01-01T00:00:00Z ->
             # 1939-12-31T19:00:00-05:00 -> Sunset day before = 17:12 ->
             # 24:00 - 17:12 = 06:48 -> 06:48 + 19:00 = 01T01:48 ->
             # 2440585.074966918
