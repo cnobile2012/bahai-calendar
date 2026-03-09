@@ -9,11 +9,9 @@ __all__ = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
            'GMT_COORD', 'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL', 'MONTHNAMES',
            'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
-import sys
 import time as _time
 import math as _math
 from datetime import timedelta, tzinfo
-from zoneinfo import ZoneInfo
 from types import NoneType
 
 from .badi_calendar import BahaiCalendar
@@ -389,7 +387,6 @@ class date(BahaiCalendar):
         :returns: The date instance.
         :rtype: date
         """
-        bc = BahaiCalendar()
         date = _td_utils._isoweek_to_badi(year, week, day, short=short)
         b_date = date[:3] if short else date[:5]
         return cls(*b_date)

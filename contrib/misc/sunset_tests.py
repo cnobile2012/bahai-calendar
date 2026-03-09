@@ -66,7 +66,6 @@ class SunsetTests(BahaiCalendar):
         for g_date in self.TEST_DATES:
             g_jd0 = self.gc.jd_from_gregorian_date(g_date, exact=False)
             g_jd1 = self.gc.jd_from_gregorian_date(g_date, exact=True)
-            print(g_date, g_jd0, g_jd1)
             b_date = self.badi_date_from_gregorian_date(g_date, short=True)
             b_jd = self.jd_from_badi_date(b_date)
             data.append((g_date, g_jd0, g_jd1, b_jd, b_date))

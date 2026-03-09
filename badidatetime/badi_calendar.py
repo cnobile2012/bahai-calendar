@@ -799,7 +799,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         astro_ss = ss_curr if jd >= ss_curr else ss_prev
         delta = jd - astro_ss
 
-        if delta < 0:
+        if delta < 0:  # pragma: no cover
             astro_ss -= 1
         elif delta >= 1:
             astro_ss += 1

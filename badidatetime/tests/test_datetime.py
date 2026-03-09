@@ -4334,8 +4334,6 @@ class TestBadiDatetime_timezone(unittest.TestCase):
                 self.assertEqual(expected_result, result, msg.format(
                     expected_result, date, offset, name, result))
 
-
-
     #@unittest.skip("Temporarily skipped")
     def test__name_from_offset(self):
         """

@@ -17,30 +17,7 @@ class TestBaseCalendar(unittest.TestCase):
         super().__init__(name)
 
     def setUp(self):
-        class FakeParent(BaseCalendar):
-            # Location of Tehran for astronomical Baha’i calendar.
-            # Can be change for individual tests using the location
-            # method below.
-            latitude = 35.682376
-            longitude = 51.285817
-            zone = 3.5
-            elevation = 0
-
-            def location(self, location):
-                if location[0] is not None:
-                    self.latitude = location[0]
-
-                if location[1] is not None:
-                    self.longitude = location[1]
-
-                if location[2] is not None:
-                    self.zone = location[2]
-
-                if location[3] is not None:
-                    self.elevation = location[3]
-            location = property(None, location)
-
-        self.bc = FakeParent()
+        self.bc = BaseCalendar()
         self.gc = GregorianCalendar()
 
     #@unittest.skip("Temporarily skipped")
@@ -355,11 +332,12 @@ class TestBaseCalendar(unittest.TestCase):
 
         The variable 'self.bc.latitude' is the latitude in Tehran Iran.
         """
+        latitude = 35.682376
         offset = self.bc._SUN_OFFSET
         data = (
-            ((1844, 3, 20), self.bc.latitude, offset, 90.88528765885808),
+            ((1844, 3, 20), latitude, offset, 90.88528765885808),
             ((1988, 3, 20), 42.3333, offset, 90.98302386790827), # AA Ex15.a
-            ((2024, 6, 20), self.bc.latitude, offset, 109.3196338142018),
+            ((2024, 6, 20), latitude, offset, 109.3196338142018),
             # Test for combinations of latitude and degrees that cause the
             # cos_h0 value to be less than -1.
             ((1844, 4, 10.5), 90, offset, 90.0),
@@ -380,32 +358,33 @@ class TestBaseCalendar(unittest.TestCase):
         """
         Test that the _sun_rising method returns the correct sunrise.
         """
+        epoch_coords = (35.682376, 51.285817, 3.5)
         data = (
-            # 1844-03-19T12:00:00 -> 1844-03-20T06:09:00+03:30 (06:09)
-            (2394645.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             (2394644.611313698, 0.757147031371, (6, 10, 17.5044))),
+            # 1844-03-19T12:00:00Z -> 1844-03-20T15:30:00+03:30
+            (2394645.0, epoch_coords, (2394644.611313698, 0.757147031371,
+                                       (6, 10, 17.5044))),
             # 2024-03-19T12:00:00 -> 2024-03-20T06:08:00+03:30 (06:08)
-            (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             (2460388.6108562476, 0.756689581089, (6, 9, 37.98))),
+            (2460389.0, epoch_coords, (2460388.6108562476, 0.756689581089,
+                                       (6, 9, 37.98))),
             # 2024-03-20T00:00:00 -> 2024-03-20T06:08:00+03:30 (06:08)
-            (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             (2460389.609863762, 0.755697095301, (6, 8, 12.228))),
+            (2460389.5, epoch_coords, (2460389.609863762, 0.755697095301,
+                                       (6, 8, 12.228))),
             # 2024-03-20T02:00:00 -> 2024-03-20T06:08:00+03:30 (06:08)
-            (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             (2460389.609863762, 0.755697095301, (6, 8, 12.228))),
+            (2460389.583333, epoch_coords, (2460389.609863762, 0.755697095301,
+                                            (6, 8, 12.228))),
             )
         msg = "Expected {}, for jd {}, found {}."
 
-        for jd, lat, lon, zone, expected_result in data:
-            result = self.bc._sun_rising(jd, lat, lon)
+        for jd, coords, expected_result in data:
+            result = self.bc._sun_rising(jd, *coords[:2])
             self.assertEqual(expected_result[0], result, msg.format(
                 expected_result, jd, result))
-            tz_correction = self.bc._local_zone_correction(result, zone)
+            tz_correction = self.bc._local_zone_correction(result, coords[2])
             self.assertEqual(expected_result[1], tz_correction, msg.format(
-                expected_result, jd, zone, result))
+                expected_result, jd, coords[2], result))
             hms = self.bc._hms_from_decimal_day(tz_correction + 0.5)
             self.assertEqual(expected_result[2], hms, msg.format(
-                expected_result, jd, zone, result))
+                expected_result, jd, coords[2], result))
 
     #@unittest.skip("Temporarily skipped")
     def test__sun_transit(self):
@@ -442,36 +421,38 @@ class TestBaseCalendar(unittest.TestCase):
         given date represented by a Julian Period day.
         https://gml.noaa.gov/grad/solcalc/
         """
+        epoch_coords = (35.682376, 51.285817, 3.5)
+        local_coords = (35.7796, -78.6382, -4)
         data = (
             # 1844-03-19T12:00:00 -> 1844-03-19T18:16:00 sunset 0.761111
-            (2394645.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             (2394645.1151233846, 0.260956718121, (18, 15, 46.6596))),
+            (2394645.0, epoch_coords, (2394645.1151233846, 0.260956718121,
+                                       (18, 15, 46.6596))),
             # 2024-03-19T12:00:00 -> 2024-03-19T18:13:59.1168
-            (2460389.0, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             (2460389.115246079, 0.261079412419, (18, 15, 57.2616))),
+            (2460389.0, epoch_coords, (2460389.115246079, 0.261079412419,
+                                       (18, 15, 57.2616))),
             # 2024-03-20T00:00:00 -> 2024-03-20T18:13:59.1168
-            (2460389.5, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             (2460390.115829568, 0.261662901379, (18, 16, 47.676))),
+            (2460389.5, epoch_coords, (2460390.115829568, 0.261662901379,
+                                       (18, 16, 47.676))),
             # 2024-03-20T02:00:00 -> 2024-03-20T18:13:59.1168
-            (2460389.583333, self.bc.latitude, self.bc.longitude, self.bc.zone,
-             (2460390.115829568, 0.261662901379, (18, 16, 47.676))),
+            (2460389.583333, epoch_coords, (2460390.115829568, 0.261662901379,
+                                            (18, 16, 47.676))),
             # 2024-04-20T00:00:00 -> 2024-04-20T19:52:378624 DST (19:53)
             # In Raligh NC, USA
-            (2460420.5, 35.7796, -78.6382, -4,
-             (2460420.494296346, 0.327629679348, (19, 51, 47.2032))),
+            (2460420.5, local_coords, (2460420.494296346, 0.327629679348,
+                                       (19, 51, 47.2032))),
             )
         msg = "Expected {}, for jd {} and zone {}, found {}."
 
-        for jd, lat, lon, zone, expected_result in data:
-            result = self.bc._sun_setting(jd, lat, lon)
+        for jd, coords, expected_result in data:
+            result = self.bc._sun_setting(jd, *coords[:2])
             self.assertEqual(expected_result[0], result, msg.format(
-                expected_result, jd, zone, result))
-            tz_correction = self.bc._local_zone_correction(result, zone)
+                expected_result, jd, coords[2], result))
+            tz_correction = self.bc._local_zone_correction(result, coords[2])
             self.assertEqual(expected_result[1], tz_correction, msg.format(
-                expected_result, jd, zone, result))
+                expected_result, jd, coords[2], result))
             hms = self.bc._hms_from_decimal_day(tz_correction + 0.5)
             self.assertEqual(expected_result[2], hms, msg.format(
-                expected_result, jd, zone, result))
+                expected_result, jd, coords[2], result))
 
     #@unittest.skip("Temporarily skipped")
     def test__rising_setting(self):
@@ -1441,32 +1422,32 @@ class TestBaseCalendar(unittest.TestCase):
         err_msg = ("Astronomical JD {} lies in the Gregorian reform gap "
                    "(1582-10-05 through 1582-10-14); no Meeus JD exists.")
         data = (
-            (1757640.5, True, 1757640.5),  # 0 (100, 2, 28)
-            (1757641.5, True, 1757642.5),  # 1 (100, 3, 1)
-            (1794164.5, True, 1794165.5),  # 1 (200, 2, 28)
-            (1794165.5, True, 1794167.5),  # 2 (200, 3, 1)
-            (1830688.5, True, 1830690.5),  # 2 (300, 2, 28)
-            (1830689.5, True, 1830692.5),  # 3 (300, 3, 1)
-            (1903737.5, True, 1903740.5),  # 3 (500, 2, 28)
-            (1903738.5, True, 1903742.5),  # 4 (500, 3, 1)
-            (1940261.5, True, 1940265.5),  # 4 (600, 2, 28)
-            (1940262.5, True, 1940267.5),  # 5 (600, 3, 1)
-            (1976786.5, True, 1976791.5),  # 5 (700, 2, 28)
-            (1976787.5, True, 1976793.5),  # 6 (700, 3, 1)
-            (2049835.5, True, 2049841.5),  # 6 (900, 2, 28)
-            (2049836.5, True, 2049843.5),  # 7 (900, 3, 1)
-            (2086359.5, True, 2086366.5),  # 7 (1000, 2, 28)
-            (2086360.5, True, 2086368.5),  # 8 (1000, 3, 1)
-            (2122883.5, True, 2122891.5),  # 8 (1100, 2, 28)
-            (2122884.5, True, 2122893.5),  # 9 (1100, 3, 1)
-            (2195932.5, True, 2195941.5),  # 9 (1300, 2, 28)
+            (1757640.5, True, 1757640.5),  #  0 (100, 2, 28)
+            (1757641.5, True, 1757642.5),  #  1 (100, 3, 1)
+            (1794164.5, True, 1794165.5),  #  1 (200, 2, 28)
+            (1794165.5, True, 1794167.5),  #  2 (200, 3, 1)
+            (1830688.5, True, 1830690.5),  #  2 (300, 2, 28)
+            (1830689.5, True, 1830692.5),  #  3 (300, 3, 1)
+            (1903737.5, True, 1903740.5),  #  3 (500, 2, 28)
+            (1903738.5, True, 1903742.5),  #  4 (500, 3, 1)
+            (1940261.5, True, 1940265.5),  #  4 (600, 2, 28)
+            (1940262.5, True, 1940267.5),  #  5 (600, 3, 1)
+            (1976785.5, True, 1976790.5),  #  5 (700, 2, 28)
+            (1976787.5, True, 1976793.5),  #  6 (700, 3, 1)
+            (2049834.5, True, 2049840.5),  #  6 (900, 2, 28)
+            (2049836.5, True, 2049843.5),  #  7 (900, 3, 1)
+            (2086358.5, True, 2086365.5),  #  7 (1000, 2, 28)
+            (2086360.5, True, 2086368.5),  #  8 (1000, 3, 1)
+            (2122882.5, True, 2122890.5),  #  8 (1100, 2, 28)
+            (2122884.5, True, 2122893.5),  #  9 (1100, 3, 1)
+            (2195931.5, True, 2195940.5),  #  9 (1300, 2, 28)
             (2195933.5, True, 2195943.5),  # 10 (1300, 3, 1)
-            (2232456.5, True, 2232466.5),  # 10 (1400, 2, 28)
+            (2232455.5, True, 2232465.5),  # 10 (1400, 2, 28)
             (2232457.5, True, 2232468.5),  # 11 (1400, 3, 1)
-            (2268980.5, True, 2268991.5),  # 11 (1500, 2, 28)
+            (2268979.5, True, 2268990.5),  # 11 (1500, 2, 28)
             (2268981.5, True, 2268993.5),  # 12 (1500, 3, 1)
             (2299147.5, True, 2299159.5),  # 12 (1582, 10, 4)
-            (2299158.5, True, 2299160.5),  # 2 (1582, 10, 15)
+            (2299158.5, True, 2299160.5),  #  2 (1582, 10, 15)
             # 2 (2024, 3, 20, 18, 14, 51.648)
             (2460388.26032, True, 2460390.26032),
             # 12 (1582, 10, 5)
@@ -1643,19 +1624,22 @@ class TestBaseCalendar(unittest.TestCase):
         day fraction to the without zone information to one with zone
         information.
         """
+        epoch_longitude = 51.285817
+        epoch_zone = 3.5
+        local_zone = -4.0
         err_msg0 = ("If the zone is not None, the zone value must be between "
                     "-180 and 180, found zone: {}.")
         err_msg1 = "Both the time zone and longitude cannot be None."
         data = (
             # 1844-03-19T12:00:00 -> 1844-03-19T18:16:00 sunset 0.761111
-            (2394645.115702063, self.bc.zone, None, False, True,
+            (2394645.115702063, epoch_zone, None, False, True,
              (0.261535396334, (18, 16, 36.66))),
-            (2460421.4948800434, -4, None, False, True,
+            (2460421.4948800434, local_zone, None, False, True,
              (0.328213376924, (19, 52, 37.6356))),
             # Same as the first except using longitude to determine zone.
-            (2394645.115702063, None, self.bc.longitude, False, True,
+            (2394645.115702063, None, epoch_longitude, False, True,
              (0.121637921315, (14, 55, 9.516))),
-            (2394645.115702063, None, self.bc.longitude, True, True,
+            (2394645.115702063, None, epoch_longitude, True, True,
              (2394645.1216379213, (14, 55, 9.516))),
             (2394645.0, 181, None, False, False, err_msg0.format(181)),
             (2394645.0, -181, None, False, False, err_msg0.format(-181)),
