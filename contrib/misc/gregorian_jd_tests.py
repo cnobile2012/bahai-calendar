@@ -503,7 +503,8 @@ class JulianPeriodTests:
         https://aa.usno.navy.mil/data/JulianDate
 
         There are 12 years that skip a day. Pope Gregory only compensated
-        for 10 of them.
+        for 10 of them. The JDs below are all in the non-proleptic historic
+        (Meeus) algorithm and signify the beginning of the day.
 
         +----------------+-----------+----------------+------------+--------+
         | Valid or       | Valid Day | Next Valid or  | Next Valid | Offset |

@@ -188,7 +188,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         date on sunset based on local time.
         https://www.unixtimestamp.com
 
-        -c with -A, -O, -Z, -D, and optional -U
+        -c with -A, -O, -Z, -D, and optional -U (seconds instead of minutes)
         """
         lat = options.latitude
         lon = options.longitude
@@ -197,7 +197,7 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         delta = options.delta // 2
         min_delta = - delta
         max_delta = + delta + 1
-        mult = 86400.0 if options.seconds else 1440.0
+        step = 1.0 / (86400.0 if options.seconds else 1440.0)
         data = []
 
         with patch.object(badidt, 'LOCAL_COORD', (lat, lon, zone)):
@@ -210,7 +210,8 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
                 items = []
 
                 for delta in range(min_delta, max_delta):
-                    test_jd = astro_ss + (delta / mult)
+                    #test_jd = astro_ss + (delta / mult)
+                    test_jd = astro_ss + (delta * step)
                     ts = (test_jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY
                     today = badi_date.fromtimestamp(ts, short=True)
                     items.append((delta, test_jd, ts, today))
@@ -218,6 +219,28 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
                 data.append((ss_items, items))
 
         return data
+
+    def test_sunset_flip_invariant(self, options):
+        lat = options.latitude
+        lon = options.longitude
+        zone = options.zone
+
+        with patch.object(badidt, "LOCAL_COORD", (lat, lon, zone)):
+            for g_date in self.TIMESTAMP_DATES:
+                jd = self.gc.jd_from_gregorian_date(g_date)
+                sunset_jd = self._sun_setting(jd, lat, lon)
+                sunset_ts = ((sunset_jd - self._POSIX_EPOCH) *
+                             self._SECONDS_PER_DAY)
+                before = badi_date.fromtimestamp(sunset_ts - 1, short=True)
+                at     = badi_date.fromtimestamp(sunset_ts, short=True)
+                after  = badi_date.fromtimestamp(sunset_ts + 1, short=True)
+
+                assert before != after, (
+                    f"No date flip across sunset for {g_date}"
+                    )
+                assert before == at or at == after, (
+                    f"Unexpected double flip near sunset for {g_date}"
+                    )
 
     def check_dates(self, options):
         """
@@ -390,8 +413,11 @@ if __name__ == "__main__":
         '-c', '--analyze2', action='store_true', default=False,
         dest='analyze2', help="Analyze timestamps relative to sunset.")
     parser.add_argument(
-        '-d', '--date', action='store_true', default=False,
-        dest='date', help="Check dates by different methods.")
+        '-d', '--date', action='store_true', default=False, dest='date',
+        help="Check dates by different methods.")
+    parser.add_argument(
+        '-e', '--flip', action='store_true', default=False, dest='flip',
+        help="Check for sunset flip.")
     parser.add_argument(
         '-o', '--ordinal', action='store_true', default=False,
         dest='ordinal', help="Test that _ymd2ord and _ord2ymd produce "
@@ -526,14 +552,14 @@ if __name__ == "__main__":
         assert delta < 119, ("The minutes option cannot be more that 118, "
                              f"found {delta}.")
         start_time = time.time()
-        underline_length = 114
+        underline_length = 117
         print(f"./contrib/misc/{basename} -cA {options.latitude} "
               f"-O {options.longitude} -Z {options.zone} -D {delta} "
               f"-U {seconds}")
         print('-' * underline_length)
         d_type = 'Second' if seconds else 'Minute'
         print("Gregorian Date Astro Sunset JD    Badí' Timestamp   "
-              f"{d_type} Offset Astro JD           Day Timestamp     Today")
+              f"{d_type} Offset    Astro JD           Day Timestamp     Today")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
 
@@ -546,7 +572,7 @@ if __name__ == "__main__":
             items_len = len(items)
 
             for idx, (delta, test_jd, ts, today) in enumerate(items):
-                print(f"{delta:>2}            "
+                print(f"{fmt_float(delta, 3, 1)}            "
                       f"{fmt_float(test_jd, 7, 10)} "
                       f"{fmt_float(ts, 12, 4)} "
                       f"{str(today):>11} "
@@ -594,6 +620,8 @@ if __name__ == "__main__":
                           b_date3, diff0, diff1) in data]
             print('-' * underline_length)
             find_elapse_time(start_time)
+    elif options.flip:  # -e
+        dt.test_sunset_flip_invariant(options)
     elif options.ordinal:  # -o
         if options.start is None or options.end is None:
             print("If option -o is used, -S and -E must also be used.",

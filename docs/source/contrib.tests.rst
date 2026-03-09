@@ -15,6 +15,6 @@ Individual Test Scripts
    contrib/equinoxes_or_solstices
    contrib/gregorian_jd_tests
    contrib/posix_time
-   contrib/sunset_mine_to_meeus
+   contrib/sunset_tests
    contrib/test_approx_local_hour_angle
    contrib/_timestamp

@@ -368,10 +368,10 @@ class TestBadiCalendar(unittest.TestCase):
              (1, 1, 1, 0, 1, 0.0012)),
             (2394643.258102436, gmt_coords, False, True, False, False, False,
              (1, 1, 1)),
-            # 1844-03-19T18:10:40.1Z -> (1844-03-19T21:40:40.1+03:30)
+            # 1844-03-19T18:10:40.1Z -> 1844-03-19T21:40:40.1+03:30
             # Sunset = 18:10 -> 18:10:40.1 - 18:10 = 00:00:40.1
             (2394643.257409, gmt_coords, False, True, False, False, False,
-             (0, 19, 19, 0, 0, 41.3352)),
+             (1, 1, 1, 0, 0, 41.3352)),
             # us and fraction
             (0, gmt_coords, True, True, False, True, False, err_msg0),
             # us and rtd
@@ -734,7 +734,7 @@ class TestBadiCalendar(unittest.TestCase):
             # 1969-12-31T16:00:00Z
             # Sunset 16:00 -> 24:00 - 16:00 = 08:00 -> -28800
             (-28800, gmt_coords, False, True, True,
-             (126, 16, 1, 0, 0, 30.672)),
+             (126, 16, 2, 0, 0, 30.672)),
             # 1970-01-01T08:00:00Z == jd 2440585.8333333335
             # Sunset day before 16:00 -> 24:00 - 16:00 = 08:00 ->
             # 08:00 + 08:00 = 16:00 -> 28800

@@ -1449,29 +1449,29 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Returns the Meeus algorithm jd converted from the exact algorithm jd.
 
-        .. note::
-
-           The JDs below are the astronomically correct JDs.
-
         :param float jd: Exact Julian Period day.
         :returns: The difference added to an astronomically correct jd.
         :rtype: float
+
+        .. note::
+
+           The JDs below are the proleptic (astronomically correct) JDs.
         """
-        if 2299148.5 <= jd <= 2299157.5:
+        if 2299148.5 <= jd < 2299158.5:
             raise ValueError(f"Astronomical JD {jd} lies in the Gregorian "
                              "reform gap (1582-10-05 through 1582-10-14); "
                              "no Meeus JD exists.")
 
         jd_diff = (
-            (1757640.5, 0), (1794164.5, 1), (1830688.5, 2), (1903737.5, 3),
-            (1940261.5, 4), (1976786.5, 5), (2049835.5, 6), (2086359.5, 7),
+            (1757641.5, 0), (1794165.5, 1), (1830690.5, 2), (1903738.5, 3),
+            (1940262.5, 4), (1976786.5, 5), (2049835.5, 6), (2086359.5, 7),
             (2122883.5, 8), (2195932.5, 9), (2232456.5, 10), (2268980.5, 11),
-            (2299157.5, 12),
+            (2299148.5, 12),
             )
         diff = 2
 
         for j, df in jd_diff:
-            if jd <= j:
+            if jd < j:
                 diff = df
                 break
 
@@ -1482,6 +1482,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         The returned difference value to convert a Meeus algorithm jd to
         an exact algorithm jd. This is subtracted from the meeus jd.
 
+        :param float jd: Meeus Julian Period day.
+        :returns: The difference subtracted from an historically correct jd.
+        :rtype: float
+
         .. note::
 
            1. The JDs below are the historically correct (Meeus) JDs.
@@ -1489,28 +1493,61 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
               the Badí' Calendar.
            3. The exact JD numbering is uninterrupted across 1582-10-05 …
               1582-10-14.
+           4. Invalid days checked with https://aa.usno.navy.mil/data/JulianDate
 
-        :param float jd: Meeus Julian Period day.
-        :returns: The difference subtracted from an historically correct jd.
-        :rtype: float
-         """
-        invalid_days = (1757641, 1794166, 1830691, 1903741, 1940266, 1976791,
-                        2049841, 2086366, 2122891, 2195941, 2232466, 2268991)
-        jd0 = math.floor(jd)
+        +--------------+--------------+--------+
+        | Historic JD  | Proleptic JD | Offset |
+        +==============+==============+========+
+        | < 1721423.5  | < 1757641.5  | 0      |
+        +--------------+--------------+--------+
+        | < 1794166.5  | < 1794165.5  | 1      |
+        +--------------+--------------+--------+
+        | < 1830691.5  | < 1830690.5  | 2      |
+        +--------------+--------------+--------+
+        | < 1903741.5  | < 1903738.5  | 3      |
+        +--------------+--------------+--------+
+        | < 1940266.5  | < 1940262.5  | 4      |
+        +--------------+--------------+--------+
+        | < 1976791.5  | < 1976786.5  | 5      |
+        +--------------+--------------+--------+
+        | < 2049841.5  | < 2049835.5  | 6      |
+        +--------------+--------------+--------+
+        | < 2086366.5  | < 2086359.5  | 7      |
+        +--------------+--------------+--------+
+        | < 2122891.5  | < 2122883.5  | 8      |
+        +--------------+--------------+--------+
+        | < 2195941.5  | < 2195932.5  | 9      |
+        +--------------+--------------+--------+
+        | < 2232466.5  | < 2232456.5  | 10     |
+        +--------------+--------------+--------+
+        | < 2268991.5  | < 2268980.5  | 11     |
+        +--------------+--------------+--------+
+        | < 2299160.5  | < 2299148.5  | 12     |
+        +--------------+--------------+--------+
+        | >= 2299160.5 | >= 2299158.5 | 2      |
+        +--------------+--------------+--------+
+        """
+        invalid_days = ((1757641.5, 1757642.5), (1794166.5, 1794167.5),
+                        (1830691.5, 1830692.5), (1903741.5, 1903742.5),
+                        (1940266.5, 1940267.5), (1976791.5, 1976792.5),
+                        (2049841.5, 2049842.5), (2086366.5, 2086367.5),
+                        (2122891.5, 2122892.5), (2195941.5, 2195942.5),
+                        (2232466.5, 2232467.5), (2268991.5, 2268992.5))
 
-        if jd0 in invalid_days:
-            raise ValueError(f"Invalid historically correct (Meeus) JD {jd}.")
+        for s, e in invalid_days:
+            if s <= jd < e:
+                raise ValueError(f"Invalid historic (Meeus) JD {jd}.")
 
         jd_diff = (
-            (1757640.5, 0), (1794165.5, 1), (1830690.5, 2), (1903740.5, 3),
-            (1940265.5, 4), (1976790.5, 5), (2049840.5, 6), (2086365.5, 7),
-            (2122890.5, 8), (2195940.5, 9), (2232465.5, 10), (2268990.5, 11),
-            (2299159.5, 12),
+            (1757641.5, 0), (1794166.5, 1), (1830691.5, 2), (1903741.5, 3),
+            (1940266.5, 4), (1976791.5, 5), (2049841.5, 6), (2086366.5, 7),
+            (2122891.5, 8), (2195941.5, 9), (2232466.5, 10), (2268991.5, 11),
+            (2299160.5, 12),
             )
         diff = 2
 
         for j, df in jd_diff:
-            if jd <= j:
+            if jd < j:
                 diff = df
                 break
 

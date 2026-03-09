@@ -796,24 +796,16 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         hist_jd = self._meeus_from_exact(jd)
         ss_prev = get_sunset(hist_jd, -1)
         ss_curr = get_sunset(hist_jd, 0)
-        ss_next = get_sunset(hist_jd, 1)
+        astro_ss = ss_curr if jd >= ss_curr else ss_prev
+        delta = jd - astro_ss
 
-        if jd >= ss_curr:
-            astro_ss = ss_curr
-        elif jd >= ss_prev:
-            astro_ss = ss_prev
-        else:  # pragma: no cover
-            astro_ss = ss_next
+        if delta < 0:
+            astro_ss -= 1
+        elif delta >= 1:
+            astro_ss += 1
 
         # Elapsed fraction since sunset
         frac = jd - astro_ss
-
-        while frac < 0:  # pragma: no cover
-            frac += 1
-
-        while frac >= 1:
-            frac -= 1
-
         return astro_ss, frac
 
     def _build_badi_year_start(self):
