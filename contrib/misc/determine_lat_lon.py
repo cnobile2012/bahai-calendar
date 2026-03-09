@@ -146,6 +146,11 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         (220, (2063, 3, 19), (2063, 3, 20, 13, 59)),
         (221, (2064, 3, 19), (2064, 3, 19, 19, 39)),
         )
+    """
+    tuple: World Centre dates.
+
+    :meta hide-value:
+    """
     # The overlap years
     WC_DATA_183_216 = (
         (183, (2026, 3, 20), (2026, 3, 20, 14, 46)),

@@ -3,8 +3,8 @@
 #
 
 # Baha'i Calendar version info.
-MAJORVERSION	= 0
-MINORVERSION	= 6
+MAJORVERSION	= 1
+MINORVERSION	= 0
 PATCHLEVEL	= 0
 
 VERSION		= ${MAJORVERSION}.${MINORVERSION}.${PATCHLEVEL}
@@ -12,4 +12,4 @@ VERSION		= ${MAJORVERSION}.${MINORVERSION}.${PATCHLEVEL}
 #   3 - Alpha
 #   4 - Beta
 #   5 - Production/Stable
-STATUS		= "4 - Beta"
+STATUS		= "5 - Production/Stable"

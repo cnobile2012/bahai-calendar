@@ -86,6 +86,11 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         ((2943, 3, 20, 18, 15, 9, 100800), (1100, 1, 1)),
         ((3004, 3, 20, 18, 15, 14, 630400), (1161, 1, 1)),
         )
+    """
+    tuple: Listy of Gregorian and Badí' dates.
+
+    :meta hide-value:
+    """
     TIMESTAMP_DATES = (
         # Sunset on day
         (1, 3, 19),
@@ -96,6 +101,9 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         (2025, 3, 19),
         (2026, 1, 16),
         )
+    """
+    tuple: List of Gregorian dates.
+    """
 
     def __init__(self):
         super().__init__()
