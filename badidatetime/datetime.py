@@ -51,7 +51,7 @@ def _divide_and_round(a: int, b: int) -> int:
     the even integer is returned.
 
     :param int a: numerator
-    :param int b: denomerator
+    :param int b: denominator
     :returns: Resultant value.
     :rtype: int
     """
@@ -823,7 +823,7 @@ class date(BahaiCalendar):
 
         :param date other: The other date instance which is subtracted from
                            the `self` instance.
-        :returns: Subreacted date instances.
+        :returns: Subtracted date instances.
         :rtype: date
         """
         if isinstance(other, timedelta):
@@ -1592,7 +1592,7 @@ class datetime(date):
                 microsecond: int=0, tzinfo: tzinfo=None, *,
                 fold: int=0) -> object:
         """
-        Check if there is pickle data. If so parse and create the objcet. If
+        Check if there is pickle data. If so parse and create the object. If
         not pickle data create the instance from the incoming date data.
 
         :param int a: If pickle data this is the bytes string. If not pickle
@@ -2195,7 +2195,7 @@ class datetime(date):
         terms of the time to include. Valid options are 'auto', 'hours',
         'minutes', 'seconds', 'milliseconds' and 'microseconds'.
 
-        :param str sep: The ISO date and time seperator. The standard is to
+        :param str sep: The ISO date and time separator. The standard is to
                         use *T*.
         :param str timespec: A special string as stated above that will
                              append additional data to the string.
@@ -2252,7 +2252,7 @@ class datetime(date):
         """
         A representation of the `datetime` instance.
 
-        :param str sep: The ISO date and time seperator. The standard is to
+        :param str sep: The ISO date and time separator. The standard is to
                         use *T*.
         :returns: A representation of the `datetime` instance.
         :rtype: str
@@ -2693,7 +2693,7 @@ class timezone(tzinfo):
     @classmethod
     def _create(cls, offset: timedelta, name: str=None) -> object:
         """
-        Creat an instance of `tzinfo`.
+        Create an instance of `tzinfo`.
 
         :param timedelta offset: A `timedelta` instance representing the
                                  offset from UTC.

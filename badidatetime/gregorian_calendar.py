@@ -198,7 +198,7 @@ class GregorianCalendar(BaseCalendar):
 
         :param float t: POSIX timestamp
         :param float zone: Timezone
-        :param bool us: If True the seconds are split to seconds amd
+        :param bool us: If True the seconds are split to seconds and
                         microseconds else if False the seconds has a
                         fractional day as a decimal.
         :returns: The time of the day corrected for the timezone.
@@ -289,7 +289,7 @@ class GregorianCalendar(BaseCalendar):
         (year, month, day, hour, minute, second, microseconds).
 
         :param tuple date: A three part date (y, m, d.nnn).
-        :param bool us: If `True` return microseconds as seperate field from
+        :param bool us: If `True` return microseconds as separate field from
                         seconds else if `False` (default) return seconds with
                         fractional seconds.
         :returns: A 6 or 7 part date (y, m, d, hh, mm, ss, us).
@@ -315,7 +315,7 @@ class GregorianCalendar(BaseCalendar):
         Determine if a year is a leap year. This method supports two different
         algorithms the 4|100|400 and the 4|128.
 
-        :param int year: The year to determin leap year for.
+        :param int year: The year to determine leap year for.
         :param bool alt: If `False` (default) use the 4|100|400 algorithm
                          else if `True` use the 4|128 algorithm.
         :returns: `True` or `False`.

@@ -31,7 +31,7 @@ class TimeDateUtils(BahaiCalendar):
     """
     DAYNAMES_ABV = ('Jal', 'Jam', 'Kam', 'Fiḍ', 'Idā', 'Isj', 'Isq')
     """
-    tuple: The abreviated day names.
+    tuple: The abbreviated day names.
     """
     MONTHNAMES = OrderedDict((
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -48,7 +48,7 @@ class TimeDateUtils(BahaiCalendar):
         (12, 'Ilm'), (13, 'Qud'), (14, 'Qaw'), (15, 'Mas'), (16, 'Sha'),
         (17, 'Sul'), (18, 'Mul'), (0, 'Ayy'), (19, 'Alá')))
     """
-    dict: The abreviated month names.
+    dict: The abbreviated month names.
     """
     ORDINAL_1ST_YEAR_EPOCH = 1721501.260417
     """
@@ -76,7 +76,7 @@ class TimeDateUtils(BahaiCalendar):
         ]
     """
     list: Provides a list of month number and the number of days in that
-    month. Month 0 (zero) is in the 19th position and is modifed depending
+    month. Month 0 (zero) is in the 19th position and is modified depending
     on if a leap year.
     """
 

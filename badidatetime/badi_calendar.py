@@ -673,7 +673,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
             f"range of [1, {cycle-1}].")
         self._check_valid_badi_time(hour, minute, second, us)
 
-        # Check if there are any fractionals that invalidate other values.
+        # Check if there are any fractions that invalidate other values.
         if any((hour, minute, second)):
             assert not day % 1, (
                 "If there is a part day then there can be no hours, minutes, "
