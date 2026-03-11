@@ -26,7 +26,7 @@ exclude = ["tests*"]
 
 [project]
 name = "badidatetime"
-version = "1.0.0"
+version = "1.0.0rc1"
 description = "Badi Calendar Datetime API (badidatetime)"
 readme = "README.rst"
 authors = [
@@ -36,7 +36,7 @@ maintainers = [
   {name = "Carl J. Nobile", email = "carl.nobile@gmail.com"},
 ]
 license = "MIT"
-license-files = ["LICEN[CS]E*", "LICENSE"]
+license-files = ["LICEN[CS]E*"]
 dependencies = [
   "tzlocal",
   "tzdata",
@@ -62,5 +62,5 @@ classifiers = [
 ]
 
 [project.urls]
-url = "https://github.com/cnobile2012/bahai-calendar"
-Repository = "https://github.com/cnobile2012/bahai-calendar"
+Homepage = "https://github.com/cnobile2012/bahai-calendar"
+Issues = "https://github.com/cnobile2012/bahai-calendar/issues"

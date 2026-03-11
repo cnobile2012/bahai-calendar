@@ -17,7 +17,7 @@ class TestBadiCalendar(unittest.TestCase):
 
     | March 19, 1844   = Historic JD 2394645.11511552 (Baha'i Epoch)
     | January, 1, 1970 = Historic JD 2440587.5 (UNIX Epoch)
-    
+
     https://www.timeanddate.com/sun/@112931?month=3&year=1844
 
     Alternative latitude and longitude coordinates can be found at:
