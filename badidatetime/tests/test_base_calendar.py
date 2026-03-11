@@ -836,8 +836,11 @@ class TestBaseCalendar(unittest.TestCase):
         for jde, degrees, expected_result in data:
             tm = self.bc._julian_millennia(jde)
             result = self.bc._heliocentric_ecliptical_longitude(tm, degrees)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
+            # We need to use approximately equal to solve issues with
+            # Python 3.10 and 3.11.
+            val = math.isclose(expected_result, result, rel_tol=0,
+                               abs_tol=1e-9)
+            self.assertTrue(val, msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__heliocentric_ecliptical_latitude(self):
@@ -956,8 +959,11 @@ class TestBaseCalendar(unittest.TestCase):
 
         for jde, expected_result in data:
             result = self.bc._apparent_solar_longitude(jde)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, jde, result))
+            # We need to use approximately equal to solve issues with
+            # Python 3.10 and 3.11.
+            val = math.isclose(expected_result, result, rel_tol=0,
+                               abs_tol=1e-9)
+            self.assertTrue(val, msg.format(expected_result, jde, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__apparent_solar_latitude(self):
