@@ -6,19 +6,25 @@
 
 import os
 import sys
+import importlib
 import datetime as dtime
+from unittest.mock import patch
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
 sys.path.append(BASE_DIR)
 
 from _timestamp import TimestampUtils
-from badidatetime import BahaiCalendar, GregorianCalendar, datetime
+from badidatetime import (BahaiCalendar, GregorianCalendar, datetime,
+                          date as badi_date, timezone, timedelta)
+from badidatetime._timedateutils import _td_utils
+badidt = importlib.import_module('badidatetime.datetime')
 
 
 class DatetimeTests(BahaiCalendar, TimestampUtils):
-    LOCAL_COORDS = (35.5894, -78.7792, -5.0)
+    GMT_COORDS = (51.477928, -0.001545, 0.0)
     BADI_COORDS = BahaiCalendar._BAHAI_LOCATION[:3]
+    LOCAL_COORDS = (35.5894, -78.7792, -5.0)
     MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
               12, 13, 14, 15, 16, 17, 18, 0, 19)
     GREG_BADI_DATES = (
@@ -80,6 +86,24 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         ((2943, 3, 20, 18, 15, 9, 100800), (1100, 1, 1)),
         ((3004, 3, 20, 18, 15, 14, 630400), (1161, 1, 1)),
         )
+    """
+    tuple: Listy of Gregorian and Badí' dates.
+
+    :meta hide-value:
+    """
+    TIMESTAMP_DATES = (
+        # Sunset on day
+        (1, 3, 19),
+        (1844, 3, 19),
+        (1930, 11, 15),
+        (1970, 1, 1),
+        (1970, 1, 2),
+        (2025, 3, 19),
+        (2026, 1, 16),
+        )
+    """
+    tuple: List of Gregorian dates.
+    """
 
     def __init__(self):
         super().__init__()
@@ -116,18 +140,20 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
     def analyze_ordinal_error_create(self, options):
         """
         Find the errors between conversion between badi dates to JD and
-        vice versa. This tests the BahaiCalendar._adjust_date method.
+        vice versa. This tests the BahaiCalendar.badi_date_from_jd() method.
+        Both the jd_from_badi_date() and badi_date_from_jd() methods default
+        to the the time zone in Tehran.
 
         -b
         Also if -S and -E are used they must be used together and refer
         to Badi years.
         """
+        lat, lon, zone = self.GMT_COORDS
         data = []
         start = options.start
         end = options.end
 
         for year in range(start, end):
-            #print(year, file=sys.stderr)
             is_leap = self._is_leap_year(year)
 
             for month in self.MONTHS:
@@ -135,40 +161,100 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
 
                 for day in range(1, dm + 1):
                     date = (year, month, day)
-                    # We default to the Epoch Coordinates.
-                    jd = self.jd_from_badi_date(date)
+                    jd = self.jd_from_badi_date(date, lat, lon, zone)
+
                     # Get the Badi date from the Julian Period day.
                     b_date = self.badi_date_from_jd(
-                        jd, short=True, trim=True, rtd=True)
-                    # Difference of the date converted to a JD then back to a
-                    # date again then subtract the converted date from the
+                        jd, lat, lon, zone, short=True)
+                    # Difference of the date converted to a JD then back to
+                    # a date again then subtract the converted date from the
                     # original date. They should be the same.
                     diff0 = self._subtract_tuples(b_date, date)
-                    # The ordinal date for visual comparison.
-                    ordinal = self._ordinal_from_jd(jd)
-                    o = datetime.fromordinal(ordinal, short=True)
+
+                    # The ordinal date. *** TODO *** Use the new ordinal code.
+                    ord = self._ordinal_from_jd(jd)
+                    o = datetime.fromordinal(ord, short=True)
                     o_date = (o.year, o.month, o.day)
                     # Difference of the Badi datetime derived from an ordinal
                     # then subtract the derived date original date. They
                     # should be the same.
                     diff1 = self._subtract_tuples(o_date, date)
+
                     # Get the Gregorian date.
-                    g_date = self.gc.gregorian_date_from_jd(jd, exact=True)
-                    data.append((g_date, jd, date, b_date, o_date,
+                    g_date = self.gc.gregorian_date_from_jd(
+                        jd, hms=True, exact=True)
+
+                    data.append((g_date, jd, ord, date, b_date, o_date,
                                  diff0, diff1))
 
         return data
 
     def analyze_timestamp_errors(self, options):
         """
-        Fins the errors in timestamp convbersions to Badi dates. This test
-        ensures that the datetime.date.today method changes date on sunset
-        based on local time.
+        Find the errors in timestamp conversions to Badi dates. This test
+        tries to ensures that the badidatetime.date.today() method changes
+        date on sunset based on local time.
         https://www.unixtimestamp.com
 
-        -c
-        Also if -S and -E are used they must be used together and refer
-        to Gregorian/Julian years.
+        -c with -A, -O, -Z, -D, and optional -U (seconds instead of minutes)
+        """
+        lat = options.latitude
+        lon = options.longitude
+        zone = options.zone
+        # Get min and max minutes or seconds.
+        delta = options.delta // 2
+        min_delta = - delta
+        max_delta = + delta + 1
+        step = 1.0 / (86400.0 if options.seconds else 1440.0)
+        data = []
+
+        with patch.object(badidt, 'LOCAL_COORD', (lat, lon, zone)):
+            for g_date in self.TIMESTAMP_DATES:
+                hist_jd = self.gc.jd_from_gregorian_date(g_date)
+                hist_ss = self._sun_setting(hist_jd, lat, lon)
+                astro_ss = self._exact_from_meeus(hist_ss)
+                ss_ts = (astro_ss - self._POSIX_EPOCH) * self._SECONDS_PER_DAY
+                ss_items = (g_date, astro_ss, ss_ts)
+                items = []
+
+                for delta in range(min_delta, max_delta):
+                    #test_jd = astro_ss + (delta / mult)
+                    test_jd = astro_ss + (delta * step)
+                    ts = (test_jd - self._POSIX_EPOCH) * self._SECONDS_PER_DAY
+                    today = badi_date.fromtimestamp(ts, short=True)
+                    items.append((delta, test_jd, ts, today))
+
+                data.append((ss_items, items))
+
+        return data
+
+    def test_sunset_flip_invariant(self, options):
+        lat = options.latitude
+        lon = options.longitude
+        zone = options.zone
+
+        with patch.object(badidt, "LOCAL_COORD", (lat, lon, zone)):
+            for g_date in self.TIMESTAMP_DATES:
+                jd = self.gc.jd_from_gregorian_date(g_date)
+                sunset_jd = self._sun_setting(jd, lat, lon)
+                sunset_ts = ((sunset_jd - self._POSIX_EPOCH) *
+                             self._SECONDS_PER_DAY)
+                before = badi_date.fromtimestamp(sunset_ts - 1, short=True)
+                at     = badi_date.fromtimestamp(sunset_ts, short=True)
+                after  = badi_date.fromtimestamp(sunset_ts + 1, short=True)
+
+                assert before != after, (
+                    f"No date flip across sunset for {g_date}"
+                    )
+                assert before == at or at == after, (
+                    f"Unexpected double flip near sunset for {g_date}"
+                    )
+
+    def check_dates(self, options):
+        """
+        Check for correct dates between different methods.
+
+        -d with -S and -E (Gregorian) -A -O -Z
         """
         data = []
         start = options.start
@@ -179,36 +265,144 @@ class DatetimeTests(BahaiCalendar, TimestampUtils):
         tz = dtime.timezone(dtime.timedelta(hours=zone))
 
         for year in range(start, end):
+            leap = self._gc._is_leap_year(year)
+
+            for month, days in enumerate(self.gc._MONTHS, start=1):
+                max_days = days + leap
+
+                for day in range(1, max_days + 1):
+                    if year == 1 and (month < 3 or month == 3 and day < 19):
+                        continue
+
+                    date = (year, month, day)
+                    # Get Badi date from ordinal.
+                    g_ord = dtime.datetime(*date, tzinfo=tz).toordinal()
+                    dt0 = datetime.fromordinal(g_ord, short=True)
+                    b_date0 = self._trim_hms(dt0.b_date + dt0.b_time)
+                    # Get Badi date from JD.
+                    jd = self.gc.jd_from_gregorian_date(date, exact=True)
+                    b_date1 = self.badi_date_from_jd(
+                        jd, lat, lon, zone, us=True, short=True)
+                    # Get Badi date from the Gregorian date.
+                    b_date2 = self.badi_date_from_gregorian_date(
+                        date, lat, lon, zone, us=True, short=True)
+                    # Get Badi date from timestamp.
+                    g_ts = dtime.datetime(*date, tzinfo=tz).timestamp()
+                    dt1 = datetime.fromtimestamp(g_ts, short=True)
+                    b_date3 = dt1.b_date + dt1.b_time
+                    diff0 = [(i, a, b) for i, (a, b) in enumerate(
+                        zip(b_date1, b_date2)) if a != b]
+                    diff1 = [(i, a, b) for i, (a, b) in enumerate(
+                        zip(b_date1, b_date3)) if a != b]
+                    data.append((date, b_date0, b_date1, b_date2, b_date3,
+                                 diff0, diff1))
+
+        return data
+
+    def test_ordinals(self, options):
+        """
+        Check that the ordinals are correct.
+
+        -o with -S and -E
+        """
+        data = []
+        start = options.start
+        end = options.end
+        assert (self.MINYEAR - 1) < start < (self.MAXYEAR + 1), (
+            f"Start '{start}' must be from {self.MINYEAR} "
+            f"to {self.MAXYEAR}.")
+        assert self.MINYEAR < end < (self.MAXYEAR + 2), (
+            f"End '{end}' must be from {self.MINYEAR} "
+            f"to {self.MAXYEAR}")
+        prev_ord = 0
+
+        for year in range(start, end):
             is_leap = self._is_leap_year(year)
 
             for month in self.MONTHS:
                 dm = 19 if month != 0 else 4 + is_leap
 
                 for day in range(1, dm + 1):
-                    criterion_date = (year, month, day)
-                    # Get the Gregorian timestamp for reference.
-                    g_date = self.gregorian_date_from_badi_date(criterion_date,
-                                                                lat, lon, zone)
-                    g_ts = dtime.datetime(*g_date, tzinfo=tz).timestamp()
-                    # Timestamp only methods, 1st get UTC timestamp for sunset.
-                    ts_ss = self.timestamp_at_sunset(g_date, lat, lon)
-                    ts_b_date = self.posix_timestamp(g_ts, lat, lon, zone,
-                                                     short=True, trim=True,
-                                                     rtd=False)
-                    # Julian Period day methods.
-                    #print(year, month, day, file=sys.stderr)
-                    jd_ts_ss = datetime(year, month, day).timestamp()
-                    jd_b_date = self.posix_timestamp(jd_ts_ss, lat, lon, zone,
-                                                     short=True, trim=True,
-                                                     rtd=False, _chk_on=False)
-                    diff = ts_ss - jd_ts_ss
-                    data.append((criterion_date, g_date, g_ts, ts_ss,
-                                 ts_b_date, jd_ts_ss, jd_b_date, diff))
+                    date0 = (year, month, day)
+                    ordinal = _td_utils._ymd2ord(*date0)
+                    date1 = _td_utils._ord2ymd(ordinal, short=True)
+
+                    if (options.previous and
+                       (prev_ord != 0 and (prev_ord + 1) != ordinal)):
+                        data.append((date0, prev_ord, date1, ordinal))
+                    elif not options.previous:
+                        flag = date0 != date1
+
+                        if flag:
+                            data.append((date0, ordinal, date1, is_leap, flag))
+
+                    prev_ord = ordinal
+
+            if not year % 100:
+                print(year, file=sys.stderr)
+
+        return data
+
+    def analyze_timestamp_for_today(self, options):
+        """
+        See if we get close to the correct time after sunset so we can prove
+        that sunset can be found with a timestamp.
+
+        -t -S and -E in Gregorian years
+        """
+        data = []
+        start = options.start
+        end = options.end
+        #lat = options.latitude
+        lon = options.longitude
+
+        if lon:
+            zone = lon / 15
+        else:
+            zone = options.zone
+
+        tz0 = dtime.timezone(dtime.timedelta(hours=zone))
+        tz1 = timezone(timedelta(hours=zone))
+
+        for year in range(start, end):
+            g_date = (year, 1, 1)
+            g_ts = dtime.datetime(*g_date, tzinfo=tz0).timestamp()
+            bd = datetime.fromtimestamp(g_ts, tz1)
+            b_date = bd.b_date
+            b_ts = bd.timestamp()
+            diff = b_ts - g_ts
+            data.append((g_date, g_ts, b_date, b_ts, diff))
 
         return data
 
     def _subtract_tuples(self, t0, t1):
         return t0[0] - t1[0], t0[1] - t1[1], t0[2] - t1[2]
+
+
+def fmt_float(value, left=4, right=4):
+    """
+    Format one float so that it is visually centered on the decimal point.
+
+    Parameters
+    ----------
+    value : float | int | str
+        The number to format.
+    left : int
+        Width to reserve on the left of the decimal (including any minus sign).
+    right : int
+        Number of digits to show after the decimal.
+    """
+    s = f"{value:.{right}f}"
+    left_part, right_part = s.split(".")
+    return f"{left_part.rjust(left)}.{right_part.ljust(right)}"
+
+
+def find_elapse_time(start_time):
+    end_time = time.time()
+    days, hours, minutes, seconds = dt._dhms_from_seconds(
+        end_time - start_time)
+    print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+          f"{round(seconds, 6):02.6} seconds.")
 
 
 if __name__ == "__main__":
@@ -225,25 +419,47 @@ if __name__ == "__main__":
         dest='analyze1', help="Analyze Badi and Gregorian dates.")
     parser.add_argument(
         '-c', '--analyze2', action='store_true', default=False,
-        dest='analyze2', help="Analyze timestamps relative to sunset..")
+        dest='analyze2', help="Analyze timestamps relative to sunset.")
+    parser.add_argument(
+        '-d', '--date', action='store_true', default=False, dest='date',
+        help="Check dates by different methods.")
+    parser.add_argument(
+        '-e', '--flip', action='store_true', default=False, dest='flip',
+        help="Check for sunset flip.")
+    parser.add_argument(
+        '-o', '--ordinal', action='store_true', default=False,
+        dest='ordinal', help="Test that _ymd2ord and _ord2ymd produce "
+        "the correct dates.")
+    parser.add_argument(
+        '-t', '--analyze3', action='store_true', default=False,
+        dest='analyze3', help="Analyze timestamps relative to sunset.")
     parser.add_argument(
         '-E', '--end', type=int, default=None, dest='end',
-        help="End Badi year of sequence.")
+        help="End of year of sequence.")
     parser.add_argument(
         '-S', '--start', type=int, default=None, dest='start',
-        help="Start Badi year of sequence.")
+        help="Start of year of sequence.")
     parser.add_argument(
         '-T', '--timezone', type=float, default=0.0, dest='timezone',
         help="Timezone offset floating point value.")
     parser.add_argument(
-        '-A', '--latitude', type=float, default=51.477928, dest='latitude',
+        '-A', '--latitude', type=float, default=None, dest='latitude',
         help="Latitude")
     parser.add_argument(
-        '-O', '--logitude', type=float, default=-0.001545, dest='longitude',
+        '-O', '--logitude', type=float, default=None, dest='longitude',
         help="Longitude")
     parser.add_argument(
-        '-Z', '--zone', type=float, default=0.0, dest='zone',
+        '-Z', '--zone', type=float, default=None, dest='zone',
         help="Time zone.")
+    parser.add_argument(
+        '-P', '--previous', action='store_true', default=False,
+        dest='previous', help="Dump the previous and current ordinals.")
+    parser.add_argument(
+        '-D', '--delta', type=int, default=None, dest='delta',
+        help="The spread in minutes or seconds.")
+    parser.add_argument(
+        '-U', '--seconds', action='store_true', default=False, dest='seconds',
+        help="Use seconds instead of minutes.")
 
     options = parser.parse_args()
     dt = DatetimeTests()
@@ -277,106 +493,239 @@ if __name__ == "__main__":
             options.end = 1162     # Gregorian year 3005
 
         start_time = time.time()
+        data = dt.analyze_ordinal_error_create(options)
+        underline_length = 149
         print(f"./contrib/misc/{basename} -bS {options.start} "
               f"-E {options.end}")
-        print(" "*78, "Orig - Badi   Orig - Ord")
-        print("Greg Date             JD             Orig Date     Badi Date"
-              "     Ordinal Date  B Date Diff   O Date Diff   HMS from JD")
-        print('-'*123)
-        data = dt.analyze_ordinal_error_create(options)
+        print('-' * underline_length)
+        print(" " * 123, "Orig - Badi   Orig - Ord")
+        print("Greg Date", ' ' * 21, "JD", ' ' * 15, "Ordinal",
+              "Orig Date       "
+              "Badi Date", ' ' * 22, "Ordinal Date    B Date Diff   "
+              "O Date Diff")
+        print('-' * underline_length)
         total_diff0 = total_diff1 = 0
         items = []
-        #print(data, file=sys.stderr)
 
-        for g_date, jd, date, b_date, o_date, diff0, diff1 in data:
+        for g_date, jd, ord, date, b_date, o_date, diff0, diff1 in data:
             if diff0 != (0, 0, 0):
                 total_diff0 += 1
 
             if diff1 != (0, 0, 0):
                 total_diff1 += 1
 
-        [print(f"{str(g_date):21} "
-               f"{jd:<14} "
-               f"{str(date):13} "
-               f"{str(b_date):13} "
-               f"{str(o_date):13} "
+        [print(f"{str(g_date):31} "
+               f"{jd:<18} "
+               f"{ord:7} "
+               f"{str(date):15} "
+               f"{str(b_date):32} "
+               f"{str(o_date):15} "
                f"{str(diff0):13} "
                f"{str(diff1):13} "
-               f"{dt._hms_from_decimal_day(jd)}"
                )
-         for g_date, jd, b_date, o_date, date, diff0, diff1 in data]
+         for g_date, jd, ord, date, b_date, o_date, diff0, diff1 in data]
+        print('-' * underline_length)
         total_errors = total_diff0 + total_diff1
         print(f"Analyzing year {options.start} to year {options.end-1}.")
         print(f"Ordinal Errors: {total_diff1}")
         print(f"   Badi Errors: {total_diff0}")
         print(f"  Total Errors: {total_errors}")
-        end_time = time.time()
-        days, hours, minutes, seconds = dt._dhms_from_seconds(
-            end_time - start_time)
-        print(f"  Elapsed time: {hours:02} hours, {minutes:02} minutes, "
-              f"{round(seconds, 6):02.6} seconds.")
-    elif options.analyze2:  # -c
-        if options.start is None or options.end is None:
-            # Set default Badi years.
-            options.start = -1842
-            options.end = 1162
+        errors = []
 
+        for g_date, jd, ord, date, b_date, o_date, diff0, diff1 in data:
+            if diff0 != (0, 0, 0):
+                errors.append((date, jd, ord, b_date[:3], diff0, ''))
+
+            if diff1 != (0, 0, 0):
+                errors.append((date, jd, ord, o_date, '', diff1))
+
+        if errors:
+            print("\nDate            JD                 Ordinal "
+                  "Offending Date  Badi Diff 0  Ordinal Diff 1")
+            print('-' * 86)
+            [print(f"{str(date):15} "
+                   f"{jd:<18} "
+                   f"{ord:7} "
+                   f"{str(offending_date):15} "
+                   f"{str(diff0):13}"
+                   f"{str(diff1):13}"
+                   )
+             for date, jd, ord, offending_date, diff0, diff1 in errors]
+            print('-' * 86)
+
+        find_elapse_time(start_time)
+    elif options.analyze2:  # -c
+        delta = options.delta
+        seconds = options.seconds
+        assert delta < 119, ("The minutes option cannot be more that 118, "
+                             f"found {delta}.")
         start_time = time.time()
-        underline_length = 201
-        print(f"./contrib/misc/{basename} -cS {options.start} -E {options.end} "
-              f"-A {options.latitude} -O {options.longitude} -Z {options.zone}"
-              )
-        print("Crit Badí' Dt  Gregorian Date", " " * 19, "Gregorian TS       "
-              "Sunset Timestamp   Badí' Date (TS)", " " * 16,
-              "Sunset TS (JD)      Badí' Date (JD)", " " * 16,
-              "Sunset TS Diff      TSD JDD")
+        underline_length = 117
+        print(f"./contrib/misc/{basename} -cA {options.latitude} "
+              f"-O {options.longitude} -Z {options.zone} -D {delta} "
+              f"-U {seconds}")
+        print('-' * underline_length)
+        d_type = 'Second' if seconds else 'Minute'
+        print("Gregorian Date Astro Sunset JD    Badí' Timestamp   "
+              f"{d_type} Offset    Astro JD           Day Timestamp     Today")
         print('-' * underline_length)
         data = dt.analyze_timestamp_errors(options)
-        items = []
 
-        # Adjust for Badi calendar
-        for (criterion_date, g_date, ts, ts_ss,
-             ts_b_date, jd_ts_ss, jd_b_date, diff) in data:
-            year, month, day = criterion_date
-            #print(day, b_date[2], jd_b_date[2], file=sys.stderr)
-            ts_badi_err = day - ts_b_date[2]
-            jd_badi_err = day - jd_b_date[2]
-            items.append((criterion_date, g_date, ts, ts_ss,
-                          ts_b_date, jd_ts_ss, jd_b_date, diff,
-                          ts_badi_err, jd_badi_err))
+        for ss_items, items in data:
+            g_date, astro_ss, ss_ts = ss_items
+            print(f"{str(g_date):14} "
+                  f"{fmt_float(astro_ss, 7, 10)} "
+                  f"{fmt_float(ss_ts, 12, 4)} ",
+                  end='')
+            items_len = len(items)
 
-        [print(f"{str(criterion_date):14} "
-               f"{str(g_date):34} "
-               f"{ts:<18} "
-               f"{ts_ss:<18} "
-               f"{str(ts_b_date):32} "
-               f"{jd_ts_ss:<19} "
-               f"{str(jd_b_date):32} "
-               f"{diff:<19} "
-               f"{ts_badi_err:>3} "
-               f"{jd_badi_err:>3}"
-               )
-         for (criterion_date, g_date, ts, ts_ss, ts_b_date, jd_ts_ss,
-              jd_b_date, diff, ts_badi_err, jd_badi_err) in items]
+            for idx, (delta, test_jd, ts, today) in enumerate(items):
+                print(f"{fmt_float(delta, 3, 1)}            "
+                      f"{fmt_float(test_jd, 7, 10)} "
+                      f"{fmt_float(ts, 12, 4)} "
+                      f"{str(today):>11} "
+                      )
+
+                if idx < items_len - 1:
+                    print(" " * 52, end='')
+
+            print('-' * underline_length)
+
+        find_elapse_time(start_time)
+    elif options.date:  # -d
+        if None in (options.start, options.end):
+            print("If option -d is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        elif None in (options.latitude, options.longitude, options.zone):
+            print("If option -d is used, -A, -O and -Z must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        else:
+            start_time = time.time()
+            data = dt.check_dates(options)
+            print(f"./contrib/misc/{basename} -dS {options.start} "
+                  f"-E {options.end} -A {options.latitude} "
+                  f"-O {options.longitude} -Z {options.zone}")
+            underline_length = 215
+            print('-' * underline_length)
+            print("Gregorian Date|Badi Date from |"
+                  "Badi Date from JD",
+                  ' ' * 16, "|Badi Date from Gregorian",
+                  ' ' * 9, "|Badi Date from Timestamp",
+                  ' ' * 9, "|Tuples are:")
+            print("at Midnight   |Ordinal        |", ' ' * 33, "|",
+                  ' ' * 33, "|", ' ' * 33, "|(idx, diff val 0, diff val 1)")
+            print('-' * underline_length)
+            [print(f"{str(date):14} "
+                   f"{str(b_date0):15} "
+                   f"{str(b_date1):35} "
+                   f"{str(b_date2):35} "
+                   f"{str(b_date3):35} "
+                   f"{diff0} "
+                   f"{diff1}"
+                   ) for (date, b_date0, b_date1, b_date2,
+                          b_date3, diff0, diff1) in data]
+            print('-' * underline_length)
+            find_elapse_time(start_time)
+    elif options.flip:  # -e
+        dt.test_sunset_flip_invariant(options)
+    elif options.ordinal:  # -o
+        if options.start is None or options.end is None:
+            print("If option -o is used, -S and -E must also be used.",
+                  file=sys.stderr)
+            ret = 1
+        elif options.previous:  # with -P
+            start_time = time.time()
+            data = dt.test_ordinals(options)
+            print(f"./contrib/misc/{basename} -oPS{options.start} "
+                  f"-E{options.end}")
+            print("Start Date      Prev Ord Result Date     Cur Ord")
+            underline_length = 48
+            print('-' * underline_length)
+            [print(f"{str(date0):15}  "
+                   f"{prev_ord:>7} "
+                   f"{str(date1):15} "
+                   f"{ordinal:>7} "
+                   ) for date0, prev_ord, date1, ordinal in data]
+            print('-' * underline_length)
+            end_time = time.time()
+            days, hours, minutes, seconds = dt._dhms_from_seconds(
+                end_time - start_time)
+            print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+                f"{round(seconds, 6):02.6} seconds.")
+        else:
+            start_time = time.time()
+            data = dt.test_ordinals(options)
+            print(f"./contrib/misc/{basename} -oS{options.start} "
+                  f"-E{options.end}")
+            print("Start Date      Ordinal Result Date     Leap  Error")
+            underline_length = 51
+            print('-' * underline_length)
+            [print(f"{str(date0):15} "
+                   f"{ordinal:>7} "
+                   f"{str(date1):15} "
+                   f"{str(leap):5} "
+                   f"{str(flag):5}"
+                   ) for date0, ordinal, date1, leap, flag in data]
+            print('-' * underline_length)
+            print(f"    Total Years Tested: {options.end - options.start}")
+            errors = [l[4] is True for l in data].count(True)
+            print(f"Total Number of Errors: {errors}")
+            find_elapse_time(start_time)
+    elif options.analyze3:  # -t
+        if options.start is None or options.end is None:
+            # Set default Gregorian years.
+            options.start = 2  # Year 1 would be before that oldest Badi date.
+            options.end = 3005
+
+        start_time = time.time()
+        underline_length = 76
+        lon = options.longitude
+        zone = lon / 14 if options.zone is None else options.zone
+        lon_text = "" if lon is None else f" -O {lon}"
+        print(f"./contrib/misc/{basename} -tS {options.start} "
+              f"-E {options.end}{lon_text} -Z {zone}")
+        print("Gregorian DT Greg TS        Badi Date      Badi Timestamp      "
+              "Diff")
         print('-' * underline_length)
-        ss_ts_diff_ts = ss_ts_diff_jd = 0
+        data = dt.analyze_timestamp_for_today(options)
+        [print(f"{str(g_date):12} "
+               f"{fmt_float(g_ts, 12, 1)} "
+               f"{str(b_date):14} "
+               f"{fmt_float(b_ts, 12, 6)} "
+               f"{fmt_float(diff, 6, 6)}"
+               )
+         for g_date, g_ts, b_date, b_ts, diff in data]
+        print('-' * underline_length)
+        deviation = {'n': 0, 'p': 0, 'max_n': 0, 'max_p': 0, 'total': 0}
 
-        for item in items:
-            #print(item[-2], item[-1], file=sys.stderr)
-            if item[-2] != 0:
-                ss_ts_diff_ts += 1
+        for items in data:
+            diff = items[-1]
 
-            if item[-1] != 0:
-                ss_ts_diff_jd += 1
+            if diff < 0:
+                deviation['n'] += 1
+            elif diff > 0:
+                deviation['p'] += 1
 
-        print(f"Analyzing year {options.start} to year {options.end} "
+            if diff < deviation['max_n']:
+                deviation['max_n'] = diff
+            elif diff > deviation['max_p']:
+                deviation['max_p'] = diff
+
+            deviation['total'] += diff
+
+        total_years = options.end - options.start
+        mean_deviation = deviation['total'] / total_years
+        print(f"Analyzing year {options.start} to year {options.end-1} "
               "Gregorian.")
-        print(f"                   Total days: {len(items):>4}")
-        print(f"Sunset derived from TS errors: {ss_ts_diff_ts:>4}")
-        print(f"Sunset derived from JD errors: {ss_ts_diff_jd:>4}")
-        print("=" * 35)
-        print("                 Total errors: "
-              f"{ss_ts_diff_ts + ss_ts_diff_jd:>4}")
+        print(f"Total years:                          {total_years}")
+        print(f"Total Timestamp negative deviations:  {deviation['n']}")
+        print(f"Maximum negative deviation (seconds): {deviation['max_n']}")
+        print(f"Total Timestamp positive deviations:  {deviation['p']}")
+        print(f"Maximum positive deviation (seconds): {deviation['max_p']}")
+        print(f"Mean deviation (seconds):             {mean_deviation}")
+        find_elapse_time(start_time)
     else:
         parser.print_help()
 

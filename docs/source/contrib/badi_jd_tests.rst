@@ -9,3 +9,4 @@ badi_jd_tests
     :members:
     :undoc-members:
     :show-inheritance:
+    :noindex:

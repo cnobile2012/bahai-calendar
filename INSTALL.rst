@@ -28,7 +28,7 @@ no longer need to install python packages as sudo (root) user. Which means the
 other advantage of virtual environments is that it's installed in your user
 account not in the root of the system.
 
-This API was tested to work with Python versions 3.10 to 3.13. I strongly
+This API was tested to work with Python versions 3.10 to 3.14. I strongly
 recommend writing any new code with the latest version of Python.
 
 ----------------------------------------------------
@@ -40,7 +40,7 @@ Ubuntu, Linux Mint, Kaii Linux, and others.
 
 .. code-block:: console
 
-   $ sudo apt install build-essential python3.12 python3-setuptools \
+   $ sudo apt install build-essential python3.14 python3-setuptools \
                       git virtualenvwrapper
 
 The ``virtualenvwrapper`` package is a wrapper around ``virtualenv`` that
@@ -78,7 +78,7 @@ whichever Python version you have in the command below.
 .. code-block:: console
 
    $ cd /path/to/your_project
-   $ mkvirtualenv -p python3.11 <VE name>
+   $ mkvirtualenv -p python3.14 <VE name>
 
 After the initial creation of the VE you can use these commands to activate
 and deactivate a VE.
@@ -106,11 +106,10 @@ this.
    or
    $ pip install git+https://github.com/cnobile2012/bahai-calendar.git
 
-If you are working on ``badidatetime`` itself, then ``badidatetime`` is the
-project you are working on and you'll need to install the ``development.txt``
-file mentioned below. You may want to fork my version first. This is advanced
-usage so you and will need to have your own GitHub account for this to work
-properly.
+If you are working on ``badidatetime`` itself, you'll need to install the
+``development.txt`` file mentioned below. You may want to fork my version
+first. This is advanced usage so you and will need to have your own GitHub
+account for this to work properly.
 
 .. code-block:: console
 
@@ -123,7 +122,7 @@ below to the one you are using.**
 
 .. code-block:: console
 
-   $ mkvirtualenv -p python3.13 calendar
+   $ mkvirtualenv -p python3.14 calendar
    $ workon calendar
    $ pip install -r requirements/development.txt
 
@@ -150,7 +149,7 @@ to `pypi`.
 
    1. Run local tests.
    2. Commit and push all code relating to the new release.
-   3. Check that the `GitHub` tests pass.
+   3. Check that the `GitHub` tests pass, if you've set them up.
    4. Update the **include.mk** file with the new version information.
    5. Commit and push the **include.mk** file. :color-violet:`(Step 4 and 5
       can also be done as part of step 2.)`
@@ -170,9 +169,9 @@ to `pypi`.
 
    9. Go to your account on the `pypi test site <https://test.pypi.org/>`_ to
       check if it is there. :color-red:`(For errors see below.)`
-   10. The `pyproject.toml` files gets updated updating to the `pypi` test and
-       main sites, so it will need to be committed and pushed afterwards. This
-       file is not in the `badidatetime` build so it can lag behind with no
+   10. After the `pyproject.toml` file gets updated to the `pypi` test and main
+       sites, so it will need to be committed and pushed separately. This file
+       is not in the `badidatetime` build so it can lag behind with no
        problems.
    11. Assuming everything went as expected then upload to the main `pypi`
        site.
@@ -185,12 +184,12 @@ to `pypi`.
        it is there.
    12. Done, the new version is published.
 
-If errors occurred during the upload to the test `pypi` site and need to fixed
-any files. The tag created above will need to be moved to the *HEAD* of the
-branch afterwards.
+If errors occurred during the upload to the test `pypi` site you will need to
+fix files and check in again. The tag created above will need to be moved to
+the *HEAD* of the branch afterwards.
 
    1. Run local tests.
-   2. Commit and push all code relating to the errors found above.
+   2. Commit and push all code relating to any errors found.
    3. Check that the `GitHub` tests pass.
    4. Move the version tag. :color-red:`The commit hash can be just the first 7
       characters of the full hash.`
@@ -201,4 +200,4 @@ branch afterwards.
          $ git tag -a <tagname> <HEAD commit hash> -f -m "Comment"
          $ git push origin --tags -f
 
-   5. Then continue by redoing number 8 above.
+   5. Then continue with number 8 above.

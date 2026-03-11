@@ -5,18 +5,16 @@
 __docformat__ = "restructuredtext en"
 
 __all__ = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
-           'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
-           'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL', 'MONTHNAMES',
+           'TZWithCoords', 'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD',
+           'GMT_COORD', 'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL', 'MONTHNAMES',
            'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
-import sys
 import time as _time
 import math as _math
 from datetime import timedelta, tzinfo
 from types import NoneType
 
 from .badi_calendar import BahaiCalendar
-from ._coefficients import Coefficients
 from ._timedateutils import _td_utils
 
 
@@ -53,7 +51,7 @@ def _divide_and_round(a: int, b: int) -> int:
     the even integer is returned.
 
     :param int a: numerator
-    :param int b: denomerator
+    :param int b: denominator
     :returns: Resultant value.
     :rtype: int
     """
@@ -204,56 +202,13 @@ def _check_tzname(name: str) -> None:
                         f"not {type(name).__name__!r}")
 
 
-def _fromutc(this: tzinfo, dt):
+def _get_class_module(self) -> str:
     """
-    The method fromutc() in tzinfo will not accept the Badí' datetime object,
-    so this method needs to fill the role.
+    Gets the module name.
 
-    .. note::
-
-       This function needs to be implemented outside the `tzinfo` class so
-       that the `tzinfo` class can be used with the `zoneinfo` class. Normally
-       the tzinfo class would just be overridden with this function added.
-
-    :param tzinfo this: The tzinfo instance.
-    :param datetime dt: A datetime instance.
-    :returns: The adjusted datetime from the provided UTC datetime.
-    :rtype: datetime
-    :raises TypeError: If `dt` is not a `datetime` instance.
-    :raises ValueError: If dt.tzinfo is not self.
-    :raises ValueError: If a `None` value returned from utcoffset().
-    :raises ValueError: If a `None` value returned from dst().
+    :returns: An updated datetime module name or the module of the class.
+    :rtype: str
     """
-    if not isinstance(dt, datetime):
-        raise TypeError("_fromutc() requires a datetime argument.")
-
-    if dt.tzinfo is not this:
-        raise ValueError("_fromutc() dt.tzinfo is not this.")
-
-    dtoff = dt.utcoffset()
-
-    if dtoff is None:
-        raise ValueError("_fromutc() requires a non-None utcoffset() result.")
-
-    dtdst = dt.dst()
-
-    if dtdst is None:
-        raise ValueError("_fromutc() requires a non-None dst() result.")
-
-    delta = dtoff - dtdst
-
-    if delta:
-        dt += delta
-        dtdst = dt.dst()
-
-        if dtdst is None:  # pragma: no cover
-            raise ValueError("_fromutc(): dt.dst gave inconsistent "
-                             "results; cannot convert.")
-
-    return dt + dtdst
-
-
-def _get_class_module(self):
     module_name = self.__class__.__module__
 
     if module_name == 'badidatetime.datetime':
@@ -276,7 +231,7 @@ def _module_name(module: str) -> str:
 
 class date(BahaiCalendar):
     """
-    Implements the date object for the Badi datetime package.
+    Implements the date object for the Badí' datetime package.
     """
     __slots__ = ('_kull_i_shay', '_vahid', '_year', '_month', '_day',
                  '_hashcode', '__date', '__short')
@@ -288,9 +243,9 @@ class date(BahaiCalendar):
 
         :param date cls: The class object.
         :param int a: Long form this value is the Kill-i-Shay and short form
-                      it's the year. If b and c are None then a becomes the
-                      pickle value that is parsed to the remaining values
-                      below.
+                      it's the year. If **b** and **c** are None then **a**
+                      becomes the pickle value that is parsed to the remaining
+                      values below.
         :param int b: Long form this value is the Váḥid and short form it's
                       the month.
         :param int c: Long form this is the year and short form it's the day.
@@ -310,7 +265,7 @@ class date(BahaiCalendar):
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
             date_len = len(b_date)
             assert date_len in (3, 5), (
-                "A full short or long form Badi date must be used, found "
+                "A full short or long form Badí' date must be used, found "
                 f"{date_len} fields.")
             self = object.__new__(cls)
 
@@ -339,7 +294,7 @@ class date(BahaiCalendar):
     @classmethod
     def fromtimestamp(cls, t: float, *, short: bool=True) -> object:
         """
-        Construct a date from a POSIX timestamp (like time.time()).
+        Construct a date from a POSIX timestamp--like time.time().
 
         :param date cls: The class object.
         :param float t: The POSIX timestamp.
@@ -349,10 +304,10 @@ class date(BahaiCalendar):
         :rtype: date
         """
         bc = BahaiCalendar()
-        date = bc.posix_timestamp(t, *LOCAL_COORD, short=short, trim=True)
-        del bc
-        date = date[:3] if short else date[:5]
-        return cls(*date)  # We do not want time values.
+        date = bc.badi_date_from_timestamp(t, *LOCAL_COORD, short=short,
+                                           trim=True)
+        date = date[:3] if short else date[:5]  # We do not want time values.
+        return cls(*date)
 
     @classmethod
     def today(cls, *, short: bool=True) -> object:
@@ -370,7 +325,7 @@ class date(BahaiCalendar):
     @classmethod
     def fromordinal(cls, n: int, *, short: bool=True) -> object:
         """
-        Construct a date from a proleptic Badi ordinal.
+        Construct a date from a proleptic Badí' ordinal.
 
         Bahá 1 of year 1 is day 1. Only the year, month and day are
         non-zero in the result.
@@ -382,16 +337,14 @@ class date(BahaiCalendar):
         :returns: The instantiated class.
         :rtype: date
         """
-        bc = BahaiCalendar()
         date = _td_utils._ord2ymd(n, short=short)
-        del bc
         return cls(*date)
 
     @classmethod
     def fromisoformat(cls, date_string: str, *, short: bool=True) -> object:
         """
         Construct a date from a string in ISO 8601 format.
-        We only can convert from short form Badi dates.
+        We only can convert from short form Badí' dates.
 
         :param str date_string: A string representing the date.
         :param bool short: If True (default) the short form date is returned
@@ -422,7 +375,6 @@ class date(BahaiCalendar):
             else:
                 b_date = bc.long_date_from_short_date(date, trim=True)
 
-            del bc
             return cls(*b_date)
 
     @classmethod
@@ -433,17 +385,15 @@ class date(BahaiCalendar):
 
         This is the inverse of the date.isocalendar() function.
 
-        :param int year: The Badi year.
+        :param int year: The Badí' year.
         :param int week: The number of the week in the year.
-        :param int day: Badi day in week.
+        :param int day: Badí' day in week.
         :param bool short: If True (default) the short form date is returned
                            else False the long form date is returned.
         :returns: The date instance.
         :rtype: date
         """
-        bc = BahaiCalendar()
         date = _td_utils._isoweek_to_badi(year, week, day, short=short)
-        del bc
         b_date = date[:3] if short else date[:5]
         return cls(*b_date)
 
@@ -474,7 +424,7 @@ class date(BahaiCalendar):
 
     def _short_from_long_form(self, time: tuple=()) -> tuple:
         """
-        Convert the long form Badi date to a short form Badi date and add
+        Convert the long form Badí' date to a short form Badí' date and add
         the time if it exists.
 
         :param tuple time: A tuple representing the time. This is used by the
@@ -493,7 +443,7 @@ class date(BahaiCalendar):
 
     def ctime(self) -> str:
         """
-        Return ctime() style string in the short form Badi date.
+        Return ctime() style string in the short form Badí' date.
 
         :returns: A string representing the weekday, month name, and year.
         :rtype: str
@@ -879,7 +829,7 @@ class date(BahaiCalendar):
 
         :param date other: The other date instance which is subtracted from
                            the `self` instance.
-        :returns: Subreacted date instances.
+        :returns: Subtracted date instances.
         :rtype: date
         """
         if isinstance(other, timedelta):
@@ -932,7 +882,7 @@ class date(BahaiCalendar):
 
            ISO calendar algorithm taken from
            http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
-           modified for the Badi Calendar.
+           modified for the Badí' Calendar.
         """
         y, m, d = self._short_from_long_form()[:3]
         year, week, day = _td_utils._year_week_day(y, m, d)
@@ -949,7 +899,7 @@ class date(BahaiCalendar):
         :type a: int, str, or bytes
         :param b: None, Váḥid, or month
         :type b: NoneType or int
-        :returns: A Boolean if a short or long Badi date derived from pickle
+        :returns: A Boolean if a short or long Badí' date derived from pickle
                   data. A None can be returned if a and b are real date
                   information.
         :rtype: bool or NoneType
@@ -1029,13 +979,13 @@ class date(BahaiCalendar):
         return (self.__class__, self._getstate())
 
 
-_date_class = date  # So functions w/ args named "date" can get at the class
+_date_class = date  # So functions w/ args named "date" can get at the class.
 
-# This also needs to be done for long form date. *** TODO ***
 date.min = date(MINYEAR, 1, 1)
 date.max = date(MAXYEAR, 19, 19)
+date.longmin = date(-5, 18, 1, 1, 1)
+date.longmax = date(4, 5, 2, 19, 19)
 date.resolution = timedelta(days=1)
-
 
 _tzinfo_class = tzinfo
 
@@ -1499,7 +1449,7 @@ class time:
 
         .. note::
 
-           The name is 100% informational -- there's no requirement that
+           The name is 100% informational--there's no requirement that
            it mean anything in particular. For example, *GMT*, *UTC*, *-500*,
            *-5:00*, *EDT*, *US/Eastern*, *America/New York* are all valid
            responses.
@@ -1627,13 +1577,12 @@ class time:
 
 
 _time_class = time  # so functions w/ args named "time" can get at the class
-
 time.min = time(0, 0, 0)
 time.max = time(24, 0, 3)  # See contrib/misc/badi_jd_tests.py --day
 time.resolution = timedelta(microseconds=1)
 
 
-class datetime(date, Coefficients):
+class datetime(date):
     """
     datetime(year, month, day[, hour[, minute[, second[,
              microsecond[,tzinfo]]]]])
@@ -1648,7 +1597,7 @@ class datetime(date, Coefficients):
                 microsecond: int=0, tzinfo: tzinfo=None, *,
                 fold: int=0) -> object:
         """
-        Check if there is pickle data. If so parse and create the objcet. If
+        Check if there is pickle data. If so parse and create the object. If
         not pickle data create the instance from the incoming date data.
 
         :param int a: If pickle data this is the bytes string. If not pickle
@@ -1657,11 +1606,11 @@ class datetime(date, Coefficients):
         :param int b: If pickle data this is the `tzinfo` instance. If not
                       pickle data this could be the Váḥid if a long form date
                       or the month if a short form date.
-        :param int c: If a long form date this is the year or the day if a
-                      short form date is used.
-        :param int d: If a long form date this is the month, it is not used
+        :param int c: If **a** long form date this is the year or the day if
+                      **a** short form date is used.
+        :param int d: If **a** long form date this is the month, it is not used
                       with a short form date.
-        :param int e: If a long form date this is the day, it is not used
+        :param int e: If **a** long form date this is the day, it is not used
                       with a short form date.
         :param float hour: The hour of the dat.
         :param float minute: The minute of the hour.
@@ -1670,7 +1619,7 @@ class datetime(date, Coefficients):
         :param tzinfo tzinfo: The time zone information.
         :param int fold: If *0* there is no fold in time, this is the more
                          common situation, however, if it is *1* there is a
-                         fold in time.
+                         fold in time at the DST switch to standard time.
         :returns: The instance of the datetime class.
         :rtype: datetime
         """
@@ -1683,7 +1632,7 @@ class datetime(date, Coefficients):
             b_date = tuple([x for x in (a, b, c, d, e) if x is not None])
             date_len = len(b_date)
             assert date_len in (3, 5), (
-                "A full short or long form Badi date must be used, found "
+                "A full short or long form Badí' date must be used, found "
                 f"{date_len} fields.")
             self = object.__new__(cls)
             super().__init__(self)
@@ -1854,9 +1803,18 @@ class datetime(date, Coefficients):
         return self.__short
 
     @classmethod
-    def _fromtimestamp(cls, t, utc, tz, *, short=True):
+    def _fromtimestamp(cls, t, tz, *, short=True):
         """
         Construct a datetime from a POSIX timestamp (like time.time()).
+
+        .. note::
+
+           An IANA key and timezone information alone cannot be reliably mapped
+           to geographic location. Without an internet connection, the local
+           latitude and longitude cannot be looked up. Without the latitude and
+           longitude the calendar will compute sunset for Badíʿ dates using the
+           configured default coordinates (e.g., Tehran). This fallback will
+           cause different local Badíʿ days than expected for other regions.
 
         :param float t: POSIX timestamp.
         :param bool utc: If True then the result is relative to UTC time else
@@ -1868,53 +1826,28 @@ class datetime(date, Coefficients):
                   POSIX timestamp.
         :rtype: datetime.datetime
         """
-        def _fix_short_date(date, short):
+        def _fix_short_date(date, short=True):
             return date[:3] + (None, None) + date[3:] if short else date
 
         bc = BahaiCalendar()
-        coord = GMT_COORD if utc else LOCAL_COORD
-        dt = bc.posix_timestamp(t, *coord, us=True, short=short, trim=False)
-        date = _fix_short_date(dt, short)
+
+        # 1. Determine coordinates
+        if tz is None:
+            lat, lon, zone = LOCAL_COORD
+        elif hasattr(tz, "coordinates"):
+            lat, lon, zone = tz.coordinates
+        else:
+            # Fallback
+            lat, lon, zone = LOCAL_COORD
+
+        # 2. Compute Badíʿ date directly for that location
+        b_date = bc.badi_date_from_timestamp(
+            t, lat, lon, zone, us=True, short=short)
+        date = _fix_short_date(b_date, short=short)
         # Clamp out leap seconds if the platform has them.
         date = date[:7] + (min(date[7], 59),) + date[8:]
+        # 3. Construct result
         result = cls(*date, tzinfo=tz)
-
-        if tz is None and not utc:
-            # As of version 2015f max fold in IANA database is
-            # 23 hours at 1969-09-30 13:00:00 in Kwajalein.
-            # Let's probe 24 hours in the past to detect a transition:
-            max_fold_seconds = 24 * 3600
-
-            # On Windows localtime_s throws an OSError for negative values,
-            # thus we can't perform fold detection for values of time less
-            # than the max time fold. See comments in _datetimemodule's
-            # version of this method for more details.
-            if t < max_fold_seconds and sys.platform.startswith('win'):
-                del bc  # pragma: no cover
-                return result  # pragma: no cover
-
-            dt = bc.posix_timestamp(t - max_fold_seconds, *LOCAL_COORD,
-                                    us=True, short=short, trim=False)
-            date = _fix_short_date(dt, short)
-            probe1 = cls(*date, tzinfo=tz)
-            trans = result - probe1 - timedelta(0, max_fold_seconds)
-
-            if trans.days < 0:
-                t += trans // timedelta(0, 1)
-                dt = bc.posix_timestamp(t, *LOCAL_COORD, us=True, short=short,
-                                        trim=False)
-                date = _fix_short_date(dt, short)
-                probe2 = cls(*date, tzinfo=tz)
-
-                if probe2 == result:  # pragma: no cover
-                    result._fold = 1
-        elif tz is not None:
-            if isinstance(tz, timezone):
-                result = tz.fromutc(result)
-            else:
-                result = _fromutc(tz, result)
-
-        del bc
         return result
 
     @classmethod
@@ -1931,7 +1864,7 @@ class datetime(date, Coefficients):
         :rtype: datetime
         """
         _check_tzinfo_arg(tz)
-        return cls._fromtimestamp(t, tz is not None, tz, short=short)
+        return cls._fromtimestamp(t, tz, short=short)
 
     # Both the ustfromtimestamp() and utcnow() methods have been deprecated.
     # https://docs.python.org/3/deprecations/index.html
@@ -2013,215 +1946,15 @@ class datetime(date, Coefficients):
         """
         Return integer POSIX timestamp.
 
-        .. warning::
-
-           Because of the nature of the Badí' calendar the resulting
-           timestamps will have a deviation from -241 to 121 seconds with
-           regards to the GMT timestamp. This means that any code derived
-           from this method may also have issues. Also effected are:
-           `timestamp()`, `_local_timezone()`, and `astimezone()`.
-
         :returns: The POSIX timestamp.
         :rtype: float
         """
-        def gmt(u):
-            date = self.posix_timestamp(u, *GMT_COORD, short=True, us=True)
-            return (datetime(*date[:3], None, None, *date[3:6]) -
-                    epoch) // timedelta(0, 1)
-
-        epoch = datetime(126, 16, 2, None, None, *self._get_badi_hms(126))
-        date = self._short_from_long_form(time=self.b_time)
-        t = (datetime(*date) - epoch) // timedelta(0, 1)
-        a = gmt(t) - t
-        u1 = t - a
-        t1 = gmt(u1)
-        coeff = self._get_ts_coeff(date[0])
-        return t1 - coeff
-
-    def _get_badi_hms(self, year: int):
-        """
-        Find the correct hour and minute of the day based on the coordinents.
-        """
-        jd = self.jd_from_badi_date((year, 16, 2), *LOCAL_COORD)
-        jd = self._meeus_from_exact(jd)
-        ss = self._sun_setting(jd, *LOCAL_COORD)
-        # Round to the nearest minute.
-        f_ss = _math.floor(ss) + round(ss % 1 * 1440) / 1440
-        # Where 24 is hours in a day and offset from GMT.
-        b_time = (((24 + LOCAL_COORD[-1]) / 24) - (f_ss + 0.5)) % 1
-        return self._hms_from_decimal_day(b_time)
-
-    def _get_ts_coeff(self, year: int) -> int:
-        """
-        Determine the coefficients needed to adjust the POSIX timestamp of
-        the Badí' dates to the Gregorian dates.
-        """
-        def years(pn_all):
-            data = []
-
-            for pn in pn_all:
-                if isinstance(pn, int):
-                    data.append(pn)
-                elif isinstance(pn, tuple):
-                    start, end = pn
-                    data += range(start, end+1)
-                else:  # pragma: no cover
-                    assert False, ("The 'pn' argument can only be an int or "
-                                   f"tuple, found: {type(pn)}")
-
-            return data
-
-        if year in self._PN01:
-            coeff = 86460
-        elif year in self._PN02:
-            coeff = 86400
-        elif year in self._PN03:
-            coeff = 86340
-        elif year in self._PN04:
-            coeff = 86100
-        elif year in self._PN05:
-            coeff = 85980
-        elif year in self._PN06:
-            coeff = 85800
-        elif year in self._PN07:
-            coeff = 85740
-        elif year in self._PN08:
-            coeff = 85560
-        elif year in self._PN09:
-            coeff = 120
-        elif year in self._PN10:
-            coeff = 61
-        elif year in years(self._PN11):
-            coeff = 60
-        elif year in years(self._PN12):
-            coeff = -60
-        elif year in self._PN13:
-            coeff = -61
-        elif year in self._PN14:
-            coeff = -119
-        elif year in self._PN15:
-            coeff = -120
-        elif year in years(self._PN16):
-            coeff = -180
-        elif year in self._PN17:
-            coeff = -239
-        elif year in years(self._PN18):
-            coeff = -240
-        elif year in self._PN19:
-            coeff = -241
-        elif year in years(self._PN20):
-            coeff = -300
-        elif year in self._PN21:
-            coeff = -359
-        elif year in years(self._PN22):
-            coeff = -360
-        elif year in years(self._PN23):
-            coeff = -420
-        elif year in self._PN24:
-            coeff = -479
-        elif year in years(self._PN25):
-            coeff = -480
-        elif year in years(self._PN26):
-            coeff = -540
-        elif year in years(self._PN27):
-            coeff = -600
-        elif year in self._PN28:
-            coeff = -601
-        elif year in self._PN29:
-            coeff = -659
-        elif year in years(self._PN30):
-            coeff = -660
-        elif year in years(self._PN31):
-            coeff = -720
-        elif year in self._PN32:
-            coeff = -721
-        elif year in self._PN33:
-            coeff = -779
-        elif year in years(self._PN34):
-            coeff = -780
-        elif year in self._PN35:
-            coeff = -840
-        elif year in self._PN36:
-            coeff = -841
-        elif year in years(self._PN37):
-            coeff = -86280
-        elif year in years(self._PN38):
-            coeff = -86339
-        elif year in years(self._PN39):
-            coeff = -86340
-        elif year in years(self._PN40):
-            coeff = -86400
-        elif year in years(self._PN41):
-            coeff = -86460
-        elif year in self._PN42:
-            coeff = -86461
-        elif year in years(self._PN43):
-            coeff = -86520
-        elif year in years(self._PN44):
-            coeff = -86580
-        elif year in self._PN45:
-            coeff = -86581
-        elif year in self._PN46:
-            coeff = -86639
-        elif year in years(self._PN47):
-            coeff = -86640
-        elif year in years(self._PN48):
-            coeff = -86700
-        elif year in self._PN49:
-            coeff = -86759
-        elif year in self._PN50:
-            coeff = -86760
-        elif year in years(self._PN51):
-            coeff = -86820
-        elif year in self._PN52:
-            coeff = -86879
-        elif year in self._PN53:
-            coeff = -86880
-        elif year in self._PN54:
-            coeff = -86940
-        elif year in years(self._PN55):
-            coeff = -87000
-        elif year in self._PN56:
-            coeff = -87001
-        elif year in self._PN57:
-            coeff = -87059
-        elif year in years(self._PN58):
-            coeff = -87060
-        elif year in self._PN59:
-            coeff = -87120
-        elif year in self._PN60:
-            coeff = -87121
-        elif year in self._PN61:
-            coeff = -87180
-        elif year in self._PN62:
-            coeff = -87181
-        elif year in self._PN63:
-            coeff = -172680
-        elif year in self._PN64:
-            coeff = -172739
-        elif year in self._PN65:
-            coeff = -172740
-        elif year in self._PN66:
-            coeff = -172860
-        elif year in self._PN67:
-            coeff = -172980
-        elif year in self._PN68:
-            coeff = -173160
-        elif year in self._PN69:
-            coeff = -173340
-        else:
-            coeff = 0
-
-        return coeff
+        return self.timestamp_from_badi_date(self.b_date + self.b_time,
+                                             *LOCAL_COORD)
 
     def timestamp(self) -> float:
         """
         Return POSIX timestamp for the current datetime instance.
-
-        .. warning::
-
-           This method is derived from `_mktime()` and may have accuracy
-           issues.
 
         :returns: The POSIX timestamp.
         :rtype: float
@@ -2346,11 +2079,6 @@ class datetime(date, Coefficients):
         """
         Always return the local time offset in a timezone instance.
 
-        .. warning::
-
-           This method is derived from `_mktime()` and may have accuracy
-           issues.
-
         :returns: The local time zone.
         :rtype: timezone
         """
@@ -2359,8 +2087,8 @@ class datetime(date, Coefficients):
         else:
             ts = (self - _EPOCH) // timedelta(seconds=1)
 
-        ts = self.posix_timestamp(ts, *LOCAL_COORD, short=self.is_short,
-                                  trim=True)
+        ts = self.badi_date_from_timestamp(ts, *LOCAL_COORD,
+                                           short=self.is_short, trim=True)
         ts_len = len(ts)
 
         if self.is_short:
@@ -2382,11 +2110,6 @@ class datetime(date, Coefficients):
     def astimezone(self, tz: tzinfo=None):
         """
         Returns a datetime instance with the provided tzinfo instance attached.
-
-        .. warning::
-
-           This method is derived from `_mktime()` and may have accuracy
-           issues.
 
         :param tzinfo tz: A timezone instance.
         :returns: A `datetime` instance with a tzinfo instance attached.
@@ -2461,7 +2184,7 @@ class datetime(date, Coefficients):
         terms of the time to include. Valid options are 'auto', 'hours',
         'minutes', 'seconds', 'milliseconds' and 'microseconds'.
 
-        :param str sep: The ISO date and time seperator. The standard is to
+        :param str sep: The ISO date and time separator. The standard is to
                         use *T*.
         :param str timespec: A special string as stated above that will
                              append additional data to the string.
@@ -2518,7 +2241,7 @@ class datetime(date, Coefficients):
         """
         A representation of the `datetime` instance.
 
-        :param str sep: The ISO date and time seperator. The standard is to
+        :param str sep: The ISO date and time separator. The standard is to
                         use *T*.
         :returns: A representation of the `datetime` instance.
         :rtype: str
@@ -2796,7 +2519,7 @@ class datetime(date, Coefficients):
         :type a: int, str, or bytes
         :param b: None, vahid, or month
         :type b: NoneType or int
-        :returns: A Boolean if a short or long Badi date derived from pickle
+        :returns: A Boolean if a short or long Badí' date derived from pickle
                   data. A None can be returned if a and b are real date
                   information.
         :rtype: bool or NoneType
@@ -2929,7 +2652,7 @@ class timezone(tzinfo):
 
     def __new__(cls, offset: timedelta, name: str=_Omitted) -> object:
         """
-        Construct the constructor.
+        Constructor
 
         :param timedelta offset: A timedelta instance representing the
                                  difference between the local time and UTC.
@@ -2942,7 +2665,7 @@ class timezone(tzinfo):
             raise TypeError("offset must be a timedelta")
 
         if name is cls._Omitted:
-            if not offset:
+            if not offset:  # pragma: no cover
                 return cls.utc
 
             name = None
@@ -2959,7 +2682,7 @@ class timezone(tzinfo):
     @classmethod
     def _create(cls, offset: timedelta, name: str=None) -> object:
         """
-        Creat an instance of `tzinfo`.
+        Create an instance of `tzinfo`.
 
         :param timedelta offset: A `timedelta` instance representing the
                                  offset from UTC.
@@ -3012,9 +2735,9 @@ class timezone(tzinfo):
 
     def __str__(self) -> str:
         """
-        A string representation of the current `timezone` instane.
+        A string representation of the current `timezone` instance.
 
-        :returns: A string representation of the current `timezone` instane.
+        :returns: A string representation of the current `timezone` instance.
         :rtype: str
         """
         return self.tzname(None)
@@ -3081,14 +2804,14 @@ class timezone(tzinfo):
         else:
             sign = '+'
 
-        hours, rest = divmod(delta, timedelta(hours=1))
-        minutes, rest = divmod(rest, timedelta(minutes=1))
-        seconds = rest.seconds
-        microseconds = rest.microseconds
+        hours, mins = divmod(delta, timedelta(hours=1))
+        minutes, ss_us = divmod(mins, timedelta(minutes=1))
+        seconds = ss_us.seconds
+        microseconds = ss_us.microseconds
 
         if microseconds:
-            return (f'UTC{sign}{hours:02d}:{minutes:02d}:{seconds:02d}'
-                    f'.{microseconds:06d}')
+            return (f"UTC{sign}{hours:02d}:{minutes:02d}:{seconds:02d}"
+                    f".{microseconds:06d}")
 
         if seconds:
             return f'UTC{sign}{hours:02d}:{minutes:02d}:{seconds:02d}'
@@ -3104,17 +2827,131 @@ class timezone(tzinfo):
         return hash(self._offset)
 
 
-UTC = timezone.utc = timezone._create(timedelta(0))
-BADI = timezone.badi = timezone._create(timedelta(hours=BADI_COORD[2]))
+class TZWithCoords(timezone):
+    """
+    Correct Badí' dates must have the latitude, longitude, and time zone. None
+    of the publicly available packages can use coordinates, hence the need for
+    this class.
+    """
+    __slots__ = 'lat', 'lon', 'zone', 'key', '_name', '_coords', '_zi'
 
-# bpo-37642: These attributes are rounded to the nearest minute for backwards
-# compatibility, even though the constructor will accept a wider range of
-# values. This may change in the future.
+    def __new__(cls, lat: float, lon: float, zone: float=None, *, key: str=None
+                ) -> object:
+        """
+        Constructor
+
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
+        :param str key: The IANA key.
+        :returns: The instantiated object.
+        :rtype: TZWithCoords
+        """
+        if zone is None:
+            offset = timedelta(0)
+        else:
+            offset = timedelta(hours=zone)
+
+        name = "" if key is None else key
+        self = super().__new__(cls, offset, name)
+        self.lat = lat
+        self.lon = lon
+        self.zone = zone
+        self.key = name
+        self._name = None if name == "" else name
+        self._coords = (lat, lon, zone)
+        return self
+
+    @property
+    def coordinates(self) -> tuple:
+        """
+        Returns the coordinates as a tuple.
+
+        :returns: The coordinates.
+        :rtype: tuple
+        """
+        return self._coords
+
+    def dst(self, dt: datetime=None) -> timedelta:
+        """
+        Returns a timedelta set to 0 (default) for no dst (Daylight Savings
+        Time) or set to 1 for dst.
+
+        :param datetime dt: A datetime object.
+        :returns: An indication if the date is in daylight savings time or not.
+        :rtype: timedelta
+        """
+        dst = None
+
+        if hasattr(self, '_zi'):
+            dst = self._zi.dst(dt)
+
+        if not dst:
+            dst = timedelta(0)
+
+        return dst
+
+    @classmethod
+    def fromzoneinfo(cls, zoneinfo,  lat: float, lon: float, zone: float
+                     ) -> object:
+        """
+        Converts a ZoneInfo object into a TZWithCoords object. Not all
+        functionality of the ZoneInfo object is implemented in TZWithCoords.
+
+        :param ZoneInfo zoneinfo: The ZoneInfo object.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
+        :returns: A TZWithCoords object.
+        :rtype: TZWithCoords
+        """
+        cls._zi = zoneinfo
+        return cls(lat, lon, zone, key=zoneinfo.key)
+
+    def __str__(self) -> str:
+        """
+        Returns a string representation of the current TZWithCoords object.
+
+        :returns: String representation of the current TZWithCoords object.
+        :rtype: str
+        """
+        ret = f"{self.lat}, {self.lon}, {self.zone}"
+
+        if self.key != '':
+            ret += f', {self.key}'
+
+        return ret
+
+    def __reduce__(self) -> tuple:
+        """
+        Gather the class data for pickling.
+
+        :returns: The class data.
+        :rtype: tuple
+        """
+        return (self.__class__, (self.lat, self.lon),
+                {"zone": self._coords[2], "key": self.key})
+
+    def __setstate__(self, state: dict) -> None:
+        """
+        Set the pickled data on the class.
+
+        :param dict state: Pickled state of a TZWithCoords class.
+        """
+        # Called after __new__
+        zone = state.get("zone")
+        key = state.get("key")
+
+        if zone is not None:
+            self._offset = timedelta(hours=zone)
+
+        self.key = key
+        self._coords = (self.lat, self.lon, zone)
+
+
+UTC = timezone.utc = TZWithCoords(*GMT_COORD, key='UTC')
+BADI = timezone.badi = TZWithCoords(*BADI_COORD, key=BADI_IANA)
 timezone.min = timezone._create(-timedelta(hours=23, minutes=59))
 timezone.max = timezone._create(timedelta(hours=23, minutes=59))
-# The below date was found using the Julian Period day derived from the
-# GregorianCalendar.jd_from_gregorian_date((1970, 1, 1), exact=True) ==
-# 2440585.5 to BahaiCalendar.jd_from_badi_date((126, 16, 2, 7, 57, 27.7),
-# 51.477928, -0.001545, 0) == 2440585.5
-_EPOCH = datetime(126, 16, 2, None, None, 7, 57, 27, 700000,
+_EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 492400,
                   tzinfo=timezone.utc)

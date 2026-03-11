@@ -14,8 +14,8 @@ from badidatetime.badi_calendar import BahaiCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
 
 dt_objects = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
-              'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD', 'GMT_COORD',
-              'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL', 'MONTHNAMES',
+              'TZWithCoords', 'MINYEAR', 'MAXYEAR', 'BADI_IANA', 'BADI_COORD',
+              'GMT_COORD', 'UTC', 'BADI', 'LOCAL_COORD', 'LOCAL', 'MONTHNAMES',
               'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
 
@@ -29,7 +29,7 @@ def _local_timezone_info():
     .. note::
 
        Currently this must use the Python built in datetime, because the
-       tzlocal package does not work completely with the badi datetime
+       tzlocal package does not work completely with the Badí' datetime
        package.
     """
     localzone = get_localzone()
@@ -39,12 +39,15 @@ def _local_timezone_info():
     return offset, dst, localzone.key
 
 
-def _get_local_coordinates():
+def _get_local_coordinates() -> tuple:
     """
-    Get the locales coordinates and timezone offset.
+    Get the locales coordinates and timezone offset for generating the
+    Rata Die.
+
+    :returns: The latitude, longitude, and the offset in hours.
+    :rtype: tuple
     """
     offset, dst, key = _local_timezone_info()
-
     # Get latitude and longitude
     g = geocoder.ip('me')
     latitude = g.lat
@@ -52,7 +55,7 @@ def _get_local_coordinates():
     return latitude, longitude, offset / 3600
 
 
-def enable_geocoder(enable=True):
+def enable_geocoder(enable: bool=True) -> None:
     """
     Enable or disable the geocode query to find the local latitude, longitude,
     and time zone. If this function is never run then the defaults for
@@ -76,5 +79,19 @@ def enable_geocoder(enable=True):
         globals()[obj] = getattr(badidt, obj)
 
 
+def init_leap_cache():
+    """
+    Initialize variables used to find Rata Die.
+    """
+    bc = BahaiCalendar
+    bc._YEAR_START = BahaiCalendar()._build_badi_year_start()
+    bc._RD_END = bc._YEAR_START[bc.MAXYEAR]
+
+
+if BahaiCalendar._YEAR_START is None:
+    init_leap_cache()
+
+
 enable_geocoder(False)
-__all__ = ('BahaiCalendar', 'GregorianCalendar', 'enable_geocoder')+dt_objects
+__all__ = ('BahaiCalendar', 'GregorianCalendar', 'enable_geocoder',
+           'init_leap_cache') + dt_objects

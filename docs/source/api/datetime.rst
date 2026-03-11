@@ -62,7 +62,7 @@ Module Functions
 .. autofunction:: badidatetime.datetime._format_time
 .. autofunction:: badidatetime.datetime._format_offset
 .. autofunction:: badidatetime.datetime._check_tzname
-.. autofunction:: badidatetime.datetime._fromutc
+.. autofunction:: badidatetime.datetime._get_class_module
 .. autofunction:: badidatetime.datetime._module_name
 
 -------

@@ -12,5 +12,6 @@ Unittests
    unittests/gregorian_calendar
    unittests/base_calendar
    unittests/julian_period
+   unittests/strptime
    unittests/structures
    unittests/timedateutils

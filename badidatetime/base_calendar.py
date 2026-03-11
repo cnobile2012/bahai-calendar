@@ -12,7 +12,7 @@ from badidatetime._astronomical_terms import AstronomicalTerms
 
 class BaseCalendar(AstronomicalTerms, JulianPeriod):
     """
-    Basic functionality used with all calenders.
+    Basic functionality used with all calendars.
 
     U.T. = Mean solar time at Greenwich, England (0◦ meridian), reckoned from
            midnight; sometimes GMT, Greenwich Mean Time
@@ -26,7 +26,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _MINS = lambda self, x: x / 60
     _SECS = lambda self, x: x / 3600
     # Convert microseconds to a partial second.
-    _US = lambda self, x: x / 1000000
+    _US = lambda self, x: x / 1e6
     _ANGLE = lambda self, d, m, s: d + (m + s / 60) / 60  # 0 - 360
     _AMOD = lambda self, x, y: y + x % -y
     _MOD3 = lambda self, x, a, b: x if a == b else (
@@ -36,13 +36,10 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     # The inline functions below will assume that 0 is midnight, if
     # converting from a Julian Period day add 0.5 to the value before
     # calling the function.
-    _PARTIAL_DAY_TO_HOURS = lambda self, x: round(
-        (x % 1) * 24, self._ROUNDING_PLACES)
-    _PARTIAL_HOUR_TO_MINUTE = lambda self, x: round(
-        (x % 1) * 60, self._ROUNDING_PLACES)
+    _PARTIAL_DAY_TO_HOURS = lambda self, x: round((x % 1) * 24, 6)
+    _PARTIAL_HOUR_TO_MINUTE = lambda self, x: round((x % 1) * 60, 6)
     _PARTIAL_MINUTE_TO_SECOND = _PARTIAL_HOUR_TO_MINUTE
-    _PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(
-        round(x % 1, self._ROUNDING_PLACES) * 1e6)
+    _PARTIAL_SECOND_TO_MICROSECOND = lambda self, x: int(round(x % 1, 6) * 1e6)
 
     _MEAN_TROPICAL_YEAR = 365.2421897
     # MEAN_SIDEREAL_YEAR = 365.256363004
@@ -54,12 +51,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     _SUMMER = 90
     _AUTUMN = 180
     _WINTER = 270
-    _SUN_OFFSET = 0.8333333333333334
-    _STARS_PLANET_OFFSET = 0.5666666666666667
-    _ROUNDING_PLACES = 6
-    # Meus value is 2440587.5
-    _POSIX_EPOCH = 2440585.5  # This is using the more exact algorithm.
+    _SUN_OFFSET = 0.8333
+    _MOON_OFFSET = 0.125
+    _STARS_PLANET_OFFSET = 0.5667
+    _ROUNDING_PLACES = 12
+    # This is using the proleptic astronomically algorithm.
+    # The Meeus value is 2440587.5
+    _POSIX_EPOCH = 2440585.5
     _JULIAN_CAL_EPOCH = 1721423.5
+    _SECONDS_PER_DAY = 86400
 
     def __init__(self, *args, **kwargs):
         self._time = None
@@ -145,7 +145,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         # Convert to seconds of a day where 66.9 dt == 2010
         # Seconds of a day are 0.0007743055555555556
-        return dt if seconds else dt / 86400
+        return dt if seconds else dt / self._SECONDS_PER_DAY
 
     def _mean_sidereal_time_greenwich(self, tc: float) -> float:
         """
@@ -224,7 +224,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                              h0 = -0°50' = -0°8333 for the Sun.
                              Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                              also be used.
-        :returns: The approximat local hour angle in degrees.
+        :returns: The approximate local hour angle in degrees.
         :rtype: float
 
         .. note::
@@ -245,29 +245,20 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return math.degrees(math.acos(cos_h0))
 
-    def _sun_transit(self, jd: float, lon: float, zone: float=None) -> float:
+    def _sun_transit(self, jd: float, lon: float) -> float:
         """
-        The transit is when the body crosses the local maridian at upper
+        The transit is when the body crosses the local meridian at upper
         culmination.
 
         :param float jd: Julian day in UT.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone defaults to None causing the zone
-                           to be calculated from the longitude.
         :returns: The center point between sunrise and sunset.
         :rtype: float
 
         .. note::
 
-           1. If the zone is None the zone will be calculated from the
-              longitude, a value other than None will be reguarded as the
-              political time zone.
-           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        assert zone is not None and (-180 <= zone <= 180) or zone is None, (
-            "If the zone is not None the zone value must be between -180 and "
-            f"180, found zone: {zone}.")
-        zone = lon / 15 if zone is None else zone
         func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self._julian_centuries(jd)
         dt = self._delta_t(jd)
@@ -276,8 +267,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         ast = self._apparent_sidereal_time_greenwich(tc)
         m = func0((alpha - lon - ast) / 360)
         md = self._transit_correction(tc, ast, dt, lon, m)
-        m += md + self._tz_decimal_from_dhms(0, zone, 0, 0)
-        return m
+        return m + md
 
     def _transit_correction(self, tc: float, ast: float, dt: float, lon: float,
                             m: float) -> float:
@@ -285,7 +275,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Find the correction to the transit.
 
         :param float tc: The Julian Period century.
-        :param float ast: The apparent sidereal time at greenwich.
+        :param float ast: The apparent sidereal time at Greenwich.
         :param float dt: The delta T of the JD.
         :param float lon: The longitude.
         :param float m: Times on day, expressed as fractions.
@@ -293,7 +283,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :rtype: float
         """
         srt = ast + 360.98564736629 * m
-        n = m + dt / 86400
+        n = m + dt / self._SECONDS_PER_DAY
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
@@ -301,20 +291,14 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         h = self._local_hour_angle(srt, lon, alpha)
         return -h / 360
 
-    def _sun_rising(self, jd: float, lat: float, lon: float, zone: float=0, *,
-                    exact_tz: bool=False, offset: float=_SUN_OFFSET) -> float:
+    def _sun_rising(self, jd: float, lat: float, lon: float, *,
+                    offset: float=_SUN_OFFSET) -> float:
         """
         Find the jd for sunrise of the given jd.
 
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone defaults to None causing the zone
-                           to be calculated from the longitude.
-        :param bool exact_tz: The political time zones or the exact time zone
-                              derived from the longitude
-                              (15 degrees = 360 / 24).
-                              Default is False or the political time zone.
         :param bool offset: A constant “standard” altitude, i.e., the geometric
                             altitude of the center of the body at the time of
                             apparent rising or setting, namely,
@@ -322,30 +306,30 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                             h0 = -0°50' = -0°8333 for the Sun.
                             Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                             also be used.
-        :returns: The jd moments of the sunrise.
+        :returns: The jd moment of the sunrise.
         :rtype: float
 
         .. note::
 
-           1. If the zone is None the zone will be calculated from the
-              longitude, a value other than None will be reguarded as the
-              political time zone.
-           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, offset=offset,
-                                   sr_ss='RISE')
-        return round(jd, self._ROUNDING_PLACES)
+        # We need to compensate for the longitude alignment in the JD for
+        # time zones, this has minimal effect in most locales, but fixes some.
+        lon_frac = lon / 360.0
+        jd_local = jd + lon_frac
+        jd0 = math.floor(jd_local + 0.5) - 0.5
+        jd0 -= lon_frac
+        m = self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='RISE')
+        return round(jd0 + m, self._ROUNDING_PLACES)
 
-    def _sun_setting(self, jd: float, lat: float, lon: float, zone: float=None,
-                     *, offset: float=_SUN_OFFSET) -> float:
+    def _sun_setting(self, jd: float, lat: float, lon: float, *,
+                     offset: float=_SUN_OFFSET) -> float:
         """
         Find the jd for sunset of the given jd.
 
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone defaults to None causing the zone
-                           to be calculated from the longitude.
         :param bool offset: A constant “standard” altitude, i.e., the geometric
                             altitude of the center of the body at the time of
                             apparent rising or setting, namely,
@@ -353,31 +337,30 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                             h0 = -0°50' = -0°8333 for the Sun.
                             Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                             also be used.
-        :returns: The jd moments of the sunset.
+        :returns: The jd moment of the sunset.
         :rtype: float
 
         .. note::
 
-           1. If the zone is None the zone will be calculated from the
-              longitude, a value other than None will be reguarded as the
-              political time zone.
-           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        jd += self._rising_setting(jd, lat, lon, zone, offset=offset,
-                                   sr_ss='SET')
-        return round(jd, self._ROUNDING_PLACES)
+        # We need to compensate for the longitude alignment in the JD for
+        # time zones, this has minimal effect in most locales, but fixes some.
+        lon_frac = lon / 360.0
+        jd_local = jd + lon_frac
+        jd0 = math.floor(jd_local + 0.5) - 0.5
+        jd0 -= lon_frac
+        m = self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='SET')
+        return round(jd0 + m, self._ROUNDING_PLACES)
 
-    def _rising_setting(self, jd: float, lat: float, lon: float,
-                        zone: float=None, *, offset: float=_SUN_OFFSET,
-                        sr_ss: str='RISE') -> float:
+    def _rising_setting(self, jd: float, lat: float, lon: float, *,
+                        offset: float=_SUN_OFFSET, sr_ss: str='RISE') -> float:
         """
         Find the jd difference for sunrise or sunset of the given jd.
 
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
         :param float lon: Geographic longitude positive east negative west.
-        :param float zone: The time zone defaults to None causing the zone
-                           to be calculated from the longitude.
         :param float offset: A constant “standard” altitude, i.e., the
                              geometric altitude of the center of the body at
                              the time of apparent rising or setting, namely,
@@ -386,41 +369,34 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                              Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
                              also be used.
         :param str sr_ss: If 'RISE' return the sunrise else return sunset.
-        :returns: The offset that would be added to the currect date.
+        :returns: The offset that would be added to the currant date.
         :rtype: float
 
         .. note::
 
-           1. If the zone is None the zone will be calculated from the
-              longitude, a value other than None will be reguarded as the
-              political time zone.
-           2. Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
         """
-        assert zone is not None and (-180 <= zone <= 180) or zone is None, (
-            "If the zone is not None the zone value must be between -180 and "
-            f"180, found zone: {zone}.")
-        zone = lon / 15 if zone is None else zone
         flags = ('RISE', 'SET')
         sr_ss = sr_ss.upper()
         assert sr_ss in flags, (
             f"Invalid value, should be one of '{flags}' found '{sr_ss}'.")
-        func0 = lambda m: m + 1 if m <= 0 else m - 1 if m >= 1 else m
         tc = self._julian_centuries(jd)
         dt = self._delta_t(jd)
         tc_td = dt / 36525 + tc  # Compensate for the Julian Century
         alpha = self._sun_apparent_right_ascension(tc_td)
         ast = self._apparent_sidereal_time_greenwich(tc)
         h0 = self._approx_local_hour_angle(tc, lat, offset=offset)
-        m0 = func0((alpha - lon - ast) / 360)
+        # Normalize to [0,1]
+        m0 = ((alpha - lon - ast) / 360) % 1
         m = m0 - h0 / 360 if sr_ss == 'RISE' else m0 + h0 / 360
-        dm = 1
 
-        for i in range(5):
+        for _ in range(3):
             dm = self._rise_set_correction(tc, ast, dt, lat, lon, m, offset)
             m += dm
-            if abs(dm) < 0.0001: break
 
-        m += self._tz_decimal_from_dhms(0, zone, 0, 0)
+            if abs(dm) < 0.0001:
+                break
+
         return m % 1
 
     def _rise_set_correction(self, tc: float, ast: float, dt: float,
@@ -430,7 +406,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Find the correction to the sunrise and sunset.
 
         :param float tc: The Julian Period century.
-        :param float ast: The apparent sidereal time at greenwich.
+        :param float ast: The apparent sidereal time at Greenwich.
         :param float dt: The delta T of the JD.
         :param float lat: The latitude.
         :param float lon: The longitude.
@@ -440,7 +416,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :rtype: float
         """
         srt = ast + 360.98564736629 * m
-        n = m + dt / 86400
+        n = m + dt / self._SECONDS_PER_DAY
         ra0 = self._sun_apparent_right_ascension(tc - (1 / 36525))
         ra1 = self._sun_apparent_right_ascension(tc)
         ra2 = self._sun_apparent_right_ascension(tc + (1 / 36525))
@@ -755,7 +731,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA p. 164
 
            This has a less accurate result. apparent_solar_longitude()
-           should be more acurate.
+           should be more accurate.
         """
         sol = self._sun_true_longitude(tc)
         om = self._moon_ascending_node_longitude(tc)
@@ -807,7 +783,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _heliocentric_ecliptical_longitude(self, tm: float,
                                            degrees: bool=False) -> float:
         """
-        Find the heliocentric ecliptical longitude.
+        Find the heliocentric elliptical longitude.
 
         :param float tm: The moment in time referenced to J2000 millennia.
         :param bool degrees: The results if False are radians, else True
@@ -834,7 +810,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _heliocentric_ecliptical_latitude(self, tm: float,
                                           degrees: bool=False) -> float:
         """
-        Find the heliocentric ecliptical latitude.
+        Find the heliocentric elliptical latitude.
 
         :param float tm: The moment in time referenced to J2000 millennia.
         :param bool degrees: The results if False are radians, else True
@@ -925,7 +901,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            Meeus--AA ch. 25 p. 166
         """
         tm = self._julian_millennia(jde)
-        tc = tm * 10  # Convert millenna to centuries
+        tc = tm * 10  # Convert millennia to centuries
         b = self._heliocentric_ecliptical_latitude(tm)
         b *= -1  # Invert the result
         # Convert to FK5 notation
@@ -981,7 +957,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Find the approximate Julian day for the equinoxes or solstices.
 
         :param int g_year: The Gregorian year.
-        :param int lam: The lamda, either `_SPRING` (default), `_SUMMER`,
+        :param int lam: The lambda, either `_SPRING` (default), `_SUMMER`,
                         `_AUTUMN`, or `_WINTER`.
         :returns: The approximate Julian day for the equinoxes or solstices.
         :rtype: float
@@ -1021,19 +997,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
                 jde = self._poly(y, (2451900.05952, 365242.74049, -0.06223,
                                      -0.00823, 0.00032))
 
-        # JD♈(Y) = JD0+78.814+365.24236 ΔY+5.004*10^−8 ΔY^2−2.87*10^−12
-        # ΔY^3−4.5*10^−16 ΔY^4
         return jde
 
     def _find_moment_of_equinoxes_or_solstices(self, jd: float,
                                                lam: int=_SPRING,
                                                zone: float=0) -> float:
         """
-        With the jd and time of year find an equinoxe or solstice at
-        Greenwich.
+        With the jd and season of the year find the equinox or solstice at
+        Greenwich. If a time zone is provided modify the returned value.
 
         :param float jd: Meeus algorithm Julian day.
-        :param int lam: The lamda, either `_SPRING` (0° default), `_SUMMER`
+        :param int lam: The lambda, either `_SPRING` (0° default), `_SUMMER`
                         (90°), `_AUTUMN` (180°), or `_WINTER` (270°).
         :param float zone: The time zone.
         :returns: The Julian day of the equinox or solstice.
@@ -1046,19 +1020,24 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         from .gregorian_calendar import GregorianCalendar
         gc = GregorianCalendar()
         year = gc.gregorian_year_from_jd(jd)
-        jde = self._approx_julian_day_for_equinoxes_or_solstices(year, lam)
-        tc = self._julian_centuries(jde)
+        jde0 = self._approx_julian_day_for_equinoxes_or_solstices(year, lam)
+        tc = self._julian_centuries(jde0)
         w = 35999.373 * tc - 2.47
-        dl = 1 + 0.0334 * self._cos_deg(w + 0.0007) * self._cos_deg(2*w)
+        dl = 1 + 0.0334 * self._cos_deg(w + 0.0007) * self._cos_deg(2 * w)
         s = self._sigma((self._EQ_SO_A, self._EQ_SO_B, self._EQ_SO_C),
                         lambda a, b, c: a * self._cos_deg(b + c * tc))
-        jde += (0.00001 * s) / dl + self._HR(zone)
-        return round(jde, self._ROUNDING_PLACES)
+        jde = jde0 + (0.00001 * s) / dl
+        # Must convert from Dynamical time (JDE) to Universal Time (UT).
+        delta_t_seconds = self._delta_t(jde)
+        jd_ut = jde - delta_t_seconds / self._SECONDS_PER_DAY
+        # Now add the timezone.
+        jd_local = jd_ut + self._HR(zone)
+        return round(jd_local, self._ROUNDING_PLACES)
 
     def _decimal_from_dms(self, degrees: int, minutes: int, seconds: float,
                           direction: str='N') -> float:
         '''
-        Coordinantes in degrees, minutes, and seconds.
+        Coordinates in degrees, minutes, and seconds.
 
         | The Shrine of Baha’u’llah: 32°56’36.86″N, 35° 5’30.38″E
         | The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″E
@@ -1068,7 +1047,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         Convert degrees, minutes, and seconds to a decimal.
 
-        Degrees, minutes, and seconds to a decimal coordinant:
+        Degrees, minutes, and seconds to a decimal coordinate:
 
         1. Add the degrees to the minutes divided by 60
         2. Add the seconds divided by (60 x 60), which is 3600
@@ -1078,7 +1057,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         To convert 35° 20′ 35", the answer is
         35 + (20/60) + (35/3600) = 35.34306 degrees.
 
-        :param int degrees: The degree part of the coordinats.
+        :param int degrees: The degree part of the coordinates.
         :param int minutes: The minute part of the coordinate.
         :param float seconds: The second part of the coordinate.
         :param str direction: The direction part of the coordinate which can
@@ -1090,7 +1069,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         dirs = ('N', 'S', 'E', 'W')
         assert direction.upper() in dirs, (
             f"The 'direction' argument must be one of {dirs}")
-        # Remove the minus sign iof it exists.
+        # Remove the minus sign if it exists.
         degrees = -degrees if degrees < 0 else degrees
         decimal = degrees + (minutes / 60) + (seconds / 3600)
         # Adjust the sign based on the direction.
@@ -1100,7 +1079,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Convert a decimal degree into degrees, minutes, and seconds.
 
-        :param float coord: The decimal coordinant.
+        :param float coord: The decimal coordinate.
         :param str direction: The direction part of the coordinate which can
                               be any of the following N, S, E, W in upper or
                               lower case.
@@ -1158,7 +1137,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         from 0° to 360°. The angle may be measured in degrees or in time,
         with 24h = 360° exactly. So one hour is equal to (360/24)° = 15°.
 
-        :param float deg: The degrees of the 360 degree curcomference of
+        :param float deg: The degrees of the 360 degree circumference of
                           the earth.
         :returns: The hours, minutes, and seconds.
         :rtype: tuple
@@ -1192,7 +1171,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         else:
             sec = seconds
 
-        return days * 86400 + hours * 3600 + minutes * 60 + sec + zone * 3600
+        return (days * self._SECONDS_PER_DAY + hours * 3600 + minutes
+                * 60 + sec + zone * 3600)
 
     def _dhms_from_seconds(self, seconds: float, zone: float=0,
                            us: bool=False) -> tuple:
@@ -1202,7 +1182,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         :param float seconds: The number of seconds with possible fraction.
         :param float zone: The timezone in degrees, defaults to 0 or GMT.
-        :param bool us: If False (default) no seperate field for microseconds
+        :param bool us: If False (default) no separate field for microseconds
                         is returned else return microseconds.
         :returns: The days, hours, minutes, and seconds.
         :rtype: tuple
@@ -1211,7 +1191,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            See: https://www.timeanddate.com/time/map/
 
-           Timezones can be from -12 to +14 based on the political timeszones
+           Time-zones can be from -12 to +14 based on the political times-zones
            as of 2024-08-09.
         """
         seconds += zone * 3600
@@ -1224,7 +1204,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         else:
             hours -= 24
             day = 1
-            seconds -= 86400
+            seconds -= self._SECONDS_PER_DAY
 
         sec = (seconds - hours * 3600) - minutes * 60
 
@@ -1253,7 +1233,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            This method is used in determining time zones.
         """
-        return self._seconds_from_dhms(days, hours, minutes, seconds) / 86400
+        return (self._seconds_from_dhms(days, hours, minutes, seconds)
+                / self._SECONDS_PER_DAY)
 
     def _tz_dhms_from_decimal(self, dec: float) -> tuple:
         """
@@ -1270,7 +1251,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
            This method is used in determining time zones.
          """
-        return self._dhms_from_seconds(dec * 86400)
+        return self._dhms_from_seconds(dec * self._SECONDS_PER_DAY)
 
     def _hms_from_decimal_day(self, dec: float, *, us: bool=False) -> tuple:
         """
@@ -1279,15 +1260,15 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         value before being passed in.
 
         :param float dec: A decimal number.
-        :param bool us: If False (default) no seperate field for microseconds
+        :param bool us: If False (default) no separate field for microseconds
                         is returned else return microseconds.
         :returns: A tuple representing the hour, minute, and seconds.
         :rtype: tuple
 
         .. note::
 
-           If a whole number as in 10.5 is passed in, the value to the left
-           of the decimal will be stripped off before calculations are done.
+           If a number as in 10.5 is passed in, the value to the left of
+           the decimal will be stripped off before calculations are done.
         """
         h = self._PARTIAL_DAY_TO_HOURS(dec)
         hour = math.floor(h)
@@ -1303,18 +1284,23 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return (hour, minute, second) + microsec
 
-    def _decimal_day_from_hms(self, h: int, m: int, s: float) -> float:
+    def _decimal_day_from_hms(self, h: int, m: int, s: float, us: int=0
+                              ) -> float:
         """
         Convert hours, minutes, and seconds to a decimal day.
 
         :param ine h: The hour.
         :param int m: The minute.
         :param float s: The second.
+        :param int us: The microseconds.
         :returns: A decimal value representing the day with a partial that
                   indicates the hours, minutes, and seconds.
         :rtype: float
         """
-        return (h * 60 * 60 + m * 60 + s) / 86400
+        assert ((s % 1 and us == 0) or (s % 1 == 0 and us) or
+                (s % 1 == 0 and us == 0)), (
+            "Seconds cannot have a decimal value if microseconds are used.")
+        return (h * 3600 + m * 60 + s + self._US(us)) / self._SECONDS_PER_DAY
 
     def _sec_microsec_from_seconds(self, second: float) -> tuple:
         """
@@ -1335,7 +1321,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Convert a value to sine in degrees.
 
-        :param float thete: The value to convert to degrees.
+        :param float theta: The value to convert to degrees.
         :returns: The degrees representing the value provided.
         :rtype: float
 
@@ -1353,7 +1339,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         """
         Convert a value to the cosine in degrees.
 
-        :param float thete: The value to convert to degrees.
+        :param float theta: The value to convert to degrees.
         :returns: The degrees representing the value provided.
         :rtype: float
 
@@ -1373,7 +1359,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         provided function.
 
         :param tuple lists: The list of values to sum.
-        :param object func: The function that determins the summation
+        :param object func: The function that determines the summation
                             parameters.
         :returns: The summation.
         :rtype: float
@@ -1431,16 +1417,17 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Find the number of days up to the provided year.
 
         :param int y: The year to count to.
-        :param bool alt: If True use the 4|128 rule else if False use the
-                         4|100|400 rule. The default is False.
+        :param bool alt: If True use the 4|128 rule else if False (default)
+                         use the 4|100|400 rule
         :returns: The count of days including year one to the given year.
         :rtype: int
 
         .. note::
 
-           This method starts the count from year 1 of the Julian Calendar,
-           however, it uses one of the two leap rules described above instead
-           of the usual Julian Calendar leap year rule of every 4 year.
+           This method starts the count from year 1 of the Proleptic Gregorian
+           Calendar, however, it uses one of the two leap rules described
+           above instead of the usual Julian Calendar leap year rule of every
+           4 year.
         """
         n_4 = y // 4
 
@@ -1456,19 +1443,28 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         b = y - a  # Leap years
         return a * 365 + b * 366
 
-    def _meeus_from_exact(self, jd: float) -> int:
+    def _meeus_from_exact(self, jd: float) -> float:
         """
         Returns the Meeus algorithm jd converted from the exact algorithm jd.
 
         :param float jd: Exact Julian Period day.
-        :returns: The difference to subtract from an exact algorithm jd.
-        :rtype: int
+        :returns: The difference added to an astronomically correct jd.
+        :rtype: float
+
+        .. note::
+
+           The JDs below are the proleptic (astronomically correct) JDs.
         """
+        if 2299148.5 <= jd < 2299158.5:
+            raise ValueError(f"Astronomical JD {jd} lies in the Gregorian "
+                             "reform gap (1582-10-05 through 1582-10-14); "
+                             "no Meeus JD exists.")
+
         jd_diff = (
             (1757641.5, 0), (1794165.5, 1), (1830689.5, 2), (1903738.5, 3),
             (1940262.5, 4), (1976786.5, 5), (2049835.5, 6), (2086359.5, 7),
             (2122883.5, 8), (2195932.5, 9), (2232456.5, 10), (2268980.5, 11),
-            (2299158.5, 12),
+            (2299148.5, 12),
             )
         diff = 2
 
@@ -1479,19 +1475,78 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
         return jd + diff
 
-    def _exact_from_meeus(self, jd: float) -> int:
+    def _exact_from_meeus(self, jd: float) -> float:
         """
         The returned difference value to convert a Meeus algorithm jd to
         an exact algorithm jd. This is subtracted from the meeus jd.
 
         :param float jd: Meeus Julian Period day.
-        :returns: The difference to subtract from a Meeus algorithm jd.
-        :rtype: int
-         """
+        :returns: The difference subtracted from an historically correct jd.
+        :rtype: float
+
+        .. note::
+
+           1. The JDs below are the historically correct (Meeus) JDs.
+           2. This library uses a continuous proleptic solar day count for
+              the Badí' Calendar.
+           3. The exact JD numbering is uninterrupted across 1582-10-05 …
+              1582-10-14.
+           4. Invalid days checked with https://aa.usno.navy.mil/data/JulianDate
+
+        The table below indicates that dates less than the ones shown are
+        legal dates. The dates shown except the last two rows indicate
+        invalid days in the historic (Meeus) algorithm. The second to the
+        last indicates the end of the Gregorian reform and the last dates
+        indicates that from then to forever the proleptic algorithm is 2
+        days below the historic algorithm.
+
+        +--------------+--------------+--------+--------------+
+        | Historic JD  | Proleptic JD | Offset | Gregorian DT |
+        +==============+==============+========+==============+
+        | < 1757641.5  | < 1757641.5  |  0     | 0100-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 1794166.5  | < 1794165.5  |  1     | 0200-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 1830691.5  | < 1830689.5  |  2     | 0300-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 1903741.5  | < 1903738.5  |  3     | 0500-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 1940266.5  | < 1940262.5  |  4     | 0600-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 1976791.5  | < 1976786.5  |  5     | 0700-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 2049841.5  | < 2049835.5  |  6     | 0900-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 2086366.5  | < 2086359.5  |  7     | 1000-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 2122891.5  | < 2122883.5  |  8     | 1100-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 2195941.5  | < 2195932.5  |  9     | 1300-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 2232466.5  | < 2232456.5  | 10     | 1400-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 2268991.5  | < 2268980.5  | 11     | 1500-02-29   |
+        +--------------+--------------+--------+--------------+
+        | < 2299160.5  | < 2299148.5  | 12     | 1582-10-15   |
+        +--------------+--------------+--------+--------------+
+        | >= 2299160.5 | >= 2299158.5 |  2     | 1582-10-15   |
+        +--------------+--------------+--------+--------------+
+        """
+        invalid_days = ((1757641.5, 1757642.5), (1794166.5, 1794167.5),
+                        (1830691.5, 1830692.5), (1903741.5, 1903742.5),
+                        (1940266.5, 1940267.5), (1976791.5, 1976792.5),
+                        (2049841.5, 2049842.5), (2086366.5, 2086367.5),
+                        (2122891.5, 2122892.5), (2195941.5, 2195942.5),
+                        (2232466.5, 2232467.5), (2268991.5, 2268992.5))
+
+        for s, e in invalid_days:
+            if s <= jd < e:
+                raise ValueError(f"Invalid historic (Meeus) JD {jd}.")
+
         jd_diff = (
-            (1757642.5, 0), (1794167.5, 1), (1830692.5, 2), (1903742.5, 3),
-            (1940267.5, 4), (1976792.5, 5), (2049842.5, 6), (2086367.5, 7),
-            (2122892.5, 8), (2195942.5, 9), (2232467.5, 10), (2268992.5, 11),
+            (1757641.5, 0), (1794166.5, 1), (1830691.5, 2), (1903741.5, 3),
+            (1940266.5, 4), (1976791.5, 5), (2049841.5, 6), (2086366.5, 7),
+            (2122891.5, 8), (2195941.5, 9), (2232466.5, 10), (2268991.5, 11),
             (2299160.5, 12),
             )
         diff = 2
@@ -1524,7 +1579,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         :param float y2: 2nd of the three parameters.
         :param float y3: 3rd of the three parameters.
         :param float n: The factor.
-        :param bool mormalize: If `False' (default) no normalization is done
+        :param bool normalize: If `False' (default) no normalization is done
                                else if `True` normalize.
         :returns: The three factor interpolation.
         :rtype: float
@@ -1541,7 +1596,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
 
     def _truncate_decimal(self, n: int, places: int) -> int:
         """
-        Trucate a decimal to a number of places.
+        Truncate a decimal to a number of places.
 
         .. note::
 
@@ -1569,33 +1624,44 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         count = sum(booleans)
         return (count % 2 == 1) or (count == 0)
 
-    def _ordinal_from_jd(self, jd: float, *, _exact: bool=True) -> int:
+    def _local_zone_correction(self, jd_ut: float, zone: float=None,
+                               lon: float=None, *, inverse: bool=False,
+                               mod_jd: bool=False) -> float:
         """
-        Convert a Julian Period day to an ordinal number.
+        Convert the UT time to local time.
 
-        :param float jd: The Julian Period day.
-        :param bool _exact: If True (default) the incoming JD is the more
-                            astronomically exact Julin Period day else it
-                            is the historically correct (Meeus) JD.
-        :returns: The ordinal number relating to the Julian Period day.
-        :rtype: int
-        """
-        jd = jd if _exact else self._exact_from_meeus(jd)
-        # We add 1 because ordinal date representations starts at 1 not 0.
-        return math.floor(jd - self._JULIAN_CAL_EPOCH) + 1
+        .. note::
 
-    def _jd_from_ordinal(self, ordinal: int, *, exact: bool=True) -> float:
-        """
-        Convert an ordinal number to a Julian Period day.
+           1. If the full JD is passed as jd_ut then the result will be the
+              correct value.
+           2. If jd_ut is the fractional part of the JD the result of this
+              method replaces the fractional part of the JD. DO NOT add it
+              to the fractional part.
+           3. If the zone is None the zone will be calculated from the
+              longitude, a value other than None will be regarded as a
+              political time zone.
 
-        :param int ordinal: The ordinal number of days starting with one on the
-                            first day of the Julian Calendar.
-        :param bool exact: If True (default) the outgoing Julian Period day is
-                           the more astronomically exact Julin Period day else
-                           if False it is the historically correct (Meeus) JD.
-        :returns: The Julian Period day relating to the ordinal number.
+        :param float jd_ut: UT time as a fractional part of a JD.
+        :param float zone: The time zone in hours.
+        :param float lon: The longitude.
+        :param bool inverse: Subtract the zone instead of adding it.
+        :param bool mod_jd: If `False` (default) a correction value is returned
+                            else if `True` the jd_ut is updated to local time.
+        :returns: The local time corrected from the UT time as a fraction.
         :rtype: float
         """
-        # We subtract 1 because ordinal date representations starts at 1 not 0.
-        jd = self._JULIAN_CAL_EPOCH + (ordinal - 1)
-        return jd if exact else self._meeus_from_exact(jd)
+        assert zone is None or zone is not None and (-180 <= zone <= 180), (
+            "If the zone is not None, the zone value must be between -180 and "
+            f"180, found zone: {zone}.")
+        assert (zone, lon).count(None) in (0, 1), (
+            "Both the time zone and longitude cannot be None.")
+        zone = lon / 360 if zone is None else zone
+        dec_hr = self._HR(zone)
+        modified_jd = jd_ut - dec_hr if inverse else jd_ut + dec_hr
+
+        if mod_jd:
+            result = modified_jd
+        else:
+            result = round(modified_jd % 1, self._ROUNDING_PLACES)
+
+        return result

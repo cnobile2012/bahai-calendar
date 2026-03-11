@@ -156,8 +156,8 @@ class TestTimeDateUtils(unittest.TestCase):
 
             return ttup
 
-        MIN_K = self._tdu.KULL_I_SHAY_MIN
-        MAX_K = self._tdu.KULL_I_SHAY_MAX
+        MIN_K = self._tdu.KULLISHAY_MIN
+        MAX_K = self._tdu.KULLISHAY_MAX
         MIN_Y = self._tdu.MINYEAR
         MAX_Y = self._tdu.MAXYEAR
         err_msg0 = ("Invalid kull-i-shay {}, it must be in the range "
@@ -192,8 +192,10 @@ class TestTimeDateUtils(unittest.TestCase):
             ((181, 1, 1, 0, 0, 0, 4, 1), -1, ttup_ts, False, ''),
             ### Invalid tuples
             # Long form NamedTuple errors
-            ((-6, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg0.format(-6)),
-            ((5, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg0.format(5)),
+            ((-6, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True,
+             err_msg3.format(-2526)),
+            ((5, 1, 1, 1, 1, 1, 1, 1), -1, ttup_l, True,
+             err_msg3.format(1445)),
             ((1, 0, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg1.format(0)),
             ((1, 20, 1, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg1.format(20)),
             ((1, 1, 0, 1, 1, 1, 1, 1), -1, ttup_l, True, err_msg2.format(0)),
@@ -351,7 +353,7 @@ class TestTimeDateUtils(unittest.TestCase):
             ('%:z', (181, 1, 1, 13, 5, 2), -1, ttup_s, datetime.BADI, '+03:50'),
             ('%Z', (1, 10, 10, 2, 1, 0, 0, 0, 1, 1), -1, ttup_tl, None, ''),
             ('%Z', (1, 10, 10, 2, 1, 0, 0, 0), -1, ttup_l, datetime.BADI,
-             'UTC+03:30'),
+             'Asia/Tehran'),
             ('%%', (181, 1, 1, 13, 5, 2, 1, 1), -1, ttup_ts, None, '%'),
             # Some composit formats
             ('%d/%m/%Y, %H:%M:%S', (1, 10, 10, 1, 1, 12, 30, 30), -1, ttup_l,
@@ -415,8 +417,12 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         ttup_l, ttup_s = 1, 2
         data = (
-            ((1, 10, 10, 11, 17, 9, 30, 30), -1, ttup_l, 0.49919999996200204),
-            ((182, 1, 1, 18, 30, 30), -1, ttup_s, 0.5005864999257028),
+            # 2024-03-19
+            # sunset = 18:12 -> approximate midday = 18:12 + 12:00 = 01T06:12
+            ((1, 10, 10, 6, 12, 0, 0, 0), -1, ttup_l, 0.499833606882),
+            # 2025-03-19
+            # sunset = 18:12 -> approximate midday = 18:12 + 12:00 = 01T06:12
+            ((182, 1, 1, 6, 12, 0), -1, ttup_s, 0.500587922288),
             )
         msg = "Expected {}, with {}. found {}."
 
@@ -491,8 +497,9 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         data = (
             (-1842, 0),
-            (-1841, 366), # Year -1842 was a leap year
+            (-1841, 366),
             (-1840, 731),
+            (-1838, 1461), # Year -1838 was a leap year.
             (181, 738886),
             )
         msg = "Expected {} with year {}, found {}."
@@ -501,42 +508,6 @@ class TestTimeDateUtils(unittest.TestCase):
             result = self._tdu._days_before_year(year)
             self.assertEqual(expected_result, result,
                              msg.format(expected_result, year, result))
-
-    #@unittest.skip("Temporarily skipped")
-    def test__days_in_month(self):
-        """
-        Test that the _days_in_month function returns the correct days
-        in the specified month.
-        """
-        data = (
-            (181, 1, 19),
-            (181, 2, 19),
-            (181, 3, 19),
-            (181, 4, 19),
-            (181, 5, 19),
-            (181, 6, 19),
-            (181, 7, 19),
-            (181, 8, 19),
-            (181, 9, 19),
-            (181, 10, 19),
-            (181, 11, 19),
-            (181, 12, 19),
-            (181, 13, 19),
-            (181, 14, 19),
-            (181, 15, 19),
-            (181, 16, 19),
-            (181, 17, 19),
-            (181, 18, 19),
-            (181, 0, 4),
-            (181, 19, 19),
-            (182, 0, 5),
-            )
-        msg = "Expected {} with year {} and month {}, found {}."
-
-        for year, month, expected_result in data:
-            result = self._tdu._days_in_month(year, month)
-            self.assertEqual(expected_result, result,
-                             msg.format(expected_result, year, month, result))
 
     #@unittest.skip("Temporarily skipped")
     def test__days_before_month(self):
@@ -609,9 +580,9 @@ class TestTimeDateUtils(unittest.TestCase):
         data = (
             ((-1842, 1, 1), 78),
             ((-1841, 1, 1), 444),
-            ((-1796, 1, 1), 16880),
-            ((-1792, 1, 1), 18341),
-            ((-1788, 1, 1), 19802),
+            ((-1796, 1, 1), 16881),
+            ((-1792, 1, 1), 18342),
+            ((-1788, 1, 1), 19803),
             ((181, 1, 1), 738964),
             # 1st week of 181
             ((180, 19, 17), 738961),
@@ -641,6 +612,8 @@ class TestTimeDateUtils(unittest.TestCase):
             (444, True, (-1841, 1, 1)),
             (673219, True, (0, 19, 19)),
             (673220, True, (1, 1, 1)),
+            (675045, True, (5, 19, 18)),
+            (675046, True, (5, 19, 19)),
             (738964, True, (181, 1, 1)),
             # 1st week of 181
             (738961, True, (180, 19, 17)),
@@ -672,15 +645,11 @@ class TestTimeDateUtils(unittest.TestCase):
             ((1, 1, 1, 0, 0, 0), -1, datetime.BADI, True,
              ("structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=1, "
               "tm_hour=0, tm_min=0, tm_sec=0, tm_wday=3, tm_yday=1, "
-              "tm_isdst=-1)", 'UTC+03:30', 12600.0)),
+              "tm_isdst=0)", 'Asia/Tehran', 12600.0)),
             ((1, 10, 10, 9, 6, 8, 45, 1), -1, None, False,
              ("structures.LongFormStruct(tm_kull_i_shay=1, tm_vahid=10, "
               "tm_year=10, tm_mon=9, tm_mday=6, tm_hour=8, tm_min=45, "
               "tm_sec=1, tm_wday=6, tm_yday=158, tm_isdst=-1)", None, None)),
-            ((1, 1, 1, 0, 0, 0), -1, datetime.BADI, True,
-             ('structures.ShortFormStruct(tm_year=1, tm_mon=1, tm_mday=1, '
-              'tm_hour=0, tm_min=0, tm_sec=0, tm_wday=3, tm_yday=1, '
-              'tm_isdst=-1)', 'UTC+03:30', 12600.0)),
             )
         msg0 = "Expected {} with dt {}, dst {}, and timezone {}, found {}."
         msg1 = "Expected {}, found {}."
@@ -753,12 +722,17 @@ class TestTimeDateUtils(unittest.TestCase):
         """
         Test that the _isoweek1jalal function returns the ordinal day number
         of the first week with more than 3 days in it.
+
+        This can be checked with the Python standard
+        datetime.datetime(year, month, day).toordinal() method.
         """
         data = (
-            (  1, 673217), # 1844-03-16
-            (181, 738961), # 2024-03-16
-            (182, 739332), # 2025-03-22
-            (183, 739696), # 2026-03-21
+            (-1842,     76), # 0001-03-19 -> -1843-19-17
+            (-1841,    447), # 0002-03-19 -> -1841-01-04
+            (    1, 673217), # 1844-03-16 ->  0000-19-17
+            (  181, 738961), # 2024-03-16 ->  0180-19-17
+            (  182, 739332), # 2025-03-22 ->  0182-01-04
+            (  183, 739696), # 2026-03-21 ->  0183-01-02
             )
         msg = "Expected {} with year {}, found {}."
 
@@ -778,12 +752,11 @@ class TestTimeDateUtils(unittest.TestCase):
             ('-1842-01-01T12:00:00', (-1842, 1, 1, 12, 0, 0), 'None'),
             ('11610101T120000', (1161, 1, 1, 12, 0, 0), 'None'),
             ('1161-01-01T12:00:00', (1161, 1, 1, 12, 0, 0), 'None'),
-            #('0181-W20T12:00:00', (181, 8, 17, 12, 0, 0), 'None'),
             ('0181-W20-5T12:00:00', (181, 8, 2, 12, 0, 0), 'None'),
-            ('0001-01-01B', (1, 1, 1), 'UTC+03:30'),
+            ('0001-01-01B', (1, 1, 1), '35.69435, 51.288701, 3.5, Asia/Tehran'),
             ('0001-01-01T00:00:00.0+03:30', (1, 1, 1, 0, 0, 0), 'UTC+03:30'),
             ('-0126-16-02T07:58:31.4976Z', (-126, 16, 2, 7, 58, 31.4976),
-             'UTC'),
+             '51.477928, -0.001545, 0, UTC'),
             ('0181-13-09+02', (181, 13, 9), 'UTC+02:00'),
             ('0181-13-09-05', (181, 13, 9), 'UTC-05:00'),
             )
@@ -809,14 +782,14 @@ class TestTimeDateUtils(unittest.TestCase):
                     "(-) in the date format or there can be one uppercase "
                     "(W) week identifier and between 0 and 2 hyphens (-) "
                     "used.")
-        err_msg3 = "Invalid ISO string {}."
+        err_msg3 = ("Day information must be included for a complete date "
+                    "to be generated, found {}.")
+        err_msg4 = "Invalid ISO string {}."
         data = (
             ('', False, ()),
             ('0181-01', False, (181, 1, 1)),
             ('01810101', False, (181, 1, 1)),
             ('0181-01-01', False, (181, 1, 1)),
-            ('0181W01', False, (180, 19, 17)),
-            ('0181-W01', False, (180, 19, 17)),
             ('0181-W01-1', False, (180, 19, 17)),
             ('0181-W01-2', False, (180, 19, 18)),
             ('0181-W01-3', False, (180, 19, 19)),
@@ -825,7 +798,6 @@ class TestTimeDateUtils(unittest.TestCase):
             ('0181-W01-6', False, (181, 1, 3)),
             ('0181-W01-7', False, (181, 1, 4)),
             ('0181W017', False, (181, 1, 4)),
-            ('0181W20', False, (181, 7, 17)),
             ('0181W207', False, (181, 8, 4)),
             ('0181001', False, (181, 1, 1)),
             ('0181019', False, (181, 1, 19)),
@@ -851,7 +823,8 @@ class TestTimeDateUtils(unittest.TestCase):
                                               self._tdu.MAXYEAR)),
             ('0181-01-01-', True, err_msg2),
             ('0181-W10-1-', True, err_msg2),
-            ('0181-W101', True, err_msg3.format('0181-W101')),
+            ('0181W20', True, err_msg3.format('0181W20')),
+            ('0181-W101', True, err_msg4.format('0181-W101')),
             )
         msg = "Expected {} with ISO date {}, found {}."
 
@@ -936,8 +909,8 @@ class TestTimeDateUtils(unittest.TestCase):
         err_msg3 = "Invalid number of colons (:), can be 0 - 1, found {}"
         data = (
             ('', False, 'None'),
-            ('Z', False, 'UTC'),
-            ('B', False, 'UTC+03:30'),
+            ('Z', False, '51.477928, -0.001545, 0, UTC'),
+            ('B', False, '35.69435, 51.288701, 3.5, Asia/Tehran'),
             ('+05', False, 'UTC+05:00'),
             ('-05', False, 'UTC-05:00'),
             ('A', True, err_msg0.format("'A'")),

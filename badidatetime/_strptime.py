@@ -31,7 +31,8 @@ from ._timedateutils import _td_utils
 from .badi_calendar import BahaiCalendar
 
 
-__all__ = []
+__all__ = ('LocaleTime', 'TimeRE', 'DotDict', 'StrpTime',
+           '_calc_julian_from_U_or_W', '_strptime_time', '_strptime_datetime')
 
 
 def _getlang():
@@ -229,7 +230,7 @@ class TimeRE(dict):
             'V': r"(?P<V>5[0-3]|0[1-9]|[1-4]\d|\d)",
             # W is set below by using 'U'
             'y': r"(?P<y>\d\d)",
-            'Y': r"(?P<Y>-?\d{1,4})",  # We alow negative years.
+            'Y': r"(?P<Y>-?\d{1,4})",  # We allow negative years.
             'z': r"(?P<z>[+-]\d\d:?[0-5]\d(:?[0-5]\d(\.\d{1,6})?)?|(?-i:Z))",
             'A': self.__seqToRE(self.locale_time.f_weekday, 'A'),
             'a': self.__seqToRE(self.locale_time.a_weekday, 'a'),
@@ -250,7 +251,7 @@ class TimeRE(dict):
 
         We want possible matching values to be from longest to shortest. This
         prevents the possibility of a match occurring for a value that also
-        a substring of a larger value that should have matched (e.g., 'abc'
+        a sub-string of a larger value that should have matched (e.g., 'abc'
         matching when 'abcdef' should have been the match).
         """
         to_convert = sorted(to_convert, key=len, reverse=True)

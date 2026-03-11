@@ -21,11 +21,7 @@ class JulianPeriodTests:
     #MEAN_SIDEREAL_YEAR = 365.256363004
     ROUNDING_PLACES = 6
     JULIAN_LEAP_YEAR = lambda self, year: year % 4 == 0
-    GREGORIAN_LEAP_YEAR = lambda self, year: (
-        (year % 4 == 0) * ((year % 100 != 0) + (year % 400 == 0)) == 1)
-    GREGORIAN_LEAP_YEAR_ALT = lambda self, year: (
-        (year % 4 == 0) * (year % 128 != 0) == 1)
-    MONTHS = (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    MONTHS = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
     HR = lambda self, x: x / 24
     MN = lambda self, x: x / 24 / 60
     SEC = lambda self, x: x / 24 / 60 / 60
@@ -137,13 +133,11 @@ class JulianPeriodTests:
 
         -a with optional -A for alternate leap year calculation.
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-               else self.GREGORIAN_LEAP_YEAR)
         data = []
 
         for date in self.TEST_DATES:
             date = date if isinstance(date, tuple) else (date, 1, 1)
-            leap = GLY(date[0])
+            leap = self._gc._is_leap_year(date[0], alt=options.alt_leap)
             jd0 = self.jd_from_gregorian_date_0(date)
             jd1 = self.jd_from_gregorian_date_1(date, alt=options.alt_leap)
 
@@ -165,8 +159,8 @@ class JulianPeriodTests:
         """
         Compare Meeus' and my algorithms showing differences.
 
-        -1 with optional -A for alternate leap year calculation.
-        -S and -E are mandatory.
+        | -1 with optional -A for alternate leap year calculation.
+        | -S and -E are mandatory.
 
         If the last column shows anything other than 0.0 then there are
         inconsistencies.
@@ -174,18 +168,13 @@ class JulianPeriodTests:
         This test will display, to stderr a progress counter indicating
         every 500 years.
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-               else self.GREGORIAN_LEAP_YEAR)
         data = []
 
         for year in range(options.start, options.end):
-            leap = GLY(year)
+            leap = self._gc._is_leap_year(year, alt=options.alt_leap)
 
             for month, days in enumerate(self.MONTHS, start=1):
-                if month == 2 and not leap:
-                    max_days = days - 1
-                else:
-                    max_days = days
+                max_days = days + leap
 
                 for day in range(1, max_days + 1):
                     date = (year, month, day)
@@ -211,24 +200,19 @@ class JulianPeriodTests:
         If there is any data returned except the heading then there are
         errors in the conversion.
 
-        -2 with optional -A for alternate leap year calculation.
-        -S and -E are mandatory.
+        | -2 with optional -A for alternate leap year calculation.
+        | -S and -E are mandatory.
 
         This test will display, to stderr a progress counter indicating
         every 500 years.
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-               else self.GREGORIAN_LEAP_YEAR)
         data = []
 
         for year in range(options.start, options.end):
-            leap = GLY(year)
+            leap = self._gc._is_leap_year(year, alt=options.alt_leap)
 
             for month, days in enumerate(self.MONTHS, start=1):
-                if month == 2 and not leap:
-                    max_days = days - 1
-                else:
-                    max_days = days
+                max_days = days + leap
 
                 for day in range(1, max_days + 1):
                     date = (year, month, day)
@@ -249,8 +233,8 @@ class JulianPeriodTests:
         """
         Compare the two leap year algorithms.
 
-        If -c == 0 then all dates from 1 to 3004 are processed.
-        If -c == any year, then only that year is processed.
+        | If -c == 0 then all dates from 1 to 3004 are processed.
+        | If -c == any year, then only that year is processed.
 
         The table below shows the differences between the 4, 10, 400 and
         4, 128 algorithms. Notice that the dates up to 1482-10-15 are not
@@ -356,14 +340,14 @@ class JulianPeriodTests:
 
         if year <= 0:
             for y in range(1, 3005):
-                y0 = self.GREGORIAN_LEAP_YEAR(y)
-                y1 = self.GREGORIAN_LEAP_YEAR_ALT(y)
+                y0 = self._gc._is_leap_year(y)
+                y1 = self._gc._is_leap_year(y, alt=True)
 
                 if y0 != y1:
                     data.append((y, y0, y1))
         else:
-            y0 = self.GREGORIAN_LEAP_YEAR(year)
-            y1 = self.GREGORIAN_LEAP_YEAR_ALT(year)
+            y0 = self._gc._is_leap_year(y)
+            y1 = self._gc._is_leap_year(y, alt=True)
             data.append((year, y0, y1))
 
         return data
@@ -374,24 +358,20 @@ class JulianPeriodTests:
         or doubling up.
         Should produce no output if working correctly.
 
-        -k With optional -A for alternate leap year calculation.
-        -S and -E are mandatory.
-        If -J is used then the test is for consecutive Julian Period days.
+        | -k With optional -A for alternate leap year calculation.
+        | -S and -E are mandatory.
 
-        If -JM is used the test is for consecutive Julian Period days using
-        Meeus' algorithm.
+        | If -J is used then the test is for consecutive Julian Period days.
 
-        If -G is used the test is for consecutive Julian Period days using
-        my algorithm.
+        | If -JM is used the test is for consecutive Julian Period days using
+        | Meeus' algorithm.
+
+        | If -G is used the test is for consecutive Julian Period days using
+        | my algorithm.
 
         Some tests will display, to stderr a progress counter indicating
         every 500 years.
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-               else self.GREGORIAN_LEAP_YEAR)
-        LY = self.JULIAN_LEAP_YEAR if options.meeus else GLY
-        #sys.stderr.write(f" LY: {str(LY)}\nGLY: {str(GLY)}\n")
-
         method = (self.jd_from_gregorian_date_0 if options.meeus else
                   self.jd_from_gregorian_date_1)
         data = []
@@ -400,12 +380,13 @@ class JulianPeriodTests:
         if options.julian:
             for year in range(options.start, options.end):
                 for month, days in enumerate(self.MONTHS, start=1):
-                    LY = LY if (year, month) < (1582, 10) else GLY
-
-                    if month == 2 and not LY(year):
-                        max_days = days - 1
+                    if (year, month) >= (1582, 10) or options.meeus:
+                        leap = self._gc._is_leap_year(
+                            year, alt=options.alt_leap)
                     else:
-                        max_days = days
+                        leap = self.JULIAN_LEAP_YEAR(year)
+
+                    max_days = days + leap
 
                     for day in range(1, max_days + 1):
                         date = (year, month, day)
@@ -418,12 +399,11 @@ class JulianPeriodTests:
         elif options.g_date:
             items = []
             last_date = ()
-            GLY = (self.GREGORIAN_LEAP_YEAR_ALT if options.alt_leap
-                   else self.GREGORIAN_LEAP_YEAR)
             month_days = list(self.MONTHS)
 
             for year in range(options.start, options.end):
-                month_days[1] = 29 if GLY(year) else 28
+                leap = self._gc._is_leap_year(year, alt=options.alt_leap)
+                month_days[1] = 29 if leap else 28
 
                 for month, days in enumerate(month_days, start=1):
                     for day in range(1, days+1):
@@ -443,106 +423,127 @@ class JulianPeriodTests:
                 if item[0] % 500 == 0 and item[1] == 1 and item[2] == 1:
                     print(item, file=sys.stderr)
 
-        #[print(item) for item in items]
         return data
 
-    def julian_day_with_sunset(self, options):
+    def julian_day_with_ut_sunset(self, options):
         """
-        Generate a list of Julian days with sunset data. This must be done
+        Generate a list of Julian days with ut sunset data. This must be done
         in the historically correct Julian day count or the sunsets will
         not be correct.
+        Sunsets found on https://gml.noaa.gov/grad/solcalc/ set to UTC
+        coordinates.
 
-        This is used in some Badí tests.
+        The output is used in some Badí tests.
 
         -j with -S and -E which are mandatory.
         """
         data = []
-        alt_lat_lon = {
-            1970: (51.4769, 0, 0)
-            }
         hm = {
-            (1, 3, 20):    (18, 16),
-            (1, 4, 8):     (18, 30),
-            (2, 2, 24):    (17, 56),
-            (2, 2, 25):    (17, 57),
-            (2, 2, 26):    (17, 58),
-            (2, 3, 2):     (18, 1),
-            (2, 3, 6):     (18, 5),
-            (1583, 3, 21): (18, 16),
-            (1844, 3, 20): (18, 16),
-            (1845, 3, 20): (18, 16),
-            (1863, 3, 21): (18, 16),
-            (2015, 3, 21): (18, 16),
-            (2022, 2, 25): (17, 56),
-            (2022, 3, 1):  (17, 59),
-            (2022, 3, 2):  (18, 0),
-            (2024, 3, 20): (18, 16),
-            (2024, 4, 20): (18, 42),
-            (2024, 5, 14): (19, 2),
-            (2024, 7, 17): (19, 19),
+            (1, 3, 19):    (18, 11),
+            (1, 3, 20):    (18, 12),
+            (1, 4,  8):    (18, 42),
+            (2, 2, 24):    (17, 33),
+            (2, 2, 25):    (17, 34),
+            (2, 2, 26):    (17, 36),
+            (2, 3,  2):    (17, 43),
+            (2, 3,  6):    (17, 49),
+            (1583, 3, 20): (18, 12),
+            (1583, 3, 21): (18, 14),
+            (1844, 3, 19): (18, 12),
+            (1845, 3, 20): (18, 13),
+            (1863, 3, 20): (18, 12),
+            (1863, 3, 21): (18, 14),
+            (1970, 1, 1):  ( 0,  0),
+            (2015, 3, 20): (18, 12),
+            (2015, 3, 21): (18, 14),
+            (2022, 2, 24): (17, 31),
+            (2022, 2, 25): (17, 33),
+            (2022, 3,  1): (17, 40),
+            (2022, 3,  2): (17, 42),
+            (2024, 3, 19): (17, 12),
+            (2024, 3, 20): (18, 14),
+            (2024, 4, 20): (19,  6),
+            (2024, 5, 12): (19, 41),
+            (2024, 5, 14): (19, 45),
+            (2024, 7, 17): (20,  8),
             }
 
         for year in range(options.start, options.end):
             leap = (self.JULIAN_LEAP_YEAR(year) if year < 1583
-                    else self.GREGORIAN_LEAP_YEAR(year))
-            location = (alt_lat_lon[year] if year in alt_lat_lon
-                        else self._bc._BAHAI_LOCATION[:3])
+                    else self._gc._is_leap_year(year))
+            lat, lon = (51.477928, -0.001545)
 
             for month, days in enumerate(self.MONTHS, start=1):
-                if month == 2 and not leap:
-                    max_days = days - 1
-                else:
-                    max_days = days
+                max_days = days + leap
 
                 for day in range(1, max_days + 1):
                     date = (year, month, day)
                     date += hm[date] if date in hm else ()
-                    jd = self._gc.jd_from_gregorian_date(date)
-                    jdss = self._gc._sun_setting(jd, *location)
-                    # Convert to my jd count.
-                    ejd = self._gc.jd_from_gregorian_date(date, exact=True)
-                    ss = math.floor(ejd) + jdss % 1
+
+                    try:
+                        jd_ut = self._gc.jd_from_gregorian_date(date)
+                    except AssertionError:
+                        print((year, month, day))
+                        continue
+
+                    jd_ss_ut = self._gc._sun_setting(jd_ut, lat, lon)
+                    # Convert to Astronomically correct jd.
+                    ajd = self._gc.jd_from_gregorian_date(date, exact=True)
+                    ss = math.floor(ajd) + jd_ss_ut % 1
                     data.append((date, ss))
 
         return data
 
+    # Supporting methods
+
     def jd_from_gregorian_date_0(self, g_date, alt=False):
         """
-        Meeus algorithm
+        The JDs below are all in the Meeus Histroically correct algorithm.
         The alt keyword does nothing.
-        https://aa.usno.navy.mil/data/JulianDate
 
-        There are 12 years that skip a day. Pope Gregory only compensated for
-        10 of them.
+        | US Naval Observatory Julian Date page:
+        | https://aa.usno.navy.mil/data/JulianDate
 
-        +----------------+-----------------+----------------+-------------+
-        | Previous Valid | JD for Previous | Next Valid Day | JD for Next |
-        | Day            | Valid Day       |                | Valid Day   |
-        +================+=================+================+=============+
-        |  (100, 2, 28)  | 1757640.5       |  (100, 3, 1)   | 1757642.5   |
-        +----------------+-----------------+----------------+-------------+
-        |  (200, 2, 28)  | 1794165.5       |  (200, 3, 1)   | 1794167.5   |
-        +----------------+-----------------+----------------+-------------+
-        |  (300, 2, 28)  | 1830690.5       |  (300, 3, 1)   | 1830692.5   |
-        +----------------+-----------------+----------------+-------------+
-        |  (500, 2, 28)  | 1903740.5       |  (500, 3, 1)   | 1903742.5   |
-        +----------------+-----------------+----------------+-------------+
-        |  (600, 2, 28)  | 1940265.5       |  (600, 3, 1)   | 1940267.5   |
-        +----------------+-----------------+----------------+-------------+
-        |  (700, 2, 28)  | 1976790.5       |  (700, 3, 1)   | 1976792.5   |
-        +----------------+-----------------+----------------+-------------+
-        |  (900, 2, 28)  | 2049840.5       |  (900, 3, 1)   | 2049842.5   |
-        +----------------+-----------------+----------------+-------------+
-        | (1000, 2, 28)  | 2086365.5       | (1000, 3, 1)   | 2086367.5   |
-        +----------------+-----------------+----------------+-------------+
-        | (1100, 2, 28)  | 2122890.5       | (1100, 3, 1)   | 2122892.5   |
-        +----------------+-----------------+----------------+-------------+
-        | (1300, 2, 28)  | 2195940.5       | (1300, 3, 1)   | 2195942.5   |
-        +----------------+-----------------+----------------+-------------+
-        | (1400, 2, 28)  | 2232465.5       | (1400, 3, 1)   | 2232467.5   |
-        +----------------+-----------------+----------------+-------------+
-        | (1500, 2, 28)  | 2268990.5       | (1500, 3, 1)   | 2268992.5   |
-        +----------------+-----------------+----------------+-------------+
+        There are 12 years that skip a day. Pope Gregory only compensated
+        for 10 of them. The JDs below are all in the non-proleptic historic
+        (Meeus) algorithm and signify the beginning of the day.
+
+        .. csv-table:: Gregorian JD offsets
+           :header: "Valid or Invalid Day(s)", \
+                    "Valid Day JD", \
+                    "Next Valid or Invalid Day(s)", \
+                    "Next Valid Day JD", \
+                    "Offset"
+           :widths: 21, 16, 26, 24, 13
+
+           "(100, 2, 28)", 1757640.5, "(100, 3, 1)", 1757642.5, 1
+           "(100, 2, 29)", 1757641.5, "Invalid", "", ""
+           "(200, 2, 28)", 1794165.5, "(200, 3, 1)", 1794167.5, 2
+           "(200, 2, 29)", 1794166.5, "Invalid", "", ""
+           "(300, 2, 28)", 1830690.5, "(300, 3, 1)", 1830692.5, 3
+           "(300, 2, 29)", 1830691.5, "Invalid", "", ""
+           "(500, 2, 28)", 1903740.5, "(500, 3, 1)", 1903742.5, 4
+           "(500, 2, 29)", 1903741.5, "Invalid", "", ""
+           "(600, 2, 28)", 1940265.5, "(600, 3, 1)", 1940267.5, 5
+           "(600, 2, 29)", 1940266.5, "Invalid", "", ""
+           "(700, 2, 28)", 1976790.5, "(700, 3, 1)", 1976792.5, 6
+           "(700, 2, 29)", 1976791.5, "Invalid", "", ""
+           "(900, 2, 28)", 2049840.5, "(900, 3, 1)", 2049842.5, 7
+           "(900, 2, 29)", 2049841.5, "Invalid", "", ""
+           "(1000, 2, 28)", 2086365.5, "(1000, 3, 1)", 2086367.5, 8
+           "(1000, 2, 29)", 2086366.5, "Invalid", "", ""
+           "(1100, 2, 28)", 2122890.5, "(1100, 3, 1)", 2122892.5, 9
+           "(1100, 2, 29)", 2122891.5, "Invalid", "", ""
+           "(1300, 2, 28)", 2195940.5, "(1300, 3, 1)", 2195942.5, 10
+           "(1300, 2, 29)", 2195941.5, "Invalid", "", ""
+           "(1400, 2, 28)", 2232465.5, "(1400, 3, 1)", 2232467.5, 11
+           "(1400, 2, 29)", 2232466.5, "Invalid", "", ""
+           "(1500, 2, 28)", 2268990.5, "(1500, 3, 1)", 2268992.5, 12
+           "(1500, 2, 29)", 2268991.5, "Invalid", "", ""
+           "(1582, 10, 4)", 2299159.5, "(1582, 10, 15)", 2299160.5, ""
+           "(1582, 10, 5) to (1582, 10, 14)", "2299160.5 to 2299169.5", \
+           "Invalid", "Only adjusted 10 days", ""
+           "(1582, 10, 15)", 2299160.5, "(1582, 10, 16)", 2299161.5, 2
         """
         year, month, day = self.date_from_ymdhms(g_date)
 
@@ -557,23 +558,22 @@ class JulianPeriodTests:
             b = 0
 
         return round(math.floor(self.JULIAN_YEAR * year) + math.floor(
-            30.6001 * (month + 1)) + day + b + 1720994.5,
-                     self.ROUNDING_PLACES)
+            30.6001 * (month + 1)) + day + b + 1720994.5, self.ROUNDING_PLACES)
 
     def jd_from_gregorian_date_1(self, g_date, alt=False):
         """
         My algorithm
         """
-        GLY = self.GREGORIAN_LEAP_YEAR_ALT if alt else self.GREGORIAN_LEAP_YEAR
         year, month, day = self.date_from_ymdhms(g_date)
         td = self._days_in_years(year-1, alt=alt)
         days = td + (self.GREGORIAN_EPOCH - 1)  # 37
         month_days = list(self.MONTHS)
-        month_days[1] = 29 if GLY(year) else 28
+        leap = self._gc._is_leap_year(year, alt=options.alt_leap)
+        month_days[1] = 29 if leap else 28
         days += sum(month_days[:month-1]) + day
-        #print(f"date: {str(g_date):<16} td: {td:<8} "
-        #      f"days: {days:<10} "
-        #      f"sum: {sum(month_days[:month-1]):<10}\n", file=sys.stderr)
+        # print(f"date: {str(g_date):<16} td: {td:<8} "
+        #       f"days: {days:<10} "
+        #       f"sum: {sum(month_days[:month-1]):<10}\n", file=sys.stderr)
         return days
 
     def gregorian_date_from_jd_0(self, jd):
@@ -614,8 +614,6 @@ class JulianPeriodTests:
         """
         My algorithm
         """
-        GLY = (self.GREGORIAN_LEAP_YEAR_ALT if alt
-               else self.GREGORIAN_LEAP_YEAR)
         # Get the number of days since the Gregorian epoch.
         md = jd - (self.GREGORIAN_EPOCH - 1)
         year = math.floor(abs(md / self.MEAN_TROPICAL_YEAR)) + 1
@@ -635,7 +633,8 @@ class JulianPeriodTests:
             year += 1
 
         month_days = list(self.MONTHS)
-        month_days[1] = 29 if GLY(year) else 28
+        leap = self._gc._is_leap_year(year, alt=options.alt_leap)
+        month_days[1] = 29 if leap else 28
         d = day = 0
 
         for month, ds in enumerate(month_days, start=1):
@@ -863,7 +862,7 @@ if __name__ == "__main__":
             data = [
                 f"{str(date):<23} "
                 f"{jdss:<14}"
-                for date, jdss in jpt.julian_day_with_sunset(options)]
+                for date, jdss in jpt.julian_day_with_ut_sunset(options)]
             [print(item) for item in data]
     else:
         parser.print_help()

@@ -18,15 +18,13 @@ import numpy as np
 
 # --- Setup Skyfield Ephemeris ---
 ts = api.load.timescale()
-#eph = api.load("de421.bsp")  # or "de440s.bsp" for higher precision
-eph = api.load("de406.bsp")
 bc = BahaiCalendar()
 gc = GregorianCalendar()
 GMT_COORD = (51.477928, -0.001545, 0)
 TEHRAN_COORD = (35.682376, 51.285817, 3.5)
 
 
-def jpl_vernal_equinox_jd(year):
+def jpl_vernal_equinox_jd(year, eph):
     """
     Compute the JD of the vernal equinox (geocentric apparent Sun)
     using the JPL DE ephemeris (TT-based JD).
@@ -55,23 +53,25 @@ def badidatetime_equinox_jd(year, coords=GMT_COORD):
 
 
 # --- Compare across a range of years ---
-results = []
+if __name__ == "__main__":
+    #eph = api.load("de421.bsp")  # or "de440s.bsp" for higher precision
+    eph = api.load("de406.bsp")
+    results = []
 
-for year in range(1, 3001, 10):
-    jd_jpl = jpl_vernal_equinox_jd(year)
-    jd_badi = badidatetime_equinox_jd(year, GMT_COORD)
-    diff_days = jd_badi - jd_jpl
-    diff_sec = diff_days * 86400
-    results.append((year, jd_jpl, jd_badi, diff_sec))
+    for year in range(1, 3001, 10):
+        jd_jpl = jpl_vernal_equinox_jd(year, eph)
+        jd_badi = badidatetime_equinox_jd(year, GMT_COORD)
+        diff_days = jd_badi - jd_jpl
+        diff_sec = diff_days * bc._SECONDS_PER_DAY
+        results.append((year, jd_jpl, jd_badi, diff_sec))
 
+        # --- Output summary ---
+        print(f"{'Year':>6} {'JPL JD':>14} {'Badí‘ JD':>14} {'Δt (s)':>10}")
+        print("-" * 48)
 
-# --- Output summary ---
-print(f"{'Year':>6} {'JPL JD':>14} {'Badí‘ JD':>14} {'Δt (s)':>10}")
-print("-" * 48)
+        for year, jd_jpl, jd_badi, diff_sec in results:
+            print(f"{year:6d} {jd_jpl:14.6f} {jd_badi:14.6f} {diff_sec:10.3f}")
 
-for year, jd_jpl, jd_badi, diff_sec in results:
-    print(f"{year:6d} {jd_jpl:14.6f} {jd_badi:14.6f} {diff_sec:10.3f}")
-
-diffs = np.array([abs(r[3]) for r in results])
-print("\nAverage absolute diff (seconds):", diffs.mean())
-print("Max absolute diff (seconds):", diffs.max())
+        diffs = np.array([abs(r[3]) for r in results])
+        print("\nAverage absolute diff (seconds):", diffs.mean())
+        print("Max absolute diff (seconds):", diffs.max())

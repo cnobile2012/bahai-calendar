@@ -31,7 +31,7 @@ class TimeDateUtils(BahaiCalendar):
     """
     DAYNAMES_ABV = ('Jal', 'Jam', 'Kam', 'Fiḍ', 'Idā', 'Isj', 'Isq')
     """
-    tuple: The abreviated day names.
+    tuple: The abbreviated day names.
     """
     MONTHNAMES = OrderedDict((
         (1, 'Bahá'), (2, 'Jalál'), (3, 'Jamál'), (4, "'Aẓamat"), (5, 'Núr'),
@@ -48,15 +48,16 @@ class TimeDateUtils(BahaiCalendar):
         (12, 'Ilm'), (13, 'Qud'), (14, 'Qaw'), (15, 'Mas'), (16, 'Sha'),
         (17, 'Sul'), (18, 'Mul'), (0, 'Ayy'), (19, 'Alá')))
     """
-    dict: The abreviated month names.
+    dict: The abbreviated month names.
     """
-    FIRST_YEAR_EPOCH = 1721501.261143
+    ORDINAL_1ST_YEAR_EPOCH = 1721501.260417
     """
     float: The first day that we start our count, Julian year 1, March 19th.
     """
     DAYS_BEFORE_1ST_YEAR = 77
     """
-    int: Keeps the Badí' day count in par with the Gregorian day count.
+    int: Keeps the Badí' day count in par with the Gregorian day count
+    for ordinals.
     """
     _SHORT_STRUCT_TM_ITEMS = 6
     """
@@ -67,6 +68,16 @@ class TimeDateUtils(BahaiCalendar):
     """
     int: Length of the long form Badí' date and time portion of the
     struct time.
+    """
+    _BADI_MONTH_NUM_DAYS = [
+        (1, 19), (2, 19), (3, 19), (4, 19), (5, 19), (6, 19), (7, 19),
+        (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19),
+        (15, 19), (16, 19), (17, 19), (18, 19), (0, 0), (19, 19)
+        ]
+    """
+    list: Provides a list of month number and the number of days in that
+    month. Month 0 (zero) is in the 19th position and is modified depending
+    on if a leap year.
     """
 
     def __init__(self):
@@ -185,9 +196,9 @@ class TimeDateUtils(BahaiCalendar):
                 f"The ttup argument {ttup.__class__} is not a proper tuple.")
 
         def process_long_form(ttup: tuple):
-            assert (self.KULL_I_SHAY_MIN <= ttup[0] <= self.KULL_I_SHAY_MAX), (
+            assert (self.KULLISHAY_MIN <= ttup[0] <= self.KULLISHAY_MAX), (
                 f"Invalid kull-i-shay {ttup[0]}, it must be in the range of "
-                f"[{self.KULL_I_SHAY_MIN}, {self.KULL_I_SHAY_MAX}].")
+                f"[{self.KULLISHAY_MIN}, {self.KULLISHAY_MAX}].")
             assert 1 <= ttup[1] < 20, (
                 f"Invalid Váḥids '{ttup[1]}' in a Kull-i-Shay’, it must be in "
                 "the range of [1, 19].")
@@ -778,10 +789,11 @@ class TimeDateUtils(BahaiCalendar):
         .. note::
 
            Some equivalents from offset to ISO standard.
-           -14400.0       == -0400
-           37080          == +1030
-           22829.4        == +063415
-           11056.44427776 == +030712.
+
+           * -14400.0 == -0400
+           * 37080 == +1030
+           * 22829.4 == +063415
+           * 11056.44427776 == +030712.
 
         :param ttup: A struct_time object.
         :type ttup: ShortFormStruct or LongFormStruct
@@ -929,7 +941,7 @@ class TimeDateUtils(BahaiCalendar):
                     ttup.tm_mon, ttup.tm_mday, ttup.tm_hour, ttup.tm_min,
                     ttup.tm_sec)
 
-        return self.midday(date)
+        return self.midday(date, _short=ttup.short)
 
     def _get_year(self, ttup: tuple) -> int:
         """
@@ -971,7 +983,7 @@ class TimeDateUtils(BahaiCalendar):
                     year += 1
                     week = 0
 
-        return year, week+1, day+1
+        return year, week+1, day + 1
 
     def _days_before_year(self, year: int) -> float:
         """
@@ -982,20 +994,9 @@ class TimeDateUtils(BahaiCalendar):
                   calendar.
         :rtype: int
         """
-        jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19), _chk_on=False)
-        jd1 = self.jd_from_badi_date((year, 1, 1), _chk_on=False)
+        jd0 = self.jd_from_badi_date((self.MINYEAR-1, 19, 19))
+        jd1 = self.jd_from_badi_date((year, 1, 1))
         return math.floor(jd1 - jd0) - 1
-
-    def _days_in_month(self, year: int, month: int) -> int:
-        """
-        The number of days in provided month in provided year.
-
-        :param int year: Badí' year
-        :param int month: Badí' month (0..19)
-        :returns: The number of in the current month.
-        :rtype: int
-        """
-        return 4 + self._is_leap_year(year) if month == 0 else 19
 
     def _days_before_month(self, year: int, month: int) -> int:
         """
@@ -1038,6 +1039,11 @@ class TimeDateUtils(BahaiCalendar):
 
         year, month, day -> ordinal, considering -1842-01-01 as day 1
 
+        .. note::
+
+           We add 77 days to the total so that the ordinal number can be
+           compared to the ordinals in the standard datetime package.
+
         :param int year: Badí' year
         :param int month: Badí' month [0, 19]
         :param int day: Badí' day
@@ -1045,21 +1051,15 @@ class TimeDateUtils(BahaiCalendar):
                   current day.
         :rtype: int
         """
-        dim = self._days_in_month(year, month)
-        assert 1 <= day <= dim, (
-            f"Day '{day}' for month {month} must be in range of 1..{dim}")
-        # We add 77 days to the total so that the ordinal number can be
-        # compared to the ordinals in the standard datetime package.
-
-        # For some reason out of the 3004 year that are provided only
+        # For some reason out of the 3004 years that are provided only
         # these three years are off by 1.
         if year in (-1796, -1792, -1788):
             fudge = 1
         else:
             fudge = 0
 
-        return (self.DAYS_BEFORE_1ST_YEAR + self._days_before_year(year) +
-                self._days_before_month(year, month) + day + fudge)
+        return (self._days_before_year(year) + self._days_before_month(
+            year, month) + day + fudge + self.DAYS_BEFORE_1ST_YEAR)
 
     def _ord2ymd(self, n: int, *, short: bool=False) -> tuple:
         """
@@ -1082,9 +1082,9 @@ class TimeDateUtils(BahaiCalendar):
         # _ymd2ord and give the same date as Python standard datetime package.
         # The reason we need to do this is that the first date that this
         # package can provide is equivalent to Julian year 1, March, 19th.
-        jd = self.FIRST_YEAR_EPOCH - 1 - self.DAYS_BEFORE_1ST_YEAR + n
-        return self.badi_date_from_jd(math.floor(jd) + 0.5, short=short,
-                                      trim=True, rtd=True, _chk_on=False)
+        jd = self.ORDINAL_1ST_YEAR_EPOCH - 1 - self.DAYS_BEFORE_1ST_YEAR + n
+        jd0 = math.floor(jd) + 0.5
+        return self.badi_date_from_jd(jd0, short=short, trim=True, rtd=True)
 
     def _build_struct_time(self, date: tuple, dstflag: int, *, tzinfo=None,
                            short_in: bool=False) -> NamedTuple:
@@ -1104,8 +1104,7 @@ class TimeDateUtils(BahaiCalendar):
             y, m, d, hh, mm, ss = date
         else:
             # Microsecond (ms) is not used.
-            y, m, d, hh, mm, ss, ms = self.short_date_from_long_date(
-                date, _chk_on=False)
+            y, m, d, hh, mm, ss, ms = self.short_date_from_long_date(date)
 
         wday = self._day_of_week(y, m, d)
         dnum = self._days_before_month(y, m) + d
@@ -1118,11 +1117,6 @@ class TimeDateUtils(BahaiCalendar):
         (Friday) the last day of the week. This is different from the usual
         way ISO weeks are counted in the Gregorian Calendar which is Monday
         to Sunday.
-
-        .. note::
-
-           Whereas a Gregorian year can have 53 weeks in it a Badí' year can
-           have 51 weeks in it and never 53.
 
         :param int year: Badí' year.
         :param int month: Badí' month (0..19)
@@ -1167,7 +1161,7 @@ class TimeDateUtils(BahaiCalendar):
         :returns: The number of the first Jalál in the Badí' year.
         :rtype: int
         """
-        firstday = self._ymd2ord(year, 1, 1)
+        firstday = self._ymd2ord(year, 1, 1)  # 1st day of year
         # We subtract 6 instead of add 6 as is done in _isoweek1Monday.
         firstweekday = (firstday - 6) % 7
         week1jalal = firstday - firstweekday
@@ -1259,12 +1253,15 @@ class TimeDateUtils(BahaiCalendar):
             wday = int(dtstr[pos:pos+2])
             pos += 2 if dc == 0 else 3
             d = dtstr[pos:]
+            assert d_len > 7, (
+                "Day information must be included for a "
+                f"complete date to be generated, found {dtstr}.")
             assert (dc == 1 and d_len == 8) or dc in (0, 2), (
                 f"Invalid ISO string {dtstr}.")
             day = int(d) if d.isdigit() else 1
             date = self._isoweek_to_badi(year, wday, day, short=True)[:3]
         elif d_len in (7, 8):                    # YYYYDDD or YYYY-DDD
-            month_days = self._BADI_MONTH_NUM_DAYS
+            month_days = list(self._BADI_MONTH_NUM_DAYS)
             month_days[18] = (0, 4 + self._is_leap_year(year))
             days = int(dtstr[4:7] if dc == 0 else dtstr[5:8])
 

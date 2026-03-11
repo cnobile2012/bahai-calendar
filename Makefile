@@ -130,5 +130,6 @@ clean	:
 
 clobber	: clean
 	@rm -rf dist badidatetime.egg-info
+	@rm -rf .pytest_cache
 	@rm -rf $(DOCS_DIR)/htmlcov
 	@rm -rf $(DOCS_DIR)/build

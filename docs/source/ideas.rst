@@ -85,8 +85,8 @@ to know the longitude to determine what the time offset is.
 So if we use this formula for New York City during standard time where the
 longitude is -73.935242, then the actual offset is -4.929016 hours not -5 hours
 which is the political time zone. It is close, but not as exact. The longitude
-that I use for Tehran Iran is 51.285817, if this is put into the formula above
-we get 3.419055 hours, the political offset is 3.5 hours. A thirds example is
+that I use for Tehran Iran is 51.288701, if this is put into the formula above
+we get 3.4192467 hours, the political offset is 3.5 hours. A third example is
 in India, the eastern side has a longitude of 81.1875° giving it an offset of
 5.41 hours and the west side longitude is 71.5429687° giving it an offset of
 4.769 hours. The political time zone for the whole country is 5.5 hours which

@@ -5,28 +5,25 @@ __init__
 ========
 
 ---------------
+init_leap_cache
+---------------
+
+.. autofunction:: badidatetime.init_leap_cache
+
+---------------
 enable_geocoder
 ---------------
 
-.. automodule:: badidatetime.__init__.enable_geocoder
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. autofunction:: badidatetime.enable_geocoder
 
 --------------------
 _local_timezone_info
 --------------------
 
-.. automodule:: badidatetime.__init__._local_timezone_info
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. autofunction:: badidatetime._local_timezone_info
 
 ----------------------
 _get_local_coordinates
 ----------------------
 
-.. automodule:: badidatetime.__init__._get_local_coordinates
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. autofunction:: badidatetime._get_local_coordinates

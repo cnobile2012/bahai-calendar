@@ -100,7 +100,7 @@ class AstronomicalTerms:
     _R4_B = (2.56,)
     _R4_C = (6283.08,)
 
-    # Periodic terms for the nutation in longitude and obliquity.
+    # Periodic terms for the mutation in longitude and obliquity.
     # Nutation in Longitude and Obliquity referred to mean ecliptic of date.
     # Epoch J2000.0 (JD 2451 545.0 TDB) T in Julian Centuries
     #        Arguments       Period  Longitude           Obliquity
@@ -213,6 +213,9 @@ class AstronomicalTerms:
         (-1, -1,  0,  2, 1,    35.0,       1.0,    0.0,    0.0,   0.0),
         ( 0,  1,  0,  1, 0,    27.3,       1.0,    0.0,    0.0,   0.0),
         )
+    """
+    :meta hide-value:
+    """
 
     _ABER_A = (
         (118.568,   87.5287,  359993.7286),
