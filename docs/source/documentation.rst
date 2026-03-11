@@ -10,13 +10,13 @@ Julian Period Days
 
 The most commonly used algorithm to convert to-and-from different Calendars is
 the JD (Julian period Day). You take your date from some calendar feed it into
-a function then out pops a JD. Then take that JD and feed it into the  reverse
+a function then out pops a JD. Then take that JD and feed it into the reverse
 function for a different calendar and out pops the date that is equivalent to
 the date of the first calendar. Essentially the JD is a continuous count of
-days from the Gregorian/Julian calendar year -4712:01:01 at noon. Jean Meeus in
-his book "Astronomical Algorithms" has a formula for doing this
-conversion. This formula is historically correct meaning that all historical
-Astronomical calculations for-the-most-part use it. The USNO has an `online
+days from the Gregorian/Julian calendar year -4712:01:01 at noon. Jean Meeus
+in his book "Astronomical Algorithms" has a formula for doing this conversion.
+This formula is historically correct meaning that all historical Astronomical
+calculations for-the-most-part use it. The USNO has an `online
 calculator <https://aa.usno.navy.mil/data/JulianDate>`_ for this formula.
 
 Now I said "for-the-most-part" above because the formula mentioned above is
@@ -67,36 +67,24 @@ the astronomical code to work with a proleptic count of days such as the
 formulas I have written, but I am no astronomer, so I cannot do this. So it is
 what it is.
 
-================
-POSIX Timestamps
-================
-
-The POSIX timestamp had some of the same issues as the Julian Period day
-discussed above. It also needed to factor in coefficients to get inline with
-the Gregorian timestamps. However, because the timestamps are different
-depending on the timezone there is a minimum and maximum deviation between the
-Gregorian and Badí' timestamps. The deviation from a few time zones were tested
-and shown to be between -241 and 121 seconds or about minus four minutes to
-plus two minutes.
-
 ==================================
 Origin Point of the Badí' Calendar
 ==================================
 
-There are two years 0183-01-01 (2026-03-20) and 0216-01-01 (2059-03-19) that
-have a very narrow overlap where all the 50 dates provided by The World Centre
-will be on the correct day for Naw-Rúz. The calculations for latitude and
-longitude were derived by hand, with results of 35.682376 for the latitude and
-51.285817 for the longitude. The longitude I chose was more-or-less the midway
-point between the above mentioned overlap. All the code in the
-`badidatetime/badi_calendar.py` module is dependent on these values.
+There are two years starting on 0183-01-01 (2026-03-20) and 0216-01-01
+(2059-03-19) that have a very a narrow overlap where the sunsets (Naw-Rúz) are
+correct as per the dates provided by the House of Justice. The remaining 50
+dates were less of an issue. The calculations for latitude and longitude were
+originally derived completely by hand. Since my original calculations I have
+written a script that can automatically derive the best fit longitude for the
+two date mentioned above. Since the latitude has a much less affect on deriving
+sunsets I chose a latitude midway between the northern and southern limits of
+Tehran. All the code in the `badidatetime/badi_calendar.py` module is dependent
+on these values.
 
-Since my original calculations I wrote a script that can determine this midway
-point algorithmically. It gave me a slightly different midway point, but not
-enough for me to make changes to the code.
-
-To get the midway point, run the script below. It only calculates data for the
-two years mentioned above. It runs for about 9 minutes.
+To get the longitudinal midway point, run the script below. It calculates the
+best fit longitude for the two years mentioned above. It runs for about 9
+minutes.
 
 .. code:: shell
 
@@ -104,7 +92,8 @@ two years mentioned above. It runs for about 9 minutes.
 
 There is also a `-F` argument which can be added to the above script, it
 calculates the full 50 years, however, it will take up to 4 or 5 hours to run,
-so beware. The final midway point should be the same in either case.
+so beware. The final midway point should be the same in either case, so running
+the script for the full 50 years would not give a better result.
 
 =============================
 Strftime and Strptime Methods
@@ -113,7 +102,7 @@ Strftime and Strptime Methods
 This API supports many more conversion formats than the standard Python
 library. Partially because The Badí' Calendar has calendar designators that
 don't exist in the Gregorian Calendar and there are a lot of formats in general
-that the standard library don't support.
+that the standard library doesn't support.
 
 .. code::
 

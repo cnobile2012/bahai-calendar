@@ -237,9 +237,9 @@ class date(BahaiCalendar):
 
         :param date cls: The class object.
         :param int a: Long form this value is the Kill-i-Shay and short form
-                      it's the year. If b and c are None then a becomes the
-                      pickle value that is parsed to the remaining values
-                      below.
+                      it's the year. If **b** and **c** are None then **a**
+                      becomes the pickle value that is parsed to the remaining
+                      values below.
         :param int b: Long form this value is the Váḥid and short form it's
                       the month.
         :param int c: Long form this is the year and short form it's the day.
@@ -288,7 +288,7 @@ class date(BahaiCalendar):
     @classmethod
     def fromtimestamp(cls, t: float, *, short: bool=True) -> object:
         """
-        Construct a date from a POSIX timestamp (like time.time()).
+        Construct a date from a POSIX timestamp--like time.time().
 
         :param date cls: The class object.
         :param float t: The POSIX timestamp.
@@ -973,13 +973,13 @@ class date(BahaiCalendar):
         return (self.__class__, self._getstate())
 
 
-_date_class = date  # So functions w/ args named "date" can get at the class
+_date_class = date  # So functions w/ args named "date" can get at the class.
 
-# This also needs to be done for long form date. *** TODO ***
 date.min = date(MINYEAR, 1, 1)
 date.max = date(MAXYEAR, 19, 19)
+date.longmin = date(-5, 18, 1, 1, 1)
+date.longmax = date(4, 5, 2, 19, 19)
 date.resolution = timedelta(days=1)
-
 
 _tzinfo_class = tzinfo
 
@@ -1443,7 +1443,7 @@ class time:
 
         .. note::
 
-           The name is 100% informational -- there's no requirement that
+           The name is 100% informational--there's no requirement that
            it mean anything in particular. For example, *GMT*, *UTC*, *-500*,
            *-5:00*, *EDT*, *US/Eastern*, *America/New York* are all valid
            responses.
@@ -1571,7 +1571,6 @@ class time:
 
 
 _time_class = time  # so functions w/ args named "time" can get at the class
-
 time.min = time(0, 0, 0)
 time.max = time(24, 0, 3)  # See contrib/misc/badi_jd_tests.py --day
 time.resolution = timedelta(microseconds=1)
@@ -1601,11 +1600,11 @@ class datetime(date):
         :param int b: If pickle data this is the `tzinfo` instance. If not
                       pickle data this could be the Váḥid if a long form date
                       or the month if a short form date.
-        :param int c: If a long form date this is the year or the day if a
-                      short form date is used.
-        :param int d: If a long form date this is the month, it is not used
+        :param int c: If **a** long form date this is the year or the day if
+                      **a** short form date is used.
+        :param int d: If **a** long form date this is the month, it is not used
                       with a short form date.
-        :param int e: If a long form date this is the day, it is not used
+        :param int e: If **a** long form date this is the day, it is not used
                       with a short form date.
         :param float hour: The hour of the dat.
         :param float minute: The minute of the hour.
@@ -1614,7 +1613,7 @@ class datetime(date):
         :param tzinfo tzinfo: The time zone information.
         :param int fold: If *0* there is no fold in time, this is the more
                          common situation, however, if it is *1* there is a
-                         fold in time.
+                         fold in time at the DST switch to standard time.
         :returns: The instance of the datetime class.
         :rtype: datetime
         """
@@ -1804,13 +1803,12 @@ class datetime(date):
 
         .. note::
 
-           Without an internet connection, geographic coordinates cannot be
-           looked up by human-friendly location or timezone only. In that case,
-           the calendar will compute sunset and Badíʿ dates using the
-           configured default coordinates (e.g., Tehran). Timezone information
-           alone cannot be reliably mapped to geographic location. This
-           fallback may cause different local Badíʿ days than expected for
-           other regions.
+           An IANA key and timezone information alone cannot be reliably mapped
+           to geographic location. Without an internet connection, the local
+           latitude and longitude cannot be looked up. Without the latitude and
+           longitude the calendar will compute sunset for Badíʿ dates using the
+           configured default coordinates (e.g., Tehran). This fallback will
+           cause different local Badíʿ days than expected for other regions.
 
         :param float t: POSIX timestamp.
         :param bool utc: If True then the result is relative to UTC time else
@@ -1952,11 +1950,6 @@ class datetime(date):
         """
         Return POSIX timestamp for the current datetime instance.
 
-        .. warning::
-
-           This method is derived from `_mktime()` and may have accuracy
-           issues.
-
         :returns: The POSIX timestamp.
         :rtype: float
         """
@@ -2080,11 +2073,6 @@ class datetime(date):
         """
         Always return the local time offset in a timezone instance.
 
-        .. warning::
-
-           This method is derived from `_mktime()` and may have accuracy
-           issues.
-
         :returns: The local time zone.
         :rtype: timezone
         """
@@ -2116,11 +2104,6 @@ class datetime(date):
     def astimezone(self, tz: tzinfo=None):
         """
         Returns a datetime instance with the provided tzinfo instance attached.
-
-        .. warning::
-
-           This method is derived from `_mktime()` and may have accuracy
-           issues.
 
         :param tzinfo tz: A timezone instance.
         :returns: A `datetime` instance with a tzinfo instance attached.
@@ -2663,7 +2646,7 @@ class timezone(tzinfo):
 
     def __new__(cls, offset: timedelta, name: str=_Omitted) -> object:
         """
-        Construct the constructor.
+        Constructor
 
         :param timedelta offset: A timedelta instance representing the
                                  difference between the local time and UTC.
@@ -2746,9 +2729,9 @@ class timezone(tzinfo):
 
     def __str__(self) -> str:
         """
-        A string representation of the current `timezone` instane.
+        A string representation of the current `timezone` instance.
 
-        :returns: A string representation of the current `timezone` instane.
+        :returns: A string representation of the current `timezone` instance.
         :rtype: str
         """
         return self.tzname(None)
@@ -2841,13 +2824,23 @@ class timezone(tzinfo):
 class TZWithCoords(timezone):
     """
     Correct Badí' dates must have the latitude, longitude, and time zone. None
-    of publicly available packages can use coordinates, hence the need for this
-    class.
+    of the publicly available packages can use coordinates, hence the need for
+    this class.
     """
     __slots__ = 'lat', 'lon', 'zone', 'key', '_name', '_coords', '_zi'
 
     def __new__(cls, lat: float, lon: float, zone: float=None, *, key: str=None
                 ) -> object:
+        """
+        Constructor
+
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
+        :param str key: The IANA key.
+        :returns: The instantiated object.
+        :rtype: TZWithCoords
+        """
         if zone is None:
             offset = timedelta(0)
         else:
@@ -2864,10 +2857,24 @@ class TZWithCoords(timezone):
         return self
 
     @property
-    def coordinates(self):
+    def coordinates(self) -> tuple:
+        """
+        Returns the coordinates as a tuple.
+
+        :returns: The coordinates.
+        :rtype: tuple
+        """
         return self._coords
 
-    def dst(self, dt: datetime=None):
+    def dst(self, dt: datetime=None) -> timedelta:
+        """
+        Returns a timedelta set to 0 (default) for no dst (Daylight Savings
+        Time) or set to 1 for dst.
+
+        :param datetime dt: A datetime object.
+        :returns: An indication if the date is in daylight savings time or not.
+        :rtype: timedelta
+        """
         dst = None
 
         if hasattr(self, '_zi'):
@@ -2879,12 +2886,28 @@ class TZWithCoords(timezone):
         return dst
 
     @classmethod
-    def fromzoneinfo(cls, zoneinfo,  lat: float, lon: float, zone: float):
+    def fromzoneinfo(cls, zoneinfo,  lat: float, lon: float, zone: float
+                     ) -> object:
+        """
+        Converts a ZoneInfo object into a TZWithCoords object. Not all
+        functionality of the ZoneInfo object is implemented in TZWithCoords.
+
+        :param ZoneInfo zoneinfo: The ZoneInfo object.
+        :param float lat: The latitude.
+        :param float lon: The longitude.
+        :param float zone: The time zone.
+        :returns: A TZWithCoords object.
+        :rtype: TZWithCoords
+        """
         cls._zi = zoneinfo
         return cls(lat, lon, zone, key=zoneinfo.key)
 
     def __str__(self) -> str:
         """
+        Returns a string representation of the current TZWithCoords object.
+
+        :returns: String representation of the current TZWithCoords object.
+        :rtype: str
         """
         ret = f"{self.lat}, {self.lon}, {self.zone}"
 
@@ -2893,11 +2916,22 @@ class TZWithCoords(timezone):
 
         return ret
 
-    def __reduce__(self):
+    def __reduce__(self) -> tuple:
+        """
+        Gather the class data for pickling.
+
+        :returns: The class data.
+        :rtype: tuple
+        """
         return (self.__class__, (self.lat, self.lon),
                 {"zone": self._coords[2], "key": self.key})
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict) -> None:
+        """
+        Set the pickled data on the class.
+
+        :param dict state: Pickled state of a TZWithCoords class.
+        """
         # Called after __new__
         zone = state.get("zone")
         key = state.get("key")

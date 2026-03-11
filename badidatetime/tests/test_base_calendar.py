@@ -419,6 +419,7 @@ class TestBaseCalendar(unittest.TestCase):
         """
         Test that the _sun_setting method returns the correct sunset for a
         given date represented by a Julian Period day.
+
         https://gml.noaa.gov/grad/solcalc/
         """
         epoch_coords = (35.682376, 51.285817, 3.5)
@@ -458,9 +459,10 @@ class TestBaseCalendar(unittest.TestCase):
     def test__rising_setting(self):
         """
         https://www.timeanddate.com/sun/usa/boston?month=3&year=1988
-        rise=5.47 am, set=5.56 pm
-        lat 42.364506, lon -71.038887
-        (2447240.5, -71.0833, -5.0, 0),
+
+        | rise=5.47 am, set=5.56 pm
+        | lat 42.364506, lon -71.038887
+        | (2447240.5, -71.0833, -5.0, 0),
         """
         SUN = self.bc._SUN_OFFSET
         PLT = self.bc._STARS_PLANET_OFFSET
@@ -886,24 +888,24 @@ class TestBaseCalendar(unittest.TestCase):
 
         Solar Position Calculator: https://gml.noaa.gov/grad/solcalc/
 
-        | Greenwich
+        | Greenwich:
         |    lat: 51, 29, 36.24 N (51.4934)
-        |    lon: 00, 00, 00.00 E (0.0)
+        |    lon: 00, 00, 05.562 W (-0.001545)
 
         | Data from the book pages 225, 446 and 452
 
-        +-------------------------+----------+----------------+-----------+
-        |                         | Solar    | Approximate    | Season    |
-        | Name                    | longitude| date           | length    |
-        +=========================+==========+================+===========+
-        | Vernal (spring) equinox |   0◦     | March 20       | 92.76 days|
-        +-------------------------+----------+----------------+-----------+
-        | Summer solstice         |  90◦     | June 21        | 93.65 days|
-        +-------------------------+----------+----------------+-----------+
-        | Autumnal (fall) equinox | 180◦     | September 22−23| 89.84 days|
-        +-------------------------+----------+----------------+-----------+
-        | Winter solstice         | 270◦     | December 21−22 | 88.99 days|
-        +-------------------------+----------+----------------+-----------+
+        +-------------------------+----------+-----------------+-----------+
+        |                         | Solar    | Approximate     | Season    |
+        | Name                    | Longitude| Date            | Length    |
+        +=========================+==========+=================+===========+
+        | Vernal (spring) equinox |   0◦     | March 20        | 92.76 days|
+        +-------------------------+----------+-----------------+-----------+
+        | Summer solstice         |  90◦     | June 21         | 93.65 days|
+        +-------------------------+----------+-----------------+-----------+
+        | Autumnal (fall) equinox | 180◦     | September 22−23 | 89.84 days|
+        +-------------------------+----------+-----------------+-----------+
+        | Winter solstice         | 270◦     | December 21−22  | 88.99 days|
+        +-------------------------+----------+-----------------+-----------+
         """
         data = (
             # (2024, 3, 20) Vernal equinox 2024-03-20T03:06:04 UTC
@@ -1087,9 +1089,10 @@ class TestBaseCalendar(unittest.TestCase):
         minutes, and seconds into a decimal number.
 
         https://warble.com/blog/2017/11/05/virtually-hovering-over-holy-places/
-        The Shrine of Baha’u’llah: 32°56’36.86″N, 35°5’30.38″E
-        The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″E
-        The Guardian’s Resting Place: 51°37’21.85″N, 0°08’35.57″W
+
+        | The Shrine of Baha’u’llah: 32°56’36.86″N, 35°5’30.38″ E
+        | The Shrine of The Bab: 32°48’52.49″N, 34°59’13.91″ E
+        | The Guardian’s Resting Place: 51°37’21.85″N, 0°08’35.57″ W
         """
         data = (
             # Statue of Liberty latitude (US)

@@ -2505,7 +2505,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         .. note::
 
            The tests marked 'Latitude and Longitude dependent' will break
-           if datetime.LOCAL_COORD is not patched.
+           if datetime.LOCAL_COORD is not patched when run in a different
+           locale.
         """
         tz = ZoneInfo(datetime.BADI_IANA)
         tz0 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.BADI_COORD)
@@ -2554,7 +2555,8 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         .. note::
 
            The tests marked 'Latitude and Longitude dependent' will break
-           if datetime.LOCAL_COORD is not patched.
+           if datetime.LOCAL_COORD is not patched when run in a different
+           locale.
         """
         tz = ZoneInfo(datetime.BADI_IANA)
         tz0 = datetime.TZWithCoords.fromzoneinfo(tz, *datetime.BADI_COORD)

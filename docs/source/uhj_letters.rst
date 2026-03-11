@@ -30,7 +30,7 @@ on.
 .. important::
 
    As such any dates outside of the 50 years set by the House of Justice that
-   are relied on from my code may well be wrong depending of future decisions
+   are relied on from my code may well be wrong depending on future decisions
    made by the House of Justice.
 
 However, I have come to the conclusion that the only thing the House of Justice

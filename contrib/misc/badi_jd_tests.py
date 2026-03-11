@@ -1167,13 +1167,12 @@ class DateTests(BahaiCalendar):
 
             # We now need the local zone correction and the Astromomically
             # correct JD Period day.
-            #local_ss = self._local_zone_correction(jd_ss_ut, zone, mod_jd=True)
-            #a_local_jd = self._exact_from_meeus(local_ss)
             jd_ut = self._exact_from_meeus(jd_ss_ut)
+            local_jd = self._local_zone_correction(jd_ut, zone, mod_jd=True)
 
             # Make the Badi' date for the beginning of the year.
             b_date = (g_year - self.TRAN_COFF, 1, 1)
-            self._calculate_b_date(b_date, coords,  jd_ut, data, options)
+            self._calculate_b_date(b_date, coords,  local_jd, data, options)
 
             #for b_date, g_ss_date in self._find_dates(b_date[0], inject):
             #    jd_ss = self.gc.jd_from_gregorian_date(g_ss_date)

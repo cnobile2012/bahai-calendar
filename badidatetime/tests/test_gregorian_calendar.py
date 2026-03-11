@@ -12,12 +12,11 @@ from ..gregorian_calendar import GregorianCalendar
 class TestGregorianCalendar(unittest.TestCase):
     """
     This test class provides unittests for the GregorianCalendar class.
-    Many tests use the Gregorian dates and their cooesponding fixed dates
+    Many tests use the Gregorian dates and their corresponding fixed dates
     below.
 
-    March 21, 1844   = 673222 (Baha'i Epoch)
-    January, 1, 1970 = 719163 (UNIX Epoch)
-    July 6, 622      = 227015 (Islamic Epoch)
+    | March 19, 1844   = Historic JD 2394645.11511552 (Baha'i Epoch)
+    | January, 1, 1970 = Historic JD 2440587.5 (UNIX Epoch)
     """
 
     def __init__(self, name):
@@ -29,8 +28,8 @@ class TestGregorianCalendar(unittest.TestCase):
     #@unittest.skip("Temporarily skipped")
     def test_jd_from_gregorian_date(self):
         """
-        Test that the jd_from_gregorian_date method returns a
-        Julian day from a Gregorian date.
+        Test that the jd_from_gregorian_date method returns a Julian day from
+        a Gregorian date.
         """
         data = (
             # -4712-Jan-01 12:00:00
@@ -45,7 +44,7 @@ class TestGregorianCalendar(unittest.TestCase):
             ((4, 12, 31), False, False, True, 1722883.5),
             ((4, 12, 31), True, False, True, 1722883.5),
             ((4, 12, 31), True, True, True, 1722883.5),
-            # 1st year divisable by 100
+            # 1st year divisible by 100
             ((100, 2, 28), False, False, True, 1757640.5),
             # Meeus AA ch 7 p61 ex7.b
             ((333, 1, 27, 12), False, False, True, 1842713.0),
@@ -327,7 +326,7 @@ class TestGregorianCalendar(unittest.TestCase):
                 # Test correct dates
                 for m in range(1, 13):
                     for days in range(self._gc._MONTHS[m - 1]):
-                        if m == 2: # Subtract 0 or 1 from Febuary if leap year.
+                        if m == 2: # Subtract 0 or 1 from February if leap year.
                             days -= (0 if self._gc._is_leap_year(year)
                                      else 1)
 

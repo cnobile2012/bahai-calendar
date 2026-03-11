@@ -13,10 +13,11 @@ from ..gregorian_calendar import GregorianCalendar
 class TestBadiCalendar(unittest.TestCase):
     """
     Some sunrise and sunset calculations done with my SunriseSunset package.
-    Sunrise and Sunset for 1844-03
+    Sunrise and Sunset for 1844-03-19:
 
-    The vernal equinox in Tehran was at 15:19 on Wednesday, March 20, 1844.
-    This means the Badi epoch was sunset at 18:11 Wednesday, March 20, 1844.
+    | March 19, 1844   = Historic JD 2394645.11511552 (Baha'i Epoch)
+    | January, 1, 1970 = Historic JD 2440587.5 (UNIX Epoch)
+    
     https://www.timeanddate.com/sun/@112931?month=3&year=1844
 
     Alternative latitude and longitude coordinates can be found at:
@@ -359,7 +360,7 @@ class TestBadiCalendar(unittest.TestCase):
             # rtd and long format
             (2394985.2486724695, epoch_coords, False, False, True, False,
              True, (1, 1, 1, 0, 1)),
-            # Use default coordinents
+            # Use default coordinates
             (2394985.2486724695, None, False, False, True, False,
              True, (1, 1, 1, 0, 1)),
             # Minute after, of, and before, each should be one minute apart.

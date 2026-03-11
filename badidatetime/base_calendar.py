@@ -783,7 +783,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _heliocentric_ecliptical_longitude(self, tm: float,
                                            degrees: bool=False) -> float:
         """
-        Find the heliocentric ecliptical longitude.
+        Find the heliocentric elliptical longitude.
 
         :param float tm: The moment in time referenced to J2000 millennia.
         :param bool degrees: The results if False are radians, else True
@@ -810,7 +810,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
     def _heliocentric_ecliptical_latitude(self, tm: float,
                                           degrees: bool=False) -> float:
         """
-        Find the heliocentric ecliptical latitude.
+        Find the heliocentric elliptical latitude.
 
         :param float tm: The moment in time referenced to J2000 millennia.
         :param bool degrees: The results if False are radians, else True
@@ -957,7 +957,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Find the approximate Julian day for the equinoxes or solstices.
 
         :param int g_year: The Gregorian year.
-        :param int lam: The lamda, either `_SPRING` (default), `_SUMMER`,
+        :param int lam: The lambda, either `_SPRING` (default), `_SUMMER`,
                         `_AUTUMN`, or `_WINTER`.
         :returns: The approximate Julian day for the equinoxes or solstices.
         :rtype: float
@@ -1007,7 +1007,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         Greenwich. If a time zone is provided modify the returned value.
 
         :param float jd: Meeus algorithm Julian day.
-        :param int lam: The lamda, either `_SPRING` (0° default), `_SUMMER`
+        :param int lam: The lambda, either `_SPRING` (0° default), `_SUMMER`
                         (90°), `_AUTUMN` (180°), or `_WINTER` (270°).
         :param float zone: The time zone.
         :returns: The Julian day of the equinox or solstice.

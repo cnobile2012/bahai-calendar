@@ -97,7 +97,7 @@ that comes with Python. There are exceptions in two categories.
       offset from UTC.
 
    e. The **GMT_COORD** is a tuple containing the latitude, longitude, and
-      offset from UTC.
+      offset from UTC which is always 0.0.
 
    f. The **LOCAL_COORD** is a tuple containing the latitude, longitude, and
       offset of the current locale or will be the same as **BADI_COORD** if the
@@ -120,9 +120,9 @@ This module provides the functionality needed for finding the Julian Period day
 and the long or short form Badí' dates along with conversion methods between
 Badí' and Gregorian dates. There is also a conversion method to convert a
 ``POSIX`` timestamp to a Badí' date. The **BahaiCalendar** class supers the
-**BaseCalendar** class. Internally fractions of days are a fraction on the
-day. These fractions can be converted to hours, minutes, seconds, and
-microseconds.
+**BaseCalendar** and **Coefficients** classes. Internally fractions of days are
+a fraction on the day. These fractions can be converted to hours, minutes,
+seconds, and microseconds.
 
 -------------------------
 gregorian_calendar module
@@ -136,7 +136,7 @@ GregorianCalendar
 
 This module provides the functionality needed for finding the Julian Period day
 and the Gregorian dates. The **GregorianCalendar** class supers the
-**BasePeriod** class. Internally fractions of days are a fraction on the day.
+**BaseCalendar** class. Internally fractions of days are a fraction on the day.
 These fractions can be converted to hours, minutes, seconds, and microseconds.
 
 --------------------
@@ -151,10 +151,10 @@ BaseCalendar
 
 
 This module provides all the heavy lifting for the astronomical calculations.
-All the methods are protected, so unless you are fixing a bug in this API you
-will should never need to use any methods in the BaseCalendar class. The
-**BaseCalendar** class supers the **JulianPeriod** and **AstronomicalTerms**
-classes.
+All the methods are protected. The methods that would generally be used for a
+project using this API can be found in the last third of the BaseCalendar
+class. The **BaseCalendar** class supers the **AstronomicalTerms** and
+**JulianPeriod** classes.
 
 --------------------
 julian_period module
