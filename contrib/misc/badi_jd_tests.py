@@ -612,6 +612,12 @@ class DateTests(BahaiCalendar):
         ((182, 0, 1), (2026, 2, 25, 17, 57, 29.0592)),
         ((182, 0, 5), (2026, 3, 1, 18, 1, 8.9472)),
         )
+    """
+    tuple: List of dates that can be injected in the vernal equinox table
+           above. Currently it's not used.
+
+    :meta hide-value:
+    """
 
     # Badí' month sequence where 1 - 19 are the actual Badí' month and
     # 0 is Ayyám-i-Há
@@ -1256,6 +1262,11 @@ class DateTests(BahaiCalendar):
                 (19, 2, True):  -3, (19, 3, False): -3,  # 19 & 20
                 (19, 2, False): -2, (19, 1, True):  -2,  # 21 & 22
                 (19, 1, False): -1, (19, 7, True):  -1}  # 23 & 24
+    """
+    dict: Offsets used when determining the week of year.
+
+    :meta hide-value:
+    """
 
     def _week_of_year(self, year, month, day, weekday, week):
         def _offset(year, day):

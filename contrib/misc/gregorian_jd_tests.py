@@ -159,8 +159,8 @@ class JulianPeriodTests:
         """
         Compare Meeus' and my algorithms showing differences.
 
-        -1 with optional -A for alternate leap year calculation.
-        -S and -E are mandatory.
+        | -1 with optional -A for alternate leap year calculation.
+        | -S and -E are mandatory.
 
         If the last column shows anything other than 0.0 then there are
         inconsistencies.
@@ -200,8 +200,8 @@ class JulianPeriodTests:
         If there is any data returned except the heading then there are
         errors in the conversion.
 
-        -2 with optional -A for alternate leap year calculation.
-        -S and -E are mandatory.
+        | -2 with optional -A for alternate leap year calculation.
+        | -S and -E are mandatory.
 
         This test will display, to stderr a progress counter indicating
         every 500 years.
@@ -233,8 +233,8 @@ class JulianPeriodTests:
         """
         Compare the two leap year algorithms.
 
-        If -c == 0 then all dates from 1 to 3004 are processed.
-        If -c == any year, then only that year is processed.
+        | If -c == 0 then all dates from 1 to 3004 are processed.
+        | If -c == any year, then only that year is processed.
 
         The table below shows the differences between the 4, 10, 400 and
         4, 128 algorithms. Notice that the dates up to 1482-10-15 are not
@@ -358,15 +358,16 @@ class JulianPeriodTests:
         or doubling up.
         Should produce no output if working correctly.
 
-        -k With optional -A for alternate leap year calculation.
-        -S and -E are mandatory.
-        If -J is used then the test is for consecutive Julian Period days.
+        | -k With optional -A for alternate leap year calculation.
+        | -S and -E are mandatory.
 
-        If -JM is used the test is for consecutive Julian Period days using
-        Meeus' algorithm.
+        | If -J is used then the test is for consecutive Julian Period days.
 
-        If -G is used the test is for consecutive Julian Period days using
-        my algorithm.
+        | If -JM is used the test is for consecutive Julian Period days using
+        | Meeus' algorithm.
+
+        | If -G is used the test is for consecutive Julian Period days using
+        | my algorithm.
 
         Some tests will display, to stderr a progress counter indicating
         every 500 years.
@@ -422,7 +423,6 @@ class JulianPeriodTests:
                 if item[0] % 500 == 0 and item[1] == 1 and item[2] == 1:
                     print(item, file=sys.stderr)
 
-        #[print(item) for item in items]
         return data
 
     def julian_day_with_ut_sunset(self, options):
@@ -500,72 +500,50 @@ class JulianPeriodTests:
         """
         The JDs below are all in the Meeus Histroically correct algorithm.
         The alt keyword does nothing.
-        https://aa.usno.navy.mil/data/JulianDate
+
+        | US Naval Observatory Julian Date page:
+        | https://aa.usno.navy.mil/data/JulianDate
 
         There are 12 years that skip a day. Pope Gregory only compensated
         for 10 of them. The JDs below are all in the non-proleptic historic
         (Meeus) algorithm and signify the beginning of the day.
 
-        +----------------+-----------+----------------+------------+--------+
-        | Valid or       | Valid Day | Next Valid or  | Next Valid | Offset |
-        | Invalid Day(s) | JD        | Invalid Day(s) | Day JD     |        |
-        +================+===========+================+============+========+
-        |  (100, 2, 28)  | 1757640.5 |  (100, 3, 1)   | 1757642.5  | 1      |
-        +----------------+-----------+----------------+------------+--------+
-        |  (100, 2, 29)  | 1757641.5 |  Invalid       |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        |  (200, 2, 28)  | 1794165.5 |  (200, 3, 1)   | 1794167.5  | 2      |
-        +----------------+-----------+----------------+------------+--------+
-        |  (200, 2, 29)  | 1794166.5 |  Invalid       |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        |  (300, 2, 28)  | 1830690.5 |  (300, 3, 1)   | 1830692.5  | 3      |
-        +----------------+-----------+----------------+------------+--------+
-        |  (300, 2, 29)  | 1830691.5 |  Invalid       |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        |  (500, 2, 28)  | 1903740.5 |  (500, 3, 1)   | 1903742.5  | 4      |
-        +----------------+-----------+----------------+------------+--------+
-        |  (500, 2, 29)  | 1903741.5 |  Invalid       |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        |  (600, 2, 28)  | 1940265.5 |  (600, 3, 1)   | 1940267.5  | 5      |
-        +----------------+-----------+----------------+------------+--------+
-        |  (600, 2, 29)  | 1940266.5 |  Invalid       |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        |  (700, 2, 28)  | 1976790.5 |  (700, 3, 1)   | 1976792.5  | 6      |
-        +----------------+-----------+----------------+------------+--------+
-        |  (700, 2, 29)  | 1976791.5 |  Invalid       |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        |  (900, 2, 28)  | 2049840.5 |  (900, 3, 1)   | 2049842.5  | 7      |
-        +----------------+-----------+----------------+------------+--------+
-        |  (900, 2, 29)  | 2049841.5 |  Invalid       |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        | (1000, 2, 28)  | 2086365.5 | (1000, 3, 1)   | 2086367.5  | 8      |
-        +----------------+-----------+----------------+------------+--------+
-        | (1000, 2, 29)  | 2086366.5 | Invalid        |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        | (1100, 2, 28)  | 2122890.5 | (1100, 3, 1)   | 2122892.5  | 9      |
-        +----------------+-----------+----------------+------------+--------+
-        | (1100, 2, 29)  | 2122891.5 | Invalid        |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        | (1300, 2, 28)  | 2195940.5 | (1300, 3, 1)   | 2195942.5  | 10     |
-        +----------------+-----------+----------------+------------+--------+
-        | (1300, 2, 29)  | 2195941.5 | Invalid        |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        | (1400, 2, 28)  | 2232465.5 | (1400, 3, 1)   | 2232467.5  | 11     |
-        +----------------+-----------+----------------+------------+--------+
-        | (1400, 2, 29)  | 2232466.5 | Invalid        |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        | (1500, 2, 28)  | 2268990.5 | (1500, 3, 1)   | 2268992.5  | 12     |
-        +----------------+-----------+----------------+------------+--------+
-        | (1500, 2, 29)  | 2268991.5 | Invalid        |            |        |
-        +----------------+-----------+----------------+------------+--------+
-        | (1582, 10, 4)  | 2299159.5 | (1582, 10, 15) | 2299160.5  |        |
-        +----------------+-----------+----------------+------------+--------+
-        | (1582, 10, 5)  | 2299160.5 |                |  Only      |        |
-        |      to        |    to     | Invalid        |  adjusted  |        |
-        | (1582, 10, 14) | 2299169.5 |                |  10 days   |        |
-        +----------------+-----------+----------------+------------+--------+
-        | (1582, 10, 15) | 2299160.5 | (1582, 10, 16) | 2299161.5  | 2      |
-        +----------------+-----------+----------------+------------+--------+
+        .. csv-table:: Gregorian JD offsets
+           :header: "Valid or Invalid Day(s)", \
+                    "Valid Day JD", \
+                    "Next Valid or Invalid Day(s)", \
+                    "Next Valid Day JD", \
+                    "Offset"
+           :widths: 21, 16, 26, 24, 13
+
+           "(100, 2, 28)", 1757640.5, "(100, 3, 1)", 1757642.5, 1
+           "(100, 2, 29)", 1757641.5, "Invalid", "", ""
+           "(200, 2, 28)", 1794165.5, "(200, 3, 1)", 1794167.5, 2
+           "(200, 2, 29)", 1794166.5, "Invalid", "", ""
+           "(300, 2, 28)", 1830690.5, "(300, 3, 1)", 1830692.5, 3
+           "(300, 2, 29)", 1830691.5, "Invalid", "", ""
+           "(500, 2, 28)", 1903740.5, "(500, 3, 1)", 1903742.5, 4
+           "(500, 2, 29)", 1903741.5, "Invalid", "", ""
+           "(600, 2, 28)", 1940265.5, "(600, 3, 1)", 1940267.5, 5
+           "(600, 2, 29)", 1940266.5, "Invalid", "", ""
+           "(700, 2, 28)", 1976790.5, "(700, 3, 1)", 1976792.5, 6
+           "(700, 2, 29)", 1976791.5, "Invalid", "", ""
+           "(900, 2, 28)", 2049840.5, "(900, 3, 1)", 2049842.5, 7
+           "(900, 2, 29)", 2049841.5, "Invalid", "", ""
+           "(1000, 2, 28)", 2086365.5, "(1000, 3, 1)", 2086367.5, 8
+           "(1000, 2, 29)", 2086366.5, "Invalid", "", ""
+           "(1100, 2, 28)", 2122890.5, "(1100, 3, 1)", 2122892.5, 9
+           "(1100, 2, 29)", 2122891.5, "Invalid", "", ""
+           "(1300, 2, 28)", 2195940.5, "(1300, 3, 1)", 2195942.5, 10
+           "(1300, 2, 29)", 2195941.5, "Invalid", "", ""
+           "(1400, 2, 28)", 2232465.5, "(1400, 3, 1)", 2232467.5, 11
+           "(1400, 2, 29)", 2232466.5, "Invalid", "", ""
+           "(1500, 2, 28)", 2268990.5, "(1500, 3, 1)", 2268992.5, 12
+           "(1500, 2, 29)", 2268991.5, "Invalid", "", ""
+           "(1582, 10, 4)", 2299159.5, "(1582, 10, 15)", 2299160.5, ""
+           "(1582, 10, 5) to (1582, 10, 14)", "2299160.5 to 2299169.5", \
+           "Invalid", "Only adjusted 10 days", ""
+           "(1582, 10, 15)", 2299160.5, "(1582, 10, 16)", 2299161.5, 2
         """
         year, month, day = self.date_from_ymdhms(g_date)
 
@@ -593,9 +571,9 @@ class JulianPeriodTests:
         leap = self._gc._is_leap_year(year, alt=options.alt_leap)
         month_days[1] = 29 if leap else 28
         days += sum(month_days[:month-1]) + day
-        #print(f"date: {str(g_date):<16} td: {td:<8} "
-        #      f"days: {days:<10} "
-        #      f"sum: {sum(month_days[:month-1]):<10}\n", file=sys.stderr)
+        # print(f"date: {str(g_date):<16} td: {td:<8} "
+        #       f"days: {days:<10} "
+        #       f"sum: {sum(month_days[:month-1]):<10}\n", file=sys.stderr)
         return days
 
     def gregorian_date_from_jd_0(self, jd):

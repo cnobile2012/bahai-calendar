@@ -48,7 +48,6 @@ def _get_local_coordinates() -> tuple:
     :rtype: tuple
     """
     offset, dst, key = _local_timezone_info()
-
     # Get latitude and longitude
     g = geocoder.ip('me')
     latitude = g.lat
@@ -81,6 +80,9 @@ def enable_geocoder(enable: bool=True) -> None:
 
 
 def init_leap_cache():
+    """
+    Initialize variables used to find Rata Die.
+    """
     bc = BahaiCalendar
     bc._YEAR_START = BahaiCalendar()._build_badi_year_start()
     bc._RD_END = bc._YEAR_START[bc.MAXYEAR]
@@ -91,4 +93,5 @@ if BahaiCalendar._YEAR_START is None:
 
 
 enable_geocoder(False)
-__all__ = ('BahaiCalendar', 'GregorianCalendar', 'enable_geocoder')+dt_objects
+__all__ = ('BahaiCalendar', 'GregorianCalendar', 'enable_geocoder',
+           'init_leap_cache') + dt_objects

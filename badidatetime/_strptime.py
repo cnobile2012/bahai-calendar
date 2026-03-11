@@ -31,7 +31,8 @@ from ._timedateutils import _td_utils
 from .badi_calendar import BahaiCalendar
 
 
-__all__ = []
+__all__ = ('LocaleTime', 'TimeRE', 'DotDict', 'StrpTime',
+           '_calc_julian_from_U_or_W', '_strptime_time', '_strptime_datetime')
 
 
 def _getlang():

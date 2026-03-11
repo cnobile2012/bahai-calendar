@@ -202,7 +202,13 @@ def _check_tzname(name: str) -> None:
                         f"not {type(name).__name__!r}")
 
 
-def _get_class_module(self):
+def _get_class_module(self) -> str:
+    """
+    Gets the module name.
+
+    :returns: An updated datetime module name or the module of the class.
+    :rtype: str
+    """
     module_name = self.__class__.__module__
 
     if module_name == 'badidatetime.datetime':

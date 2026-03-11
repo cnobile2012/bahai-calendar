@@ -409,9 +409,13 @@ class TestStrptime_StrpTime(unittest.TestCase):
     def test__find_regex(self):
         """
         Test that the _strptime function returns a complex tuple in the form
-        of ((year, month, day, None, None,
-             hour, minute, second,
-             weekday, julian, tz, tzname, gmroff), fraction, gmtoff_fraction)
+        of:
+
+        .. code::
+
+          ((year, month, day, None, None, hour, minute, second, weekday,
+            julian, tz, tzname, gmroff),
+           fraction, gmtoff_fraction)
         """
         err_msg0 = "'{}' is a bad directive in format '{}'"
         err_msg1 = "stray %% in format '{}'"
