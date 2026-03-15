@@ -61,10 +61,10 @@ tests	: clobber
 
 .PHONY	: flake8
 flake8	:
-	# Error on syntax errors or undefined names.
-	flake8 . --select=E9,F7,F63,F82 --show-source
-	# Warn on everything else.
-	flake8 . --exit-zero
+#       Error on syntax errors or undefined names.
+	@flake8 . --select=E9,F7,F63,F82 --show-source
+#       Warn on everything else.
+	@flake8 . --exit-zero
 
 # --------------------------------------------------------------------
 

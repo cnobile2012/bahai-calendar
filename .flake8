@@ -5,7 +5,7 @@ exclude =
     docs/source/conf.py,
     old,
     build,
-    dist
+    dist,
     txt
 
 per-file-ignores =
