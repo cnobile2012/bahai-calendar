@@ -1174,11 +1174,10 @@ class DateTests(BahaiCalendar):
             # We now need the local zone correction and the Astromomically
             # correct JD Period day.
             jd_ut = self._exact_from_meeus(jd_ss_ut)
-            local_jd = self._local_zone_correction(jd_ut, zone, mod_jd=True)
 
             # Make the Badi' date for the beginning of the year.
             b_date = (g_year - self.TRAN_COFF, 1, 1)
-            self._calculate_b_date(b_date, coords,  local_jd, data, options)
+            self._calculate_b_date(b_date, coords,  jd_ut, data, options)
 
             #for b_date, g_ss_date in self._find_dates(b_date[0], inject):
             #    jd_ss = self.gc.jd_from_gregorian_date(g_ss_date)
@@ -1186,13 +1185,14 @@ class DateTests(BahaiCalendar):
 
         return data
 
-    def _calculate_b_date(self, b_date, coords, a_local_jd, data, options):
+    def _calculate_b_date(self, b_date, coords, jd_ut, data, options):
         # Sunset before VE
-        g_date = self.gc.gregorian_date_from_jd(a_local_jd, hms=True,
-                                                exact=True)
+        local_jd = self._local_zone_correction(jd_ut, coords[2], mod_jd=True)
+        g_date = self.gc.gregorian_date_from_jd(local_jd, hms=True, exact=True)
         jd = self.gc.jd_from_gregorian_date(g_date, exact=True)
         bjd = self._jd_from_badi_date(b_date, *coords, coeffon=options.coff)
-        diff = round(bjd - jd, 12)
+        # Be sure the comparison for both are in UT time.
+        diff = round(bjd - jd_ut, 12)
         offby = 0 if abs(diff) < 0 else int(diff)
         data.append((b_date, bjd, g_date, jd, diff, offby))
 
