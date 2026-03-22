@@ -45,6 +45,9 @@ class DateTests(BahaiCalendar):
 
     # Gregorian offset to the year before the Badí' epoch.
     TRAN_COFF = 1843
+    # Coordinents of Bahji.
+    # 32°56′36″N 35°05′32″E (or 32.94333°N, 35.09222°E) IST = UTC+2.0
+    BAHJI_COORDS = (32.94333, 35.09222, 2.0)
 
     # The coordinates and the sunset in the city of Tehran to determine the
     # yearly Badí' epochs. Below are the Gregorian dates of the Vernal Equinox.
@@ -821,6 +824,7 @@ class DateTests(BahaiCalendar):
         hour = options.hour
         #lat, lon, zone = self.GMT_COORDS
         lat, lon, zone = self.BADI_COORDS
+        options.coff = False  # This should never be set to True in this method
 
         # The badi_date_from_jd() method below will try to use
         # BahaiCalendar.jd_from_badi_date() so we need to patch it.
@@ -828,8 +832,7 @@ class DateTests(BahaiCalendar):
             for current_hour in range(hour, 24):
                 for minute in range(0, 60):
                     date = (year, month, day, current_hour, minute)
-                    jd = self._jd_from_badi_date(date, lat, lon, zone,
-                                                 coeffon=False)
+                    jd = self._jd_from_badi_date(date, lat, lon, zone, options)
                     g_date = self.gc.gregorian_date_from_jd(jd, hms=True,
                                                             exact=True)
                     b_date = self.badi_date_from_jd(jd, lat, lon, zone,
@@ -1034,8 +1037,8 @@ class DateTests(BahaiCalendar):
     #
     # Support methods
     #
-    def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None, *,
-                           coeffon=False):
+    def _jd_from_badi_date(self, b_date, lat=None, lon=None, zone=None,
+                           options=None):
         self._check_valid_badi_date(b_date, short_in=True)
         year, month, day = b_date[:3]
         hh, mm, ss, us = self._get_hms(b_date, short_in=True)
@@ -1054,8 +1057,13 @@ class DateTests(BahaiCalendar):
             lat, lon, zone = self.BADI_COORDS
 
         jd0 = self._meeus_from_exact(jd)
-        coeff = 0 if coeffon else self._get_day_coeff(year)
-        jd0 += coeff
+
+        if not options.coff:
+            if options.bahji:
+                jd0 += self._get_bahji_day_coeff(year)
+            else:
+                jd0 += self._get_tehran_day_coeff(year)
+
         jd_ss = self._sun_setting(jd0, lat, lon)
         a_ss = self._exact_from_meeus(jd_ss)
         day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
@@ -1065,42 +1073,7 @@ class DateTests(BahaiCalendar):
         #print(f"{year:5} {jd:18} {fmt_float(jd1, 7, 10)}")
         return jd2
 
-    def _get_day_coeff(self, year):
-        def process_segment(y, a=0, onoff0=(), b=0, onoff1=()):
-            func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
-            coeff = 0
-
-            if a and func(y, onoff0):    # Whatever is passed in onoff0.
-                coeff = a
-            elif b and func(y, onoff1):  # Whatever is passed in onoff1.
-                coeff = b
-
-            return coeff
-
-        def process_segments(year, pn, a=0, onoff0=(), b=0, onoff1=()):
-            """
-            Full range is -1842 to 1161
-
-            General ranges are determined with:
-            ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
-            Where -S is the 1st year and -E is the nth year + 1 that needs to
-            be process.
-
-            Use the following command to test the results of each segment,
-            this calls the command above.
-            ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
-            """
-            coeff = 0
-
-            for start, end in pn:
-                if year in range(start, end):
-                    # start to end (range -S start -E end)
-                    coeff0 = process_segment(end - year, a=a, onoff0=onoff0)
-                    coeff1 = process_segment(end - year, b=b, onoff1=onoff1)
-                    coeff = coeff0 if coeff0 != 0 else coeff1
-
-            return coeff
-
+    def _get_tehran_day_coeff(self, year):
         P1 = ((-1783, -1747), (-1651, -1615), (-1499, -1483), (-1383, -1347),
               (-1251, -1215), (-1099, -1083), (-983, -947), (-851, -815),
               (-699, -683), (-583, -547), (-451, -415), (-299, -283),
@@ -1132,19 +1105,106 @@ class DateTests(BahaiCalendar):
                  (-1151, -1119), (-1015, -999), (-751, -719), (-619, -599),
                  (-351, -319), (-211, -199), (53, 85), (185, 201), (445, 477),
                  (577, 601), (841, 873), (973, 1001), )
-        return (process_segments(year, P1, -1, (0, 1, 2, 3))
-                or process_segments(year, P1100, -1, (0, 3))
-                or process_segments(year, P1110, -1, (0, 2, 3))
-                or process_segments(year, P2, -2, (0, 1, 2, 3))
-                or process_segments(year, P2111, -2, (0,), -1, (1, 2, 3))
-                or process_segments(year, P2211, -2, (0, 3), -1, (1, 2))
-                or process_segments(year, P2221, -2, (0, 2, 3), -1, (1,))
+        return (self._process_segments(year, P1, -1, (0, 1, 2, 3))
+                or self._process_segments(year, P1100, -1, (0, 3))
+                or self._process_segments(year, P1110, -1, (0, 2, 3))
+                or self._process_segments(year, P2, -2, (0, 1, 2, 3))
+                or self._process_segments(year, P2111, -2, (0,), -1, (1, 2, 3))
+                or self._process_segments(year, P2211, -2, (0, 3), -1, (1, 2))
+                or self._process_segments(year, P2221, -2, (0, 2, 3), -1, (1,))
                 or 0)
 
+    def _get_bahji_day_coeff(self, year):
+        P1 = ((-1791, -1755), (-1655, -1619), (-1499, -1487), (-1391, -1355),
+              (-1259, -1219), (-1099, -1087), (-991, -955), (-859, -823),
+              (-699, -687), (-591, -555), (-459, -423), (-299, -287),
+              (-183, -147), (-55, -19), (101, 113), (209, 245), (341, 377),
+              (501, 509), (601, 604), (605, 641), (737, 773), (901, 905),
+              (1001, 1037), (1133, 1162),)
+        P1100 = ((-1699, -1691), (-1299, -1291), (-899, -891), (-499, -491),
+                 (-99, -83), (301, 309), (701, 705), )
+        P1110 = ((-1799, -1791), (-1691, -1655), (-1399, -1391),
+                 (-1291, -1259), (-999, -991), (-891, -859), (-599, -591),
+                 (-491, -459), (-199, -183), (-83, -55), (201, 209),
+                 (309, 341), (705, 737), (1101, 1133),)
+        P2 = ((-1523, -1499), (-1123, -1099), (-723, -699), (-323, -299),
+              (77, 101), (473, 501), (869, 901), )
+        P2111 = ((-1755, -1723), (-1619, -1587), (-1487, -1455),
+                 (-1355, -1323), (-1219, -1187), (-1087, -1055), (-955, -923),
+                 (-823, -787), (-687, -655), (-555, -523), (-423, -387),
+                 (-287, -247), (-147, -119), (-19, 13), (113, 145), (245, 277),
+                 (377, 409), (509, 541), (641, 669), (773, 801), (905, 933),
+                 (1037, 1069), )
+        P2211 = ((-1843, -1823), (-1723, -1699), (-1587, -1555),
+                 (-1455, -1423), (-1323, -1299), (-1187, -1155),
+                 (-1055, -1023), (-923, -899), (-787, -755), (-655, -623),
+                 (-523, -499), (-387, -355), (-247, -215), (-119, -99),
+                 (13, 45), (145, 177), (277, 301), (277, 301), (409, 441),
+                 (541, 573), (669, 701), (801, 833), (933, 969), (1069, 1101),
+                 )
+        P2221 = ((-1823, -1799), (-1555, -1523), (-1423, -1399),
+                 (-1155, -1123), (-1023, -999), (-755, -723), (-623, -599),
+                 (-355, -323), (-215, -199), (45, 77), (177, 201), (441, 473),
+                 (573, 601), (833, 869), (969, 1001), )
+
+        return (self._process_segments(year, P1, -1, (0, 1, 2, 3))
+                or self._process_segments(year, P1100, -1, (0, 3))
+                or self._process_segments(year, P1110, -1, (0, 2, 3))
+                or self._process_segments(year, P2, -2, (0, 1, 2, 3))
+                or self._process_segments(year, P2111, -2, (0,), -1, (1, 2, 3))
+                or self._process_segments(year, P2211, -2, (0, 3), -1, (1, 2))
+                or self._process_segments(year, P2221, -2, (0, 2, 3), -1, (1,))
+                or 0)
+
+    def _process_segments(self, year, pn, a=0, onoff0=(), b=0, onoff1=()):
+        """
+        Full range is -1842 to 1161
+
+        General ranges are determined with:
+        ./contrib/misc/badi_jd_tests.py -p -S start_year -E end_year
+        Where -S is the 1st year and -E is the nth year + 1 that needs to
+        be process.
+
+        Use the following command to test the results of each segment,
+        this calls the command above.
+        ./contrib/misc/badi_jd_tests.py -qXS start_year -E end_year
+        """
+        coeff = 0
+
+        for start, end in pn:
+            if year in range(start, end):
+                # start to end (range -S start -E end)
+                coeff0 = self._process_segment(end - year, a=a, onoff0=onoff0)
+                coeff1 = self._process_segment(end - year, b=b, onoff1=onoff1)
+                coeff = coeff0 if coeff0 != 0 else coeff1
+
+        return coeff
+
+    def _process_segment(self, y, a=0, onoff0=(), b=0, onoff1=()):
+        func = lambda y, onoff: 0 < y < 100 and y % 4 in onoff
+        coeff = 0
+
+        if a and func(y, onoff0):    # Whatever is passed in onoff0.
+            coeff = a
+        elif b and func(y, onoff1):  # Whatever is passed in onoff1.
+            coeff = b
+
+        return coeff
+
     def _date_range(self, options):
+        """
+        """
         data = []
-        lat, lon, zone = self.BADI_COORDS
+
+        if options.bahji:
+            lat, lon, zone = self.BAHJI_COORDS
+            location = 'Bahjí'
+        else:
+            lat, lon, zone = self.BADI_COORDS
+            location = 'Tehran'
+
         coords = (lat, lon, zone)
+        print(f"{location}: {coords}")
         ve_jd_0001_1582 = self._pre_process_vernal_equinoxs()
         #inject = [(b_date[0], (b_date, g_date))
         #          for b_date, g_date in self.INJECT]
@@ -1190,7 +1250,7 @@ class DateTests(BahaiCalendar):
         local_jd = self._local_zone_correction(jd_ut, coords[2], mod_jd=True)
         g_date = self.gc.gregorian_date_from_jd(local_jd, hms=True, exact=True)
         jd = self.gc.jd_from_gregorian_date(g_date, exact=True)
-        bjd = self._jd_from_badi_date(b_date, *coords, coeffon=options.coff)
+        bjd = self._jd_from_badi_date(b_date, *coords, options)
         # Be sure the comparison for both are in UT time.
         diff = round(bjd - jd_ut, 12)
         offby = 0 if abs(diff) < 0 else int(diff)
@@ -1225,8 +1285,7 @@ class DateTests(BahaiCalendar):
         """
         Get the Gregorian date from the Badí' date.
         """
-        jd = self._jd_from_badi_date(b_date, lat=lat, lon=lon, zone=zone,
-                                     coeffon=options.coff, kill=options.kill)
+        jd = self._jd_from_badi_date(b_date, lat, lon, zone, options)
         return self.gc.gregorian_date_from_jd(jd, hms=True,
                                               exact=options.exact)
 
@@ -1385,6 +1444,9 @@ if __name__ == "__main__":
         '-Z', '--zone', type=float, default=None, dest='zone',
         help="Time zone.")
     parser.add_argument(
+        '-B', '--bahji', action='store_true', default=False, dest='bahji',
+        help="Use Bahji coordinates for orientation point.")
+    parser.add_argument(
         '-C', '--coff', action='store_true', default=False, dest='coff',
         help="Turn off all coefficients during an analysis.")
     parser.add_argument(
@@ -1438,7 +1500,8 @@ if __name__ == "__main__":
 
         G = 'G' if options.graph else ''
         C = 'C' if options.coff else ''
-        print(f"./contrib/misc/{basename} -a{C}{G}S{options.start} "
+        B = 'B' if options.bahji else ''
+        print(f"./contrib/misc/{basename} -a{C}{B}{G}S{options.start} "
               f"-E{options.end}")
 
         if options.graph:  # -G
@@ -1467,10 +1530,11 @@ if __name__ == "__main__":
             start_time = time.time()
             data = dt.analyze_date_error(options)
             diff_precision = 7
+            underline_length = 106 + diff_precision - 12
+            print('-' * underline_length)
             print("Badí' Date    Badí' JD           Gregorian Date (Sunset)  "
                   "      Gregorian JD        Diff", ' ' * (diff_precision-2),
                   "Off By")
-            underline_length = 106 + diff_precision - 12
             print('-' * underline_length)
 
             for b_date, bjd, g_date, gjd, diff, offby in data:
