@@ -96,8 +96,9 @@ class EditPyProject:
         with open(self.INIT_PATH, 'r') as f:
             content = f.read()
 
+        version = data['version']
         new_content = re.sub(r'^__version__\s*=\s*["\'].*?["\']',
-                             f'__version__ = "{data['version']}"',
+                             f'__version__ = "{version}"',
                              content, flags=re.MULTILINE)
 
         with open(self.INIT_PATH, "w") as f:

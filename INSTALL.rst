@@ -142,7 +142,8 @@ Versions are controlled by the **include.mk** file, so this is the only place
 to change version information. This file is read by various scripts in the
 repository. In other words *DO NOT* update the **pyproject.toml** directly,
 there is a script (config.py) that is run from the **Makefile** that will
-update everything correctly.
+update everything correctly. The (config.py) script also updates the
+`__version__` variable in the `badidatetime.__init__.py` file.
 
 Follow these steps to create the correct versioning and package for uploading
 to `pypi`.
@@ -153,23 +154,30 @@ to `pypi`.
    4. Update the **include.mk** file with the new version information.
    5. Commit and push the **include.mk** file. :color-violet:`(Step 4 and 5
       can also be done as part of step 2.)`
-   6. Check again that the `GitHub` tests pass.
-   7. Create the version tag for the branch you are working in and push.
+   6. Manually run the `config.py` script so the version gets updated in the
+      `badidatetime.__init__.py` file.
+
+      .. code-block:: console
+
+         $ ./config.py
+
+   7. Check again that the `GitHub` tests pass.
+   8. Create the version tag for the branch you are working in and push.
 
       .. code-block:: console
 
          $ git tag -a <tagname> -m "Comment about this tag."
          $ git push origin <tagname>
 
-   8. Upload to the `pypi` test site.
+   9. Upload to the `pypi` test site.
 
       .. code-block:: console
 
          $ make upload-test TEST_TAG=rc1
 
-   9. Go to your account on the `pypi test site <https://test.pypi.org/>`_ to
-      check if it is there. :color-red:`(For errors see below.)`
-   10. After the `pyproject.toml` file gets updated to the `pypi` test and main
+   10. Go to your account on the `pypi test site <https://test.pypi.org/>`_ to
+       check if it is there. :color-red:`(For errors see below.)`
+   11. After the `pyproject.toml` file gets updated to the `pypi` test and main
        sites, so it will need to be committed and pushed separately. This file
        is not in the `badidatetime` build so it can lag behind with no
        problems.
@@ -180,9 +188,9 @@ to `pypi`.
 
          $ make upload
 
-   11. Go to your account on the `pypi site <https://pypi.org/>`_ to check if
+   12. Go to your account on the `pypi site <https://pypi.org/>`_ to check if
        it is there.
-   12. Done, the new version is published.
+   13. Done, the new version is published.
 
 If errors occurred during the upload to the test `pypi` site you will need to
 fix files and check in again. The tag created above will need to be moved to
