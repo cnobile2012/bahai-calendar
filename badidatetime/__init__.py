@@ -19,6 +19,9 @@ dt_objects = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
               'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
 
+__version__ = "1.0.0"
+
+
 def _local_timezone_info():
     """
     Returns the offset in seconds, dst, IANA timezone key.
@@ -94,4 +97,4 @@ if BahaiCalendar._YEAR_START is None:
 
 enable_geocoder(False)
 __all__ = ('BahaiCalendar', 'GregorianCalendar', 'enable_geocoder',
-           'init_leap_cache') + dt_objects
+           'init_leap_cache', '__version__') + dt_objects

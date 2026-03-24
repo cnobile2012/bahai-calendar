@@ -19,10 +19,12 @@ class EditPyProject:
     """
     FILENAME = 'pyproject.toml'
     CHG_FIELDS = {'project': ('version', 'classifiers')}
+    INIT_PATH = os.path.join('badidatetime', '__init__.py')
 
     def start(self):
         # Get vesion info
         data = self.version()
+        self.edit_badidatetime_init(data)
         return self.edit_pyproject(data)
 
     def version(self):
@@ -89,6 +91,17 @@ class EditPyProject:
             tk.dump(config, fp)
 
         return data
+
+    def edit_badidatetime_init(self, data):
+        with open(self.INIT_PATH, 'r') as f:
+            content = f.read()
+
+        new_content = re.sub(r'^__version__\s*=\s*["\'].*?["\']',
+                             f'__version__ = "{data['version']}"',
+                             content, flags=re.MULTILINE)
+
+        with open(self.INIT_PATH, "w") as f:
+            f.write(new_content)
 
 
 if __name__ == "__main__":
