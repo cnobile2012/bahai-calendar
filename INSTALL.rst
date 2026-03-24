@@ -148,49 +148,46 @@ update everything correctly. The (config.py) script also updates the
 Follow these steps to create the correct versioning and package for uploading
 to `pypi`.
 
-   1. Run local tests.
-   2. Commit and push all code relating to the new release.
-   3. Check that the `GitHub` tests pass, if you've set them up.
-   4. Update the **include.mk** file with the new version information.
-   5. Commit and push the **include.mk** file. :color-violet:`(Step 4 and 5
-      can also be done as part of step 2.)`
-   6. Manually run the `config.py` script so the version gets updated in the
+   1. Run local tests, if they failed fix any issues before going to 2 below.
+   2. Update the **include.mk** file with the new version information.
+   3. Manually run the `config.py` script so the version gets updated in the
       `badidatetime.__init__.py` file.
 
       .. code-block:: console
 
          $ ./config.py
 
-   7. Check again that the `GitHub` tests pass.
-   8. Create the version tag for the branch you are working in and push.
+   4. Commit and push all code relating to the new release.
+   5. Check that the `GitHub` tests pass, if you've set them up.
+   6. Create the version tag for the branch you are working in and push.
 
       .. code-block:: console
 
          $ git tag -a <tagname> -m "Comment about this tag."
          $ git push origin <tagname>
 
-   9. Upload to the `pypi` test site.
+   7. Upload to the `pypi` test site.
 
       .. code-block:: console
 
          $ make upload-test TEST_TAG=rc1
 
-   10. Go to your account on the `pypi test site <https://test.pypi.org/>`_ to
-       check if it is there. :color-red:`(For errors see below.)`
-   11. After the `pyproject.toml` file gets updated to the `pypi` test and main
-       sites, so it will need to be committed and pushed separately. This file
-       is not in the `badidatetime` build so it can lag behind with no
-       problems.
-   11. Assuming everything went as expected then upload to the main `pypi`
+   8. Go to your account on the `pypi test site <https://test.pypi.org/>`_
+       to check if it is there. :color-red:`(For errors see below.)`
+   9. After the `pyproject.toml` file gets updated to the `pypi` test and
+       main sites, so it will need to be committed and pushed separately.
+       This file  is not in the `badidatetime` build so it can lag behind
+       with no problems.
+   10. Assuming everything went as expected then upload to the main `pypi`
        site.
 
        .. code-block:: console
 
          $ make upload
 
-   12. Go to your account on the `pypi site <https://pypi.org/>`_ to check if
+   11. Go to your account on the `pypi site <https://pypi.org/>`_ to check if
        it is there.
-   13. Done, the new version is published.
+   12. Done, the new version is published.
 
 If errors occurred during the upload to the test `pypi` site you will need to
 fix files and check in again. The tag created above will need to be moved to
@@ -199,8 +196,8 @@ the *HEAD* of the branch afterwards.
    1. Run local tests.
    2. Commit and push all code relating to any errors found.
    3. Check that the `GitHub` tests pass.
-   4. Move the version tag. :color-red:`The commit hash can be just the first 7
-      characters of the full hash.`
+   4. Move the version tag. :color-red:`The commit hash can be just the
+      first 7 characters of the full hash.`
 
       .. code-block:: console
 
@@ -208,4 +205,4 @@ the *HEAD* of the branch afterwards.
          $ git tag -a <tagname> <HEAD commit hash> -f -m "Comment"
          $ git push origin --tags -f
 
-   5. Then continue with number 8 above.
+   5. Then continue with number 7 above.
