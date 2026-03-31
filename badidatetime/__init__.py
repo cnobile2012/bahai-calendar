@@ -5,8 +5,6 @@
 __docformat__ = "restructuredtext en"
 
 import sys
-import importlib
-import geocoder
 from tzlocal import get_localzone
 from datetime import datetime as _dtime
 
@@ -50,6 +48,7 @@ def _get_local_coordinates() -> tuple:
     :returns: The latitude, longitude, and the offset in hours.
     :rtype: tuple
     """
+    import geocoder
     offset, dst, key = _local_timezone_info()
     # Get latitude and longitude
     g = geocoder.ip('me')
@@ -67,6 +66,7 @@ def enable_geocoder(enable: bool=True) -> None:
     :param bool enable: If True (default) geocoder is run else if False it is
                         not run.
     """
+    import importlib
     badidt = importlib.import_module('badidatetime.datetime')
 
     if enable:
@@ -76,10 +76,9 @@ def enable_geocoder(enable: bool=True) -> None:
 
     badidt.LOCAL = badidt.timezone.local = badidt.timezone._create(
         badidt.timedelta(hours=badidt.LOCAL_COORD[2]))
-    badidt = importlib.reload(badidt)
 
     for obj in dt_objects:
-        globals()[obj] = getattr(badidt, obj)
+        globals()[obj] = getattr(sys.modules["badidatetime.datetime"], obj)
 
 
 def init_leap_cache():
