@@ -1252,7 +1252,7 @@ class DateTests(BahaiCalendar):
         # Be sure the comparison for both are in UT time.
         diff = round(bjd - jd_ut, 12)
         offby = 0 if abs(diff) < 0 else int(diff)
-        data.append((b_date, bjd, g_date, jd, diff, offby))
+        data.append((b_date, bjd, g_date, jd_ut, diff, offby))
 
     def _pre_process_vernal_equinoxs(self):
         data = {}
