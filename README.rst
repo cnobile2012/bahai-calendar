@@ -9,16 +9,12 @@ Introduction to the Badí' Calendar API
    :alt: License
 
 .. image:: https://img.shields.io/pypi/v/badidatetime.svg
-   :target: https://pypi.python.org/pypi/badidatetime
+   :target: https://pypi.python.org/project/badidatetime
    :alt: PyPi Version
 
 .. image:: https://img.shields.io/pypi/pyversions/badidatetime.svg
-    :target: https://pypi.python.org/pypi/badidatetime
+    :target: https://pypi.python.org/project/badidatetime
     :alt: PY Versions
-
-.. image:: http://img.shields.io/pypi/wheel/badidatetime.svg
-   :target: https://pypi.python.org/pypi/badidatetime
-   :alt: PyPI Wheel
 
 .. image:: https://github.com/cnobile2012/bahai-calendar/actions/workflows/main.yml/badge.svg?branch=main
    :target: https://github.com/cnobile2012/bahai-calendar/actions/workflows/main.yml
