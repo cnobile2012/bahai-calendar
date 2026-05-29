@@ -1601,20 +1601,20 @@ class datetime(date):
         not pickle data create the instance from the incoming date data.
 
         :param int a: If pickle data this is the bytes string. If not pickle
-                      data this could be the Kull-i-Shay’ if a long form date
-                      or the year if a short form date.
+                      data **a** could be the Kull-i-Shay’ if a long form date
+                      or if a short form date **a** is the year.
         :param int b: If pickle data this is the `tzinfo` instance. If not
-                      pickle data this could be the Váḥid if a long form date
-                      or the month if a short form date.
-        :param int c: If **a** long form date this is the year or the day if
-                      **a** short form date is used.
-        :param int d: If **a** long form date this is the month, it is not used
-                      with a short form date.
-        :param int e: If **a** long form date this is the day, it is not used
-                      with a short form date.
-        :param float hour: The hour of the dat.
-        :param float minute: The minute of the hour.
-        :param float second: The second of the minute.
+                      pickle data **b** could be the Váḥid if a long form date
+                      or if a short form date **b** is the month.
+        :param int c: If a long form date **c** is the year or if a short form
+                      date, **c** is the day.
+        :param int d: If a long form date **d** is the month, if a short form
+                      date **d** is None and not used.
+        :param int e: If a long form date **e** is the day, if a short form
+                      date **e** is None and not used.
+        :param float hour: The hour.
+        :param float minute: The minute.
+        :param float second: The second.
         :param int microsecond: The microsecond.
         :param tzinfo tzinfo: The time zone information.
         :param int fold: If *0* there is no fold in time, this is the more
@@ -1847,8 +1847,7 @@ class datetime(date):
         # Clamp out leap seconds if the platform has them.
         date = date[:7] + (min(date[7], 59),) + date[8:]
         # 3. Construct result
-        result = cls(*date, tzinfo=tz)
-        return result
+        return cls(*date, tzinfo=tz)
 
     @classmethod
     def fromtimestamp(cls, t: float, tz: tzinfo=None, *, short: bool=True):
@@ -2225,6 +2224,7 @@ class datetime(date):
         else:
             s += f"({self._year}, {self._month}, {self._day}"
 
+        s += ", None, None" if self.is_short else ""
         s += f", {', '.join(map(str, L))})"
 
         if self.tzinfo is not None:

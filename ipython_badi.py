@@ -7,5 +7,6 @@ from badidatetime._timedateutils import _td_utils
 from zoneinfo import ZoneInfo
 import math, time, datetime as dtime
 datetime = importlib.import_module('badidatetime.datetime')
+import badidatetime
 gc = GregorianCalendar()
 bc = BahaiCalendar()

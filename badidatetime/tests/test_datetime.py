@@ -3285,16 +3285,17 @@ class TestBadiDatetime_datetime(unittest.TestCase):
         """
         data = (
             ((181, 1, 1, None, None, 12, 30), None, 0,
-             'badidatetime.datetime(181, 1, 1, 12, 30)'),
+             'badidatetime.datetime(181, 1, 1, None, None, 12, 30)'),
             ((181, 1, 1, None, None, 12, 30, 30), None, 0,
-             'badidatetime.datetime(181, 1, 1, 12, 30, 30)'),
+             'badidatetime.datetime(181, 1, 1, None, None, 12, 30, 30)'),
             ((181, 1, 1, None, None, 12, 30, 30, 500000), None, 0,
-             'badidatetime.datetime(181, 1, 1, 12, 30, 30, 500000)'),
+             'badidatetime.datetime(181, 1, 1, None, None, 12, 30, 30, '
+             '500000)'),
             ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 0,
-             'badidatetime.datetime(181, 1, 1, 12, 30, 30, '
+             'badidatetime.datetime(181, 1, 1, None, None, 12, 30, 30, '
              'tzinfo=badidatetime.BADI)'),
             ((181, 1, 1, None, None, 12, 30, 30), datetime.BADI, 1,
-             'badidatetime.datetime(181, 1, 1, 12, 30, 30, '
+             'badidatetime.datetime(181, 1, 1, None, None, 12, 30, 30, '
              'tzinfo=badidatetime.BADI, fold=1)'),
             ((1, 10, 10, 15, 14), None, 0,
              'badidatetime.datetime(1, 10, 10, 15, 14, 0, 0)'),

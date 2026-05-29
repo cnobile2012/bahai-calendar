@@ -17,7 +17,7 @@ dt_objects = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
               'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 
 def _local_timezone_info():
