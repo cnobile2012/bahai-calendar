@@ -14,7 +14,7 @@ import unittest
 from unittest.mock import patch, PropertyMock
 from zoneinfo import ZoneInfo
 
-from .. import enable_geocoder
+from .. import set_local_coordinates
 from ..badi_calendar import BahaiCalendar
 
 datetime = importlib.import_module('badidatetime.datetime')
@@ -2324,7 +2324,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        enable_geocoder()
+        set_local_coordinates(35.7796, -78.6382)
         datetime.LOCAL = datetime.timezone.local = datetime.timezone._create(
             datetime.timedelta(hours=-5.0))
 

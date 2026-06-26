@@ -8,7 +8,7 @@ import importlib
 import unittest
 
 from badidatetime import (_local_timezone_info, _get_local_coordinates,
-                          enable_geocoder)
+                          _locale_config, set_local_coordinates)
 
 
 class Test__init__(unittest.TestCase):
@@ -47,6 +47,7 @@ class Test__init__(unittest.TestCase):
            This test requires internet access. We only test for the existance
            of values because every locale would give different information.
         """
+        set_local_coordinates(lat=35.7796, lon=-78.6382)
         lat, lon, zone = _get_local_coordinates()
         self.assertTrue(isinstance(lat, float),
                         f"The lat {lat} was not a float, found {type(lat)}.")
@@ -57,25 +58,19 @@ class Test__init__(unittest.TestCase):
             f"The zone {zone} was not a float, found {type(zone)}.")
 
     #@unittest.skip("Temporarily skipped")
-    def test_enable_geocoder(self):
+    def test_set_local_coordinates(self):
         """
-        Test that the enable_geocoder function enables the geocoder.
-
-        .. note::
-
-           This test requires internet access.
+        Test that the set_local_coordinates function correctly sets up the
+        locale.
         """
-        badidt = importlib.import_module('badidatetime.datetime')
-        self.assertEqual(badidt.LOCAL_COORD, badidt.BADI_COORD,
-                         f"The LOCAL_COORD should be {badidt.BADI_COORD}, "
-                         f"found {badidt.LOCAL_COORD}")
-        self.assertEqual(badidt.LOCAL, badidt.BADI,
-                         f"The LOCAL should be {badidt.BADI}, "
-                         f"found {badidt.LOCAL}")
-        enable_geocoder()
-        self.assertNotEqual(badidt.LOCAL_COORD, badidt.BADI_COORD,
-                            "The LOCAL_COORD should not be "
-                            f"{badidt.BADI_COORD}, found {badidt.LOCAL_COORD}")
-        self.assertNotEqual(badidt.LOCAL, badidt.BADI,
-                            f"The LOCAL should not be {badidt.BADI}, "
-                            f"found {badidt.LOCAL}")
+        data = (
+            (35.7796, -78.6382, '', (35.7796, -78.6382)),
+            (None, None, 'New York', (40.7127281, -74.0060152)),
+            (None, None, '', (35.69435, 51.288701)),
+            )
+        msg = "Expected {}, found {}."
+
+        for lat, lon, locale, expected in data:
+            set_local_coordinates(lat, lon, locale=locale)
+            from badidatetime import LOCAL_COORD, BADI_COORD
+            self.assertEqual(expected, LOCAL_COORD[:2])

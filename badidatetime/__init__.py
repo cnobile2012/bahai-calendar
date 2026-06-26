@@ -5,8 +5,10 @@
 __docformat__ = "restructuredtext en"
 
 import sys
-from tzlocal import get_localzone
 from datetime import datetime as _dtime
+
+from tzlocal import get_localzone
+from geopy.geocoders import Nominatim
 
 from badidatetime.badi_calendar import BahaiCalendar
 from badidatetime.gregorian_calendar import GregorianCalendar
@@ -18,6 +20,7 @@ dt_objects = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
 
 
 __version__ = "1.2.0"
+_LOCAL_CORDS = ()
 
 
 def _local_timezone_info():
@@ -40,45 +43,70 @@ def _local_timezone_info():
     return offset, dst, localzone.key
 
 
-def _get_local_coordinates() -> tuple:
+def _get_local_coordinates() -> tuple | None:
     """
     Get the locales coordinates and timezone offset for generating the
     Rata Die.
 
     :returns: The latitude, longitude, and the offset in hours.
-    :rtype: tuple
+    :rtype: tuple or None
     """
-    import geocoder
+    global _LOCAL_CORDS
     offset, dst, key = _local_timezone_info()
-    # Get latitude and longitude
-    g = geocoder.ip('me')
-    latitude = g.lat
-    longitude = g.lng
-    return latitude, longitude, offset / 3600
+
+    if (_LOCAL_CORDS and isinstance(_LOCAL_CORDS[0], float)
+        and isinstance(_LOCAL_CORDS[1], float)):
+       lat = _LOCAL_CORDS[0]
+       lon = _LOCAL_CORDS[1]
+    elif _LOCAL_CORDS and _LOCAL_CORDS[2]:
+        geolocator = Nominatim(user_agent='nc-bookkeeper')
+        location = geolocator.geocode(_LOCAL_CORDS[2])
+        assert location, ("Could not find the latitude and longitude with "
+                          f"locale {_LOCAL_CORDS[2]}.")
+        lat = location.latitude
+        lon = location.longitude
+    else:
+        lat = lon = None
+
+    return lat, lon, offset / 3600
 
 
-def enable_geocoder(enable: bool=True) -> None:
+def _locale_config() -> None:
     """
-    Enable or disable the geocode query to find the local latitude, longitude,
-    and time zone. If this function is never run then the defaults for
-    `datetime.LOCAL_COORD` and `datetime.LOCAL` will be the Tehran Iran locale.
-
-    :param bool enable: If True (default) geocoder is run else if False it is
-                        not run.
+    This function sets the `datetime.LOCAL_COORD` and `datetime.LOCAL`
+    variables.
     """
     import importlib
     badidt = importlib.import_module('badidatetime.datetime')
+    coords = _get_local_coordinates()
 
-    if enable:
-        badidt.LOCAL_COORD = _get_local_coordinates()
-    else:
+    if None in coords:
         badidt.LOCAL_COORD = badidt.BADI_COORD
+    else:
+        badidt.LOCAL_COORD = coords
 
     badidt.LOCAL = badidt.timezone.local = badidt.timezone._create(
         badidt.timedelta(hours=badidt.LOCAL_COORD[2]))
 
     for obj in dt_objects:
         globals()[obj] = getattr(sys.modules["badidatetime.datetime"], obj)
+
+
+def set_local_coordinates(lat: float=None, lon: float=None, *,
+                          locale: str | int='') -> None:
+    """
+    Either supply the latitude and longitude or the locale. If you supply the
+    the latitude and longitude not network call is needed, the locale will
+    cause a network call. If nothing is supplied the coordinents for Tehran
+    will be used.
+
+    :param float lat: the latitude of your locale.
+    :param float lon: the longitude of your locale.
+    :param str or int locale: This is your city, street address, or zip code.
+    """
+    global _LOCAL_CORDS
+    _LOCAL_CORDS = (lat, lon, locale)
+    _locale_config()
 
 
 def init_leap_cache():
@@ -94,6 +122,5 @@ if BahaiCalendar._YEAR_START is None:
     init_leap_cache()
 
 
-enable_geocoder(False)
-__all__ = ('BahaiCalendar', 'GregorianCalendar', 'enable_geocoder',
-           'init_leap_cache', '__version__') + dt_objects
+__all__ = ('BahaiCalendar', 'GregorianCalendar', 'init_leap_cache',
+           'set_local_coordinates', '__version__') + dt_objects
