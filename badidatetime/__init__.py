@@ -19,7 +19,7 @@ dt_objects = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
               'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 _LOCAL_COORDS = ()
 
 
