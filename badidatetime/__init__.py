@@ -20,7 +20,7 @@ dt_objects = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
 
 
 __version__ = "1.2.0"
-_LOCAL_CORDS = ()
+_LOCAL_COORDS = ()
 
 
 def _local_timezone_info():
@@ -51,18 +51,17 @@ def _get_local_coordinates() -> tuple | None:
     :returns: The latitude, longitude, and the offset in hours.
     :rtype: tuple or None
     """
-    global _LOCAL_CORDS
     offset, dst, key = _local_timezone_info()
 
-    if (_LOCAL_CORDS and isinstance(_LOCAL_CORDS[0], float)
-        and isinstance(_LOCAL_CORDS[1], float)):
-       lat = _LOCAL_CORDS[0]
-       lon = _LOCAL_CORDS[1]
-    elif _LOCAL_CORDS and _LOCAL_CORDS[2]:
+    if (_LOCAL_COORDS and isinstance(_LOCAL_COORDS[0], float)
+        and isinstance(_LOCAL_COORDS[1], float)):
+        lat = _LOCAL_COORDS[0]
+        lon = _LOCAL_COORDS[1]
+    elif _LOCAL_COORDS and _LOCAL_COORDS[2]:
         geolocator = Nominatim(user_agent='nc-bookkeeper')
-        location = geolocator.geocode(_LOCAL_CORDS[2])
+        location = geolocator.geocode(_LOCAL_COORDS[2])
         assert location, ("Could not find the latitude and longitude with "
-                          f"locale {_LOCAL_CORDS[2]}.")
+                          f"locale {_LOCAL_COORDS[2]}.")
         lat = location.latitude
         lon = location.longitude
     else:
@@ -104,8 +103,8 @@ def set_local_coordinates(lat: float=None, lon: float=None, *,
     :param float lon: the longitude of your locale.
     :param str or int locale: This is your city, street address, or zip code.
     """
-    global _LOCAL_CORDS
-    _LOCAL_CORDS = (lat, lon, locale)
+    global _LOCAL_COORDS
+    _LOCAL_COORDS = (lat, lon, locale)
     _locale_config()
 
 

@@ -1,3 +1,4 @@
+#
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
@@ -1247,7 +1248,7 @@ class DateTests(BahaiCalendar):
         # Sunset before VE
         local_jd = self._local_zone_correction(jd_ut, coords[2], mod_jd=True)
         g_date = self.gc.gregorian_date_from_jd(local_jd, hms=True, exact=True)
-        jd = self.gc.jd_from_gregorian_date(g_date, exact=True)
+        # jd = self.gc.jd_from_gregorian_date(g_date, exact=True)
         bjd = self._jd_from_badi_date(b_date, *coords, options)
         # Be sure the comparison for both are in UT time.
         diff = round(bjd - jd_ut, 12)

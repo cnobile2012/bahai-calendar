@@ -4,11 +4,10 @@
 #
 __docformat__ = "restructuredtext en"
 
-import importlib
 import unittest
 
 from badidatetime import (_local_timezone_info, _get_local_coordinates,
-                          _locale_config, set_local_coordinates)
+                          set_local_coordinates)
 
 
 class Test__init__(unittest.TestCase):
@@ -72,5 +71,6 @@ class Test__init__(unittest.TestCase):
 
         for lat, lon, locale, expected in data:
             set_local_coordinates(lat, lon, locale=locale)
-            from badidatetime import LOCAL_COORD, BADI_COORD
-            self.assertEqual(expected, LOCAL_COORD[:2])
+            from badidatetime import LOCAL_COORD
+            self.assertEqual(expected, LOCAL_COORD[:2], msg.format(
+                expected, LOCAL_COORD[:2]))
