@@ -121,5 +121,6 @@ if BahaiCalendar._YEAR_START is None:
     init_leap_cache()
 
 
+set_local_coordinates()
 __all__ = ('BahaiCalendar', 'GregorianCalendar', 'init_leap_cache',
            'set_local_coordinates', '__version__') + dt_objects

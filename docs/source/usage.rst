@@ -21,35 +21,36 @@ Initialize
 ----------
 
 To start off you must decide if you will have internet access while using the
-API. If not then the latitude and longitude cannot be obtained and some
-functionality `fromtimestamp`, `atimezone`, and `LOCAL` will not be accurate in
-the `date` and `datetime` classes. This functionality defaults to the latitude,
-longitude, and zone of Tehran Iran thus unless you happen to live in Tehran any
-local information will be wrong.
+API. If not then the latitude and longitude should be provided or the
+locale. See below. If the default is accepted then your locale becomes Tehran
+Iran. This means the functionality in `fromtimestamp`, `atimezone`, and `LOCAL`
+will be the default coordinents in the `date` and `datetime` classes.
 
-The default setting is to not do a WEB request for the latitude and longitude.
-If you want to do this request then follow the processed outlined below. Be
-sure to always import the packages you want after enabling the geocoder.
-
-.. code-block:: python
-
-   from badidatetime import enable_geocoder
-
-   enable_geocoder()
-
-   from badidatetime import date, time, datetime, ...
-
-The ``enable_geocoder()`` function takes one argument which can be set either
-``True`` (default) or ``False``.
+The default setting will not do a network request for the latitude and
+longitude. Follow the processed outlined below.
 
 .. warning::
 
-   The `geocoder` package that this API uses to get the locale coordinates and
-   time zone information, may return "ERROR - 429 Client Error: Too Many
-   Requests for url: http://ipinfo.io/json" on occasion. The `service they use
-   <http://ipinfo.io/>`_ lets you sign up for a free account permitting 50000
-   requests a month. I have only had this issue once in about 6 months without
-   even a free account, so it should not be an issue.
+   Be sure to always import the packages you want after running
+   ``set_local_coordinates()``.
+
+.. code-block:: python
+
+   from badidatetime import set_local_coordinates
+
+   set_local_coordinates(<latitude>, <longitude>)
+   # OR
+   set_local_coordinates(locale=<locale>
+
+   from badidatetime import date, time, datetime, ...
+
+The ``set_local_coordinates()`` function takes one or two arguments which can
+be either the locale or latitude and longitude. If the latitude and longitude
+are supplied the network will not be used. However, if the locale is supplied
+then there will be a network call. The locale can be a street address, city,
+state, county or even a zip code. If you are writing code that uses this API
+your users will need to enter either their locale or latitude and longitude
+which you would redirect to this function.
 
 ---------------
 datetime module

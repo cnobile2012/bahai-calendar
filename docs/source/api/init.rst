@@ -10,11 +10,11 @@ init_leap_cache
 
 .. autofunction:: badidatetime.init_leap_cache
 
----------------
-enable_geocoder
----------------
+---------------------
+set_local_coordinates
+---------------------
 
-.. autofunction:: badidatetime.enable_geocoder
+.. autofunction:: badidatetime.set_local_coordinates
 
 --------------------
 _local_timezone_info
