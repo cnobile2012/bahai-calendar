@@ -1726,7 +1726,7 @@ class TestBadiDatetime_time(unittest.TestCase):
         """
         data = (
             ((12, 30, 30), datetime.BADI,
-             '35.69435, 51.288701, 3.5, Asia/Tehran'),
+             '35.69435, 51.113642, 3.5, Asia/Tehran'),
             ((24, 10, 20), datetime.UTC, '51.477928, -0.001545, 0, UTC'),
             )
         msg = "Expected {} with time {}, found {}."
@@ -1963,10 +1963,10 @@ class TestBadiDatetime_time(unittest.TestCase):
              'badidatetime.time(1, 30, 30, 50000)'),
             ((1, 30, 30, 50000), datetime.BADI, 0,
              'badidatetime.time(1, 30, 30, 50000, '
-             'tzinfo=35.69435, 51.288701, 3.5, Asia/Tehran)'),
+             'tzinfo=35.69435, 51.113642, 3.5, Asia/Tehran)'),
             ((1, 30, 30, 50000), datetime.BADI, 1,
              'badidatetime.time(1, 30, 30, 50000, '
-             'tzinfo=35.69435, 51.288701, 3.5, Asia/Tehran, fold=1)'),
+             'tzinfo=35.69435, 51.113642, 3.5, Asia/Tehran, fold=1)'),
             )
         msg = "Expected {} with time {}, timezone {}, and fold {}, found {}."
 
@@ -2527,12 +2527,12 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             (-18000, tz1, True, '0126-16-02T02:59:32.492400+00:00'),
             # 1969-12-31T19:00:00Z -> 1969-12-31T22:30:00:00+03:30 ->
             # Sunset = 17:01 -> 22:30 - 17:01 = 05:29
-            (-18000, tz0, True, '0126-16-02T05:28:46.142400+03:30'),
-            (-18000, datetime.BADI, True, '0126-16-02T05:28:46.142400+03:30'),
+            (-18000, tz0, True, '0126-16-02T05:28:04.105200+03:30'),
+            (-18000, datetime.BADI, True, '0126-16-02T05:28:04.105200+03:30'),
             # 1970-01-01T00:00:00Z -> 1970-01-01T03:30:00+03:30
             # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59
             # 06:59 + 03:30 = 10:29
-            (0, tz0, True, '0126-16-02T10:28:46.142400+03:30'),
+            (0, tz0, True, '0126-16-02T10:28:04.105200+03:30'),
             # 1969-12-31T19:00:00 -> 1969-12-31T14:00:00-05:00 ->
             # Sunset = 17:12 -> 24:00 - 17:12 = 06:48 -> 06:48 + 14:00 = 20:48
             (-18000, tz2, True, '0126-16-02T02:59:32.492400+00:00'),
@@ -2576,12 +2576,12 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             (-18000, tz1, True, '0126-16-02T02:59:32.492400+00:00'),
             # 1969-12-31T19:00:00Z -> 1969-12-31T22:30:00:00+03:30 ->
             # Sunset = 17:01 -> 22:30 - 17:01 = 05:29
-            (-18000, tz0, True, '0126-16-02T05:28:46.142400+03:30'),
-            (-18000, datetime.BADI, True, '0126-16-02T05:28:46.142400+03:30'),
+            (-18000, tz0, True, '0126-16-02T05:28:04.105200+03:30'),
+            (-18000, datetime.BADI, True, '0126-16-02T05:28:04.105200+03:30'),
             # 1970-01-01T00:00:00Z -> 1970-01-01T03:30:00+03:30
             # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59
             # 06:59 + 03:30 = 10:29
-            (0, tz0, True, '0126-16-02T10:28:46.142400+03:30'),
+            (0, tz0, True, '0126-16-02T10:28:04.105200+03:30'),
             # 1969-12-31T19:00:00 -> 1969-12-31T14:00:00-05:00 ->
             # Sunset = 17:12 -> 24:00 - 17:12 = 06:48 -> 06:48 + 14:00 = 20:48
             (-18000, tz2, True, '0126-16-01T20:48:41.256000-05:00'),
@@ -2621,7 +2621,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Sunset = 16:00 -> 24:00 - 16:00 = 08:00
             (0, tz1, True, '0126-16-02T07:59:32.492400+00:00'),
             # 1970-01-01T00:00:00Z
-            (0, tz0, True, '0126-16-02T10:28:46.142400+03:30'),
+            (0, tz0, True, '0126-16-02T10:28:04.105200+03:30'),
             # 2024-11-30T20:24:13.327577-05:00
             # arrive at the correct time. Off by 03:54:10.915200 hrs.
             (1733016253.327577, None, True, '0181-14-10T03:22:10.081200'),
@@ -2629,7 +2629,7 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # Some long form datetimes.
             (0, None, False, '01-07-12-16-02T01:47:57.141600'),
             (0, tz1, False, '01-07-12-16-02T07:59:32.492400+00:00'),
-            (0, tz0, False, '01-07-12-16-02T10:28:46.142400+03:30'),
+            (0, tz0, False, '01-07-12-16-02T10:28:04.105200+03:30'),
             )
         msg = ("Expected {} with timestamp {}, timezone {}, and short {}, "
                "found {}.")
@@ -2871,15 +2871,15 @@ class TestBadiDatetime_datetime(unittest.TestCase):
             # 1970-01-01T:00:00:00Z -> 1970-01-01-T03:30:00+03:30
             # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59 ->
             # 06:59 + 03:30 = 10:29 -> Approximately -12600
-            ((126, 16, 2, None, None, 10, 29), 13.858504593372),
+            ((126, 16, 2, None, None, 10, 29), 55.89424520731),
             # POSIX epoch 1969-12-31T20:60:00Z -> 1970-01-01T00:00:00+03:30
             # Sunset day before = 17:01 -> 24:00 - 17:01 = 06:59 ->
             # Approximatly 0.0
-            ((126, 16, 2, None, None, 6, 59), -12586.141508817673),
+            ((126, 16, 2, None, None, 6, 59), -12544.105768203735),
             # 2025-01-01T00:00:00Z -> 2025-01-01T03:30:00+03:30
             # Sunset day before 17:02 -> 24:00 - 17:02 = 06:58 ->
             # 06:58 + 03:30 = 10:28 -> 1735689600 *** TODO *** Fix this
-            ((181, 16, 2, None, None, 10, 28), 1735603132.1160793),
+            ((181, 16, 2, None, None, 10, 28), 1735603174.1515784),
             )
         msg = "Expected {} with date {}, found {}."
 
@@ -4421,9 +4421,9 @@ class TestBadiDatetime_TZWithCoords(unittest.TestCase):
         Test that the __new__ method returns a valid TZWithCoords object.
         """
         data = (
-            (datetime.BADI_COORD, None, '35.69435, 51.288701, 3.5'),
+            (datetime.BADI_COORD, None, '35.69435, 51.113642, 3.5'),
             (datetime.BADI_COORD, 'Asia/Tehran',
-             '35.69435, 51.288701, 3.5, Asia/Tehran'),
+             '35.69435, 51.113642, 3.5, Asia/Tehran'),
             )
         msg = "Expected {} with coords {} and key {}, found {}."
 
@@ -4438,7 +4438,7 @@ class TestBadiDatetime_TZWithCoords(unittest.TestCase):
         Test that the coordinates property returns the coordinates.
         """
         data = (
-            (datetime.BADI_COORD, 'Asia/Tehran', (35.69435, 51.288701, 3.5)),
+            (datetime.BADI_COORD, 'Asia/Tehran', (35.69435, 51.113642, 3.5)),
             )
         msg = "Expected {} with coords {} and key {}, found {}."
 
@@ -4489,9 +4489,9 @@ class TestBadiDatetime_TZWithCoords(unittest.TestCase):
         Test that the __str__ method return the correct string.
         """
         data = (
-            (datetime.BADI_COORD, None, '35.69435, 51.288701, 3.5'),
+            (datetime.BADI_COORD, None, '35.69435, 51.113642, 3.5'),
             (datetime.BADI_COORD, datetime.BADI_IANA,
-             '35.69435, 51.288701, 3.5, Asia/Tehran'),
+             '35.69435, 51.113642, 3.5, Asia/Tehran'),
             )
         msg = "Expected {} with coords {} and key {}, found {}."
 

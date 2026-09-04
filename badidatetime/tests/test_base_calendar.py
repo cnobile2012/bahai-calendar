@@ -340,9 +340,9 @@ class TestBaseCalendar(unittest.TestCase):
             ((2024, 6, 20), latitude, offset, 109.3196338142018),
             # Test for combinations of latitude and degrees that cause the
             # cos_h0 value to be less than -1.
-            ((1844, 4, 10.5), 90, offset, 90.0),
+            ((1844, 4, 10.5), 90, offset, 180.0),
             # cos_h0 value to be greater than 1.
-            ((1844, 4, 13.5), -90, offset, 60.00000000000001),
+            ((1844, 4, 13.5), -90, offset, 0.0),
             )
         msg = "Expected {}, for date {}, found {}."
 
@@ -415,10 +415,10 @@ class TestBaseCalendar(unittest.TestCase):
                 expected_result, jd, result))
 
     #@unittest.skip("Temporarily skipped")
-    def test__sun_setting(self):
+    def test__sun_setting_badi(self):
         """
-        Test that the _sun_setting method returns the correct sunset for a
-        given date represented by a Julian Period day.
+        Test that the _sun_setting_badi method returns the correct sunset
+        for the day before the sunset of a day.
 
         https://gml.noaa.gov/grad/solcalc/
         """
@@ -437,7 +437,7 @@ class TestBaseCalendar(unittest.TestCase):
             # 2024-03-20T02:00:00 -> 2024-03-20T18:13:59.1168
             (2460389.583333, epoch_coords, (2460390.115829568, 0.261662901379,
                                             (18, 16, 47.676))),
-            # 2024-04-20T00:00:00 -> 2024-04-20T19:52:378624 DST (19:53)
+            # 2024-04-20T00:00:00 -> 2024-04-20T19:52:37.8624 DST (19:53)
             # In Raligh NC, USA
             (2460420.5, local_coords, (2460420.494296346, 0.327629679348,
                                        (19, 51, 47.2032))),
@@ -445,7 +445,48 @@ class TestBaseCalendar(unittest.TestCase):
         msg = "Expected {}, for jd {} and zone {}, found {}."
 
         for jd, coords, expected_result in data:
-            result = self.bc._sun_setting(jd, *coords[:2])
+            result = self.bc._sun_setting_badi(jd, *coords[:2])
+            self.assertEqual(expected_result[0], result, msg.format(
+                expected_result, jd, coords[2], result))
+            tz_correction = self.bc._local_zone_correction(result, coords[2])
+            self.assertEqual(expected_result[1], tz_correction, msg.format(
+                expected_result, jd, coords[2], result))
+            hms = self.bc._hms_from_decimal_day(tz_correction + 0.5)
+            self.assertEqual(expected_result[2], hms, msg.format(
+                expected_result, jd, coords[2], result))
+
+    #@unittest.skip("Temporarily skipped")
+    def test__sun_setting_greg(self):
+        """
+        Test that the _sun_setting method returns the correct sunset for a
+        given date represented by a Julian Period day.
+
+        https://gml.noaa.gov/grad/solcalc/
+        """
+        epoch_coords = (35.682376, 51.285817, 3.5)
+        local_coords = (35.7796, -78.6382, -4)
+        data = (
+            # 1844-03-19T12:00:00 -> 1844-03-19T18:16:00 sunset 0.761111
+            (2394645.0, epoch_coords, (2394645.1151234, 0.260956733488,
+                                       (18, 15, 46.6632))),
+            # 2024-03-19T12:00:00 -> 2024-03-19T18:13:59.1168
+            (2460389.0, epoch_coords, (2460389.1152460743, 0.261079407763,
+                                       (18, 15, 57.2616))),
+            # 2024-03-20T00:00:00 -> 2024-03-20T18:13:59.1168
+            (2460389.5, epoch_coords, (2460390.1158295674, 0.261662900914,
+                                       (18, 16, 47.676))),
+            # 2024-03-20T02:00:00 -> 2024-03-20T18:13:59.1168
+            (2460389.583333, epoch_coords, (2460390.1158295674, 0.261662900914,
+                                            (18, 16, 47.676))),
+            # 2024-04-20T00:00:00 -> 2024-04-20T19:52:37.8624 DST (19:53)
+            # In Raligh NC, USA
+            (2460420.5, local_coords, (2460421.4948800434, 0.328213376924,
+                                       (19, 52, 37.6356))),
+            )
+        msg = "Expected {}, for jd {} and zone {}, found {}."
+
+        for jd, coords, expected_result in data:
+            result = self.bc._sun_setting_greg(jd, *coords[:2])
             self.assertEqual(expected_result[0], result, msg.format(
                 expected_result, jd, coords[2], result))
             tz_correction = self.bc._local_zone_correction(result, coords[2])

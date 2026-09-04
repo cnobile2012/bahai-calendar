@@ -65,7 +65,7 @@ class Test__init__(unittest.TestCase):
         data = (
             (35.7796, -78.6382, '', (35.7796, -78.6382)),
             (None, None, 'New York', (40.7127281, -74.0060152)),
-            (None, None, '', (35.69435, 51.288701)),
+            (None, None, '', (35.69435, 51.113642)),
             )
         msg = "Expected {}, found {}."
 

@@ -239,10 +239,7 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         cos_h0 = ((self._sin_deg(-offset) - self._sin_deg(lat) *
                    self._sin_deg(delta)) / (self._cos_deg(lat) *
                                             self._cos_deg(delta)))
-
-        if cos_h0 < -1 or cos_h0 > 1:
-            cos_h0 -= math.floor(cos_h0)
-
+        cos_h0 = max(-1.0, min(1.0, cos_h0))
         return math.degrees(math.acos(cos_h0))
 
     def _sun_transit(self, jd: float, lon: float) -> float:
@@ -322,10 +319,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         m = self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='RISE')
         return round(jd0 + m, self._ROUNDING_PLACES)
 
-    def _sun_setting(self, jd: float, lat: float, lon: float, *,
-                     offset: float=_SUN_OFFSET) -> float:
+    def _sun_setting_badi(self, jd: float, lat: float, lon: float, *,
+                          offset: float=_SUN_OFFSET) -> float:
         """
-        Find the jd for sunset of the given jd.
+        Find the jd for sunset of the given jd. Returns the previous sunset
+        when the date and time is before sunset
 
         :param float jd: Julian day in UT.
         :param float lat: Geographic latitude positive north negative south.
@@ -350,6 +348,34 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         jd_local = jd + lon_frac
         jd0 = math.floor(jd_local + 0.5) - 0.5
         jd0 -= lon_frac
+        m = self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='SET')
+        return round(jd0 + m, self._ROUNDING_PLACES)
+
+    def _sun_setting_greg(self, jd: float, lat: float, lon: float, *,
+                          offset: float=_SUN_OFFSET) -> float:
+        """
+        Find the jd for sunset of the given jd based on Meeus's algorithum.
+
+        :param float jd: Julian day in UT.
+        :param float lat: Geographic latitude positive north negative south.
+        :param float lon: Geographic longitude positive east negative west.
+        :param bool offset: A constant “standard” altitude, i.e., the geometric
+                            altitude of the center of the body at the time of
+                            apparent rising or setting, namely,
+                            h0 = -0°34’ = -0°5667 for stars and planets;
+                            h0 = -0°50' = -0°8333 for the Sun.
+                            Default is _SUN_OFFSET, _STARS_PLANET_OFFSET can
+                            also be used.
+        :returns: The jd moment of the sunset.
+        :rtype: float
+
+        .. note::
+
+           Meeus-AA ch. 15 p. 102, 103 Eq. 15.1, 15.2
+        """
+        # We need to compensate for the longitude alignment in the JD for
+        # time zones, this has minimal effect in most locales, but fixes some.
+        jd0 = math.floor(jd + 0.5) - 0.5
         m = self._rising_setting(jd0, lat, lon, offset=offset, sr_ss='SET')
         return round(jd0 + m, self._ROUNDING_PLACES)
 
@@ -1481,7 +1507,8 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
         an exact algorithm jd. This is subtracted from the meeus jd.
 
         :param float jd: Meeus Julian Period day.
-        :returns: The difference subtracted from an historically correct jd.
+        :returns: The difference subtracted from an historically correct
+                  Meeus jd.
         :rtype: float
 
         .. note::
@@ -1494,11 +1521,11 @@ class BaseCalendar(AstronomicalTerms, JulianPeriod):
            4. Invalid days checked with https://aa.usno.navy.mil/data/JulianDate
 
         The table below indicates that dates less than the ones shown are
-        legal dates. The dates shown except the last two rows indicate
+        legal dates. All the dates shown except the last two rows indicate
         invalid days in the historic (Meeus) algorithm. The second to the
-        last indicates the end of the Gregorian reform and the last dates
+        last indicates the end of the Gregorian reform and the last date
         indicates that from then to forever the proleptic algorithm is 2
-        days below the historic algorithm.
+        days less than the historic algorithm.
 
         +--------------+--------------+--------+--------------+
         | Historic JD  | Proleptic JD | Offset | Gregorian DT |

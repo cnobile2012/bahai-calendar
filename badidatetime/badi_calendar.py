@@ -25,7 +25,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
     | https://gml.noaa.gov/grad/solcalc/ Sunset data
     """
     #                 latitude    longitude  zone IANA name
-    _BAHAI_LOCATION = (35.69435, 51.288701, 3.5, 'Asia/Tehran')
+    _BAHAI_LOCATION = (35.69435, 51.113642, 3.5, 'Asia/Tehran')
     """
     tuple: Represents the location coordinates latitude, longitude, political
     time zone, and IANA time zone name of the Badí' orientation point in
@@ -204,7 +204,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         jd0 = self._meeus_from_exact(jd)
         coeff = self._get_day_coeff(year)
         jd0 += coeff
-        jd_ss = self._sun_setting(jd0, lat, lon)
+        jd_ss = self._sun_setting_badi(jd0, lat, lon)
         a_ss = self._exact_from_meeus(jd_ss)
         day_frac = self._decimal_day_from_hms(hh, mm, ss, us)
         return round(a_ss + day_frac, self._ROUNDING_PLACES)
@@ -579,9 +579,9 @@ class BahaiCalendar(BaseCalendar, Coefficients):
 
         jd = self.jd_from_badi_date(b_date)
         jd1 = self._meeus_from_exact(jd)
-        ss0 = self._sun_setting(jd1, *self._GMT_LOCATION[:2])
+        ss0 = self._sun_setting_badi(jd1, *self._GMT_LOCATION[:2])
         jd2 = self._meeus_from_exact(jd + 1)
-        ss1 = self._sun_setting(jd2, *self._GMT_LOCATION[:2])
+        ss1 = self._sun_setting_badi(jd2, *self._GMT_LOCATION[:2])
         ut_mid = (ss1 - ss0) / 2
         local_mid = self._local_zone_correction(ut_mid, self._GMT_LOCATION[2])
         return self._hms_from_decimal_day(local_mid) if hms else local_mid
@@ -761,10 +761,10 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         jd1 = jd0 + 1
         # The next day
         jd1 = self._meeus_from_exact(jd1)
-        ss1 = self._sun_setting(jd1, lat, lon)
+        ss1 = self._sun_setting_badi(jd1, lat, lon)
         # The first day
         jd0 = self._meeus_from_exact(jd0)
-        ss0 = self._sun_setting(jd0, lat, lon)
+        ss0 = self._sun_setting_badi(jd0, lat, lon)
         # Subtract the first day from the next day given the total
         # hours, minutes, and seconds between them.
         ut_ss = ss1 - ss0
@@ -790,7 +790,7 @@ class BahaiCalendar(BaseCalendar, Coefficients):
         :rtype: float
         """
         def get_sunset(hist_jd, inc):
-            ss = self._sun_setting(hist_jd + inc, lat, lon)
+            ss = self._sun_setting_badi(hist_jd + inc, lat, lon)
             return self._exact_from_meeus(ss)
 
         hist_jd = self._meeus_from_exact(jd)

@@ -5,6 +5,7 @@
 import os
 import sys
 import math
+import time
 
 PWD = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(os.path.dirname(PWD))
@@ -13,7 +14,7 @@ sys.path.append(BASE_DIR)
 from badidatetime import BahaiCalendar, GregorianCalendar
 
 
-class JulianPeriodTests:
+class JulianPeriodTests(GregorianCalendar):
 
     JULIAN_YEAR = 365.25
     GREGORIAN_EPOCH = 1721423.5
@@ -363,11 +364,11 @@ class JulianPeriodTests:
 
         | If -J is used then the test is for consecutive Julian Period days.
 
-        | If -JM is used the test is for consecutive Julian Period days using
+        | If -JM is used if testing consecutive Julian Period days using the
         | Meeus' algorithm.
 
-        | If -G is used the test is for consecutive Julian Period days using
-        | my algorithm.
+        | If -G is used if testint is consecutive Julian Period days using
+        | the Astronomically correct algorithm.
 
         Some tests will display, to stderr a progress counter indicating
         every 500 years.
@@ -377,10 +378,10 @@ class JulianPeriodTests:
         data = []
         last_jd = 0
 
-        if options.julian:
+        if options.julian:  # J
             for year in range(options.start, options.end):
                 for month, days in enumerate(self.MONTHS, start=1):
-                    if (year, month) >= (1582, 10) or options.meeus:
+                    if (year, month) >= (1582, 10) or options.meeus:  # -M
                         leap = self._gc._is_leap_year(
                             year, alt=options.alt_leap)
                     else:
@@ -396,7 +397,7 @@ class JulianPeriodTests:
                             data.append((date, last_jd, jd))
 
                         last_jd = jd  # Save the jd
-        elif options.g_date:
+        elif options.g_date:  # -G
             items = []
             last_date = ()
             month_days = list(self.MONTHS)
@@ -427,9 +428,9 @@ class JulianPeriodTests:
 
     def julian_day_with_ut_sunset(self, options):
         """
-        Generate a list of Julian days with ut sunset data. This must be done
-        in the historically correct Julian day count or the sunsets will
-        not be correct.
+        Generate a list of Julian days with UT sunset data. This must be done
+        in the historically correct Julian Period Day or the sunsets will
+        not be correct. GMT coordinates are used.
         Sunsets found on https://gml.noaa.gov/grad/solcalc/ set to UTC
         coordinates.
 
@@ -437,6 +438,8 @@ class JulianPeriodTests:
 
         -j with -S and -E which are mandatory.
         """
+        start_year = options.start
+        end_year = options.end
         data = []
         hm = {
             (1, 3, 19):    (18, 11),
@@ -468,7 +471,7 @@ class JulianPeriodTests:
             (2024, 7, 17): (20,  8),
             }
 
-        for year in range(options.start, options.end):
+        for year in range(start_year, end_year):
             leap = (self.JULIAN_LEAP_YEAR(year) if year < 1583
                     else self._gc._is_leap_year(year))
             lat, lon = (51.477928, -0.001545)
@@ -483,10 +486,10 @@ class JulianPeriodTests:
                     try:
                         jd_ut = self._gc.jd_from_gregorian_date(date)
                     except AssertionError:
-                        print((year, month, day))
+                        #print((year, month, day))
                         continue
 
-                    jd_ss_ut = self._gc._sun_setting(jd_ut, lat, lon)
+                    jd_ss_ut = self._gc._sun_setting_greg(jd_ut, lat, lon)
                     # Convert to Astronomically correct jd.
                     ajd = self._gc.jd_from_gregorian_date(date, exact=True)
                     ss = math.floor(ajd) + jd_ss_ut % 1
@@ -686,6 +689,14 @@ class JulianPeriodTests:
         return (year, month, day)
 
 
+def find_elapse_time(start_time):
+    end_time = time.time()
+    days, hours, minutes, seconds = jpt._dhms_from_seconds(
+        end_time - start_time)
+    print(f"\nElapsed time: {hours:02} hours, {minutes:02} minutes, "
+          f"{round(seconds, 6):02.6} seconds.")
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -715,7 +726,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '-j', '--julian-day', action='store_true', default=False,
         dest='julian_day', help=("Generate list of Julian days with sunset "
-                                 "data days."))
+                                 "in UT time."))
     parser.add_argument(
         '-A', '--alt-leap', action='store_true', default=False,
         dest='alt_leap', help="Use the 4|128 rule instead of the 4|100|400 "
@@ -742,11 +753,17 @@ if __name__ == "__main__":
 
     jpt = JulianPeriodTests()
     ret = 0
+    basename = os.path.basename(__file__)
 
     if options.debug:
         sys.stderr.write("DEBUG--options: {}\n".format(options))
 
     if options.analyze:  # -a
+        A = 'A' if options.alt_leap else ''
+        print(f"./contrib/misc/{basename} -a{A}\n")
+        start_time = time.time()
+        underline_length = 55
+        print('-' * underline_length)
         data = [f"{idx:>02} "
                 f"{str(date):<17} "
                 f"{str(leap):<6} "
@@ -773,13 +790,22 @@ if __name__ == "__main__":
               "       Mine"
               #"              Diff"
               )
+        print('-' * underline_length)
         [print(item) for item in data]
+        print('-' * underline_length)
+        find_elapse_time(start_time)
     elif options.analyze_1:  # -1
         if options.start is None or options.end is None:
             print("If option -1 is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
         else:
+            A = 'A' if options.alt_leap else ''
+            print(f"./contrib/misc/{basename} -1{A} -S {options.start} "
+                  f"-E {options.end}\n")
+            start_time = time.time()
+            underline_length = 87
+            print('-' * underline_length)
             data = [f"{str(date):<17} "  # Initial Gregorian date
                     f"{str(leap):<6} "   # Is leap year
                     f"{jd0:<10} "        # Meeus
@@ -801,13 +827,22 @@ if __name__ == "__main__":
                   "Mine              "
                   "Diff"
                   )
+            print('-' * underline_length)
             [print(item) for item in data]
+            print('-' * underline_length)
+            find_elapse_time(start_time)
     elif options.analyze_2:  # -2
         if options.start is None or options.end is None:
             print("If option -2 is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
         else:
+            A = 'A' if options.alt_leap else ''
+            print(f"./contrib/misc/{basename} -2{A} -S {options.start} "
+                  f"-E {options.end}\n")
+            start_time = time.time()
+            underline_length = 50
+            print('-' * underline_length)
             data = [f"{str(date):<16} "  # Initial Gregorian date
                     f"{str(gd1):<16} "   # Mine
                     f"{jd1:<10} "        # Mine
@@ -821,8 +856,15 @@ if __name__ == "__main__":
                   "jd1        "
                   "Leap   "
                   )
+            print('-' * underline_length)
             [print(item) for item in data]
+            print('-' * underline_length)
+            find_elapse_time(start_time)
     elif isinstance(options.compare, int):  # -c
+        print(f"./contrib/misc/{basename} -c {options.compare}\n")
+        start_time = time.time()
+        underline_length = 29
+        print('-' * underline_length)
         data = [
             f"Year {year:>4} "
             f"GLY_STD {gly_std:<1} "
@@ -830,17 +872,30 @@ if __name__ == "__main__":
             for year, gly_std, gly_alt in jpt.compare_leap_year_algorithms(
                 options.compare)]
         [print(item) for item in data]
+        print('-' * underline_length)
+        find_elapse_time(start_time)
     elif options.consecutive:  # -k
         if options.start is None or options.end is None:
             print("If option -k is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
-        elif options.julian:
-            data = [f"date: {str(date):<12} "
+        elif options.julian:  # -J maybe -M
+            M = 'M' if options.meeus else ''
+            print(f"./contrib/misc/{basename} -kJ{M} -S {options.start} "
+                  f"-E {options.end}\n")
+            start_time = time.time()
+            underline_length = 46
+            print('-' * underline_length)
+            data = [f"date: {str(date):<13} "
                     f"d: {d:<9} "
                     f"jd: {jd:<9}"
                     for date, d, jd in jpt.consecutive_days(options)]
-        elif options.g_date:
+        elif options.g_date:  # -G
+            print(f"./contrib/misc/{basename} -kG {options.compare} "
+                  f"-S {options.start} -E {options.end}\n")
+            start_time = time.time()
+            underline_length = 46
+            print('-' * underline_length)
             data = [f"last_date: {str(last_date):<15} "
                     f"last_jd: {d:<9} "
                     f"item: {str(item):<15} "
@@ -849,21 +904,38 @@ if __name__ == "__main__":
                     for last_date, d, item, jd, date in jpt.consecutive_days(
                         options)]
         else:
+            start_time = time.time()
             print("You must choose one of -[JG].", file=sys.stderr)
             ret = 1
 
-        if ret == 0: [print(item) for item in data]
+        if ret == 0:
+            if data:
+                [print(item) for item in data]
+            else:
+                print("No inconsistencies.")
+
+            print('-' * underline_length)
+            find_elapse_time(start_time)
     elif options.julian_day:  # -j
         if options.start is None or options.end is None:
             print("If option -j is used, -S and -E must also be used.",
                   file=sys.stderr)
             ret = 1
         else:
+            print(f"./contrib/misc/{basename} -j -S {options.start} "
+                  f"-E {options.end}\n")
+            start_time = time.time()
+            underline_length = 42
+            print('-' * underline_length)
+            print("Gregorian Date          Proleptic JPD")
+            print('-' * underline_length)
             data = [
                 f"{str(date):<23} "
                 f"{jdss:<14}"
                 for date, jdss in jpt.julian_day_with_ut_sunset(options)]
             [print(item) for item in data]
+            print('-' * underline_length)
+            find_elapse_time(start_time)
     else:
         parser.print_help()
 

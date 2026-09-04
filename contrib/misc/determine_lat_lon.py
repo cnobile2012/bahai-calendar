@@ -106,7 +106,7 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         (180, (2023, 3, 20), (2023, 3, 20, 21, 24)),
         (181, (2024, 3, 19), (2024, 3, 20,  3,  6)),
         (182, (2025, 3, 19), (2025, 3, 20,  9,  1)),
-        (183, (2026, 3, 20), (2026, 3, 20, 14, 46)),  # ?
+        (183, (2026, 3, 20), (2026, 3, 20, 14, 46)),  # ? Problem year
         (184, (2027, 3, 20), (2027, 3, 20, 20, 25)),
         (185, (2028, 3, 19), (2028, 3, 20,  2, 17)),
         (186, (2029, 3, 19), (2029, 3, 20,  8,  2)),
@@ -139,7 +139,7 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         (213, (2056, 3, 19), (2056, 3, 19, 21, 11)),
         (214, (2057, 3, 19), (2057, 3, 20,  3,  8)),
         (215, (2058, 3, 19), (2058, 3, 20,  9,  5)),
-        (216, (2059, 3, 19), (2059, 3, 20, 14, 44)),  # ?
+        (216, (2059, 3, 19), (2059, 3, 20, 14, 44)),  # ? Problem year
         (217, (2060, 3, 19), (2060, 3, 19, 20, 38)),
         (218, (2061, 3, 19), (2061, 3, 20,  2, 26)),
         (219, (2062, 3, 19), (2062, 3, 20,  8,  7)),
@@ -160,8 +160,7 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
     def __init__(self):
         super().__init__()
         self.gc = GregorianCalendar()
-        #self.BADI_COORD = self._BAHAI_LOCATION[:3]
-        self.BADI_COORD = (35.69435, 51.288701, 3.5)
+        self.BADI_COORD = self._BAHAI_LOCATION[:3]
 
     def dump_sunset_after_ve(self, options):
         """
@@ -204,17 +203,18 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
         """
         data = []
         start_lon = 51
-        dec_start = 240000  # Low range longitude (131000 orig)
-        dec_end = 420000    # High range longitude (337200 orig)
+        dec_start = 100000  # Low range longitude
+        dec_end = 600000    # High range longitude
         year_dict = {}
         wc_data = self.WC_DATA if options.full else self.WC_DATA_183_216
+        #sl = []
 
         for year, wc_ss, nasa_ve in wc_data:
             min_max = []
             print(f"Working on year {year}", file=sys.stderr)
 
-            # Capture data for each longitude only if the WC sunset is equal
-            # to the derived sunset.
+            # Capture data for each longitude only if the World Centre sunset
+            # is equal to the derived sunset.
             for dp in range(dec_start, dec_end):
                 lon = round(start_lon + dp / 1e6, 6)
                 if lon > round(start_lon + dec_end / 1e6, 6): break
@@ -223,12 +223,16 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
                                                options, test_lon=lon)
                 jd_diff = round(my_ss_jd - my_ve_jd, 6)
 
+                #  World Centre sunset date == My sunset data
                 if wc_ss == my_g_ss[:3]:
                     min_max.append((lon, jd_diff, wc_ss, my_g_ss[:3]))
 
+            #sl.append(dp)
+
             if not len(min_max):
-                print("The min_max list is empty indicating the start and "
-                      "end criteria may need to be altered.", file=sys.stderr)
+                print("The min_max list is empty indicating that the "
+                      "dec_start and dec_end variables may need to be "
+                      "changed.", file=sys.stderr)
                 break
 
             min_l = 100
@@ -253,28 +257,29 @@ class DumpFindMomentOfEquinoxesOrSolstices(BahaiCalendar):
 
         for year, (wc_date0, my_date0, min_l, diff0,
                    wc_date1, my_date1, max_l, diff1) in year_dict.items():
-            data.append((year, wc_date0, my_date0, min_l, diff0,
+            data.append((year,
+                         wc_date0, my_date0, min_l, diff0,
                          wc_date1, my_date1, max_l, diff1))
 
-        return data
+        return data, (dec_start, dec_end)
 
     # Support methods
 
     def _find_data(self, year, wc_ss, nasa_ve, options, *, test_lon=None):
-        # We do not use Astronomical version of the date to JD formula as it
-        # will not work with any of Meeus' equations.
+        # We do not use the Astronomical (proleptic) JD formula as it will
+        # not work with any of Meeus' equations.
         lat, lon, zone = self.BADI_COORD
         lon = test_lon if test_lon and options.longitude else lon
         first_of_march = (wc_ss[0], wc_ss[1], 1)  # Replace day with the 1st
         jd = self.gc.jd_from_gregorian_date(first_of_march)  # Get JD day
         my_ve_ut = self._find_moment_of_equinoxes_or_solstices(jd)
-        my_ss_ut = self._sun_setting(my_ve_ut, lat, lon)
+        my_ss_ut = self._sun_setting_greg(my_ve_ut, lat, lon)
 
         # It is allowed to have a Vernal Equinox to be up to one minute
         # before sunset and still use that sunset as the beginning of
         # the year. If a day = 1 then 1 minute is 0.0006944444444444444
         if my_ve_ut < (my_ss_ut - 0.0006944444444444444):
-            my_ss_ut = self._sun_setting(my_ve_ut - 1, lat, lon)
+            my_ss_ut = self._sun_setting_greg(my_ve_ut - 1, lat, lon)
 
         my_local_jd = self._local_zone_correction(my_ss_ut, zone, mod_jd=True)
         my_local_ss = self.gc.gregorian_date_from_jd(my_local_jd, hms=True)
@@ -384,9 +389,11 @@ if __name__ == "__main__":
         else:
             start_time = time.time()
             F = 'F' if options.full else ''
-            data = cfmes.find_longitude(options)
+            underline_length = 104
+            data, meta = cfmes.find_longitude(options)
             print(f"./contrib/misc/{basename} -lL{F}")
-            print("Year | WC Date       My Date       Min Lon   JD Diff  |  "
+            print('-' * underline_length)
+            print("Year | WC Date       My Date       Min Lon   JD Diff   | "
                   "WC Date       My Date       Max Lon   JD Diff")
             print("-" * 4, "|", "-" * 47, "|", "-" * 47)
             [print(f"{year:04} | "
@@ -398,12 +405,15 @@ if __name__ == "__main__":
                    f"{str(my_date1):<13} "
                    f"{max_l:<9} "
                    f"{fmt_float(diff1, 2, 6)}"
-                   ) for (year, wc_date0, my_date0, min_l, diff0,
+                   ) for (year,
+                          wc_date0, my_date0, min_l, diff0,
                           wc_date1, my_date1, max_l, diff1) in data]
+            print('-' * underline_length)
             r_min_l = r_max_l = 0
 
-            for (year, wc_date0, my_date0, min_l, diff0,
-                 wc_date1, my_date1, max_l, diff1) in data:
+            for items in data:
+                min_l, max_l = items[3], items[7]
+
                 if min_l > r_min_l:
                     r_min_l = min_l
                 elif max_l > r_max_l:
@@ -411,6 +421,12 @@ if __name__ == "__main__":
 
             optimal_lon = (r_max_l - r_min_l) / 2 + r_min_l
             print(f"\nThe optimal longitude is: {optimal_lon}")
+            dec_start = meta[0]
+            dec_end = meta[1]
+            #sl = meta[2]
+            print(f"Iteration start:          {dec_start}")
+            print(f"Iteration end:            {dec_end}")
+            #print(f"Iteration min and max:    {sl}")
             end_time = time.time()
             days, hours, minutes, seconds = cfmes._dhms_from_seconds(
                 end_time - start_time)

@@ -29,12 +29,9 @@ class PosixTests(BahaiCalendar):
     The Python datetime package seems to always give local time from
     timestamps not UTC time. For Example:
 
-    | In [18]: dtime.datetime.fromtimestamp(18000) This -5 hours from UTC time.
+    | In [18]: dtime.datetime.fromtimestamp(18000)  # -5 hours from UTC time.
     | Out[19]: datetime.datetime(1970, 1, 1, 0, 0)
     """
-    #BADI_COORD = (35.682376, 51.285817, 3.5)
-    #LOCAL_COORD = (35.5894, -78.7792, -5.0)
-    GMT_COORD = (51.477928, -0.001545, 0)
     EPOCH = datetime(126, 16, 2, None, None, 7, 59, 32, 488800,
                      tzinfo=timezone.utc)
     _MONTHS = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
@@ -197,7 +194,6 @@ class PosixTests(BahaiCalendar):
         for name in names:
             lat, lon, zone = zones[name]
             start_time = time.time()
-            #print(name, lat, lon, zone, file=sys.stderr)
             zone_txt = f"{zone}" if zone < 0 else f"+{zone}"
             filename = f"posix-TS{zone_txt}-{name}.txt"
             fullpath = os.path.join(path, filename)
@@ -273,7 +269,7 @@ class PosixTests(BahaiCalendar):
         """
         jd = self.jd_from_badi_date(b_date, *coords)
         jd = self._meeus_from_exact(jd)
-        ss = self._sun_setting(jd, *coords)
+        ss = self._sun_setting_badi(jd, *coords)
         partial_day = ss % 1
         utc_hms = self._hms_from_decimal_day(partial_day + 0.5, us=True)
         b_time = 0.5 - partial_day
@@ -583,7 +579,7 @@ if __name__ == "__main__":
         else:
             start_time = time.time()
             data = pt.round_trip(options)
-            underline_length = 135
+            underline_length = 133
             print(f"./contrib/misc/{basename} -rA {options.latitude} "
                   f"-O {options.longitude} -Z {options.zone} "
                   f"-S {options.start} -E {options.end}")
