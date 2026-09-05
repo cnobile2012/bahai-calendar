@@ -74,3 +74,26 @@ class Test__init__(unittest.TestCase):
             from badidatetime import LOCAL_COORD
             self.assertEqual(expected, LOCAL_COORD[:2], msg.format(
                 expected, LOCAL_COORD[:2]))
+
+    #@unittest.skip("Temporarily skipped")
+    def test_has_local(self):
+        """
+        Test that the has_local function returns True if the local is set
+        or False if not set.
+        """
+        from badidatetime import (set_local_coordinates, has_locale,
+                                  LOCAL_COORD, BADI_COORD)
+        data = (
+            (LOCAL_COORD, BADI_COORD, False, False),
+            (LOCAL_COORD, BADI_COORD, True, True),
+            )
+        msg = "Expected {}, found {}."
+
+        for local, badi, update, expected in data:
+            if update:
+                set_local_coordinates(35.7796, -78.6382)
+            else:
+                set_local_coordinates(*BADI_COORD[:2])
+
+            result = has_locale()
+            self.assertEqual(expected, result, msg.format(expected, result))

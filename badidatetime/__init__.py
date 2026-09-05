@@ -5,6 +5,7 @@
 __docformat__ = "restructuredtext en"
 
 import sys
+import importlib
 from datetime import datetime as _dtime
 
 from tzlocal import get_localzone
@@ -58,7 +59,7 @@ def _get_local_coordinates() -> tuple | None:
         lat = _LOCAL_COORDS[0]
         lon = _LOCAL_COORDS[1]
     elif _LOCAL_COORDS and _LOCAL_COORDS[2]:
-        geolocator = Nominatim(user_agent='nc-bookkeeper')
+        geolocator = Nominatim(user_agent='badidatetime')
         location = geolocator.geocode(_LOCAL_COORDS[2])
         assert location, ("Could not find the latitude and longitude with "
                           f"locale {_LOCAL_COORDS[2]}.")
@@ -75,7 +76,6 @@ def _locale_config() -> None:
     This function sets the `datetime.LOCAL_COORD` and `datetime.LOCAL`
     variables.
     """
-    import importlib
     badidt = importlib.import_module('badidatetime.datetime')
     coords = _get_local_coordinates()
 
@@ -96,7 +96,7 @@ def set_local_coordinates(lat: float=None, lon: float=None, *,
     """
     Either supply the latitude and longitude or the locale. If you supply the
     the latitude and longitude not network call is needed, the locale will
-    cause a network call. If nothing is supplied the coordinents for Tehran
+    cause a network call. If nothing is supplied the coordinates for Tehran
     will be used.
 
     :param float lat: the latitude of your locale.
@@ -106,6 +106,19 @@ def set_local_coordinates(lat: float=None, lon: float=None, *,
     global _LOCAL_COORDS
     _LOCAL_COORDS = (lat, lon, locale)
     _locale_config()
+
+
+def has_locale() -> bool:
+    """
+    Determine if the local coordinates have been set.
+
+    :returns: `True` if the local coordinates have been set and `False` if not.
+    :rtype: bool
+    """
+    badidt = importlib.import_module('badidatetime.datetime')
+    b_lat, b_lon, z = badidt.BADI_COORD
+    lat, lon, z = badidt.LOCAL_COORD
+    return b_lat != lat or b_lon != lon
 
 
 def init_leap_cache():
@@ -123,4 +136,5 @@ if BahaiCalendar._YEAR_START is None:
 
 set_local_coordinates()
 __all__ = ('BahaiCalendar', 'GregorianCalendar', 'init_leap_cache',
-           'set_local_coordinates', '__version__') + dt_objects
+           'has_locale', 'set_local_coordinates', '__version__'
+           ) + dt_objects
