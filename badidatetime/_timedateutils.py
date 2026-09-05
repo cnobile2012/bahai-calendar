@@ -1051,15 +1051,8 @@ class TimeDateUtils(BahaiCalendar):
                   current day.
         :rtype: int
         """
-        # For some reason out of the 3004 years that are provided only
-        # these three years are off by 1.
-        if year in (-1796, -1792, -1788):
-            fudge = 1
-        else:
-            fudge = 0
-
         return (self._days_before_year(year) + self._days_before_month(
-            year, month) + day + fudge + self.DAYS_BEFORE_1ST_YEAR)
+            year, month) + day + self.DAYS_BEFORE_1ST_YEAR)
 
     def _ord2ymd(self, n: int, *, short: bool=False) -> tuple:
         """

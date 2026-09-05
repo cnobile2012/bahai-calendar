@@ -49,6 +49,7 @@ class SunsetTests(BahaiCalendar):
         (1582, 10, 14, 17, 28),  # -12
         (1582, 10, 15, 17, 27),  # -2
         )
+    LOCAL_COORDS = (35.5894, -78.7792, -5.0)
 
     def __init__(self):
         super().__init__()
@@ -72,7 +73,7 @@ class SunsetTests(BahaiCalendar):
 
         return data
 
-    @patch.object(badidt, 'LOCAL_COORD', (35.5894, -78.7792, -5.0))
+    @patch.object(badidt, 'LOCAL_COORD', LOCAL_COORDS)
     def record_sunset_flip(self, options):
         """
         Create a table in one second intervals from just before to just after
@@ -83,7 +84,7 @@ class SunsetTests(BahaiCalendar):
         data = []
         tz = ZoneInfo('US/Eastern')
         tz_info = badidatetime.TZWithCoords.fromzoneinfo(
-            tz, 35.5894, -78.7792, -5.0)
+            tz, *self.LOCAL_COORDS)
         exit = False
 
         while not exit:
@@ -127,7 +128,7 @@ if __name__ == "__main__":
         help="Analyze the sunset between my and Meeus' algorithms.")
     parser.add_argument(
         '-f', '--flip', action='store_true', default=False, dest='flip',
-        help="Record the day and time flip when sunset happens..")
+        help="Record the day and time flip when sunset happens.")
     options = parser.parse_args()
 
     st = SunsetTests()
@@ -159,7 +160,6 @@ if __name__ == "__main__":
     elif options.flip:  # -f
         data = st.record_sunset_flip(options)
         print(data)
-
     else:
         parser.print_help()
 
