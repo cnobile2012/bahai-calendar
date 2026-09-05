@@ -45,12 +45,16 @@ longitude. Follow the processed outlined below.
    from badidatetime import date, time, datetime, ...
 
 The ``set_local_coordinates()`` function takes one or two arguments which can
-be either the locale or latitude and longitude. If the latitude and longitude
-are supplied the network will not be used. However, if the locale is supplied
-then there will be a network call. The locale can be a street address, city,
-state, county or even a zip code. If you are writing code that uses this API
-your users will need to enter either their locale or latitude and longitude
+be either the locale or the latitude and longitude. If the latitude and
+longitude are supplied the network will not be used. However, if the locale is
+supplied then there will be a network call. The locale can be a street address,
+city, state, county or even a zip code. If you are writing code that uses this
+API your users will need to enter either their locale or latitude and longitude
 which you would redirect to this function.
+
+There is also a ``has_locale()`` function that returns `True` if the
+``set_local_coordinates()`` was called for the local locale. It returns `False`
+if the coordinents are still set to `Tehran`.
 
 ---------------
 datetime module
