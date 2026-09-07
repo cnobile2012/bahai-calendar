@@ -52,7 +52,7 @@ city, state, county or even a zip code. If you are writing code that uses this
 API your users will need to enter either their locale or latitude and longitude
 which you would redirect to this function.
 
-There is also a ``has_locale()`` function that returns `True` if the
+There is also a ``has_local_coords()`` function that returns `True` if the
 ``set_local_coordinates()`` was called for the local locale. It returns `False`
 if the coordinents are still set to `Tehran`.
 

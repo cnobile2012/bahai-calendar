@@ -20,8 +20,35 @@ dt_objects = ('date', 'datetime', 'time', 'timezone', 'timedelta', 'tzinfo',
               'MONTHNAMES_ABV', 'DAYNAMES', 'DAYNAMES_ABV')
 
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 _LOCAL_COORDS = ()
+
+
+class CoordinateManager:
+    __slots__ = ('latitude', 'longitude', 'zone')
+
+    def __init__(self):
+        self.latitude: float=None
+        self.longitude: float=None
+        self.zone: float=None
+
+    def __iter__(self):
+        yield self.latitude
+        yield self.longitude
+        yield self.zone
+
+    def set(self, coords):
+        self.latitude, self.longitude, self.zone = coords
+
+    def __getitem__(self, index):
+        return tuple(self)[index]
+
+    def __len__(self):
+        return 3
+
+    def __repr__(self):
+        return (f"{self.__class__.__name__}({self.latitude}, "
+                f"{self.longitude}, {self.zone})")
 
 
 def _local_timezone_info():
@@ -46,16 +73,16 @@ def _local_timezone_info():
 
 def _get_local_coordinates() -> tuple | None:
     """
-    Get the locales coordinates and timezone offset for generating the
+    Get the locale's coordinates and timezone offset for generating the
     Rata Die.
 
     :returns: The latitude, longitude, and the offset in hours.
     :rtype: tuple or None
     """
+    global _LOCAL_COORDS
     offset, dst, key = _local_timezone_info()
 
-    if (_LOCAL_COORDS and isinstance(_LOCAL_COORDS[0], float)
-        and isinstance(_LOCAL_COORDS[1], float)):
+    if _LOCAL_COORDS and None not in _LOCAL_COORDS:
         lat = _LOCAL_COORDS[0]
         lon = _LOCAL_COORDS[1]
     elif _LOCAL_COORDS and _LOCAL_COORDS[2]:
@@ -66,9 +93,12 @@ def _get_local_coordinates() -> tuple | None:
         lat = location.latitude
         lon = location.longitude
     else:
-        lat = lon = None
+        lat = lon = zone = None
 
-    return lat, lon, offset / 3600
+    if lat and lon:
+        zone = offset / 3600
+
+    return lat, lon, zone
 
 
 def _locale_config() -> None:
@@ -79,10 +109,13 @@ def _locale_config() -> None:
     badidt = importlib.import_module('badidatetime.datetime')
     coords = _get_local_coordinates()
 
+    if not hasattr(badidt, 'LOCAL_COORD'):
+        badidt.LOCAL_COORD = CoordinateManager()
+
     if None in coords:
-        badidt.LOCAL_COORD = badidt.BADI_COORD
+        badidt.LOCAL_COORD.set(badidt.BADI_COORD)
     else:
-        badidt.LOCAL_COORD = coords
+        badidt.LOCAL_COORD.set(coords)
 
     badidt.LOCAL = badidt.timezone.local = badidt.timezone._create(
         badidt.timedelta(hours=badidt.LOCAL_COORD[2]))
@@ -104,11 +137,16 @@ def set_local_coordinates(lat: float=None, lon: float=None, *,
     :param str or int locale: This is your city, street address, or zip code.
     """
     global _LOCAL_COORDS
+
+    if None not in (lat, lon) and isinstance(lat, str) or isinstance(lon, str):
+        lat = float(lat)
+        lon = float(lon)
+
     _LOCAL_COORDS = (lat, lon, locale)
     _locale_config()
 
 
-def has_locale() -> bool:
+def has_local_coords() -> bool:
     """
     Determine if the local coordinates have been set.
 

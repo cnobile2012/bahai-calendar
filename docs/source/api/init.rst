@@ -16,11 +16,11 @@ set_local_coordinates
 
 .. autofunction:: badidatetime.set_local_coordinates
 
-----------
-has_locale
-----------
+----------------
+has_local_coords
+----------------
 
-.. autofunction:: badidatetime.has_locale
+.. autofunction:: badidatetime.has_local_coords
 
 --------------------
 _local_timezone_info

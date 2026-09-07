@@ -24,7 +24,7 @@ MAXYEAR = BahaiCalendar.MAXYEAR
 BADI_IANA = BahaiCalendar._BAHAI_LOCATION[3]  # Asia/Tehran
 BADI_COORD = BahaiCalendar._BAHAI_LOCATION[:3]
 GMT_COORD = (51.477928, -0.001545, 0)
-# LOCAL_COORD and LOCAL is lazily configured to the local coordinates
+# LOCAL_COORD and LOCAL are lazily configured to the local coordinates
 # if enables or the default is BADI_COORD, and BADI.
 MONTHNAMES = [v for k, v in _td_utils.MONTHNAMES.items()]
 MONTHNAMES_ABV = [v for k, v in _td_utils.MONTHNAMES_ABV.items()]
