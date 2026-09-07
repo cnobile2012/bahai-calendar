@@ -28,9 +28,9 @@ class CoordinateManager:
     __slots__ = ('latitude', 'longitude', 'zone')
 
     def __init__(self):
-        self.latitude: float=None
-        self.longitude: float=None
-        self.zone: float=None
+        self.latitude: float = None
+        self.longitude: float = None
+        self.zone: float = None
 
     def __iter__(self):
         yield self.latitude
@@ -79,7 +79,6 @@ def _get_local_coordinates() -> tuple | None:
     :returns: The latitude, longitude, and the offset in hours.
     :rtype: tuple or None
     """
-    global _LOCAL_COORDS
     offset, dst, key = _local_timezone_info()
 
     if _LOCAL_COORDS and None not in _LOCAL_COORDS:
