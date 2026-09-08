@@ -24,7 +24,7 @@ To start off you must decide if you will have internet access while using the
 API. If not then the latitude and longitude should be provided or the
 locale. See below. If the default is accepted then your locale becomes Tehran
 Iran. This means the functionality in `fromtimestamp`, `atimezone`, and `LOCAL`
-will be the default coordinents in the `date` and `datetime` classes.
+will be the default coordinates in the `date` and `datetime` classes.
 
 The default setting will not do a network request for the latitude and
 longitude. Follow the processed outlined below.
@@ -54,7 +54,7 @@ which you would redirect to this function.
 
 There is also a ``has_local_coords()`` function that returns `True` if the
 ``set_local_coordinates()`` was called for the local locale. It returns `False`
-if the coordinents are still set to `Tehran`.
+if the coordinates are still set to `Tehran`.
 
 ---------------
 datetime module
@@ -94,7 +94,8 @@ that comes with Python. There are exceptions in two categories.
    a. The **BADI** timezone object.
 
    b. The **LOCAL** timezone object. The **LOCAL** object will be the same as
-      the **BADI** object if the geocoder is left disabled, see above.
+      the **BADI** object if **set_local_coordinates()** function is not
+      executed.
 
    c. The **BADI_IANA** which gives the `IANA` text value for Tehran, Iran.
 
@@ -104,9 +105,10 @@ that comes with Python. There are exceptions in two categories.
    e. The **GMT_COORD** is a tuple containing the latitude, longitude, and
       offset from UTC which is always 0.0.
 
-   f. The **LOCAL_COORD** is a tuple containing the latitude, longitude, and
-      offset of the current locale or will be the same as **BADI_COORD** if the
-      geocoder is left disabled, see above.
+   f. The **LOCAL_COORD** is a **CoordinateManager** class which acts like a
+      tuple, it contains the latitude, longitude, and zone of the current
+      locale or will be the same as **BADI_COORD** if the
+      **set_local_coordinates()** function is not executed.
 
 The `timedelta` and `tzinfo` classes are direct references to the Python
 standard `datetime` package. All other classes have been rewritten.
@@ -145,7 +147,7 @@ and the Gregorian dates. The **GregorianCalendar** class supers the
 These fractions can be converted to hours, minutes, seconds, and microseconds.
 
 --------------------
-base_clanedar module
+base_calendar module
 --------------------
 
 ++++++++++++++

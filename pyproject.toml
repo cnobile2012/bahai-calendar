@@ -40,7 +40,7 @@ license-files = ["LICEN[CS]E*"]
 dependencies = [
   "tzlocal",
   "tzdata",
-  "geocoder",
+  "geopy",
 ]
 keywords = ["Calendar", "Badi Calendar", "Badí' Calendar", "Bahá'i", "Baha'i",
             "Badí'", "Badi"]
